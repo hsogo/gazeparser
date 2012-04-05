@@ -14,6 +14,8 @@ import ImageDraw
 import numpy
 import OpenGL.GL
 
+import GazeParser.Configuration
+
 ########################################
 # データファイルの設定
 import Tkinter
@@ -26,7 +28,7 @@ class FileWindow(Tkinter.Frame):
         self.FileNameEntry = Tkinter.StringVar()
         self.IPAdressEntry = Tkinter.StringVar()
         self.IPAdressEntry.set('192.168.11.3')
-        self.isDummy = Tkinter.IntVar()
+        self.isDummy = Tkinter.BooleanVar()
         Tkinter.Label(self,text=u'ファイル名',
                       font=('Helvetica', '12')).grid(row=0,column=0,padx=5,pady=5)
         Tkinter.Entry(self,textvariable=self.FileNameEntry,
@@ -56,17 +58,16 @@ wf.winfo_toplevel().destroy()
 
 fname = tkFileDialog.askopenfilename()
 
-tracker = GazeParser.Tracker.getController(backend='VisionEgg',dummy=wf.isDummy)
+tracker = GazeParser.Tracker.getController(backend='VisionEgg',dummy=wf.isDummy.get())
 tracker.setReceiveImageSize((320,240))
-tracker.connect('192.168.11.7')
-#tracker.connect(wf.IPAdressEntry.get())
+tracker.connect(wf.IPAdressEntry.get())
 
 screen = VisionEgg.Core.get_default_screen();
 SX,SY = screen.size
 
 tracker.openDataFile(subjectName+'.csv')
-tracker.sendSettings(ScreenSize=(SX,SY),ViewingDistance=57.296,DotsPerCentimeter=(37.7,37.7),ScreenOrigin='BottomLeft',TrackerOrigin='BottomLeft')
-
+config = GazeParser.Configuration.Config()
+tracker.sendSettings(config.getParametersAsDict())
 
 calarea = [SX/2-400,SY/2-300,SX/2+400,SY/2+300]
 
@@ -79,7 +80,7 @@ for p in calTargetPos:
     p[0] = p[0] + SX/2
     p[1] = p[1] + SY/2
 
-tracker.setCalibrationTargetLocations(calarea, calTargetPos)
+tracker.setCalibrationTargetPositions(calarea, calTargetPos)
 tracker.setCalibrationScreen(screen)
 
 while True:
