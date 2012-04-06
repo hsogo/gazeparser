@@ -1,0 +1,165 @@
+/*!
+@file GazeTrackerCommon.h
+@author Hiroyuki Sogo
+@copyright GNU General Public License (GPL) version 3.
+@brief Camera-independent constants, external functions and valiables are defined.
+
+@date 2012/03/23
+- Custom menu is supported.
+*/
+
+#pragma comment(lib,"d3dxof.lib")
+#pragma comment(lib,"dxguid.lib")
+#pragma comment(lib,"d3dx9d.lib")
+#pragma comment(lib,"d3d9.lib")
+#pragma comment(lib,"winmm.lib")
+#if _DEBUG
+    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cxcore210d.lib")
+    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cv210d.lib")
+    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\highgui210d.lib")
+#else
+    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cxcore210.lib")
+    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cv210.lib")
+    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\highgui210.lib")
+#endif
+#pragma comment(lib,"Ws2_32.lib")
+
+
+#define WM_TCPSOCKET     (WM_USER+1)
+
+#define PREVIEW_WIDTH  640
+#define PREVIEW_HEIGHT 480
+
+#define SENDIMAGE_WIDTH ROI_WIDTH
+#define SENDIMAGE_HEIGHT ROI_HEIGHT
+
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 768
+
+#define MAXDATA 432000 //120*60sec*60min, 393*18min
+#define MAXCALDATA 7200 // 120*30sec, 393*18.3sec
+#define MAXCALPOINT 100
+#define MAXMESSAGE 65536
+
+//Error codes
+#define E_FIRST_ERROR_CODE -10000
+#define E_PUPIL_PURKINJE_DETECTION_FAIL -10000 
+#define E_MULTIPLE_PUPIL_CANDIDATES -10001
+#define E_NO_PUPIL_CANDIDATE        -10002
+#define	E_NO_PURKINJE_CANDIDATE     -10003
+#define E_NO_FINE_PUPIL_CANDIDATE   -10004
+#define S_PUPIL_PURKINJE                 0
+
+//Recording Mode
+#define RECORDING_MONOCULAR 0
+#define RECORDING_BINOCULAR 1
+
+#define MONO_X 0
+#define MONO_Y 1
+#define MONO_1 0
+#define BIN_LX 0
+#define BIN_LY 1
+#define BIN_RX 2
+#define BIN_RY 3
+#define BIN_L 0
+#define BIN_R 1
+#define BIN_X 0
+#define BIN_Y 1
+
+#define MONO_PUPIL_X    0
+#define MONO_PUPIL_Y    1
+#define MONO_PURKINJE_X 2
+#define MONO_PURKINJE_Y 3
+#define BIN_PUPIL_LX    0
+#define BIN_PUPIL_LY    1
+#define BIN_PURKINJE_LX 2
+#define BIN_PURKINJE_LY 3
+#define BIN_PUPIL_RX    4
+#define BIN_PUPIL_RY    5
+#define BIN_PURKINJE_RX 6
+#define BIN_PURKINJE_RY 7
+
+#define MENU_THRESH_PUPIL 0
+#define MENU_THRESH_PURKINJE 1
+#define MENU_MINPOINTS 2
+#define MENU_MAXPOINTS 3
+#define MENU_SEARCHAREA 4
+#define MENU_EXCLUDEAREA 5
+#define MENU_GENERAL_NUM 6
+
+#define MENU_MAX_ITEMS 12
+#define MENU_STRING_MAX 24
+
+extern int detectPupilPurkinjeMono( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[8] );
+extern int detectPupilPurkinjeBin( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[8] );
+extern void estimateParametersMono(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
+extern void estimateParametersBin(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
+extern void getGazePositionMono(double* im, double* xy);
+extern void getGazePositionBin(double* im, double* xy);
+extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], RECT calArea);
+extern void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], double Goodness[4], double MaxError[2], double MeanError[2] );
+extern void drawRecordingMessage( void );
+
+extern HRESULT sockInit(HWND hWnd);
+extern HRESULT sockAccept(HWND hWnd);
+extern HRESULT sockProcess(HWND hWnd, LPARAM lParam);
+
+extern unsigned char* g_frameBuffer;
+extern int* g_pCameraTextureBuffer;
+extern int* g_pCalResultTextureBuffer;
+extern unsigned char* g_SendImageBuffer;
+extern int g_CameraWidth;
+extern int g_CameraHeight;
+extern int g_PreviewWidth;
+extern int g_PreviewHeight;
+extern int g_ROIWidth;
+extern int g_ROIHeight;
+
+extern bool g_isShowingCameraImage;
+
+
+extern double g_ParamX[6],g_ParamY[6]; //Monocular: 3 params, Binocular 6 parameters.
+extern int g_Threshold;
+
+extern int g_RecordingMode;
+
+extern char g_DataPath[512];
+
+extern void startCalibration(int x1, int y1, int x2, int y2);
+extern void getCalSample(double x, double y);
+extern void endCalibration(void);
+
+extern void startValidation(int x1, int y1, int x2, int y2);
+extern void getValSample(double x, double y);
+extern void endValidation(void);
+extern void getCalibrationResults( double Goodness[4], double MaxError[2], double MeanError[2] );
+extern void getCalibrationResultsDetail( char* errorstr, int size, int* len);
+extern void getCurrentMenuString(char *p, int maxlen);
+
+extern void toggleCalResult(void);
+
+extern void startRecording(char* message);
+extern void stopRecording(char* message);
+extern void openDataFile(char* filename);
+extern void closeDataFile(void);
+extern void insertMessage(char* message);
+extern void insertSettings(char* settings);
+extern void connectionClosed(void);
+extern void getEyePosition(double* pos);
+extern void saveCameraImage(char* filename);
+
+//Camera.cpp
+extern HRESULT initCamera( char* ParamPath );
+extern HRESULT getCameraImage( void );
+extern void cleanupCamera( void );
+
+extern LARGE_INTEGER g_CounterFreq;
+
+//custom menu
+extern HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int currentMenuPosition);
+extern int g_CustomMenuNum;
+extern void saveCameraParameters(char* ParamPath);
+extern void updateCustomMenuText( void );
+extern TCHAR g_MenuString[MENU_MAX_ITEMS][MENU_STRING_MAX];
+
+extern HRESULT initBuffers(void);
