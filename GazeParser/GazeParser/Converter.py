@@ -1,7 +1,7 @@
 """
-Part of GazeParser package.
-Copyright (C) 2012 Hiroyuki Sogo.
-Distributed under the terms of the GNU General Public License (GPL).
+.. Part of GazeParser package.
+.. Copyright (C) 2012 Hiroyuki Sogo.
+.. Distributed under the terms of the GNU General Public License (GPL).
 """
 
 import numpy
@@ -759,8 +759,146 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
 
 def TobiiToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=True):
     """
+    Under construction
     Currently this converter is not impremented.
     .. todo:: imprement Tobii to GazeParser datafile.
     """
+    (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
+    filenameRoot,ext = os.path.splitext(srcFilename)
+    inputfileFullpath = os.path.join(workDir, srcFilename)
+    dstFileName = os.path.join(workDir, filenameRoot+'.db')
+    additionalDataFileName = os.path.join(workDir, filenameRoot+'.txt')
     
-    pass
+    print 'TobiiToGazeParser start.'
+    if os.path.exists(dstFileName) and (not overwrite):
+        print 'Can not open %s.' % dstFileName
+        return 'CANNOT_OPEN_OUTPUT_FILE'
+    
+    if not isinstance(config, GazeParser.Configuration.Config):
+        print 'Use default configuration.'
+        config = GazeParser.Configuration.Config()
+    
+    fid = open(inputfileFullpath,"r")
+    
+    field = {}
+    #read header part
+    for line in fid:
+        itemList = line.rstrip().split('\t')
+        if itemList[0] == 'Recording resolution:':
+            config.SCREEN_WIDTH = int(itemList[1].split('x')[0])
+            config.SCREEN_HEIGHT = int(itemList[1].split('x')[1])
+            print 'SCREEN_WIDTH: %d' % config.SCREEN_WIDTH
+            print 'SCREEN_HEIGHT: %d' % config.SCREEN_HEIGHT
+        elif itemList[0] == 'Timestamp':
+            #read column header
+            for i in range(len(itemList)):
+                field[itemList[i]]= i
+            break
+    
+    Data = []
+    
+    T = []
+    LHV = []
+    RHV = []
+    M = []
+    FIX = []
+    GAZE = []
+    
+    currentFixationIndex = -1
+    
+    for line in fid:
+        itemList = line.rstrip().split('\t')
+        
+        isGazeDataAvailable = False
+        #record gaze position
+        if itemList[field['GazePointXLeft']] != '':
+            isGazeDataAvailable = True
+            LHV.append((float(itemList[field['GazePointXLeft']]),float(itemList[field['GazePointYLeft']])))
+        else:
+            LHV.append((numpy.NaN,numpy.NaN))
+        
+        if itemList[field['GazePointXRight']] != '':
+            isGazeDataAvailable = True
+            RHV.append((float(itemList[field['GazePointXRight']]),float(itemList[field['GazePointYRight']])))
+        else:
+            RHV.append((numpy.NaN,numpy.NaN))
+        
+        #record timestamp if gaze data is available
+        if isGazeDataAvailable:
+            T.append(int(itemList[field['Timestamp']]))
+            GAZE.append((float(itemList[field['GazePointX']]),float(itemList[field['GazePointY']])))
+        
+        #record fixation
+        if itemList[field['FixationIndex']] != '':
+            if int(itemList[field['FixationIndex']]) > currentFixationIndex:
+                FIX.append(int(itemList[field['Timestamp']]))
+                currentFixationIndex = int(itemList[field['FixationIndex']])
+            
+        #record event
+        if itemList[field['Event']] != '':
+            message = ','.join((itemList[field['Event']],itemList[field['EventKey']],itemList[field['Data1']],itemList[field['Data2']],itemList[field['Descriptor']]))
+            M.append((int(itemList[field['Timestamp']]),message))
+        
+    #last fixation ... check exact format of Tobii data later.
+    #FIX.append(int(itemList[field['Timestamp']]))
+    
+    #convert to numpy.ndarray
+    Tlist = numpy.array(T)
+    Llist = numpy.array(LHV)
+    Rlist = numpy.array(RHV)
+    Glist = numpy.array(GAZE)
+    
+    #build FixationData
+    FixList = []
+    for fi in range(len(FIX)-1):
+        startTime = FIX[fi]
+        endTime = FIX[fi+1]
+        startIndex = numpy.where(startTime==Tlist)[0][0]
+        endIndex = numpy.where(endTime==Tlist)[0][0]-1
+        duration = endTime-startTime
+        (cogx,cogy) = numpy.mean(Glist[startIndex:endIndex,:],axis=0)
+        FixList.append(GazeParser.FixationData((startTime,endTime),(duration,cogx,cogy),Tlist))
+    
+    """
+    elif itemList[0] == "EFIX" and flgInBlock: # End of a fixation
+        listFixationTime.append([int(itemList[2]),int(itemList[3])])
+        listFixationData.append([int(itemList[4]),float(itemList[5]),float(itemList[6])])
+        # (Duration, COG_x, COG_Y)
+
+    FixList = []
+    for fix in range(len(listFixationTime)):
+        if listFixationTime[fix][0] >= listBlock[blk][0] and listFixationTime[fix][1] <= listBlock[blk][1]:
+            FixList.append(GazeParser.FixationData(listFixationTime[fix],listFixationitemList[fix],Tlist))
+    """
+    
+    #build MessageData
+    MsgList = []
+    for msg in range(len(M)):
+        MsgList.append(GazeParser.MessageData(M[msg]))
+    
+    #build GazeData
+    G = GazeParser.GazeData(Tlist,Llist,Rlist,[],FixList,MsgList,[],'B',config=config)
+    
+    Data.append(G)
+    
+    if os.path.exists(additionalDataFileName):
+        print 'Additional data file is found.'
+        adfp = open(additionalDataFileName)
+        ad = []
+        for line in adfp:
+            data = line.split('\t')
+            for di in range(len(data)):
+                try:
+                    data[di] = int(data[di])
+                except:
+                    try:
+                        data[di] = float(data[di])
+                    except:
+                        pass
+            ad.append(data)
+        GazeParser.save(dstFileName,Data,additionalData=ad)
+    else:
+        GazeParser.save(dstFileName,Data)
+    
+    
+    return 'SUCCESS'

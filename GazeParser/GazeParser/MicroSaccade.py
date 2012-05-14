@@ -1,7 +1,7 @@
 """
-Part of GazeParser package.
-Copyright (C) 2012 Hiroyuki Sogo.
-Distributed under the terms of the GNU General Public License (GPL).
+.. Part of GazeParser package.
+.. Copyright (C) 2012 Hiroyuki Sogo.
+.. Distributed under the terms of the GNU General Public License (GPL).
 
 Detecting microsaccades with the method of Engbert & Kliegl (2003).
 The class Microsacc and the binsacc function are port of Engbert and Kliel's 
@@ -17,7 +17,7 @@ Example
     
     #get a list of microsaccades in the same format
     # as that of the original matlab function.
-    microsacc = MicroSacc(data[0].L,250) 
+    microsacc = MicroSacc(data[0].L,250)
     
     #get a list of microsaccades as a list of the GazeParser.Core.Saccade objects.
     microsacc = buildMicroSaccadesListMonocular(data[0].L,samplingFreq=250)
@@ -60,18 +60,17 @@ class MicroSacc(object):
             v = self._vecvel(data)
             self.ms = self._microsacc(data,v)
         else:
-            self.ms = self._binsacc(data[:,0:2],data[:,2:4])
+            #self.ms = self._binsacc(data[:,0:2],data[:,2:4])
+            lms = self._microsacc(data[:,0:2],v)
+            rms = self._microsacc(data[:,2:4],v)
+            self.ms = self._binsacc(lms,rms)
         
     def _vecvel(self,data):
         N = len(data)
         v = numpy.zeros((N,2))
         if self.velocityType == 'fast':
-            #for k in range(1,N-1):
-            #    v[k,:] = self.samplingFreq/2.0 * (data[k+1,:]-data[k-1,:])
             v[1:-1] = self.samplingFreq/2.0 * (data[2:]-data[:-2])
         elif self.velocityType == 'slow':
-            #for k in range(2,N-2):
-            #    v[k,:] = self.samplingFreq/6.0 * (data[k+2,:]+data[k+1,:]-data[k-1,:]-data[k-2,:])
             v[2:-2] = self.samplingFreq/6.0 * (data[4:]+data[3:-1]-data[1:-3]-data[:-4])
         return v
     
@@ -125,7 +124,24 @@ class MicroSacc(object):
         
         return sac
     
-def binsacc(L,R):
+    ms = None
+    """
+    An nx7 array which holds detected microsaccades
+    
+    ====== ==================================================
+    column description
+    ====== ==================================================
+    0      index of the starting point of the microsaccade
+    1      index of the termination pointof the microsaccade
+    2      peak velocity
+    3      amplitude
+    4      direction
+    5      holizontal amplitude
+    6      vertical amplitude
+    ====== ==================================================
+    """
+    
+def _binsacc(L,R):
     """
     :param numpy.ndarray L: left eye's microsaccades, detected by MicroSacc.
     :param numpy.ndarray R: right eye's microsaccades, detected by MicroSacc.
@@ -182,6 +198,20 @@ def binsacc(L,R):
     return numpy.array(sac)
     
 def buildMicroSaccadesListMonocular(gazeData,eye,samplingFreq=None,velocityType='slow',vfac=6,minSamples=3):
+    """
+    Get a list of microsaccades as a list of the GazeParser.Core.Saccade objects.
+    
+    :param gazeData: an instance of :class:`~GazeParser.Core.GazeData`
+    :param str eye: 'L' or 'R'
+    :samplingFreq: sampling frequency of the data. If None, sampling frequency 
+        is calculated from the data.  Default value is None.
+    :param str velocityType: 'slow' or 'fast'. See Engbert & Kliegl (2003) for detail. 
+        Default value is 'slow'.
+    :param int vfac: Modifying threshold for microsaccade detection. See Engbert & Kliegl (2003) for detail. 
+        Default value is 6.
+    :param int minSamples: Microsaccades must have samples equal or larger than this value.
+        Default value is 3.
+    """
     T = gazeData.T
     if eye=='L':
         HV = gazeData.L
@@ -208,6 +238,19 @@ def buildMicroSaccadesListMonocular(gazeData,eye,samplingFreq=None,velocityType=
     return numpy.array(saclist)
 
 def buildMicroSaccadeListBinocular(gazeData,samplingFreq=None,velocityType='slow',vfac=6,minSamples=3):
+    """
+    Get a list of binocular microsaccades as a list of the GazeParser.Core.Saccade objects.
+    
+    :param gazeData: an instance of :class:`~GazeParser.Core.GazeData`
+    :samplingFreq: sampling frequency of the data. If None, sampling frequency 
+        is calculated from the data.  Default value is None.
+    :param str velocityType: 'slow' or 'fast'. See Engbert & Kliegl (2003) for detail. 
+        Default value is 'slow'.
+    :param int vfac: Modifying threshold for microsaccade detection. See Engbert & Kliegl (2003) for detail. 
+        Default value is 6.
+    :param int minSamples: Microsaccades must have samples equal or larger than this value.
+        Default value is 3.    
+    """
     if samplingFreq==None:
         samplingFreq = 1000.0/numpy.mean(numpy.diff(T))
     

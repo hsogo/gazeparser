@@ -1,8 +1,7 @@
 """
-Part of GazeParser package.
-Copyright (C) 2012 Hiroyuki Sogo.
-Distributed under the terms of the GNU General Public License (GPL).
-
+.. Part of GazeParser package.
+.. Copyright (C) 2012 Hiroyuki Sogo.
+.. Distributed under the terms of the GNU General Public License (GPL).
 
 .. note:: This module is under construction. Functions have not been tested.
 """
