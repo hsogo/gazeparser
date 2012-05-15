@@ -813,15 +813,17 @@ def TobiiToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=Tr
         #record gaze position
         if itemList[field['GazePointXLeft']] != '':
             isGazeDataAvailable = True
-            LHV.append((float(itemList[field['GazePointXLeft']]),float(itemList[field['GazePointYLeft']])))
-        else:
-            LHV.append((numpy.NaN,numpy.NaN))
+            if itemList[field['ValidityLeft']] != '4':
+                LHV.append((float(itemList[field['GazePointXLeft']]),float(itemList[field['GazePointYLeft']])))
+            else: #pupil was not found
+                LHV.append((numpy.NaN,numpy.NaN))
         
         if itemList[field['GazePointXRight']] != '':
             isGazeDataAvailable = True
-            RHV.append((float(itemList[field['GazePointXRight']]),float(itemList[field['GazePointYRight']])))
-        else:
-            RHV.append((numpy.NaN,numpy.NaN))
+            if itemList[field['ValidityRight']] != '4':
+                RHV.append((float(itemList[field['GazePointXRight']]),float(itemList[field['GazePointYRight']])))
+            else: #pupil was not found
+                RHV.append((numpy.NaN,numpy.NaN))
         
         #record timestamp if gaze data is available
         if isGazeDataAvailable:

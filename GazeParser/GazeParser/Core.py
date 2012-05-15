@@ -643,20 +643,41 @@ class GazeData(object):
         evtimelist = st[(fromTime <= st) & (st <= toTime)]
         evlist = self.Sac[(fromTime <= st) & (st <= toTime)]
         for f in self.Fix:
-            idx = numpy.where(f.startTime<evtimelist)[0]
-            if idx.size>0:
-                evtimelist = numpy.insert(evtimelist,idx[0],f.startTime)
-                evlist = numpy.insert(evlist,idx[0],f)
+            if len(evtimelist) == 0:
+                evtimelist = numpy.array([float(f.startTime)])
+                evlist = numpy.array([f])
+            else:
+                idx = numpy.where(f.startTime<evtimelist)[0]
+                if idx.size>0:
+                    evtimelist = numpy.insert(evtimelist,idx[0],f.startTime)
+                    evlist = numpy.insert(evlist,idx[0],f)
+                else:
+                    evtimelist = numpy.append(evtimelist,f.startTime)
+                    evlist = numpy.append(evlist,f)
         for b in self.Blink:
-            idx = numpy.where(b.startTime<evtimelist)[0]
-            if idx.size>0:
-                evtimelist = numpy.insert(evtimelist,idx[0],b.startTime)
-                evlist = numpy.insert(evlist,idx[0],b)
+            if len(evtimelist) == 0:
+                evtimelist = numpy.array([float(b.startTime)])
+                evlist = numpy.array([b])
+            else:
+                idx = numpy.where(b.startTime<evtimelist)[0]
+                if idx.size>0:
+                    evtimelist = numpy.insert(evtimelist,idx[0],b.startTime)
+                    evlist = numpy.insert(evlist,idx[0],b)
+                else:
+                    evtimelist = numpy.append(evtimelist,b.startTime)
+                    evlist = numpy.append(evlist,b)
         for m in self.Msg:
-            idx = numpy.where(m.time<evtimelist)[0]
-            if idx.size>0:
-                evtimelist = numpy.insert(evtimelist,idx[0],m.time)
-                evlist = numpy.insert(evlist,idx[0],m)
+            if len(evtimelist) == 0:
+                evtimelist = numpy.array([float(m.time)])
+                evlist = numpy.array([m])
+            else:
+                idx = numpy.where(m.time<evtimelist)[0]
+                if idx.size>0:
+                    evtimelist = numpy.insert(evtimelist,idx[0],m.time)
+                    evlist = numpy.insert(evlist,idx[0],m)
+                else:
+                    evtimelist = numpy.append(evtimelist,m.time)
+                    evlist = numpy.append(evlist,m)
         return evlist,evtimelist
     
     def findNearestIndexFromMessage(self,messageID):

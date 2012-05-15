@@ -357,12 +357,12 @@ class mainWindow(Tkinter.Frame):
             for f in range(self.D[self.tr].nFix):
                 if self.selectiontype.get()=='Emphasize':
                     if f in self.selectionlist['Fix']:
-                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),color='w',bbox=dict(boxstyle="round", fc="0.2"))
+                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),color='w',backgroundcolor='k')
                     else:
-                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),bbox=dict(boxstyle="round", fc="0.8"))
+                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f))
                 else:
                     if f in self.selectionlist['Fix']:
-                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),bbox=dict(boxstyle="round", fc="0.8"))
+                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f))
             
             for s in range(self.D[self.tr].nSac):
                 if self.selectiontype.get()=='Emphasize':
@@ -376,15 +376,6 @@ class mainWindow(Tkinter.Frame):
                 
             for b in range(self.D[self.tr].nBlink):
                 self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Blink[b].startTime-tStart,-10000], self.D[self.tr].Blink[b].duration,20000,ec=(0.2,0.2,0.2),hatch='\\',fc=(0.8,0.8,0.8),alpha=0.3))
-            
-            for m in range(self.D[self.tr].nMsg):
-                mObj = self.D[self.tr].Msg[m]
-                if len(mObj.text)>10:
-                    msgtext = str(m) + ':' + mObj.text[:7] + '...'
-                else:
-                    msgtext = str(m) + ':' + mObj.text
-                self.ax.plot([mObj.time,mObj.time],[-10000,10000],'g-',linewidth=3.0)
-                self.ax.text(mObj.time,0,msgtext,bbox=dict(boxstyle="round", fc=(0.8,1.0,0.9)))
             
             #self.ax.axis(self.plotAreaTXY)
         self.ax.axis(self.currentPlotArea)
