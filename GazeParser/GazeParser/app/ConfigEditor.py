@@ -16,7 +16,7 @@ from GazeParser.Configuration import GazeParserDefaults, GazeParserOptions, Conf
 
 
 class ConfigEditor(Tkinter.Frame):
-    def __init__(self, master = None):
+    def __init__(self, master = None, configObject=None):
         Tkinter.Frame.__init__(self, master)
         self.master.title('GazeParser Configuration')
         self.ftypes = [('GazeParser ConfigFile', '*.cfg')]
@@ -29,14 +29,6 @@ class ConfigEditor(Tkinter.Frame):
             Tkinter.Entry(self, textvariable=self.StringVarDict[key]).grid(row=r, column=1)
             r+=1
         
-        """
-        self.buttonFrame = Tkinter.Frame(master)
-        Tkinter.Button(self.buttonFrame, text='Save', command=self._save).grid(row=r, column=0, padx=10, ipadx=5, ipady=2)
-        Tkinter.Button(self.buttonFrame, text='Save as...', command=self._saveas).grid(row=r, column=1, padx=10, ipadx=5, ipady=2)
-        Tkinter.Button(self.buttonFrame, text='Exit without saving', command=self._quitfunc).grid(row=r, column=2, padx=10, ipadx=5, ipady=2)
-        self.buttonFrame.pack()
-        """
-        
         self.menu_bar = Tkinter.Menu(tearoff=False)
         self.menu_file = Tkinter.Menu(tearoff=False)
         self.menu_bar.add_cascade(label='File',menu=self.menu_file,underline=0)
@@ -47,6 +39,11 @@ class ConfigEditor(Tkinter.Frame):
         self.master.configure(menu = self.menu_bar)
         
         self.pack()
+        
+        if configObject != None:
+            for key in GazeParserOptions:
+                self.StringVarDict[key].set(getattr(configObject,key))
+        
         
     def _openfile(self):
         if os.path.exists(GazeParser.configDir):

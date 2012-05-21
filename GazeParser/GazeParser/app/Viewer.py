@@ -19,6 +19,8 @@ import os
 import numpy
 import matplotlib,matplotlib.figure
 import matplotlib.patches
+import GazeParser.app.ConfigEditor
+import GazeParser.app.Converters
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
 class mainWindow(Tkinter.Frame):
@@ -52,8 +54,10 @@ class mainWindow(Tkinter.Frame):
         self.menu_view.add_command(label='Modify Plot Range',under=0,command=self._modifyPlotRange)
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
+        self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
         self.menu_convert.add_command(label='Convert GazeTracker CSV',under=0,command=self._convertGT)
         self.menu_convert.add_command(label='Convert Eyelink EDF',under=0,command=self._convertEL)
+        self.menu_convert.add_command(label='Convert Tobii TSV',under=0,command=self._convertTSV)
         self.menu_convert.add_command(label='Interactive config',under=0,command=self._interactive)
         self.master.configure(menu = self.menu_bar)
         
@@ -301,11 +305,14 @@ class mainWindow(Tkinter.Frame):
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=4.0,color=col)
+                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),color='w',bbox=dict(boxstyle="round", fc="0.2"))
                         else:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),bbox=dict(boxstyle="round", fc="0.8"))
                     else:
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),bbox=dict(boxstyle="round", fc="0.8"))
                 if self.hasRData:
                     ftraj = self.D[self.tr].getFixTraj(f,'R')
                     col = (0.6,0,0)
@@ -427,21 +434,26 @@ class mainWindow(Tkinter.Frame):
         self._plotData()
         
     
+    def _configEditor(self):
+        w = Tkinter.Toplevel(self)
+        GazeParser.app.ConfigEditor.ConfigEditor(master=w)
+    
     def _convertGT(self):
         w = Tkinter.Toplevel(self)
-        GazeParser.Converter.ConverterGUI(master=w)
+        GazeParser.app.Converters.Converter(master=w)
     
     def _convertEL(self):
         w = Tkinter.Toplevel(self)
-        GazeParser.Converter.EyelinkConverterGUI(master=w)
+        GazeParser.app.Converters.EyelinkConverter(master=w)
+    
+    def _convertTSV(self):
+        w = Tkinter.Toplevel(self)
+        GazeParser.app.Converters.TobiiConverter(master=w)
     
     def _interactive(self):
         w = Tkinter.Toplevel(self)
-        GazeParser.Converter.InteractiveConfigGUI(master=w)
+        GazeParser.app.Converters.InteractiveConfig(master=w)
     
-
-
-
 
 if __name__ == '__main__':
     w = mainWindow()
