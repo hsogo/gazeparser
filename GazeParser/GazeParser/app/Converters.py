@@ -307,11 +307,11 @@ class TobiiConverter(Tkinter.Frame):
         
         self._updateParameters()
         
-        fname = tkFileDialog.askopenfilename(filetypes=[('Tobii EDF file','*.tsv')],initialdir=GazeParser.homeDir)
+        fname = tkFileDialog.askopenfilename(filetypes=[('Tobii TSV file','*.tsv')],initialdir=GazeParser.homeDir)
         if fname=='':
             return
         try:
-            res = GazeParser.Converter.TobiiToGazeParser(fname,'B',overwrite=overwrite,config=self.config)
+            res = GazeParser.Converter.TobiiToGazeParser(fname,overwrite=overwrite,config=self.config)
         except:
             info = sys.exc_info()
             tbinfo = traceback.format_tb(info[2])
@@ -337,14 +337,14 @@ class TobiiConverter(Tkinter.Frame):
             return
         
         self._updateParameters()
-        ext = '.edf'
+        ext = '.tsv'
         
         donelist = []
         errorlist = []
         for f in os.listdir(dname):
             if os.path.splitext(f)[1].lower() == ext:
                 try:
-                    res = GazeParser.Converter.TobiiToGazeParser(os.path.join(dname,f),'B',overwrite=overwrite,config=self.config)
+                    res = GazeParser.Converter.TobiiToGazeParser(os.path.join(dname,f),overwrite=overwrite,config=self.config)
                 except:
                     info = sys.exc_info()
                     tbinfo = traceback.format_tb(info[2])
