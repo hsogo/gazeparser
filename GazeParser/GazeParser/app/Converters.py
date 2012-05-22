@@ -441,14 +441,14 @@ class InteractiveConfig(Tkinter.Frame):
             paramStr += '%s =\n' % (key,)
         self.paramFrame1 = Tkinter.Frame(self.mainFrame, bd=3, relief='groove') #subFrame1
         self.param1Text = Tkinter.StringVar()
-        self.param1Text.set('Parameter 1\n\n'+paramStr)
+        self.param1Text.set('Original Configuration\n\n'+paramStr)
         param1Label = Tkinter.Label(self.paramFrame1,textvariable=self.param1Text,justify=Tkinter.LEFT)
         param1Label.pack(side=Tkinter.TOP)
         self.paramFrame1.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
         
         self.paramFrame2 = Tkinter.Frame(self.mainFrame, bd=3, relief='groove') #subFrame2
         self.param2Text = Tkinter.StringVar()
-        self.param2Text.set('Parameter 2\n\n'+paramStr)
+        self.param2Text.set('New Configuration\n\n'+paramStr)
         param2Label = Tkinter.Label(self.paramFrame2,textvariable=self.param2Text,justify=Tkinter.LEFT)
         param2Label.pack(side=Tkinter.TOP)
         Tkinter.Button(self.paramFrame2, text='Edit', command=self._editParameters).pack(side=Tkinter.TOP)
@@ -466,7 +466,7 @@ class InteractiveConfig(Tkinter.Frame):
         self.tr = 0
         self.newSacList = None
         self.newSacList = None
-        configStr = 'Parameter 1\n\n'
+        configStr = 'Original Configuration\n\n'
         for key in GazeParser.Configuration.GazeParserOptions:
             configStr += '%s = %s\n' % (key, getattr(self.D[self.tr].config, key))
         self.param1Text.set(configStr)
@@ -580,13 +580,13 @@ class InteractiveConfig(Tkinter.Frame):
                     setattr(self.config, key, value)
         except:
             tkMessageBox.showerror('Error','Illeagal value in '+key)
-            configStr = 'Parameter 2\n\n'
+            configStr = 'New Configuration\n\n'
             for key in GazeParser.Configuration.GazeParserOptions:
                 configStr += '%s = %s\n' % (key, getattr(self.config, key))
             self.param2Text.set(configStr)
             return
         
-        configStr = 'Parameter 2\n\n'
+        configStr = 'New Configuration\n\n'
         for key in GazeParser.Configuration.GazeParserOptions:
             configStr += '%s = %s\n' % (key, getattr(self.config, key))
         self.param2Text.set(configStr)
@@ -624,27 +624,12 @@ class InteractiveConfig(Tkinter.Frame):
     
     
     def _exportConfig(self):
-        try:
-            vth = float(self.velThresholdEntry1.get())
-            dth = float(self.minDurationEntry1.get())
-            sw = float(self.screenWidthEntry.get())
-            sh = float(self.screenHeightEntry.get())
-            vd = float(self.viewingDistanceEntry.get())
-            dpcw = float(self.dotsPerCentiWEntry.get())
-            dpch = float(self.dotsPerCentiHEntry.get())
-        except:
-            tkMessageBox.showerror('Error','Invalid values')
+        if self.config == None:
+            tkMessageBox.showerror('Error','New configuration is empty')
             return
-        self.config.SACCADE_VELOCITY_THRESHOLD = vth
-        self.config.SACCADE_MINIMUM_DURATION = dth
-        self.config.SCREEN_WIDTH = sw
-        self.config.SCREEN_HEIGHT = sh
-        self.config.VIEWING_DISTANCE = vd
-        self.config.DOTS_PER_CENTIMETER_H = dpcw
-        self.config.DOTS_PER_CENTIMETER_V = dpch
         
         try:
-            fdir = os.path.split(self.configFileName)[0]
+            fdir = os.path.split(self.dataFileName)[0]
         except:
             fdir = GazeParser.configDir
         
@@ -653,7 +638,7 @@ class InteractiveConfig(Tkinter.Frame):
             self.config.save(fname)
         except:
             tkMessageBox.showerror('Error','Could not write configuration to ' + fname)
-
+    
 
 if (__name__ == '__main__'):
     mw = Tkinter.Frame()
