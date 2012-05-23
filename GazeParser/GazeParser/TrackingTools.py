@@ -8,8 +8,7 @@
 
 import Image
 import ImageDraw
-import pygame
-import pygame.locals
+#import pygame, pygame.locals
 
 import socket
 import select
@@ -39,7 +38,7 @@ class BaseController:
     - self.updateScreen(self)
     - self.setCameraImage(self)
     - self.drawCalibrationResults(self)
-    - self.setCalibrationTarget(self)
+    - setCalibrationTargetPositions(self, area, calposlist)
     - self.getKeys(self)
     """
     def __init__(self, configFile=None):
@@ -512,66 +511,64 @@ class BaseController:
         self.showCameraImage = False
         self.showCalImage = False
         while True:
-            for e in pygame.event.get():
-                if e.type == pygame.locals.KEYDOWN:
-                    if e.key == pygame.locals.K_ESCAPE:
-                        return pygame.locals.K_ESCAPE
-                    elif e.key == pygame.locals.K_UP:
-                        self.sendCommand('key_UP'+chr(0))
-                        time.sleep(0.05)
-                        self.messageText=self.getCurrentMenuItem()
-                    elif e.key == pygame.locals.K_DOWN:
-                        self.sendCommand('key_DOWN'+chr(0))
-                        time.sleep(0.05)
-                        self.messageText=self.getCurrentMenuItem()
-                    elif e.key == pygame.locals.K_SPACE:
-                        self.sendCommand('key_SPACE'+chr(0))
-                    elif e.key == pygame.locals.K_a:
-                        if self.showCalDisplay:
-                            self.showCalDisplay = False
-                            self.showCameraImage = False
-                            self.showCalImage = False
-                        else:
-                            self.showCalDisplay = True
-                    elif e.key == pygame.locals.K_z:
-                        if self.showCalDisplay:
-                            self.showCameraImage = not self.showCameraImage
-                        else:
-                            self.showCameraImae = False
-                    elif e.key == pygame.locals.K_x:
-                        self.sendCommand('toggleCalResult'+chr(0))
-                        if self.showCalDisplay:
-                            self.showCalImage = not self.showCalImage
-                        else:
-                            self.showCalImage = False
-                    elif e.key == pygame.locals.K_c:
-                        self.sendCommand('startCal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
-                                         +str(self.calArea[2])+','+str(self.calArea[3])+chr(0))
+            keys = self.getKeys()
+            for key in keys:
+                if key == 'escape':
+                    return 'escape'
+                elif key == 'up':
+                    self.sendCommand('key_UP'+chr(0))
+                    time.sleep(0.05)
+                    self.messageText=self.getCurrentMenuItem()
+                elif key == 'down':
+                    self.sendCommand('key_DOWN'+chr(0))
+                    time.sleep(0.05)
+                    self.messageText=self.getCurrentMenuItem()
+                elif key == 'space':
+                    self.sendCommand('key_SPACE'+chr(0))
+                elif key == 'a':
+                    if self.showCalDisplay:
+                        self.showCalDisplay = False
                         self.showCameraImage = False
                         self.showCalImage = False
-                        self.doCalibration()
-                    elif e.key == pygame.locals.K_v:
-                        self.sendCommand('startVal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
-                                         +str(self.calArea[2])+','+str(self.calArea[3])+chr(0))
-                        self.showCameraImage = False
+                    else:
+                        self.showCalDisplay = True
+                elif key == 'z':
+                    if self.showCalDisplay:
+                        self.showCameraImage = not self.showCameraImage
+                    else:
+                        self.showCameraImae = False
+                elif key == 'x':
+                    self.sendCommand('toggleCalResult'+chr(0))
+                    if self.showCalDisplay:
+                        self.showCalImage = not self.showCalImage
+                    else:
                         self.showCalImage = False
-                        self.doValidation()
-                    elif e.key == pygame.locals.K_s:
-                        self.sendCommand('saveCameraImage'+chr(0)+str(time.clock())+'.bmp'+chr(0))
-                    elif e.key == pygame.locals.K_q:
-                        self.sendCommand('key_Q'+chr(0))
-                        return pygame.locals.K_q
-            
-            #These keys must be checked every time.
-            keyin = pygame.key.get_pressed()
-            if keyin[pygame.locals.K_LEFT]:
-                self.sendCommand('key_LEFT'+chr(0))
-                time.sleep(0.05)
-                self.messageText=self.getCurrentMenuItem()
-            elif keyin[pygame.locals.K_RIGHT]:
-                self.sendCommand('key_RIGHT'+chr(0))
-                time.sleep(0.05)
-                self.messageText=self.getCurrentMenuItem()
+                elif key == 'c':
+                    self.sendCommand('startCal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
+                                     +str(self.calArea[2])+','+str(self.calArea[3])+chr(0))
+                    self.showCameraImage = False
+                    self.showCalImage = False
+                    self.doCalibration()
+                elif key == 'v':
+                    self.sendCommand('startVal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
+                                     +str(self.calArea[2])+','+str(self.calArea[3])+chr(0))
+                    self.showCameraImage = False
+                    self.showCalImage = False
+                    self.doValidation()
+                elif key == 's':
+                    self.sendCommand('saveCameraImage'+chr(0)+str(time.clock())+'.bmp'+chr(0))
+                elif key == 'q':
+                    self.sendCommand('key_Q'+chr(0))
+                    return 'q'
+                
+                elif key == 'left':
+                    self.sendCommand('key_LEFT'+chr(0))
+                    time.sleep(0.05)
+                    self.messageText=self.getCurrentMenuItem()
+                elif key == 'right':
+                    self.sendCommand('key_RIGHT'+chr(0))
+                    time.sleep(0.05)
+                    self.messageText=self.getCurrentMenuItem()
             
             #get camera image
             if self.showCameraImage:
@@ -677,9 +674,11 @@ class BaseController:
         
         isWaitingKey = True
         while isWaitingKey:
-            for e in pygame.event.get():
-                if e.type == pygame.locals.KEYDOWN and e.key == pygame.locals.K_SPACE:
+            keys = self.getKeys()
+            for key in keys:
+                if key == 'space':
                     isWaitingKey = False
+                    break
             self.updateScreen()
         
         isCalibrating = True
@@ -737,9 +736,11 @@ class BaseController:
         
         isWaitingKey = True
         while isWaitingKey:
-            for e in pygame.event.get():
-                if e.type == pygame.locals.KEYDOWN and e.key == pygame.locals.K_SPACE:
+            keys = self.getKeys()
+            for key in keys:
+                if key == 'space':
                     isWaitingKey = False
+                    break
             self.updateScreen()
         
         isCalibrating = True
@@ -805,6 +806,8 @@ class ControllerVisionEggBackend(BaseController):
         from VisionEgg.Textures import Texture, TextureStimulus
         from VisionEgg.MoreStimuli import Target2D
         from VisionEgg.GL import GL_NEAREST
+        from pygame import key, event
+        from pygame.locals import KEYDOWN, K_LEFT, K_RIGHT
         self.VEswap_buffers = swap_buffers
         self.VEViewport = Viewport
         self.VETarget2D = Target2D
@@ -812,6 +815,11 @@ class ControllerVisionEggBackend(BaseController):
         self.VETextureStimulus = TextureStimulus
         self.VEText = Text
         self.VEGL_NEAREST = GL_NEAREST
+        self.VEKEYDOWN = KEYDOWN
+        self.VEkey = key
+        self.VEevent = event
+        self.VEK_LEFT = K_LEFT
+        self.VEK_RIGHT = K_RIGHT
         self.backend = 'VisionEgg'
         BaseController.__init__(self,configFile)
     
@@ -862,12 +870,12 @@ class ControllerVisionEggBackend(BaseController):
         self.imgCal.parameters.texture.get_texture_object().put_sub_image(self.PILimgCAL)
     
     def getKeys(self):
-        keys = [pygame.key.name(e.key) for e in pygame.event.get(pygame.locals.KEYDOWN)]
+        keys = [self.VEkey.name(e.key) for e in self.VEevent.get(self.VEKEYDOWN)]
         
-        keyin = pygame.key.get_pressed()
-        if keyin[pygame.locals.K_LEFT] and (not 'left' in keys):
+        keyin = self.VEkey.get_pressed()
+        if keyin[self.VEK_LEFT] and (not 'left' in keys):
             keys.append('left')
-        if keyin[pygame.locals.K_RIGHT] and (not 'right' in keys):
+        if keyin[self.VEK_RIGHT] and (not 'right' in keys):
             keys.append('right')
         
         return keys
@@ -886,14 +894,18 @@ class ControllerPsychoPyBackend(BaseController):
             configurations are used.
         """
         from psychopy.visual import TextStim, SimpleImageStim, Rect
-        from psycopy.event import getKeys
+        from psychopy.event import getKeys
+        from psychopy.misc import cm2pix,deg2pix,pix2cm,pix2deg
         self.PPSimpleImageStim = SimpleImageStim
         self.PPTextStim = TextStim
         self.PPRect = Rect
+        self.cm2pix = cm2pix
+        self.deg2pix = deg2pix
+        self.pix2cm = pix2cm
+        self.pix2deg = pix2deg
         self.backend = 'PsychoPy'
-        self.units = 'pix'
         BaseController.__init__(self,configFile)
-        self.getKyes = getKeys #for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
+        self.getKeys = getKeys #for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
     
     def setCalibrationScreen(self, win):
         """
@@ -904,15 +916,15 @@ class ControllerPsychoPyBackend(BaseController):
         """
         self.win = win
         (self.screenWidth, self.screenHeight) = win.size
-        self.caltarget = self.PPRect(self.win,width=10,height=10,units=self.units)
+        self.caltarget = self.PPRect(self.win,width=10,height=10,units='pix')
         self.PILimgCAL = Image.new('L',(self.screenWidth,self.screenHeight))
         self.img = self.PPSimpleImageStim(self.win, self.PILimg)
         self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL)
-        self.msgtext = self.PPTextStim(self.win, pos=(0,-self.previewHeight/2-12), units=self.units,text=self.getCurrentMenuItem())
+        self.msgtext = self.PPTextStim(self.win, pos=(0,-self.previewHeight/2-12), units='pix', text=self.getCurrentMenuItem())
         self.calResultScreenOrigin = (self.screenWidth/2, self.screenHeight/2)
     
     def updateScreen(self):
-        self.caltarget.setPos(self.calTargetPosition,units=self.units)
+        self.caltarget.setPos(self.calTargetPosition,units='pix')
         self.msgtext.setText(self.messageText)
         if self.showCameraImage:
             self.img.draw()
@@ -930,6 +942,67 @@ class ControllerPsychoPyBackend(BaseController):
     
     def drawCalibrationResults(self):
         self.imgCal.setImage(self.PILimgCAL)
+    
+    #Override
+    def setCalibrationTargetPositions(self, area, calposlist, units='pix'):
+        if units == 'norm':
+            pixArea = [int(area[0]*self.win.size[0]/2),int(area[1]*self.win.size[1]/2),int(area[2]*self.win.size[0]/2),int(area[3]*self.win.size[1]/2)]
+            pixCalposlist = [[int(p[0]*self.win.size[0]/2),int(p[1]*self.win.size[1]/2)] for p in calposlist]
+        elif units == 'height':
+            pixArea = [int(p*self.win.size[1]/2) for p in area]
+            pixCalposlist = [[int(p[0]*self.win.size[1]/2),int(p[1]*self.win.size[1]/2)] for p in calposlist]
+        elif units == 'cm':
+            pixArea = [int(self.cm2pix(p)) for p in area]
+            pixCalposlist = [[int(self.cm2pix(p[0])),int(self.cm2pix(p[1]))] for p in calposlist]
+        elif units == 'deg':
+            pixArea = [int(self.deg2pix(p)) for p in area]
+            pixCalposlist = [[int(self.deg2pix(p[0])),int(self.deg2pix(p[1]))] for p in calposlist]
+        elif units == 'pix':
+            pixArea = area
+            pixCalposlist = calposlist
+        else:
+            raise ValueError, 'units must bet norm, height, cm, deg or pix.'
+        
+        BaseController.setCalibrationTargetPositions(self,pixArea,pixCalposlist)
+    
+    #Override
+    def getEyePosition(self, timeout=0.02, units='pix'):
+        e = BaseController.getEyePosition(self, timeout)
+        if units == 'norm':
+            retval = []
+            for i in range(len(e)):
+                if e[i] == None:
+                    retval.append(None)
+                else:
+                    if i%2==0: #X
+                        retval.append(e[i]/float(self.win.size[0]/2))
+                    else: #Y
+                        retval.append(e[i]/float(self.win.size[1]/2))
+        elif units == 'height':
+            retval = []
+            for i in range(len(e)):
+                if e[i] == None:
+                    retval.append(None)
+                else:
+                    retval.append(e[i]/float(self.win.size[1]/2))
+        elif units == 'cm':
+            retval = []
+            for i in range(len(e)):
+                if e[i] == None:
+                    retval.append(None)
+                else:
+                    retval.append(pix2cm(e[i]))
+        elif units == 'deg':
+                if e[i] == None:
+                    retval.append(None)
+                else:
+                    retval.append(pix2deg(e[i]))
+        elif units == 'pix':
+            retval =  e
+        else:
+            raise ValueError, 'units must bet norm, height, cm, deg or pix.'
+        
+        return retval
     
 
 class DummyVisionEggBackend(ControllerVisionEggBackend):
