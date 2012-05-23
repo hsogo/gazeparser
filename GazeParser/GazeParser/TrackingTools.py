@@ -40,6 +40,7 @@ class BaseController:
     - self.setCameraImage(self)
     - self.drawCalibrationResults(self)
     - self.setCalibrationTarget(self)
+    - self.getKeys(self)
     """
     def __init__(self, configFile=None):
         """
@@ -860,6 +861,17 @@ class ControllerVisionEggBackend(BaseController):
     def drawCalibrationResults(self):
         self.imgCal.parameters.texture.get_texture_object().put_sub_image(self.PILimgCAL)
     
+    def getKeys(self):
+        keys = [pygame.key.name(e.key) for e in pygame.event.get(pygame.locals.KEYDOWN)]
+        
+        keyin = pygame.key.get_pressed()
+        if keyin[pygame.locals.K_LEFT] and (not 'left' in keys):
+            keys.append('left')
+        if keyin[pygame.locals.K_RIGHT] and (not 'right' in keys):
+            keys.append('right')
+        
+        return keys
+
 
 class ControllerPsychoPyBackend(BaseController):
     """
@@ -874,11 +886,14 @@ class ControllerPsychoPyBackend(BaseController):
             configurations are used.
         """
         from psychopy.visual import TextStim, SimpleImageStim, Rect
+        from psycopy.event import getKeys
         self.PPSimpleImageStim = SimpleImageStim
         self.PPTextStim = TextStim
         self.PPRect = Rect
         self.backend = 'PsychoPy'
+        self.units = 'pix'
         BaseController.__init__(self,configFile)
+        self.getKyes = getKeys #for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
     
     def setCalibrationScreen(self, win):
         """
@@ -889,15 +904,15 @@ class ControllerPsychoPyBackend(BaseController):
         """
         self.win = win
         (self.screenWidth, self.screenHeight) = win.size
-        self.caltarget = self.PPRect(self.win,width=10,height=10,units='pix')
+        self.caltarget = self.PPRect(self.win,width=10,height=10,units=self.units)
         self.PILimgCAL = Image.new('L',(self.screenWidth,self.screenHeight))
         self.img = self.PPSimpleImageStim(self.win, self.PILimg)
         self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL)
-        self.msgtext = self.PPTextStim(self.win, pos=(0,-self.previewHeight/2-12), units='pix',text=self.getCurrentMenuItem())
+        self.msgtext = self.PPTextStim(self.win, pos=(0,-self.previewHeight/2-12), units=self.units,text=self.getCurrentMenuItem())
         self.calResultScreenOrigin = (self.screenWidth/2, self.screenHeight/2)
     
     def updateScreen(self):
-        self.caltarget.setPos(self.calTargetPosition,units='pix')
+        self.caltarget.setPos(self.calTargetPosition,units=self.units)
         self.msgtext.setText(self.messageText)
         if self.showCameraImage:
             self.img.draw()
@@ -915,6 +930,7 @@ class ControllerPsychoPyBackend(BaseController):
     
     def drawCalibrationResults(self):
         self.imgCal.setImage(self.PILimgCAL)
+    
 
 class DummyVisionEggBackend(ControllerVisionEggBackend):
     """
@@ -1055,6 +1071,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     
     def sendCommand(self, command):
         print 'Dummy sendCommand: '+ command
+    
 
 
 def getController(backend, configFile=None, dummy=False):
