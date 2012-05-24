@@ -522,7 +522,7 @@ void cleanup()
     if( g_pD3D != NULL )
         g_pD3D->Release();
 
-    if( g_frameBuffer != NULL )
+	if( g_frameBuffer != NULL )
         free(g_frameBuffer);
 
     if( g_pCameraTextureBuffer != NULL )
@@ -534,8 +534,6 @@ void cleanup()
     if( g_SendImageBuffer != NULL )
         free(g_SendImageBuffer);
 
-    if( g_frameBuffer != NULL )
-        free(g_frameBuffer);
 
 }
 
@@ -1188,6 +1186,9 @@ wWinMain: Entry point of the application.
 @param[in] hInst
 
 @return int termination code.
+
+@date 2012/05/24
+- Bug fix: The application didn't close properly if multiple problems occurred during initializatin process. To fix this bug, return is called after waitQuitLoop() is finished.
 */
 INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 {
@@ -1232,7 +1233,8 @@ INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	HWND hWnd_message;
 	hWnd_message = CreateDialog(hInst, MAKEINTRESOURCE(IDD_MESSAGE), hWnd, (DLGPROC)MessageDlgProc);
 	if(hWnd_message==NULL){
-		return false;
+		UnregisterClass( "GazeTracker", wc.hInstance );
+		return -1;
 	}
 	ShowWindow( hWnd_message, SW_SHOWDEFAULT );
 	UpdateWindow( hWnd_message );
@@ -1242,6 +1244,8 @@ INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_INIT, 0L);
 		UpdateWindow( hWnd_message );
 		waitQuitLoop( hWnd );
+		UnregisterClass( "GazeTracker", wc.hInstance );
+		return -2;
 	}
 	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_INIT, 0L);
 	UpdateWindow( hWnd_message );
@@ -1250,6 +1254,8 @@ INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_BUFFER, 0L);
 		UpdateWindow( hWnd_message );
 		waitQuitLoop( hWnd );
+		UnregisterClass( "GazeTracker", wc.hInstance );
+		return -3;
 	}
 	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_BUFFER, 0L);
 	UpdateWindow( hWnd_message );
@@ -1258,6 +1264,8 @@ INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_SOCK, 0L);
 		UpdateWindow( hWnd_message );
 		waitQuitLoop( hWnd );
+		UnregisterClass( "GazeTracker", wc.hInstance );
+		return -4;
 	}
 	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_SOCK, 0L);
 	UpdateWindow( hWnd_message );
@@ -1266,6 +1274,8 @@ INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_CAMERA, 0L);
 		UpdateWindow( hWnd_message );
 		waitQuitLoop( hWnd );
+		UnregisterClass( "GazeTracker", wc.hInstance );
+		return -5;
 	}
 	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_CAMERA, 0L);
 	UpdateWindow( hWnd_message );
@@ -1274,6 +1284,8 @@ INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_D3D, 0L);
 		UpdateWindow( hWnd_message );
 		waitQuitLoop( hWnd );
+		UnregisterClass( "GazeTracker", wc.hInstance );
+		return -6;
 	}
 	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_D3D, 0L);
 	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_ALL, 0L);
@@ -1429,7 +1441,6 @@ void endCalibration(void)
 		setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
 	}else{
 		estimateParametersBin( g_DataCounter, g_EyeData, g_CalPointData );
-		/*TODO*/
 		setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
 	}
 
@@ -1553,13 +1564,6 @@ void startRecording(char* message)
 	struct tm ltm;
 
 	if(g_isCalibrated){ //if calibration has finished and recording has not been started, then start recording.
-		clearData();
-		
-		g_DataCounter = 0;
-		g_MessageEnd = 0;
-		g_isRecording = true;
-		g_isShowingCameraImage = false;
-		g_isShowingCalResult = false;
 
 		if(g_DataFP!=NULL)
 		{
@@ -1581,7 +1585,17 @@ void startRecording(char* message)
 				fprintf_s(g_DataFP,"#XPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamX[0],g_ParamX[1],g_ParamX[2],g_ParamX[3],g_ParamX[4],g_ParamX[5]);
 				fprintf_s(g_DataFP,"#YPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamY[0],g_ParamY[1],g_ParamY[2],g_ParamY[3],g_ParamY[4],g_ParamY[5]);
 			}
+			for(int i=0; i<g_NumCalPoint; i++){
+				fprintf_s(g_DataFP,"#CALPOINT,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1]);
+			}
 		}
+
+		clearData();
+		g_DataCounter = 0;
+		g_MessageEnd = 0;
+		g_isRecording = true;
+		g_isShowingCameraImage = false;
+		g_isShowingCalResult = false;
 
 		QueryPerformanceCounter(&g_RecStartTime);
 	}

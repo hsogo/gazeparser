@@ -24,12 +24,22 @@ int g_Exposure = 399;
 #define CUSTOMMENU_EXPOSURE		(MENU_GENERAL_NUM+1)
 #define CUSTOMMENU_NUM			2
 
-//-----------------------------------------------------------------------------
-// Name: InitCamera()
-// Desc: Initializes OptiTrack Camera
-//-----------------------------------------------------------------------------
+/*!
+initCamera: Initialize camera.
 
+Read parameters from the configuration file, start camera and set callback function.
+@attention If there are custom camera menu items, number of custom menu items must be set to g_CustomMenuNum in this function.
 
+@param[in] ParamPath Path to the camera configuration file.
+@return HRESULT
+@retval S_OK Camera is successfully initialized.
+@retval E_FAIL Initialization is failed.
+@note This function is necessary when you customize this file for your camera.
+@todo check whether number of custom menus are too many.
+
+@date 2012/05/24
+- Both width and height are checked (640x480 or 320x240).
+*/
 HRESULT initCamera( char* ParamPath )
 {
 	FILE* fp;
@@ -102,9 +112,9 @@ HRESULT initCamera( char* ParamPath )
 	g_camera->SetOption(NP_OPTION_INTENSITY,(CComVariant) g_Intensity);
 	g_camera->SetOption(NP_OPTION_EXPOSURE,(CComVariant) g_Exposure);
 
-	if(g_CameraWidth == 640)
+	if(g_CameraWidth == 640 && g_CameraHeight == 480)
 		g_camera->SetOption(NP_OPTION_GRAYSCALE_DECIMATION,(CComVariant)0);
-	else if(g_CameraWidth == 320)
+	else if(g_CameraWidth == 320 && g_CameraHeight == 240)
 		g_camera->SetOption(NP_OPTION_GRAYSCALE_DECIMATION,(CComVariant)2);
 	else
 		return E_FAIL;
@@ -126,7 +136,98 @@ HRESULT initCamera( char* ParamPath )
 	return S_OK;
 }
 
+/*!
+getCameraImage: Get new camera image.
 
+@return HRESULT
+@retval S_OK New frame is available.
+@retval E_FAIL There is no new frame.
+@note This function is necessary when you customize this file for your camera.
+*/
+HRESULT getCameraImage( void )
+{
+	g_camera->GetFrame(0, &g_frame);
+
+	if(g_frame!=0)
+	{
+		//== New Frame Has Arrived ==========================------
+		//frameCounter++;
+		g_camera->GetFrameImage(g_frame, g_CameraWidth, g_CameraHeight, g_CameraWidth, 8, (byte *) g_frameBuffer);
+		
+		g_frame->Free();
+		g_frame.Release();
+
+		return S_OK;
+	}
+	return E_FAIL;
+}
+
+/*!
+cleanupCamera: release camera resources.
+
+@return No value is returned.
+
+@note This function is necessary when you customize this file for your camera.
+*/
+void cleanupCamera()
+{
+	if(g_camera != NULL){
+		g_camera->Stop();
+		g_camera->Close();
+		g_camera.Release();
+
+		g_cameraCollection.Release();
+		CoUninitialize();
+	}
+}
+
+/*!
+saveCameraParameters: Save current camera parameters to the camera configuration file.
+
+@param[in] ParamPath Path to the camera configuration file.
+@return No value is returned.
+@note This function is necessary when you customize this file for your camera.
+ */
+void saveCameraParameters(char* ParamPath)
+{
+	FILE* fp;
+	char buff[512];
+
+	strcpy_s(buff,sizeof(buff),ParamPath);
+	strcat_s(buff,sizeof(buff),CAMERA_CONFIG_FILE);
+
+	if(fopen_s(&fp,buff,"w")!=NULL)
+	{
+		return;
+	}
+
+	fprintf_s(fp,"#If you want to recover original settings, delete this file and start eye tracker program.\n");
+	fprintf_s(fp,"FRAME_RATE=%d\n",g_FrameRate);
+	fprintf_s(fp,"EXPOSURE=%d\n",g_Exposure);
+	fprintf_s(fp,"INTENSITY=%d\n",g_Intensity);
+
+	fclose(fp);
+
+	return;
+}
+
+/*!
+customCameraMenu: Process camera-dependent custom menu items. If there is no custom menu items, this function do nothing.
+
+Your camera may have some parameters which you want to adjust with previewing camera image.
+In such cases, write nesessary codes to adjust these parameters in this function.
+This function is called from initD3D() at first, and from MsgProc() when left or right cursor key is pressed.
+
+@param[in] hWnd passed from MsgProc.
+@param[in] msg passed from MsgProc.
+@param[in] wParam passed from MsgProc.
+@param[in] lParam passed from MsgProc.
+@param[in] currentMenuPosition Current menu position.
+@return HRESULT
+@retval S_OK 
+@retval E_FAIL 
+@note This function is necessary when you customize this file for your camera.
+*/
 HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int currentMenuPosition)
 {
 	switch( msg )
@@ -185,68 +286,16 @@ HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int 
 
 }
 
+/*!
+updateCustomMenuText: update menu text of custom camera menu items.
 
-//-----------------------------------------------------------------------------
-// Name: getCameraImage()
-// Desc: get Camera Image
-//-----------------------------------------------------------------------------
-HRESULT getCameraImage( void )
-{
-	g_camera->GetFrame(0, &g_frame);
+Your camera may have some parameters which you want to adjust with previewing camera image.
+If your custom menu need to update its text, write nessesary codes to update text in this function.
+This function is called from initD3D() at first, and from MsgProc() when left or right cursor key is pressed.
 
-	if(g_frame!=0)
-	{
-		//== New Frame Has Arrived ==========================------
-		//frameCounter++;
-		g_camera->GetFrameImage(g_frame, g_CameraWidth, g_CameraHeight, g_CameraWidth, 8, (byte *) g_frameBuffer);
-		
-		g_frame->Free();
-		g_frame.Release();
-
-		return S_OK;
-	}
-	return E_FAIL;
-}
-
-//-----------------------------------------------------------------------------
-// Name: CleanupCamera()
-// Desc: Releases all previously initialized objects
-//-----------------------------------------------------------------------------
-void cleanupCamera()
-{
-	if(g_camera != NULL){
-		g_camera->Stop();
-		g_camera->Close();
-		g_camera.Release();
-
-		g_cameraCollection.Release();
-		CoUninitialize();
-	}
-}
-
-void saveCameraParameters(char* ParamPath)
-{
-	FILE* fp;
-	char buff[512];
-
-	strcpy_s(buff,sizeof(buff),ParamPath);
-	strcat_s(buff,sizeof(buff),CAMERA_CONFIG_FILE);
-
-	if(fopen_s(&fp,buff,"w")!=NULL)
-	{
-		return;
-	}
-
-	fprintf_s(fp,"#If you want to recover original settings, delete this file and start eye tracker program.\n");
-	fprintf_s(fp,"FRAME_RATE=%d\n",g_FrameRate);
-	fprintf_s(fp,"EXPOSURE=%d\n",g_Exposure);
-	fprintf_s(fp,"INTENSITY=%d\n",g_Intensity);
-
-	fclose(fp);
-
-	return;
-}
-
+@return No value is returned.
+@note This function is necessary when you customize this file for your camera.
+*/
 void updateCustomMenuText( void )
 {
 	_stprintf_s(g_MenuString[CUSTOMMENU_INTENSITY], MENU_STRING_MAX, _T("LightIntensity(%d)"), g_Intensity);
