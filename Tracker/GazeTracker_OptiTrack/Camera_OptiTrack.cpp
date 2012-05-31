@@ -1,4 +1,4 @@
-#include <windows.h>
+#include <SDL.h>
 #include <atlbase.h>
 #include "GazeTracker.h"
 #include "C:/Program Files/NaturalPoint/Optitrack/inc/optitrack.h"
@@ -216,26 +216,22 @@ customCameraMenu: Process camera-dependent custom menu items. If there is no cus
 
 Your camera may have some parameters which you want to adjust with previewing camera image.
 In such cases, write nesessary codes to adjust these parameters in this function.
-This function is called from initD3D() at first, and from MsgProc() when left or right cursor key is pressed.
+This function is when left or right cursor key is pressed.
 
-@param[in] hWnd passed from MsgProc.
-@param[in] msg passed from MsgProc.
-@param[in] wParam passed from MsgProc.
-@param[in] lParam passed from MsgProc.
+@param[in] SDLevent Event object.
 @param[in] currentMenuPosition Current menu position.
 @return HRESULT
 @retval S_OK 
 @retval E_FAIL 
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int currentMenuPosition)
+HRESULT customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 {
-	switch( msg )
-	{
-	case WM_KEYDOWN:
-		switch(wParam)
+	switch(SDLevent->type){
+	case SDL_KEYDOWN:
+		switch(SDLevent->key.keysym.sym)
 		{
-		case VK_LEFT:
+		case SDLK_LEFT:
 			switch(currentMenuPosition)
 			{
 			case CUSTOMMENU_INTENSITY:
@@ -255,7 +251,7 @@ HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int 
 			}
 			break;
 
-		case VK_RIGHT:
+		case SDLK_RIGHT:
 			switch(currentMenuPosition)
 			{
 			case CUSTOMMENU_INTENSITY:

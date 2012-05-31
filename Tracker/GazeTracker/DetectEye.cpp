@@ -9,9 +9,13 @@
 - Custom menu is supported.
 */
 
-#include <cxcore.h>
-#include <cv.h>
-#include <highgui.h>
+
+//#include <cxcore.h>
+//#include <cv.h>
+//#include <highgui.h>
+#include "opencv2/opencv.hpp"
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
 
 #include "GazeTracker.h"
 
@@ -129,7 +133,7 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		cv::RotatedRect r;
 		r = cv::fitEllipse(points);
 
-		if(r.center.x<g_ROI.x || r.center.y<g_ROI.y){
+		if(r.center.x<=g_ROI.x || r.center.y<=g_ROI.y || r.center.x>=g_ROI.x+g_ROI.width || r.center.y>=g_ROI.y+g_ROI.height){
 			//Center of the ellipse is not in g_ROI 
 			continue;
 		}
@@ -804,17 +808,3 @@ void saveCameraImage(char* filename)
 	cv::imwrite(buff, g_DstImg);
 }
 
-/*!
-drawRecordingMessage: Draw a message informing that the application is now recording data.
-
-This function is called immediately before calling renderBeforeRecording().
-
-@return No value is returned.
-*/
-void drawRecordingMessage(void)
-{
-	//clear image
-	cv::rectangle(g_CalImg,cv::Rect(0,0,g_PreviewWidth,g_PreviewHeight),CV_RGB(0,0,0),-1);
-	cv::putText(g_CalImg,"Recording...",cv::Point2d(64,64),cv::FONT_HERSHEY_COMPLEX,1.0,CV_RGB(255,255,255));
-
-}

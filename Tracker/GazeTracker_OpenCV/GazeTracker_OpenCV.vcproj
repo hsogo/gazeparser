@@ -2,9 +2,10 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="GazeTracker"
-	ProjectGUID="{0E6DF15D-D6F2-4F41-B04F-D88F721E60D0}"
-	RootNamespace="GazeTracker"
+	Name="GazeTracker_OpenCV"
+	ProjectGUID="{2C28F1D3-A363-4D23-8D82-9BDD441428D1}"
+	RootNamespace="GazeTracker_OpenCV"
+	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -40,11 +41,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="IMPERX"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -59,8 +60,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL_net.lib SDLmain.lib SDL.lib"
+				LinkIncremental="2"
 				GenerateDebugInformation="true"
+				SubSystem="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -112,10 +114,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="IMPERX"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -130,9 +132,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL_net.lib SDLmain.lib SDL.lib"
-				OutputFile="$(OutDir)\tracker.exe"
+				LinkIncremental="1"
 				GenerateDebugInformation="true"
+				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"
@@ -169,19 +171,19 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\Camera.cpp"
+				RelativePath=".\Camera_OpenCV.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\DetectEye.cpp"
+				RelativePath="..\GazeTracker\DetectEye.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\GazeTrackerMain.cpp"
+				RelativePath="..\GazeTracker\GazeTrackerMain.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\tcpipcom.cpp"
+				RelativePath="..\GazeTracker\tcpipcom.cpp"
 				>
 			</File>
 		</Filter>
@@ -194,32 +196,12 @@
 				RelativePath=".\GazeTracker.h"
 				>
 			</File>
-			<File
-				RelativePath=".\GazeTrackerCommon.h"
-				>
-			</File>
-			<File
-				RelativePath=".\resource.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="リソース ファイル"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
-			<File
-				RelativePath=".\GazeTracker.rc"
-				>
-			</File>
-			<File
-				RelativePath=".\icon.ico"
-				>
-			</File>
-			<File
-				RelativePath=".\logo.png"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

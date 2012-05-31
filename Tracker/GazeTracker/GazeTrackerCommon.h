@@ -8,22 +8,26 @@
 - Custom menu is supported.
 */
 
-#pragma comment(lib,"d3dxof.lib")
-#pragma comment(lib,"dxguid.lib")
-#pragma comment(lib,"d3dx9d.lib")
-#pragma comment(lib,"d3d9.lib")
+#define VERSION "0.5.0"
+
+#include <SDL.h>
+
 #pragma comment(lib,"winmm.lib")
 #if _DEBUG
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cxcore210d.lib")
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cv210d.lib")
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\highgui210d.lib")
+    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_core240d.lib")
+    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_imgproc240d.lib")
+    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_highgui240d.lib")
 #else
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cxcore210.lib")
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cv210.lib")
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\highgui210.lib")
+    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_core240.lib")
+    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_imgproc240.lib")
+    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_highgui240.lib")
 #endif
 #pragma comment(lib,"Ws2_32.lib")
 
+#pragma comment(lib,"C:\\SDL\\SDL-1.2.15\\lib\\x86\\SDL.lib")
+#pragma comment(lib,"C:\\SDL\\SDL-1.2.15\\lib\\x86\\SDLmain.lib")
+#pragma comment(lib,"C:\\SDL\\SDL_net-1.2.8\\lib\\x86\\SDL_net.lib")
+#pragma comment(lib,"C:\\SDL\\SDL_ttf-2.0.11\\lib\\x86\\SDL_ttf.lib")
 
 #define WM_TCPSOCKET     (WM_USER+1)
 
@@ -100,9 +104,9 @@ extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double ca
 extern void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], double Goodness[4], double MaxError[2], double MeanError[2] );
 extern void drawRecordingMessage( void );
 
-extern HRESULT sockInit(HWND hWnd);
-extern HRESULT sockAccept(HWND hWnd);
-extern HRESULT sockProcess(HWND hWnd, LPARAM lParam);
+extern HRESULT sockInit(void);
+extern HRESULT sockAccept(void);
+extern HRESULT sockProcess(void);
 
 extern unsigned char* g_frameBuffer;
 extern int* g_pCameraTextureBuffer;
@@ -156,7 +160,7 @@ extern void cleanupCamera( void );
 extern LARGE_INTEGER g_CounterFreq;
 
 //custom menu
-extern HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int currentMenuPosition);
+extern HRESULT customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition);
 extern int g_CustomMenuNum;
 extern void saveCameraParameters(char* ParamPath);
 extern void updateCustomMenuText( void );

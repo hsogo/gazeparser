@@ -15,29 +15,39 @@
 #include <iostream>
 #include <string>
 
-#include "C:\Program Files\Interface\GPC5300\include\IFCml.h"
-#pragma comment(lib,"C:\\Program Files\\Interface\\GPC5300\\lib\\IfCml.lib")
+#include "SDL.h"
 
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/opencv.hpp"
+#include "opencv2/core/core.hpp"
 
-HANDLE g_CameraDeviceHandle; /*!< Holds camera device handle */
-HANDLE g_CameraMemHandle; /*!< Holds camera buffer handle */
+cv::VideoCapture g_VideoCapture;
+SDL_Thread *g_pThread;
+bool g_runThread;
 
-unsigned char* g_TmpFrameBuffer; /*!< Temporary buffer to hold camera image until CallBackProc() is called.*/
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
 
-
-/*!
-CallBackProc: Grab camera images.
-
-@param[in] IntFlg Event ID.
-@param[in] User User defined data.
-@return no value is returned.
- */
-void CALLBACK CallBackProc(DWORD IntFlg, DWORD User)
+int captureCameraThread(void *unused)
 {
-	memcpy(g_frameBuffer, g_TmpFrameBuffer, g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-	g_NewFrameAvailable = true;
+	cv::Mat frame, monoFrame;
+
+	while(g_runThread)
+	{
+		if(g_VideoCapture.grab())
+		{
+			g_VideoCapture.retrieve(frame);
+			cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
+			for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
+			{
+				g_frameBuffer[idx] = monoFrame.data[idx];
+			}
+			g_NewFrameAvailable = true;
+		}
+	}
+
+	return 0;
 }
+
 
 /*!
 initCamera: Initialize camera.
@@ -54,88 +64,31 @@ Read parameters from the configuration file, start camera and set callback funct
  */
 HRESULT initCamera( char* ParamPath )
 {
-	INT				ret;
-	DWORD			BufSize;
-	IFCMLCAPFMT     CapFmt;
-	char            buff[512];
-
-	g_TmpFrameBuffer = (unsigned char*)malloc(g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-
-	g_CameraDeviceHandle = CmlOpen("IFIMGCML1");
-	if(g_CameraDeviceHandle == INVALID_HANDLE_VALUE){
+	g_VideoCapture = cv::VideoCapture(0);
+	if(!g_VideoCapture.isOpened())
+	{
 		return E_FAIL;
 	}
 
-	strcpy_s(buff, sizeof(buff), ParamPath);
-	strcat_s(buff, sizeof(buff), CAMERA_CONFIG_FILE);
-	if(!PathFileExists(buff)){
-		char exefile[512];
-		char configfile[512];
-		char drive[4],dir[512],fname[32],ext[5];
-		errno_t r;
-		GetModuleFileName(NULL,exefile,sizeof(exefile));
-		r = _splitpath_s(exefile,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-		strcpy_s(configfile,sizeof(configfile),drive);
-		strcat_s(configfile,sizeof(configfile),dir);
-		strcat_s(configfile,sizeof(configfile),CAMERA_CONFIG_FILE);
-		CopyFile(configfile,buff,true);
-	}
-	
-	ret = CmlReadCamConfFile(g_CameraDeviceHandle,buff);
-	
-	if(ret != IFCML_ERROR_SUCCESS){
-		CmlClose(g_CameraDeviceHandle);
+	g_VideoCapture.set(CV_CAP_PROP_FRAME_WIDTH,g_CameraWidth);
+	g_VideoCapture.set(CV_CAP_PROP_FRAME_HEIGHT,g_CameraHeight);
+
+	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
+	{
 		return E_FAIL;
 	}
-	
-	// Configure the dataformat and the information of buffer.
-	CapFmt.Rect.XStart = 0;
-	CapFmt.Rect.YStart = 0;
-	CapFmt.Rect.XLength = g_CameraWidth;
-	CapFmt.Rect.YLength = g_CameraHeight;		
-	CapFmt.Scale.PixelCnt = 0;
-	CapFmt.Scale.LineCnt = 0;
-	CapFmt.CapFormat = IFCML_CAPFMT_CAM;
-	CapFmt.OptionFormat = IFCML_OPTFMT_NON;
-
-	ret = CmlSetCaptureFormatInfo(g_CameraDeviceHandle, &CapFmt);
-	if(ret != IFCML_ERROR_SUCCESS){
-		CmlClose(g_CameraDeviceHandle);
+	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
+	{
 		return E_FAIL;
 	}
 
-	// Allocate the buffer for storing the image data.
-	BufSize = CapFmt.FrameSize_Buf;
-
-	ret =  CmlRegistMemInfo(g_CameraDeviceHandle, g_TmpFrameBuffer, BufSize, &g_CameraMemHandle);
-	if(ret != IFCML_ERROR_SUCCESS){
-		CmlClose(g_CameraDeviceHandle);
+	g_runThread = true;
+	g_pThread = SDL_CreateThread(captureCameraThread, NULL);
+	if(g_pThread==NULL)
+	{
+		g_runThread = false;
 		return E_FAIL;
 	}
-
-	// Set Capture Configration
-	ret = CmlSetCapConfig(g_CameraDeviceHandle,g_CameraMemHandle,&CapFmt);
-	if(ret != IFCML_ERROR_SUCCESS){
-		CmlClose(g_CameraDeviceHandle);
-		return E_FAIL;
-	}
-
-	CmlOutputPower(g_CameraDeviceHandle,IFCML_PWR_ON);
-	Sleep(1000);
-
-	////interrupt////
-	IFCMLEVENTREQ Event;
-	Event.WndHandle = NULL;
-	Event.MessageCode = 0;
-	Event.CallBackProc = CallBackProc;
-	Event.User = 0;
-
-	DWORD EventMask = 0x03;
-	ret = CmlSetEventMask(g_CameraDeviceHandle,EventMask);
-	ret = CmlSetEvent(g_CameraDeviceHandle,&Event);
-
-	ret = CmlStartCapture(g_CameraDeviceHandle, 0 ,IFCML_CAM_DMA | IFCML_CAP_ASYNC);
-	////interrupt////
 
 	return S_OK;
 }
@@ -168,16 +121,8 @@ cleanupCamera: release camera resources.
 */
 void cleanupCamera()
 {
-	int ret;
-	ret = CmlStopCapture(g_CameraDeviceHandle,IFCML_DMA_STOP);
-	ret = CmlFreeMemInfo(g_CameraDeviceHandle,g_CameraMemHandle);
-	ret = CmlClose(g_CameraDeviceHandle);
-	CmlOutputPower(g_CameraDeviceHandle,IFCML_PWR_OFF);
-	if(g_TmpFrameBuffer!=NULL)
-	{
-		free(g_TmpFrameBuffer);
-		g_TmpFrameBuffer = NULL;
-	}
+	g_runThread = false;
+	SDL_WaitThread(g_pThread, NULL);
 }
 
 /*!

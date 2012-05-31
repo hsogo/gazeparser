@@ -9,44 +9,27 @@
 - Custom menu is supported.
  */
 
-#include <d3d9.h>
-#include <D3dx9tex.h>
+#include "SDL.h"
+#include "SDL_ttf.h"
 
 #include <atlbase.h>
 #include <time.h>
 #include <process.h>
+#include "opencv2/opencv.hpp"
+#include "opencv2/core/core.hpp"
 
 #include "GazeTracker.h"
 #include "resource.h"
 
-#define FVF_CUSTOM ( D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 )
-
-struct CUSTOMVERTEX{
-   float x, y, z;
-   float rhw;
-   DWORD dwColor; 
-   float u, v;
-}; 
-
-#define MARKER_SIZE_HALF 5
-#define CURSOR_SIZE_HALF 5
 #define MENU_ITEM_HEIGHT 24
 #define MENU_FONT_SIZE 20
 
 #define PANEL_WIDTH  256
-#define PANEL_HEIGHT 256
-
-#define INITMESSAGE_SUCCESS_ALL		1000
-#define INITMESSAGE_FAIL_INIT		1001
-#define INITMESSAGE_SUCCESS_INIT	1002
-#define INITMESSAGE_FAIL_SOCK		1003
-#define INITMESSAGE_SUCCESS_SOCK	1004
-#define INITMESSAGE_FAIL_D3D		1005
-#define INITMESSAGE_SUCCESS_D3D		1006
-#define INITMESSAGE_FAIL_CAMERA		1007
-#define INITMESSAGE_SUCCESS_CAMERA	1008
-#define INITMESSAGE_FAIL_BUFFER		1009
-#define INITMESSAGE_SUCCESS_BUFFER	1010
+#define PANEL_HEIGHT 512
+#define	PANEL_OFFSET_X 25
+#define	PANEL_OFFSET_Y 20
+#define CURSOR_SIZE 12
+#define CURSOR_OFFSET 5
 
 /*! Holds menu texts. 
 @attention Number of menu items (sum of original items and custom items) and 
@@ -54,8 +37,11 @@ length of custom menu texts must be smaller than MENU_MAX_ITEMS and MENU_STRING_
 */
 TCHAR g_MenuString[MENU_MAX_ITEMS][MENU_STRING_MAX]; 
 
-LPDIRECT3D9         g_pD3D = NULL;
-LPDIRECT3DDEVICE9   g_pd3dDevice = NULL;
+SDL_Surface* g_pSDLscreen;
+SDL_Surface* g_pCameraTextureSurface;
+SDL_Surface* g_pCalResultTextureSurface;
+SDL_Surface* g_pPanelSurface;
+TTF_Font* g_Font;
 
 unsigned char* g_frameBuffer;
 int* g_pCameraTextureBuffer;
@@ -74,20 +60,13 @@ int g_PurkinjeThreshold = 240;  /*!<  */
 int g_PurkinjeSearchArea = 60;  /*!<  */
 int g_PurkinjeExcludeArea = 20; /*!<  */
 
-IDirect3DVertexBuffer9* g_pCursorVertex;
-IDirect3DVertexBuffer9* g_pGazeMarkerVertex;
-IDirect3DVertexBuffer9* g_pCameraTextureVertex;
-IDirect3DVertexBuffer9* g_pPanelTextureVertex;
-IDirect3DTexture9* g_pCameraTexture;
-IDirect3DTexture9* g_pPanelTexture;
-IDirect3DTexture9* g_pCalResultTexture;
-
 bool g_isShowingCameraImage = true; /*!< If true, camera image is rendered. This must be false while recording.*/
 HANDLE g_hThread; /*!< @deprecated*/
 unsigned g_threadID; /*!< @deprecated*/
 
 char g_ParamPath[512]; /*!< Holds path to the parameter file directory*/
 char g_DataPath[512];  /*!< Holds path to the data file directory*/
+char g_AppDirPath[512];   /*!< Holds path to the executable file directory*/
 
 int g_CurrentMenuPosition = 0;  /*!< Holds current menu position.*/
 int g_CustomMenuNum = 0; /*!< Holds how many custom menu items are defined.*/
@@ -126,22 +105,7 @@ FILE *g_DataFP = NULL;
 char g_MessageBuffer[MAXMESSAGE];
 int g_MessageEnd;
 
-CUSTOMVERTEX g_vCursor[4] = 
-{
-	   {  CURSOR_SIZE_HALF, -CURSOR_SIZE_HALF, 0.0f, 1.0f, 0x00FFFF00, 1.0f, 0.0f},
-	   {  CURSOR_SIZE_HALF,  CURSOR_SIZE_HALF, 0.0f, 1.0f, 0x00FFFF00, 1.0f, 1.0f}, 
-	   { -CURSOR_SIZE_HALF, -CURSOR_SIZE_HALF, 0.0f, 1.0f, 0x00FFFF00, 0.0f, 0.0f}, 
-	   { -CURSOR_SIZE_HALF,  CURSOR_SIZE_HALF, 0.0f, 1.0f, 0x00FFFF00, 0.0f, 1.0f} 
-};
-
-CUSTOMVERTEX g_vGazeMarker[4] = 
-{
-	   { SCREEN_WIDTH/2+MARKER_SIZE_HALF, SCREEN_HEIGHT/2-MARKER_SIZE_HALF, 0.0f, 1.0f, 0x00FF0000, 1.0f, 0.0f},
-	   { SCREEN_WIDTH/2+MARKER_SIZE_HALF, SCREEN_HEIGHT/2+MARKER_SIZE_HALF, 0.0f, 1.0f, 0x00FF0000, 1.0f, 1.0f}, 
-	   { SCREEN_WIDTH/2-MARKER_SIZE_HALF, SCREEN_HEIGHT/2-MARKER_SIZE_HALF, 0.0f, 1.0f, 0x00FF0000, 0.0f, 0.0f}, 
-	   { SCREEN_WIDTH/2-MARKER_SIZE_HALF, SCREEN_HEIGHT/2+MARKER_SIZE_HALF, 0.0f, 1.0f, 0x00FF0000, 0.0f, 1.0f} 
-};
-
+FILE *g_LogFP = NULL;
 
 /*!
 initParameters: Read parameters from the configuration file to initialize application.
@@ -174,12 +138,19 @@ HRESULT initParameters( void )
 	FILE* fp;
 	char buff[512];
 	char *p,*pp;
+	char drive[4],dir[512],fname[32],ext[5];
+	errno_t r;
 	int param;
 	DWORD n;
 
 	n = GetEnvironmentVariable("HOMEDRIVE",g_DataPath,sizeof(g_DataPath));
 	n = GetEnvironmentVariable("HOMEPATH",g_DataPath+n,sizeof(g_DataPath)-n);
 	strcat_s(g_DataPath, sizeof(g_DataPath), "\\GazeTracker");
+
+	GetModuleFileName(NULL,buff,sizeof(buff));
+	r = _splitpath_s(buff,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
+	strcpy_s(g_AppDirPath,sizeof(g_AppDirPath),drive);
+	strcat_s(g_AppDirPath,sizeof(g_AppDirPath),dir);
 
 	GetEnvironmentVariable("APPDATA",g_ParamPath,sizeof(g_ParamPath));
 	strcat_s(g_ParamPath, sizeof(g_ParamPath), "\\GazeTracker");
@@ -195,14 +166,8 @@ HRESULT initParameters( void )
 	strcpy_s(buff,sizeof(buff),g_ParamPath);
 	strcat_s(buff,sizeof(buff),"\\CONFIG");
 	if(!PathFileExists(buff)){
-		char exefile[512];
 		char configfile[512];
-		char drive[4],dir[512],fname[32],ext[5];
-		errno_t r;
-		GetModuleFileName(NULL,exefile,sizeof(exefile));
-		r = _splitpath_s(exefile,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-		strcpy_s(configfile,sizeof(configfile),drive);
-		strcat_s(configfile,sizeof(configfile),dir);
+		strcpy_s(configfile,sizeof(configfile),g_AppDirPath);
 		strcat_s(configfile,sizeof(configfile),"\\CONFIG");
 		CopyFile(configfile,buff,true);
 	}
@@ -307,208 +272,69 @@ void updateMenuText( void )
 	return;
 }
 
-/*!
-printStringToTexture: render menu texts to DirectX texture.
-
-@param[in] StartX Left end of the menu strings.
-@param[in] StartY Top end of the menu strings.
-@param[in] Array of menu strings.
-@param[in] numItems Number of menu items (MENU_GENERAL_NUM + g_CustomMenuNum).
-@param[in] fontsize Font size.
-@param[in] pTex Pointer to the menu texture.
-@return HRESULT
-@retval S_OK 
-@retval E_FAIL 
-
-@note Thanks to following page for rendering fonts. http://marupeke296.com/DirectXMain.html
+/*
 */
-HRESULT printStringToTexture(int StartX, int StartY, TCHAR string[][MENU_STRING_MAX], int numItems, int fontsize, IDirect3DTexture9* pTex)
+void printStringToTexture(int StartX, int StartY, TCHAR string[][MENU_STRING_MAX], int numItems, int fontsize, SDL_Surface* pSurface)
 {
-	///////////////////////
-	// Generate font
-	LOGFONT lf = {fontsize, 0, 0, 0, 0, 0, 0, 0, SHIFTJIS_CHARSET, OUT_DEFAULT_PRECIS,
-		CLIP_DEFAULT_PRECIS, PROOF_QUALITY, FIXED_PITCH | FF_MODERN, _T("Courier")};
-	HFONT hFont;
-	if(!(hFont = CreateFontIndirect(&lf))){
-		return E_FAIL;
-	}
-
-	//Get device context
-	HDC hdc = GetDC(NULL);
-	HFONT oldFont = (HFONT)SelectObject(hdc, hFont);
-
-	D3DSURFACE_DESC Desc;
-	pTex->GetLevelDesc(0, &Desc);
-
-	D3DLOCKED_RECT LockedRect;
-	if(FAILED(pTex->LockRect(0, &LockedRect, NULL, D3DLOCK_DISCARD)))
-	{
-		if(FAILED(pTex->LockRect(0, &LockedRect, NULL, 0)))
-		{
-			return E_FAIL;
-		}
-	}
-	FillMemory(LockedRect.pBits , LockedRect.Pitch * Desc.Height, 0);
-
 	int SX = StartX;
 	int SY = StartY;
-	int iOfs_x,iOfs_y,iBmp_w,iBmp_h,Level;
-	TEXTMETRIC TM;
-	GetTextMetrics( hdc, &TM );
-	GLYPHMETRICS GM;
-	CONST MAT2 Mat = {{0,1},{0,0},{0,0},{0,1}};
+	SDL_Surface* textSurface;
+	SDL_Rect dstRect;
+	SDL_Color color={255,255,255};
+
+	SDL_FillRect(pSurface, NULL, 0);
 
 	for(int l=0; l<numItems; l++)
 	{
-		TCHAR* sp = string[l];
-		while(*sp != NULL)
-		{
-			// get character code.
-			TCHAR *c = sp;
-			UINT code = 0;
-	#if _UNICODE
-			code = (UINT)*c;
-	#else
-			if(IsDBCSLeadByte(*c)){
-				code = (BYTE)c[0]<<8 | (BYTE)c[1];
-			}
-			else
-			{
-				code = c[0];
-			}
-	#endif
+		textSurface = TTF_RenderUTF8_Solid(g_Font, string[l], color);
+		dstRect.x = SX;
+		dstRect.y = SY;
+		SDL_BlitSurface(textSurface, NULL, pSurface, &dstRect);
 
-			// get FontBitmap
-			DWORD size = GetGlyphOutline(hdc, code, GGO_GRAY4_BITMAP, &GM, 0, NULL, &Mat);
-			BYTE *ptr = new BYTE[size];
-			GetGlyphOutline(hdc, code, GGO_GRAY4_BITMAP, &GM, size, ptr, &Mat);
-
-			iOfs_x = GM.gmptGlyphOrigin.x;
-			iOfs_y = TM.tmAscent - GM.gmptGlyphOrigin.y;
-			iBmp_w = GM.gmBlackBoxX + (4-(GM.gmBlackBoxX%4))%4;
-			iBmp_h = GM.gmBlackBoxY;
-			Level = 17;
-
-			iOfs_x += SX;
-			iOfs_y += SY;
-
-			int x, y;
-			DWORD Color;
-			for(y=iOfs_y; y<iOfs_y+iBmp_h; y++){
-				for(x=iOfs_x; x<iOfs_x+iBmp_w; x++){
-					Color = (255 * ptr[x-iOfs_x + iBmp_w*(y-iOfs_y)]) / (Level-1);
-					Color = Color<<16 | Color<<8 | Color;
-					memcpy((BYTE*)LockedRect.pBits + LockedRect.Pitch*y + 4*x, &Color, sizeof(DWORD));
-				}
-			}
-			delete[] ptr;
-
-			SX += fontsize/2;
-			sp++;
-		}
 		SY += MENU_ITEM_HEIGHT;
 		SX = StartX;
 	}
+}
 
-	pTex->UnlockRect(0);
+HRESULT initSDLTTF(void)
+{
+	char fontFilePath[512];
 
-	// Release device context and font handle
-	SelectObject(hdc, oldFont);
-	DeleteObject(hFont);
-	ReleaseDC(NULL, hdc);
+	if(TTF_Init()==-1){
+		return E_FAIL;
+	};
+	
+	strcpy_s(fontFilePath,sizeof(fontFilePath),g_AppDirPath);
+	strcat_s(fontFilePath,sizeof(fontFilePath),"FreeSans.ttf");
+	if((g_Font=TTF_OpenFont(fontFilePath, MENU_FONT_SIZE))==NULL)
+	{
+		return E_FAIL;
+	}
 
 	return S_OK;
 }
 
-/*!
-initD3D: render menu texts to DirectX texture.
-
-initParameters() and initBuffers() must be called in this order before calling this function.
-
-@param[in] hWnd Window handle
-@return HRESULT
-@retval S_OK 
-@retval E_FAIL 
-*/
-HRESULT initD3D( HWND hWnd )
+HRESULT initSDLSurfaces(void)
 {
-	HRESULT hr;
-    // Create the D3D object, which is needed to create the D3DDevice.
-    if( NULL == ( g_pD3D = Direct3DCreate9( D3D_SDK_VERSION ) ) )
-        return E_FAIL;
+	g_pCameraTextureSurface =  SDL_CreateRGBSurfaceFrom((void*)g_pCameraTextureBuffer, 
+					g_CameraWidth, g_CameraHeight, 32, g_CameraWidth*4,
+					0xff0000, 0x00ff00, 0x0000ff, 0 );
+	g_pCalResultTextureSurface = SDL_CreateRGBSurfaceFrom((void*)g_pCalResultTextureBuffer, 
+					g_PreviewWidth, g_PreviewHeight, 32, g_PreviewWidth*4,
+					0xff0000, 0x00ff00, 0x0000ff, 0 );
 
-    // Set up the structure used to create the D3DDevice.
-    D3DPRESENT_PARAMETERS d3dpp;
-    ZeroMemory( &d3dpp, sizeof( d3dpp ) );
-	d3dpp.BackBufferWidth = SCREEN_WIDTH;
-	d3dpp.BackBufferHeight = SCREEN_HEIGHT;
-	d3dpp.BackBufferFormat = D3DFMT_X8R8G8B8;
-	d3dpp.BackBufferCount = 1;
-    d3dpp.Windowed = true;
-    d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
-
-    // Create the Direct3D device.
-    if( FAILED( g_pD3D->CreateDevice( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hWnd,
-                                      D3DCREATE_SOFTWARE_VERTEXPROCESSING,
-                                      &d3dpp, &g_pd3dDevice ) ) )
-    {
-        return E_FAIL;
-    }
-
-    // Device state would normally be set here
-
-	CUSTOMVERTEX vCameraTexture[4] = 
-	{
-           { (float)g_PreviewWidth, 1,                      0.0f, 1.0f, 0x00ffffff, 1.0f, 0.0f},
-           { (float)g_PreviewWidth, (float)g_PreviewHeight, 0.0f, 1.0f, 0x00ffffff, 1.0f, 1.0f}, 
-           { 1,                     1,                      0.0f, 1.0f, 0x00ffffff, 0.0f, 0.0f}, 
-           { 1,                     (float)g_PreviewHeight, 0.0f, 1.0f, 0x00ffffff, 0.0f, 1.0f} 
-	};
-	CUSTOMVERTEX vPanelTexture[4] = 
-	{
-           { (float)g_PreviewWidth+20+PANEL_WIDTH,    20+1,            0.0f, 1.0f, 0x00ffffff, 1.0f, 0.0f},
-           { (float)g_PreviewWidth+20+PANEL_WIDTH,    20+PANEL_HEIGHT, 0.0f, 1.0f, 0x00ffffff, 1.0f, 1.0f}, 
-           { (float)g_PreviewWidth+20+1,              20+1,            0.0f, 1.0f, 0x00ffffff, 0.0f, 0.0f}, 
-           { (float)g_PreviewWidth+20+1,              20+PANEL_HEIGHT, 0.0f, 1.0f, 0x00ffffff, 0.0f, 1.0f} 
-	};
-
-	if(FAILED(g_pd3dDevice->CreateVertexBuffer(sizeof(CUSTOMVERTEX)*4,D3DUSAGE_WRITEONLY, FVF_CUSTOM, D3DPOOL_MANAGED, &g_pCameraTextureVertex, NULL))){
-		return E_FAIL;
-	}
-	if(FAILED(g_pd3dDevice->CreateVertexBuffer(sizeof(CUSTOMVERTEX)*4,D3DUSAGE_WRITEONLY, FVF_CUSTOM, D3DPOOL_MANAGED, &g_pPanelTextureVertex, NULL))){
-		return E_FAIL;
-	}
-	if(FAILED(g_pd3dDevice->CreateVertexBuffer(sizeof(CUSTOMVERTEX)*4,D3DUSAGE_WRITEONLY, FVF_CUSTOM, D3DPOOL_MANAGED, &g_pCursorVertex, NULL))){
-		return E_FAIL;
-	}
-	if(FAILED(g_pd3dDevice->CreateVertexBuffer(sizeof(CUSTOMVERTEX)*4,D3DUSAGE_WRITEONLY, FVF_CUSTOM, D3DPOOL_MANAGED, &g_pGazeMarkerVertex, NULL))){
-		return E_FAIL;
-	}
-
-	D3DXCreateTexture(g_pd3dDevice, g_ROIWidth, g_ROIHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_R8G8B8, D3DPOOL_DEFAULT, &g_pCameraTexture);
-	D3DXCreateTexture(g_pd3dDevice, g_PreviewWidth, g_PreviewHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_R8G8B8, D3DPOOL_DEFAULT, &g_pCalResultTexture);
-	D3DXCreateTexture(g_pd3dDevice, PANEL_WIDTH, PANEL_HEIGHT, 0, D3DUSAGE_DYNAMIC, D3DFMT_R8G8B8, D3DPOOL_DEFAULT, &g_pPanelTexture);
-
-	void* pData;
-	g_pCameraTextureVertex->Lock(0, sizeof(CUSTOMVERTEX)*4, (void**)&pData, 0);
-	memcpy(pData,vCameraTexture,sizeof(CUSTOMVERTEX)*4);
-	g_pCameraTextureVertex->Unlock();
+	g_pPanelSurface = SDL_CreateRGBSurface(SDL_SWSURFACE, PANEL_WIDTH, PANEL_HEIGHT,
+					32, 0xff0000, 0x00ff00, 0x0000ff, 0 );
 
 	updateMenuText();
 	updateCustomMenuText();
-    hr = printStringToTexture(0,0,g_MenuString,MENU_GENERAL_NUM+g_CustomMenuNum,MENU_FONT_SIZE,g_pPanelTexture);
-
-	g_pPanelTextureVertex->Lock(0, sizeof(CUSTOMVERTEX)*4, (void**)&pData, 0);
-	memcpy(pData,vPanelTexture,sizeof(CUSTOMVERTEX)*4);
-	g_pPanelTextureVertex->Unlock();
+	printStringToTexture(0,0,g_MenuString,MENU_GENERAL_NUM+g_CustomMenuNum,MENU_FONT_SIZE,g_pPanelSurface);
 
 	return S_OK;
 }
 
-
 /*!
-cleanup: release Direct3D resources.
+cleanup: release malloced buffers.
 
 @return No value is returned.
 
@@ -516,25 +342,29 @@ cleanup: release Direct3D resources.
 */
 void cleanup()
 {
-    if( g_pd3dDevice != NULL )
-        g_pd3dDevice->Release();
-
-    if( g_pD3D != NULL )
-        g_pD3D->Release();
-
 	if( g_frameBuffer != NULL )
+	{
         free(g_frameBuffer);
+		g_frameBuffer = NULL;
+	}
 
     if( g_pCameraTextureBuffer != NULL )
+	{
         free(g_pCameraTextureBuffer);
+		g_pCameraTextureBuffer = NULL;
+	}
 
     if( g_pCalResultTextureBuffer != NULL )
+	{
         free(g_pCalResultTextureBuffer);
+		g_pCalResultTextureBuffer = NULL;
+	}
 
     if( g_SendImageBuffer != NULL )
+	{
         free(g_SendImageBuffer);
-
-
+		g_SendImageBuffer = NULL;
+	}
 }
 
 /*!
@@ -758,427 +588,105 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 	}
 }
 
-/*!
-Render: Render DirectX polygons.
 
-This function should not be called during recording.
+/*
+render: Render SDL screen.
 
-@return No value is returned.
+
 */
-VOID render( void )
+void render(void)
 {
-	void* pData;
+	SDL_Rect dstRect;
+	cv::Mat srcMat, scaledMat;
 
-	//move menu cursor position.
-	float cursorX, cursorY;
-	cursorX = (float)g_PreviewWidth+10;
-	cursorY = 20+10+MENU_ITEM_HEIGHT*(float)g_CurrentMenuPosition;
-	//if(g_CurrentMenuPosition>=MENU_CALIBRATION)
-	//	cursorY += MENU_ITEM_HEIGHT;
-	g_vCursor[0].x = cursorX+CURSOR_SIZE_HALF;
-	g_vCursor[0].y = cursorY-CURSOR_SIZE_HALF;
-	g_vCursor[1].x = cursorX+CURSOR_SIZE_HALF;
-	g_vCursor[1].y = cursorY+CURSOR_SIZE_HALF;
-	g_vCursor[2].x = cursorX-CURSOR_SIZE_HALF;
-	g_vCursor[2].y = cursorY-CURSOR_SIZE_HALF;
-	g_vCursor[3].x = cursorX-CURSOR_SIZE_HALF;
-	g_vCursor[3].y = cursorY+CURSOR_SIZE_HALF;
-	g_pCursorVertex->Lock(0, sizeof(CUSTOMVERTEX)*4, (void**)&pData, 0);
-	memcpy(pData,g_vCursor,sizeof(CUSTOMVERTEX)*4);
-	g_pCursorVertex->Unlock();
+	SDL_FillRect(g_pSDLscreen, NULL, 0);
 
 	if(g_isShowingCalResult)
 	{
-		D3DLOCKED_RECT TexRect;
-		g_pCalResultTexture->LockRect(0, &TexRect, NULL, 0);
-		LPDWORD p1 = (LPDWORD)TexRect.pBits;
-		DWORD pitch = TexRect.Pitch / sizeof(DWORD);
-		for(int iy=0; iy<g_PreviewHeight; iy++){
-			for(int ix=0; ix<g_PreviewWidth; ix++){
-				p1[ix] = g_pCalResultTextureBuffer[g_PreviewWidth*iy+ix];
-			}
-			p1 += pitch;
-		}
-		g_pCalResultTexture->UnlockRect(0);
+		dstRect.x = 0;
+		dstRect.y = 0;
+		SDL_BlitSurface(g_pCalResultTextureSurface, NULL, g_pSDLscreen, &dstRect);
 	}
-	else
-	{
-		D3DLOCKED_RECT TexRect;
-		g_pCameraTexture->LockRect(0, &TexRect, NULL, 0);
-		LPDWORD p1 = (LPDWORD)TexRect.pBits;
-		DWORD pitch = TexRect.Pitch / sizeof(DWORD);
-		for(int iy=0; iy<g_ROIHeight; iy++){
-			for(int ix=0; ix<g_ROIWidth; ix++){
-				p1[ix] = g_pCameraTextureBuffer[g_CameraWidth*(iy+(g_CameraHeight-g_ROIHeight)/2)+(ix+(g_CameraWidth-g_ROIWidth)/2)];
-			}
-			p1 += pitch;
-		}
-		g_pCameraTexture->UnlockRect(0);
-	}
+	else{
+		if((g_PreviewWidth!=g_CameraWidth)||(g_PreviewHeight!=g_CameraHeight)){
+			srcMat = cv::Mat(g_CameraHeight,g_CameraWidth,CV_8UC4,g_pCameraTextureBuffer);
+			scaledMat = cv::Mat(g_PreviewHeight,g_PreviewWidth,CV_8UC4);
+			cv::resize(srcMat,scaledMat,cv::Size(g_PreviewWidth,g_PreviewHeight));
+			
+			SDL_Surface* scaledSurface = SDL_CreateRGBSurfaceFrom((void*)scaledMat.data,
+						g_PreviewWidth, g_PreviewHeight, 32, g_PreviewWidth*4,
+						0xff0000, 0x00ff00, 0x0000ff, 0 );
 
-    if( NULL == g_pd3dDevice )
-        return;
-
-    // Clear the backbuffer to a blue color
-    g_pd3dDevice->Clear( 0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0f, 0 );
-
-    // Begin the scene
-    if( SUCCEEDED( g_pd3dDevice->BeginScene() ) )
-    {
-		g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE ); 
-		g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLOROP , D3DTOP_MODULATE );
-		g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE ); 
-
-		if(g_isShowingCalResult)
-		{
-			g_pd3dDevice->SetTexture(0, g_pCalResultTexture);
-			g_pd3dDevice->SetStreamSource(0, g_pCameraTextureVertex, 0, sizeof(CUSTOMVERTEX));
-			g_pd3dDevice->SetFVF(FVF_CUSTOM);
-			g_pd3dDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+			dstRect.x = 0;
+			dstRect.y = 0;
+			SDL_BlitSurface(scaledSurface, NULL, g_pSDLscreen, &dstRect);
 		}
 		else
 		{
-			g_pd3dDevice->SetTexture(0, g_pCameraTexture);
-			g_pd3dDevice->SetStreamSource(0, g_pCameraTextureVertex, 0, sizeof(CUSTOMVERTEX));
-			g_pd3dDevice->SetFVF(FVF_CUSTOM);
-			g_pd3dDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+			dstRect.x = 0;
+			dstRect.y = 0;
+			SDL_BlitSurface(g_pCameraTextureSurface, NULL, g_pSDLscreen, &dstRect);
 		}
+	}
 
-		g_pd3dDevice->SetTexture(0, g_pPanelTexture);
-		//g_pd3dDevice->SetTexture(0, NULL);
-		g_pd3dDevice->SetStreamSource(0, g_pPanelTextureVertex, 0, sizeof(CUSTOMVERTEX));
-		g_pd3dDevice->SetFVF(FVF_CUSTOM);
-		g_pd3dDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+	dstRect.x = g_PreviewWidth + PANEL_OFFSET_X;
+	dstRect.y = PANEL_OFFSET_Y;
+	SDL_BlitSurface(g_pPanelSurface, NULL, g_pSDLscreen, &dstRect);
 
-		g_pd3dDevice->SetTexture(0, NULL);
-		g_pd3dDevice->SetStreamSource(0, g_pCursorVertex, 0, sizeof(CUSTOMVERTEX));
-		g_pd3dDevice->SetFVF(FVF_CUSTOM);
-		g_pd3dDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+	dstRect.x = g_PreviewWidth + CURSOR_OFFSET;
+	dstRect.y = PANEL_OFFSET_Y+MENU_ITEM_HEIGHT*g_CurrentMenuPosition+(MENU_ITEM_HEIGHT-CURSOR_SIZE)/2;
+	dstRect.w = CURSOR_SIZE;
+	dstRect.h = CURSOR_SIZE;
+	SDL_FillRect(g_pSDLscreen, &dstRect, 0xFFFF00);
 
-        // End the scene
-        g_pd3dDevice->EndScene();
-    }
-
-    // Present the backbuffer contents to the display
-    g_pd3dDevice->Present( NULL, NULL, NULL, NULL );
+	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
 }
 
-/*!
-renderBeforeRecording: Render DirectX polygons.
+/*
+renderBeforeRecording: Render recording message.
 
 This function renders a message informing that the application is now recording data.
 Call this function once immediately before start recording.
 
 @return No value is returned.
+@todo show more information.
 */
-VOID renderBeforeRecording(void)
+void renderBeforeRecording(char* message)
 {
-	D3DLOCKED_RECT TexRect;
-	g_pCalResultTexture->LockRect(0, &TexRect, NULL, 0);
-	LPDWORD p1 = (LPDWORD)TexRect.pBits;
-	DWORD pitch = TexRect.Pitch / sizeof(DWORD);
-	for(int iy=0; iy<g_PreviewHeight; iy++){
-		for(int ix=0; ix<g_PreviewWidth; ix++){
-			p1[ix] = g_pCalResultTextureBuffer[g_PreviewWidth*iy+ix];
-		}
-		p1 += pitch;
-	}
-	g_pCalResultTexture->UnlockRect(0);
+	SDL_Surface* textSurface;
+	SDL_Rect dstRect;
+	SDL_Color color={255,255,255};
 
-    if( NULL == g_pd3dDevice )
-        return;
+	SDL_FillRect(g_pSDLscreen, NULL, 0);
 
-    // Clear the backbuffer to a blue color
-    g_pd3dDevice->Clear( 0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB( 0, 0, 0 ), 1.0f, 0 );
+	textSurface = TTF_RenderUTF8_Solid(g_Font, "Now recording...", color);
+	dstRect.x = 10;
+	dstRect.y = (g_PreviewHeight-MENU_FONT_SIZE)/2;
+	SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
 
-    // Begin the scene
-    if( SUCCEEDED( g_pd3dDevice->BeginScene() ) )
-    {
-		g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE ); 
-		g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLOROP , D3DTOP_MODULATE );
-		g_pd3dDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE );
-
-		// only calimage is drawn
-		g_pd3dDevice->SetTexture(0, g_pCalResultTexture);
-		g_pd3dDevice->SetStreamSource(0, g_pCameraTextureVertex, 0, sizeof(CUSTOMVERTEX));
-		g_pd3dDevice->SetFVF(FVF_CUSTOM);
-		g_pd3dDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
-
-        // End the scene
-        g_pd3dDevice->EndScene();
-    }
-
-    // Present the backbuffer contents to the display
-    g_pd3dDevice->Present( NULL, NULL, NULL, NULL );
-}
-
-
-/*!
-msgProc: Message procedure for main application window.
-
-@param[in] hWnd Window handle
-@param[in] msg Received message
-@param[in] wParam Message parameter
-@param[in] lParam Message parameter
-@return LRESULT
-@retval value which is returned from DefWindowProc().
-*/
-LRESULT WINAPI msgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
-{
-	HRESULT hr;
-
-	switch( msg )
-    {
-	case WM_KEYDOWN:
-		switch(wParam)
-		{
-		case 'Q':
-			if(g_isRecording || g_isCalibrating || g_isValidating)
-			{
-				g_isRecording = g_isCalibrating = g_isValidating = false;
-			}
-			else
-			{
-				DestroyWindow(hWnd);
-			}
-			break;
-
-		case VK_UP:
-			if(!g_isRecording && !g_isCalibrating && !g_isValidating){
-				g_CurrentMenuPosition--;
-				if(g_CurrentMenuPosition<0)
-					g_CurrentMenuPosition = MENU_GENERAL_NUM + g_CustomMenuNum -1;
-			}
-			break;
-
-		case VK_DOWN:
-			if(!g_isRecording && !g_isCalibrating && !g_isValidating){
-				g_CurrentMenuPosition++;
-				if(MENU_GENERAL_NUM + g_CustomMenuNum <= g_CurrentMenuPosition)
-				g_CurrentMenuPosition = 0;
-			}
-			break;
-
-		case VK_LEFT:
-			switch(g_CurrentMenuPosition)
-			{
-			case MENU_THRESH_PUPIL:
-				g_Threshold--;
-				if(g_Threshold<1)
-					g_Threshold = 1;
-				break;
-			case MENU_THRESH_PURKINJE:
-				g_PurkinjeThreshold--;
-				if(g_PurkinjeThreshold<1)
-					g_PurkinjeThreshold = 1;
-				break;
-			case MENU_MINPOINTS:
-				g_MinPoints--;
-				if(g_MinPoints<1)
-					g_MinPoints = 1;
-				break;
-			case MENU_MAXPOINTS:
-				g_MaxPoints--;
-				if(g_MaxPoints<=g_MinPoints)
-					g_MaxPoints = g_MinPoints+1;
-				break;
-			case MENU_SEARCHAREA:
-				g_PurkinjeSearchArea--;
-				if(g_PurkinjeSearchArea<10)
-					g_PurkinjeSearchArea = 10;
-				break;
-			case MENU_EXCLUDEAREA:
-				g_PurkinjeExcludeArea--;
-				if(g_PurkinjeExcludeArea<2)
-					g_PurkinjeExcludeArea = 2;
-				break;
-			default:
-				customCameraMenu(hWnd, msg, wParam, lParam, g_CurrentMenuPosition);
-				break;
-			}
-			updateMenuText();
-			updateCustomMenuText();
-			hr = printStringToTexture(0,0,g_MenuString,MENU_GENERAL_NUM+g_CustomMenuNum,MENU_FONT_SIZE,g_pPanelTexture);
-			break;
-
-		case VK_RIGHT:
-			switch(g_CurrentMenuPosition)
-			{
-			case MENU_THRESH_PUPIL:
-				g_Threshold++;
-				if(g_Threshold>255)
-					g_Threshold = 255;
-				break;
-			case MENU_THRESH_PURKINJE:
-				g_PurkinjeThreshold++;
-				if(g_PurkinjeThreshold>255)
-					g_PurkinjeThreshold = 255;
-				break;
-			case MENU_MINPOINTS:
-				g_MinPoints++;
-				if(g_MinPoints>=g_MaxPoints)
-					g_MinPoints = g_MaxPoints-1;
-				break;
-			case MENU_MAXPOINTS:
-				g_MaxPoints++;
-				if(g_MaxPoints>1000)
-					g_MaxPoints = 1000;
-				break;
-			case MENU_SEARCHAREA:
-				g_PurkinjeSearchArea++;
-				if(g_PurkinjeSearchArea>150)
-					g_PurkinjeSearchArea = 150;
-				break;
-			case MENU_EXCLUDEAREA:
-				g_PurkinjeExcludeArea++;
-				if(g_PurkinjeExcludeArea>g_PurkinjeSearchArea)
-					g_PurkinjeExcludeArea = g_PurkinjeSearchArea;
-				break;
-			default:
-				customCameraMenu(hWnd, msg, wParam, lParam, g_CurrentMenuPosition);
-				break;
-			}
-			updateMenuText();
-			updateCustomMenuText();
-			hr = printStringToTexture(0,0,g_MenuString,MENU_GENERAL_NUM+g_CustomMenuNum,MENU_FONT_SIZE,g_pPanelTexture);
-			break;
-
-		//case VK_SPACE:
-
-		default:
-			break;
-		}
-		return 0;
-
-	case WM_TCPSOCKET:
-		sockProcess(hWnd, lParam);
-		return 0;
-
-	case WM_DESTROY:
-        cleanup();
-		cleanupCamera();
-		saveParameters();
-		saveCameraParameters(g_ParamPath);
-        PostQuitMessage( 0 );
-        return 0;
-
-    }
-
-    return DefWindowProc( hWnd, msg, wParam, lParam );
-}
-
-/*!
-MessageDlgProc: Message procedure for initialization message window.
-
-@param[in] hWnd Window handle
-@param[in] msg Received message
-@param[in] wp Message parameter
-@param[in] lp Message parameter
-@return LRESULT
-@retval value which is returned from DefWindowProc().
-
-@date 2012/04/06 INITMESSAGE_SUCCESS_BUFFER, INITMESSAGE_FAIL_BUFFER and INITMESSAGE_SUCCESS_ALL are supported.
-@date 2012/03/27 return value is modifyed from False to DefWindowProc().
-*/
-LRESULT CALLBACK MessageDlgProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
-{
-    static HWND hParent;
-    hParent = GetParent(hWnd);
-	char msgtext[2048];
-
-    switch (msg) {
-        case WM_INITDIALOG:
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),"Welcome to GazeTracker.\r\n\r\n");
-			EnableWindow(GetDlgItem(hWnd,IDOK),false);
-            return TRUE;
-		case WM_PAINT:
-			if(wp==INITMESSAGE_FAIL_INIT){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sLocation of setting files: %s\r\nLocation of data files: %s\r\nFAIL: can't read parameter files.\r\n",msgtext,g_ParamPath,g_DataPath);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-				EnableWindow(GetDlgItem(hWnd,IDOK),true);
-			}else if(wp==INITMESSAGE_SUCCESS_INIT){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sLocation of setting files: %s\r\nLocation of data files: %s\r\nRead config.\r\n",msgtext,g_ParamPath,g_DataPath);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-			}else if(wp==INITMESSAGE_FAIL_SOCK){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sFAIL: can't open socket.\r\n",msgtext);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-				EnableWindow(GetDlgItem(hWnd,IDOK),true);
-			}else if(wp==INITMESSAGE_SUCCESS_SOCK){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sOpen socket.\r\n",msgtext);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-			}else if(wp==INITMESSAGE_FAIL_D3D){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sFAIL: can't initialize Direct3D.\r\n",msgtext);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-				EnableWindow(GetDlgItem(hWnd,IDOK),true);
-			}else if(wp==INITMESSAGE_SUCCESS_D3D){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sInitialize Direct3D.\r\n",msgtext);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-			}else if(wp==INITMESSAGE_FAIL_CAMERA){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sFAIL: can't initialize camera.\r\n",msgtext);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-				EnableWindow(GetDlgItem(hWnd,IDOK),true);
-			}else if(wp==INITMESSAGE_SUCCESS_CAMERA){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sInitialize camera.\r\n",msgtext);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-			}else if(wp==INITMESSAGE_FAIL_BUFFER){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sFAIL: can't initialize buffers.\r\n",msgtext);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-				EnableWindow(GetDlgItem(hWnd,IDOK),true);
-			}else if(wp==INITMESSAGE_SUCCESS_BUFFER){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%sInitialize buffers.\r\n",msgtext);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-			}else if(wp==INITMESSAGE_SUCCESS_ALL){
-				GetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext,sizeof(msgtext));
-				sprintf_s(msgtext,sizeof(msgtext),"%s\r\nOk. Let's go.\r\n",msgtext);
-				SetWindowText(GetDlgItem(hWnd,IDC_EDIT_MESSAGE),msgtext);
-			}
-        case WM_COMMAND:
-            switch (LOWORD(wp)) {
-                case IDOK:
-                    SendMessage(hParent, WM_CLOSE, 0, 0L);
-                    return TRUE;
-            }
-            break;
-    }
-    return DefWindowProc( hWnd, msg, wp, lp );
-}
-
-/*!
-waitQuitLoop: holds error message when initialization process failed.
-
-@param[in] hWnd HWND of the main window.
-
-@date 2012/04/06 created.
-*/
-void waitQuitLoop( HWND hWnd )
-{
-	bool bGotMsg;
-	MSG msg;
-	msg.message = WM_NULL;
-
-	while(WM_QUIT != msg.message)
+	if(message[0]!=NULL)
 	{
-		bGotMsg = ( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) != 0 );
-		if( bGotMsg )
-		{
-			if( 0 == TranslateAccelerator( hWnd, NULL, &msg )){
-				TranslateMessage( &msg );
-				DispatchMessage( &msg );
-			}
-		}
+		textSurface = TTF_RenderUTF8_Solid(g_Font, message, color);
+		dstRect.y += MENU_ITEM_HEIGHT;
+		SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
 	}
+
+	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
 }
 
+void renderInitMessages(int n, char* message)
+{
+	SDL_Surface* textSurface;
+	SDL_Rect dstRect;
+	SDL_Color color={255,255,255};
+
+	textSurface = TTF_RenderUTF8_Solid(g_Font, message, color);
+	dstRect.x = 10;
+	dstRect.y = MENU_ITEM_HEIGHT*n+10;
+	SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
+
+	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
+}
 
 /*!
 wWinMain: Entry point of the application.
@@ -1192,185 +700,294 @@ wWinMain: Entry point of the application.
 */
 INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 {
-	bool bGotMsg;
-	MSG msg;
-	msg.message = WM_NULL;
+	int nInitMessage=0;
 
-	// Register the window class
-    WNDCLASSEX wc =
-    {
-        sizeof( WNDCLASSEX ), CS_CLASSDC, msgProc, 0L, 0L,
-        GetModuleHandle( NULL ), NULL, NULL, NULL, NULL,
-        "GazeTracker", NULL
-    };
-	wc.hIcon = (HICON)LoadImage(hInst, MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON,0, 0, LR_DEFAULTSIZE);
+	SDL_Init(SDL_INIT_VIDEO);
 
-    RegisterClassEx( &wc );
-
-	RECT deskRect;
-	HWND hWndDesktop = GetDesktopWindow();
-	GetWindowRect(hWndDesktop, &deskRect);
-	
-    // Create the application's window
-    HWND hWnd = CreateWindow( "GazeTracker", "GazeTracker",
-                              //WS_VISIBLE | WS_POPUP,
-                              WS_VISIBLE | WS_POPUP | WS_BORDER | WS_CAPTION | WS_SYSMENU ,
-							  (deskRect.right-SCREEN_WIDTH)/2, (deskRect.bottom-SCREEN_HEIGHT)/2, SCREEN_WIDTH, SCREEN_HEIGHT,
-                              NULL, NULL, wc.hInstance, NULL );
+	g_pSDLscreen=SDL_SetVideoMode(SCREEN_WIDTH,SCREEN_HEIGHT,32,SDL_SWSURFACE);
+	if(g_pSDLscreen == NULL){
+		SDL_Quit();
+		return -1;
+	}
+	SDL_WM_SetCaption("GazeParser.Tracker",NULL);
 
 	QueryPerformanceFrequency(&g_CounterFreq);
 	QueryPerformanceCounter(&g_PrevRenderTime);
 
 	HANDLE hProcessID = GetCurrentProcess();
-	//SetPriorityClass(hProcessID,NORMAL_PRIORITY_CLASS);
 	SetPriorityClass(hProcessID,HIGH_PRIORITY_CLASS);
+	//SetPriorityClass(hProcessID,NORMAL_PRIORITY_CLASS);
 	//SetPriorityClass(hProcessID,REALTIME_PRIORITY_CLASS);
 
-    // Show the window
-    ShowWindow( hWnd, SW_SHOWDEFAULT );
-    UpdateWindow( hWnd );
-	
-	HWND hWnd_message;
-	hWnd_message = CreateDialog(hInst, MAKEINTRESOURCE(IDD_MESSAGE), hWnd, (DLGPROC)MessageDlgProc);
-	if(hWnd_message==NULL){
-		UnregisterClass( "GazeTracker", wc.hInstance );
+	if(FAILED(initParameters())){
+		SDL_Quit();
 		return -1;
 	}
-	ShowWindow( hWnd_message, SW_SHOWDEFAULT );
-	UpdateWindow( hWnd_message );
 
-
-	if(FAILED(initParameters())){
-		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_INIT, 0L);
-		UpdateWindow( hWnd_message );
-		waitQuitLoop( hWnd );
-		UnregisterClass( "GazeTracker", wc.hInstance );
-		return -2;
+	char logFilePath[512];
+	strcpy_s(logFilePath,sizeof(logFilePath),g_DataPath);
+	strcat_s(logFilePath,sizeof(logFilePath),"\\Tracker.log");
+	fopen_s(&g_LogFP, logFilePath, "w");
+	if(g_LogFP==NULL){
+		return -1;
 	}
-	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_INIT, 0L);
-	UpdateWindow( hWnd_message );
+	fprintf_s(g_LogFP,"initParameters ... OK.\n");
+	//TODO output parameters here?
+
+	if(FAILED(initSDLTTF())){
+		fprintf_s(g_LogFP,"initSDLTTF failed. check whether font (FreeSans.ttf) exists in the application directory.\nExit.");
+		SDL_Quit();
+		return -1;
+	}
+	fprintf_s(g_LogFP,"initSDLTTF ... OK.\n");
+
+	//now message can be rendered on screen.
+	char buff[512];
+	strcpy_s(buff,sizeof(buff),"Welcome to GazeParser.Tracker version ");
+	strcat_s(buff,sizeof(buff),VERSION);
+	renderInitMessages(nInitMessage,buff);
+	nInitMessage++;
+	nInitMessage++;
+	renderInitMessages(nInitMessage,"initParameters ... OK.");
+	nInitMessage++;
+	renderInitMessages(nInitMessage,"initSDLTTF ... OK.");
+	nInitMessage++;
 
 	if(FAILED(initBuffers())){
-		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_BUFFER, 0L);
-		UpdateWindow( hWnd_message );
-		waitQuitLoop( hWnd );
-		UnregisterClass( "GazeTracker", wc.hInstance );
-		return -3;
+		fprintf_s(g_LogFP,"initBuffers failed.\nExit.");
+		renderInitMessages(nInitMessage,"initBuffers failed. Exit.");
+		Sleep(2000);
+		SDL_Quit();
+		return -1;
 	}
-	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_BUFFER, 0L);
-	UpdateWindow( hWnd_message );
+	fprintf_s(g_LogFP,"initBuffers ... OK.\n");
+	renderInitMessages(nInitMessage,"initBuffers ... OK.");
+	nInitMessage += 1;
 
-	if(FAILED(sockInit(hWnd))||sockAccept(hWnd)){
-		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_SOCK, 0L);
-		UpdateWindow( hWnd_message );
-		waitQuitLoop( hWnd );
-		UnregisterClass( "GazeTracker", wc.hInstance );
-		return -4;
+	if(FAILED(sockInit())){
+		fprintf_s(g_LogFP,"sockInit failed.\nExit.");
+		renderInitMessages(nInitMessage,"sockInit failed. Exit.");
+		Sleep(2000);
+		SDL_Quit();
+		return -1;
 	}
-	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_SOCK, 0L);
-	UpdateWindow( hWnd_message );
+	fprintf_s(g_LogFP,"sockInit ... OK.\n");
+	renderInitMessages(nInitMessage,"sockInit ... OK.");
+	nInitMessage += 1;
+
+	if(FAILED(sockAccept())){
+		fprintf_s(g_LogFP,"sockAccept failed.\nExit.");
+		renderInitMessages(nInitMessage,"sockAccept failed. Exit.");
+		Sleep(2000);
+		SDL_Quit();
+		return -1;
+	}
+	fprintf_s(g_LogFP,"sockAccept ... OK.\n");
+	renderInitMessages(nInitMessage,"sockAccept ... OK.");
+	nInitMessage += 1;
 
 	if(FAILED(initCamera(g_ParamPath))){
-		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_CAMERA, 0L);
-		UpdateWindow( hWnd_message );
-		waitQuitLoop( hWnd );
-		UnregisterClass( "GazeTracker", wc.hInstance );
-		return -5;
+		fprintf_s(g_LogFP,"initCamera failed.\nExit.");
+		renderInitMessages(nInitMessage,"initCamera failed. Exit.");
+		Sleep(2000);
+		SDL_Quit();
+		return -1;
 	}
-	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_CAMERA, 0L);
-	UpdateWindow( hWnd_message );
+	fprintf_s(g_LogFP,"initCamera ... OK.\n");
+	renderInitMessages(nInitMessage,"initCamera ... OK.");
+	nInitMessage += 1;
 
-	if( FAILED(initD3D( hWnd ))){
-		SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_FAIL_D3D, 0L);
-		UpdateWindow( hWnd_message );
-		waitQuitLoop( hWnd );
-		UnregisterClass( "GazeTracker", wc.hInstance );
-		return -6;
+	if(FAILED(initSDLSurfaces())){
+		fprintf_s(g_LogFP,"initSDLSurfaces failed.\nExit.");
+		renderInitMessages(nInitMessage,"initSDLSurfaces failed. Exit.");
+		Sleep(2000);
+		SDL_Quit();
+		return -1;
 	}
-	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_D3D, 0L);
-	SendMessage(hWnd_message, WM_PAINT, INITMESSAGE_SUCCESS_ALL, 0L);
-	UpdateWindow( hWnd_message );
+	fprintf_s(g_LogFP,"initSDLSurfaces ... OK.\n");
+	renderInitMessages(nInitMessage,"initSDLSurfaces ... OK.");
+	nInitMessage += 1;
 
-
+	fprintf_s(g_LogFP,"Start.\n\n");
+	nInitMessage += 1;
+	renderInitMessages(nInitMessage,"Start.");
 	Sleep(2000);
-	DestroyWindow(hWnd_message);
 
-	// main loop
-	//PeekMessage( &msg, NULL, 0U, 0U, PM_NOREMOVE );
-
-	while(WM_QUIT != msg.message)
-	{
-		bGotMsg = ( PeekMessage( &msg, NULL, 0U, 0U, PM_REMOVE ) != 0 );
-		if( bGotMsg )
-		{
-			// Translate and dispatch the message
-			if( 0 == TranslateAccelerator( hWnd, NULL, &msg ) )
-			{
-				TranslateMessage( &msg );
-				DispatchMessage( &msg );
-			}
-		}
-		else
-		{
-			//if there is no message to process, do application tasks.
-
-			if(g_isShowingCalResult)
-			{ //show calibration result.
-				drawCalResult(g_DataCounter, g_EyeData, g_CalPointData, g_NumCalPoint, g_CalPointList, g_CalibrationArea);
-			}
-			else if(getCameraImage( )==S_OK)
-			{ //retrieve camera image and process it.
-				int res;
-				double detectionResults[8], TimeImageAquired;
-				LARGE_INTEGER ct;
-				
-				QueryPerformanceCounter(&ct);
-				TimeImageAquired = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
-
-				if(g_RecordingMode==RECORDING_MONOCULAR){
-					res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPoints, g_MaxPoints, detectionResults);
-					if(res!=S_PUPIL_PURKINJE)
-					{
-						detectionResults[MONO_PUPIL_X] = detectionResults[MONO_PUPIL_Y] = res;
-						detectionResults[MONO_PURKINJE_X] = detectionResults[MONO_PURKINJE_Y] = res;
-					}
-					getGazeMono(detectionResults, TimeImageAquired);
-				}else{
-					res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPoints, g_MaxPoints, detectionResults);
-					if(res!=S_PUPIL_PURKINJE)
-					{
-						detectionResults[BIN_PUPIL_LX] = detectionResults[BIN_PUPIL_LY] = res;
-						detectionResults[BIN_PURKINJE_LX] = detectionResults[BIN_PURKINJE_LY] = res;
-						detectionResults[BIN_PUPIL_RX] = detectionResults[BIN_PUPIL_RY] = res;
-						detectionResults[BIN_PURKINJE_RX] = detectionResults[BIN_PURKINJE_RY] = res;
-					}
-					getGazeBin(detectionResults, TimeImageAquired);
-				}
-
-			}
-
-			if(!g_isRecording)
-			{ // if it is not under recording, flip screen in a regular way.
-				render();
-			}
-			/* 2012/3/6 don't update screen while recording.
-			else
-			{ // if it is under recording, flip screen without waiting VSYNC.
-				LARGE_INTEGER ct;
-				QueryPerformanceCounter(&ct);
-				if((double)((ct.QuadPart-g_PrevRenderTime.QuadPart)/g_CounterFreq.QuadPart)>0.016) //16msec
+	SDL_Event SDLevent;
+	int done = false;
+	while(!done){
+		while(SDL_PollEvent(&SDLevent)){
+			switch(SDLevent.type){
+			case SDL_KEYDOWN:
+				switch(SDLevent.key.keysym.sym)
 				{
-					RenderWhileRecording();
-					g_PrevRenderTime = ct;
+				case SDLK_q:
+					if(g_isRecording || g_isCalibrating || g_isValidating)
+					{
+						g_isRecording = g_isCalibrating = g_isValidating = false;
+					}
+					done = 1;
+					break;
+
+				case SDLK_UP:
+					if(!g_isRecording && !g_isCalibrating && !g_isValidating){
+						g_CurrentMenuPosition--;
+						if(g_CurrentMenuPosition<0)
+							g_CurrentMenuPosition = MENU_GENERAL_NUM + g_CustomMenuNum -1;
+					}
+					break;
+				case SDLK_DOWN:
+					if(!g_isRecording && !g_isCalibrating && !g_isValidating){
+						g_CurrentMenuPosition++;
+						if(MENU_GENERAL_NUM + g_CustomMenuNum <= g_CurrentMenuPosition)
+						g_CurrentMenuPosition = 0;
+					}
+					break;
+
+				case SDLK_LEFT:
+					switch(g_CurrentMenuPosition)
+					{
+					case MENU_THRESH_PUPIL:
+						g_Threshold--;
+						if(g_Threshold<1)
+							g_Threshold = 1;
+						break;
+					case MENU_THRESH_PURKINJE:
+						g_PurkinjeThreshold--;
+						if(g_PurkinjeThreshold<1)
+							g_PurkinjeThreshold = 1;
+						break;
+					case MENU_MINPOINTS:
+						g_MinPoints--;
+						if(g_MinPoints<1)
+							g_MinPoints = 1;
+						break;
+					case MENU_MAXPOINTS:
+						g_MaxPoints--;
+						if(g_MaxPoints<=g_MinPoints)
+							g_MaxPoints = g_MinPoints+1;
+						break;
+					case MENU_SEARCHAREA:
+						g_PurkinjeSearchArea--;
+						if(g_PurkinjeSearchArea<10)
+							g_PurkinjeSearchArea = 10;
+						break;
+					case MENU_EXCLUDEAREA:
+						g_PurkinjeExcludeArea--;
+						if(g_PurkinjeExcludeArea<2)
+							g_PurkinjeExcludeArea = 2;
+						break;
+					default:
+						customCameraMenu(&SDLevent, g_CurrentMenuPosition);
+						break;
+					}
+					updateMenuText();
+					updateCustomMenuText();
+					printStringToTexture(0,0,g_MenuString,MENU_GENERAL_NUM+g_CustomMenuNum,MENU_FONT_SIZE,g_pPanelSurface);
+					break;
+
+				case SDLK_RIGHT:
+					switch(g_CurrentMenuPosition)
+					{
+					case MENU_THRESH_PUPIL:
+						g_Threshold++;
+						if(g_Threshold>255)
+							g_Threshold = 255;
+						break;
+					case MENU_THRESH_PURKINJE:
+						g_PurkinjeThreshold++;
+						if(g_PurkinjeThreshold>255)
+							g_PurkinjeThreshold = 255;
+						break;
+					case MENU_MINPOINTS:
+						g_MinPoints++;
+						if(g_MinPoints>=g_MaxPoints)
+							g_MinPoints = g_MaxPoints-1;
+						break;
+					case MENU_MAXPOINTS:
+						g_MaxPoints++;
+						if(g_MaxPoints>1000)
+							g_MaxPoints = 1000;
+						break;
+					case MENU_SEARCHAREA:
+						g_PurkinjeSearchArea++;
+						if(g_PurkinjeSearchArea>150)
+							g_PurkinjeSearchArea = 150;
+						break;
+					case MENU_EXCLUDEAREA:
+						g_PurkinjeExcludeArea++;
+						if(g_PurkinjeExcludeArea>g_PurkinjeSearchArea)
+							g_PurkinjeExcludeArea = g_PurkinjeSearchArea;
+						break;
+					default:
+						customCameraMenu(&SDLevent, g_CurrentMenuPosition);
+						break;
+					}
+					updateMenuText();
+					updateCustomMenuText();
+					printStringToTexture(0,0,g_MenuString,MENU_GENERAL_NUM+g_CustomMenuNum,MENU_FONT_SIZE,g_pPanelSurface);
+					break;
+
 				}
-			}*/
+				break;
+
+			case SDL_QUIT:
+				done = 1;
+				break;
+			}
 		}
 
-	}
+		sockProcess();
 
+		//if there is no message to process, do application tasks.
+
+		if(g_isShowingCalResult)
+		{ //show calibration result.
+			drawCalResult(g_DataCounter, g_EyeData, g_CalPointData, g_NumCalPoint, g_CalPointList, g_CalibrationArea);
+		}
+		else if(getCameraImage( )==S_OK)
+		{ //retrieve camera image and process it.
+			int res;
+			double detectionResults[8], TimeImageAquired;
+			LARGE_INTEGER ct;
+			
+			QueryPerformanceCounter(&ct);
+			TimeImageAquired = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
+
+			if(g_RecordingMode==RECORDING_MONOCULAR){
+				res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPoints, g_MaxPoints, detectionResults);
+				if(res!=S_PUPIL_PURKINJE)
+				{
+					detectionResults[MONO_PUPIL_X] = detectionResults[MONO_PUPIL_Y] = res;
+					detectionResults[MONO_PURKINJE_X] = detectionResults[MONO_PURKINJE_Y] = res;
+				}
+				getGazeMono(detectionResults, TimeImageAquired);
+			}else{
+				res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPoints, g_MaxPoints, detectionResults);
+				if(res!=S_PUPIL_PURKINJE)
+				{
+					detectionResults[BIN_PUPIL_LX] = detectionResults[BIN_PUPIL_LY] = res;
+					detectionResults[BIN_PURKINJE_LX] = detectionResults[BIN_PURKINJE_LY] = res;
+					detectionResults[BIN_PUPIL_RX] = detectionResults[BIN_PUPIL_RY] = res;
+					detectionResults[BIN_PURKINJE_RX] = detectionResults[BIN_PURKINJE_RY] = res;
+				}
+				getGazeBin(detectionResults, TimeImageAquired);
+			}
+
+		}
+
+		if(!g_isRecording)
+		{ // if it is not under recording, flip screen in a regular way.
+			render();
+		}
+	}
 	//end mainloop
 
-    UnregisterClass( "GazeTracker", wc.hInstance );
+	cleanupCamera();
+	saveParameters();
+	saveCameraParameters(g_ParamPath);
+	cleanup();
+	SDL_Quit();
     return 0;
 }
 
@@ -1568,8 +1185,7 @@ void startRecording(char* message)
 		if(g_DataFP!=NULL)
 		{
 			//draw message on calimage
-			drawRecordingMessage();
-			renderBeforeRecording();
+			renderBeforeRecording(message);
 
 			time(&t);
 			e = localtime_s(&ltm, &t);
