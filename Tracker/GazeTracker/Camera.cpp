@@ -8,6 +8,9 @@
 - Custom menu is supported.
 */
 
+#define _CRT_SECURE_NO_DEPRECATE
+
+
 #include <atlbase.h>
 #include "GazeTracker.h"
 
@@ -16,7 +19,6 @@
 #include <string>
 
 #include "C:\Program Files\Interface\GPC5300\include\IFCml.h"
-#pragma comment(lib,"C:\\Program Files\\Interface\\GPC5300\\lib\\IfCml.lib")
 
 
 HANDLE g_CameraDeviceHandle; /*!< Holds camera device handle */
@@ -46,13 +48,13 @@ Read parameters from the configuration file, start camera and set callback funct
 @attention If there are custom camera menu items, number of custom menu items must be set to g_CustomMenuNum in this function.
 
 @param[in] ParamPath Path to the camera configuration file.
-@return HRESULT
+@return int
 @retval S_OK Camera is successfully initialized.
 @retval E_FAIL Initialization is failed.
 @note This function is necessary when you customize this file for your camera.
 @todo check whether number of custom menus are too many.
  */
-HRESULT initCamera( char* ParamPath )
+int initCamera( char* ParamPath )
 {
 	INT				ret;
 	DWORD			BufSize;
@@ -66,8 +68,8 @@ HRESULT initCamera( char* ParamPath )
 		return E_FAIL;
 	}
 
-	strcpy_s(buff, sizeof(buff), ParamPath);
-	strcat_s(buff, sizeof(buff), CAMERA_CONFIG_FILE);
+	strcpy(buff, ParamPath);
+	strcat(buff, CAMERA_CONFIG_FILE);
 	if(!PathFileExists(buff)){
 		char exefile[512];
 		char configfile[512];
@@ -75,9 +77,9 @@ HRESULT initCamera( char* ParamPath )
 		errno_t r;
 		GetModuleFileName(NULL,exefile,sizeof(exefile));
 		r = _splitpath_s(exefile,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-		strcpy_s(configfile,sizeof(configfile),drive);
-		strcat_s(configfile,sizeof(configfile),dir);
-		strcat_s(configfile,sizeof(configfile),CAMERA_CONFIG_FILE);
+		strcpy(configfile,drive);
+		strcat(configfile,dir);
+		strcat(configfile,CAMERA_CONFIG_FILE);
 		CopyFile(configfile,buff,true);
 	}
 	
@@ -143,12 +145,12 @@ HRESULT initCamera( char* ParamPath )
 /*!
 getCameraImage: Get new camera image.
 
-@return HRESULT
+@return int
 @retval S_OK New frame is available.
 @retval E_FAIL There is no new frame.
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT getCameraImage( void )
+int getCameraImage( void )
 {
 	if(g_NewFrameAvailable)
 	{
@@ -202,12 +204,12 @@ This function is called when left or right cursor key is pressed.
 
 @param[in] SDLevent Event object.
 @param[in] currentMenuPosition Current menu position.
-@return HRESULT
+@return int
 @retval S_OK 
 @retval E_FAIL 
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
+int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 {
 	// no custom menu for this camera
 	return S_OK;
