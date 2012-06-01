@@ -684,7 +684,7 @@ drawCalResult: Draw calibration result to a buffer.
 @param[in] calArea top-left and bottom-right position of calibration area.
 @return No value is returned.
 */
-void drawCalResult( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], RECT calArea)
+void drawCalResult( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], double calArea[4])
 {
 	double xy[4],r,x,y;
 	double calAreaWidth, calAreaHeight,cx,cy;
@@ -692,13 +692,13 @@ void drawCalResult( int dataCounter, double eyeData[MAXDATA][4], double calPoint
 
 	//clear image
 	cv::rectangle(g_CalImg,cv::Rect(0,0,g_PreviewWidth,g_PreviewHeight),CV_RGB(255,255,255),-1);
-	calAreaWidth = calArea.right-calArea.left;
-	calAreaHeight = calArea.bottom-calArea.top;
+	calAreaWidth = calArea[2]-calArea[0];
+	calAreaHeight = calArea[3]-calArea[1];
 
 	//draw target position
 	for(idx=0; idx<numCalPoint; idx++){
-		x = (calPointList[idx][0]-calArea.left) * g_PreviewWidth/calAreaWidth;
-		y = (calPointList[idx][1]-calArea.top) * g_PreviewHeight/calAreaHeight;
+		x = (calPointList[idx][0]-calArea[0]) * g_PreviewWidth/calAreaWidth;
+		y = (calPointList[idx][1]-calArea[1]) * g_PreviewHeight/calAreaHeight;
 		r = 20 * g_PreviewWidth/calAreaWidth;
 		cv::circle(g_CalImg,cv::Point2d(x,y),(int)r,CV_RGB(255,0,0));
 		cv::circle(g_CalImg,cv::Point2d(x,y),(int)r*2,CV_RGB(255,0,0));
@@ -708,11 +708,11 @@ void drawCalResult( int dataCounter, double eyeData[MAXDATA][4], double calPoint
 	if(g_RecordingMode==RECORDING_MONOCULAR){ //monocular
 		for(idx=0; idx<dataCounter; idx++){
 			getGazePositionMono(eyeData[idx], xy);
-			xy[MONO_X] = xy[MONO_X]-calArea.left;
-			xy[MONO_Y] = xy[MONO_Y]-calArea.top;
+			xy[MONO_X] = xy[MONO_X]-calArea[0];
+			xy[MONO_Y] = xy[MONO_Y]-calArea[1];
 
-			cx = calPointData[idx][0]-calArea.left;
-			cy = calPointData[idx][1]-calArea.top;
+			cx = calPointData[idx][0]-calArea[0];
+			cy = calPointData[idx][1]-calArea[1];
 
 			cv::line(g_CalImg,
 				cv::Point2d(xy[MONO_X]*g_PreviewWidth/calAreaWidth,xy[MONO_Y]*g_PreviewHeight/calAreaHeight),
@@ -725,13 +725,13 @@ void drawCalResult( int dataCounter, double eyeData[MAXDATA][4], double calPoint
 		cv::putText(g_CalImg,"Green: right eye", cv::Point2d(8,32), cv::FONT_HERSHEY_COMPLEX, 0.5, CV_RGB(0,192,0));
 		for(idx=0; idx<dataCounter; idx++){
 			getGazePositionBin(eyeData[idx], xy);
-			xy[BIN_LX] = xy[BIN_LX]-calArea.left;
-			xy[BIN_LY] = xy[BIN_LY]-calArea.top;
-			xy[BIN_RX] = xy[BIN_RX]-calArea.left;
-			xy[BIN_RY] = xy[BIN_RY]-calArea.top;
+			xy[BIN_LX] = xy[BIN_LX]-calArea[0];
+			xy[BIN_LY] = xy[BIN_LY]-calArea[1];
+			xy[BIN_RX] = xy[BIN_RX]-calArea[0];
+			xy[BIN_RY] = xy[BIN_RY]-calArea[1];
 
-			cx = calPointData[idx][0]-calArea.left;
-			cy = calPointData[idx][1]-calArea.top;
+			cx = calPointData[idx][0]-calArea[0];
+			cy = calPointData[idx][1]-calArea[1];
 
 			//left eye = blue
 			cv::line(g_CalImg,

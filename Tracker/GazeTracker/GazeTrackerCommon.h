@@ -83,7 +83,7 @@ extern void estimateParametersMono(int dataCounter, double eyeData[MAXDATA][4], 
 extern void estimateParametersBin(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
 extern void getGazePositionMono(double* im, double* xy);
 extern void getGazePositionBin(double* im, double* xy);
-extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], RECT calArea);
+extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], double calArea[4]);
 extern void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], double Goodness[4], double MaxError[2], double MeanError[2] );
 extern void drawRecordingMessage( void );
 

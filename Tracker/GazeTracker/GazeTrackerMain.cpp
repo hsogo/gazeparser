@@ -79,7 +79,7 @@ double g_TickData[MAXDATA]; /*!< Holids tickcount when data was obtained. */
 double g_CalPointData[MAXCALDATA][2]; /*!< Holds where the calibration item is presented when calibration data is sampled.*/
 double g_ParamX[6]; /*!< Holds calibration parameters for X coordinate. Only three elements are used when recording mode is monocular.*/
 double g_ParamY[6]; /*!< Holds calibration parameters for Y coordinate. Only three elements are used when recording mode is monocular.*/
-RECT g_CalibrationArea; /*!< Holds calibration area. These values are used when calibration results are rendered.*/
+double g_CalibrationArea[4]; /*!< Holds calibration area. These values are used when calibration results are rendered.*/
 
 double g_CurrentEyeData[4]; /*!< Holds latest data. Only two elements are used when recording mode is monocular.*/
 double g_CurrentCalPoint[2]; /*!< Holds current position of the calibration target. */
@@ -98,9 +98,11 @@ bool g_isCalibrating = false;
 bool g_isValidating = false;
 bool g_isCalibrated = false;
 bool g_isShowingCalResult = false;
-LARGE_INTEGER g_RecStartTime;
+
+double g_RecStartTime;
+#ifdef _WIN32
 LARGE_INTEGER g_CounterFreq;
-LARGE_INTEGER g_PrevRenderTime;
+#endif
 
 double g_CalPointList[MAXCALPOINT][2];
 
@@ -110,6 +112,23 @@ std::fstream g_LogFS;
 char g_MessageBuffer[MAXMESSAGE];
 int g_MessageEnd;
 
+int initTimer(void)
+{
+	QueryPerformanceFrequency(&g_CounterFreq);
+	return S_OK;
+}
+
+
+double getCurrentTime(void)
+{
+#ifdef _WIN32
+	LARGE_INTEGER ct;
+	QueryPerformanceCounter(&ct);
+	return 1000 * ((double)ct.QuadPart/(double)g_CounterFreq.QuadPart);
+#else
+
+#endif
+}
 
 /*!
 initParameters: Read parameters from the configuration file to initialize application.
@@ -499,12 +518,7 @@ void getGazeMono( double detectionResults[8], double TimeImageAquired )
 			flushGazeData();
 			
 			//insert overflow message
-			LARGE_INTEGER ct;
-			double ctd;
-			QueryPerformanceCounter(&ct);
-			ctd = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
-
-			fprintf(g_DataFP,"#OVERFLOW_FLUSH_GAZEDATA,%.3f\n",ctd);
+			fprintf(g_DataFP,"#OVERFLOW_FLUSH_GAZEDATA,%.3f\n",getCurrentTime()-g_RecStartTime);
 			fflush(g_DataFP);
 
 			//reset counter
@@ -580,12 +594,7 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 			flushGazeData();
 			
 			//insert overflow message
-			LARGE_INTEGER ct;
-			double ctd;
-			QueryPerformanceCounter(&ct);
-			ctd = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
-
-			fprintf(g_DataFP,"#OVERFLOW_FLUSH_GAZEDATA,%.3f\n",ctd);
+			fprintf(g_DataFP,"#OVERFLOW_FLUSH_GAZEDATA,%.3f\n",getCurrentTime()-g_RecStartTime);
 			fflush(g_DataFP);
 
 			//reset counter
@@ -717,8 +726,7 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	}
 	SDL_WM_SetCaption("GazeParser.Tracker",NULL);
 
-	QueryPerformanceFrequency(&g_CounterFreq);
-	QueryPerformanceCounter(&g_PrevRenderTime);
+	initTimer();
 
 	HANDLE hProcessID = GetCurrentProcess();
 	SetPriorityClass(hProcessID,HIGH_PRIORITY_CLASS);
@@ -955,10 +963,7 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 		{ //retrieve camera image and process it.
 			int res;
 			double detectionResults[8], TimeImageAquired;
-			LARGE_INTEGER ct;
-			
-			QueryPerformanceCounter(&ct);
-			TimeImageAquired = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
+			TimeImageAquired = getCurrentTime() - g_RecStartTime;
 
 			if(g_RecordingMode==RECORDING_MONOCULAR){
 				res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPoints, g_MaxPoints, detectionResults);
@@ -1040,10 +1045,10 @@ void startCalibration(int x1, int y1, int x2, int y2)
 {
 	g_LogFS << "StartCalibration\n";
 
-	g_CalibrationArea.left = x1;
-	g_CalibrationArea.top = y1;
-	g_CalibrationArea.right = x2;
-	g_CalibrationArea.bottom = y2;
+	g_CalibrationArea[0] = x1;
+	g_CalibrationArea[1] = y1;
+	g_CalibrationArea[2] = x2;
+	g_CalibrationArea[3] = y2;
 	if(!g_isRecording && !g_isValidating && !g_isCalibrating){
 		clearData();
 		g_isCalibrating = true;
@@ -1112,10 +1117,10 @@ void startValidation(int x1, int y1, int x2, int y2)
 {
 	g_LogFS << "StartValidation\n";
 
-	g_CalibrationArea.left = x1;
-	g_CalibrationArea.top = y1;
-	g_CalibrationArea.right = x2;
-	g_CalibrationArea.bottom = y2;
+	g_CalibrationArea[0] = x1;
+	g_CalibrationArea[1] = y1;
+	g_CalibrationArea[2] = x2;
+	g_CalibrationArea[3] = y2;
 	if(!g_isRecording && !g_isValidating && !g_isCalibrating){ //ready to start calibration?
 		clearData();
 		g_isValidating = true;
@@ -1204,8 +1209,7 @@ void startRecording(char* message)
 			time(&t);
 			e = localtime_s(&ltm, &t);
 			fprintf(g_DataFP,"#START_REC,%d,%d,%d,%d,%d,%d\n",ltm.tm_year+1900,ltm.tm_mon+1,ltm.tm_mday,ltm.tm_hour,ltm.tm_min,ltm.tm_sec);
-			fprintf(g_DataFP,VERSION);
-			fprintf(g_DataFP,"\n");
+			fprintf(g_DataFP,"#TRACKER_VERSION,%s\n",VERSION);
 			if(message[0]!=NULL)
 			{
 				fprintf(g_DataFP,"#MESSAGE,0,%s\n",message);
@@ -1233,7 +1237,7 @@ void startRecording(char* message)
 		g_isShowingCameraImage = false;
 		g_isShowingCalResult = false;
 
-		QueryPerformanceCounter(&g_RecStartTime);
+		g_RecStartTime = getCurrentTime();
 	}
 }
 
@@ -1258,11 +1262,7 @@ void stopRecording(char* message)
 		}
 		if(message[0]!=NULL)
 		{
-			LARGE_INTEGER ct;
-			double ctd;
-			QueryPerformanceCounter(&ct);
-			ctd = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
-			fprintf(g_DataFP,"#MESSAGE,%.3f,%s\n",ctd,message);
+			fprintf(g_DataFP,"#MESSAGE,%.3f,%s\n",getCurrentTime()-g_RecStartTime,message);
 		}
 		fprintf(g_DataFP,"#STOP_REC\n");
 		fflush(g_DataFP); //force writing.
@@ -1344,10 +1344,8 @@ if number of messages reached to MAXMESSAGE, messages are written to the file im
 */
 void insertMessage(char* message)
 {
-	LARGE_INTEGER ct;
 	double ctd;
-	QueryPerformanceCounter(&ct);
-	ctd = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
+	ctd = getCurrentTime() - g_RecStartTime;
 	g_MessageEnd += sprintf_s(g_MessageBuffer+g_MessageEnd,MAXMESSAGE-g_MessageEnd,"#MESSAGE,%.3f,%s\n",ctd,message);
 	//check overflow
 	if(MAXMESSAGE-g_MessageEnd < 128)
