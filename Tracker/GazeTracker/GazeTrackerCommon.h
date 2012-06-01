@@ -8,28 +8,11 @@
 - Custom menu is supported.
 */
 
+
+
 #define VERSION "0.5.0"
 
 #include <SDL.h>
-
-#pragma comment(lib,"winmm.lib")
-#if _DEBUG
-    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_core240d.lib")
-    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_imgproc240d.lib")
-    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_highgui240d.lib")
-#else
-    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_core240.lib")
-    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_imgproc240.lib")
-    #pragma comment(lib,"C:\\OpenCV2.4\\build\\x86\\vc9\\lib\\opencv_highgui240.lib")
-#endif
-#pragma comment(lib,"Ws2_32.lib")
-
-#pragma comment(lib,"C:\\SDL\\SDL-1.2.15\\lib\\x86\\SDL.lib")
-#pragma comment(lib,"C:\\SDL\\SDL-1.2.15\\lib\\x86\\SDLmain.lib")
-#pragma comment(lib,"C:\\SDL\\SDL_net-1.2.8\\lib\\x86\\SDL_net.lib")
-#pragma comment(lib,"C:\\SDL\\SDL_ttf-2.0.11\\lib\\x86\\SDL_ttf.lib")
-
-#define WM_TCPSOCKET     (WM_USER+1)
 
 #define PREVIEW_WIDTH  640
 #define PREVIEW_HEIGHT 480
@@ -104,9 +87,9 @@ extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double ca
 extern void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], double Goodness[4], double MaxError[2], double MeanError[2] );
 extern void drawRecordingMessage( void );
 
-extern HRESULT sockInit(void);
-extern HRESULT sockAccept(void);
-extern HRESULT sockProcess(void);
+extern int sockInit(void);
+extern int sockAccept(void);
+extern int sockProcess(void);
 
 extern unsigned char* g_frameBuffer;
 extern int* g_pCameraTextureBuffer;
@@ -153,17 +136,17 @@ extern void getEyePosition(double* pos);
 extern void saveCameraImage(char* filename);
 
 //Camera.cpp
-extern HRESULT initCamera( char* ParamPath );
-extern HRESULT getCameraImage( void );
+extern int initCamera( char* ParamPath );
+extern int getCameraImage( void );
 extern void cleanupCamera( void );
 
 extern LARGE_INTEGER g_CounterFreq;
 
 //custom menu
-extern HRESULT customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition);
+extern int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition);
 extern int g_CustomMenuNum;
 extern void saveCameraParameters(char* ParamPath);
 extern void updateCustomMenuText( void );
 extern TCHAR g_MenuString[MENU_MAX_ITEMS][MENU_STRING_MAX];
 
-extern HRESULT initBuffers(void);
+extern int initBuffers(void);

@@ -9,8 +9,13 @@
 - Custom menu is supported.
  */
 
+#define _CRT_SECURE_NO_DEPRECATE
+
+
 #include "SDL.h"
 #include "SDL_ttf.h"
+
+#include <fstream>
 
 #include <atlbase.h>
 #include <time.h>
@@ -61,8 +66,6 @@ int g_PurkinjeSearchArea = 60;  /*!<  */
 int g_PurkinjeExcludeArea = 20; /*!<  */
 
 bool g_isShowingCameraImage = true; /*!< If true, camera image is rendered. This must be false while recording.*/
-HANDLE g_hThread; /*!< @deprecated*/
-unsigned g_threadID; /*!< @deprecated*/
 
 char g_ParamPath[512]; /*!< Holds path to the parameter file directory*/
 char g_DataPath[512];  /*!< Holds path to the data file directory*/
@@ -101,11 +104,12 @@ LARGE_INTEGER g_PrevRenderTime;
 
 double g_CalPointList[MAXCALPOINT][2];
 
-FILE *g_DataFP = NULL;
+FILE* g_DataFP;
+std::fstream g_LogFS;
+
 char g_MessageBuffer[MAXMESSAGE];
 int g_MessageEnd;
 
-FILE *g_LogFP = NULL;
 
 /*!
 initParameters: Read parameters from the configuration file to initialize application.
@@ -127,33 +131,33 @@ Following parameters are read from a configuration file named "CONFIG".
 -PREVIEW_WIDTH  (g_PreviewWidth)
 -PREVIEW_HEIGHT  (g_PreviewHeight)
 
-@return HRESULT
+@return int
 @retval S_OK Camera is successfully initialized.
 @retval E_FAIL Initialization is failed.
 
 @date 2012/04/06 CAMERA_WIDTH, CAMERA_HEIGHT, PREVIEW_WIDTH and PREVIEW_HEIGHT are supported.
  */
-HRESULT initParameters( void )
+int initParameters( void )
 {
-	FILE* fp;
+	std::fstream fs;
 	char buff[512];
 	char *p,*pp;
 	char drive[4],dir[512],fname[32],ext[5];
 	errno_t r;
 	int param;
-	DWORD n;
 
-	n = GetEnvironmentVariable("HOMEDRIVE",g_DataPath,sizeof(g_DataPath));
-	n = GetEnvironmentVariable("HOMEPATH",g_DataPath+n,sizeof(g_DataPath)-n);
-	strcat_s(g_DataPath, sizeof(g_DataPath), "\\GazeTracker");
+	GetEnvironmentVariable("HOMEDRIVE",g_DataPath,sizeof(g_DataPath));
+	GetEnvironmentVariable("HOMEPATH",buff,sizeof(buff));
+	strcat(g_DataPath, buff);
+	strcat(g_DataPath, "\\GazeTracker");
 
 	GetModuleFileName(NULL,buff,sizeof(buff));
 	r = _splitpath_s(buff,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-	strcpy_s(g_AppDirPath,sizeof(g_AppDirPath),drive);
-	strcat_s(g_AppDirPath,sizeof(g_AppDirPath),dir);
+	strcpy(g_AppDirPath,drive);
+	strcat(g_AppDirPath,dir);
 
 	GetEnvironmentVariable("APPDATA",g_ParamPath,sizeof(g_ParamPath));
-	strcat_s(g_ParamPath, sizeof(g_ParamPath), "\\GazeTracker");
+	strcat(g_ParamPath, "\\GazeTracker");
 
 	if(!PathIsDirectory(g_DataPath)){
 		CreateDirectory(g_DataPath,NULL);
@@ -163,21 +167,22 @@ HRESULT initParameters( void )
 		CreateDirectory(g_ParamPath,NULL);		
 	}
 
-	strcpy_s(buff,sizeof(buff),g_ParamPath);
-	strcat_s(buff,sizeof(buff),"\\CONFIG");
+	strcpy(buff,g_ParamPath);
+	strcat(buff,"\\CONFIG");
 	if(!PathFileExists(buff)){
 		char configfile[512];
-		strcpy_s(configfile,sizeof(configfile),g_AppDirPath);
-		strcat_s(configfile,sizeof(configfile),"\\CONFIG");
+		strcpy(configfile,g_AppDirPath);
+		strcat(configfile,"\\CONFIG");
 		CopyFile(configfile,buff,true);
 	}
 
-	if(fopen_s(&fp,buff,"r")!=NULL)
+	fs.open(buff, std::ios::in);
+	if(!fs.is_open())
 	{
 		return E_FAIL;
 	}
 
-	while(fgets(buff,sizeof(buff),fp)!=NULL)
+	while(fs.getline(buff,sizeof(buff)))
 	{
 		if(buff[0]=='#') continue;
 		if((p=strchr(buff,'='))==NULL) continue;
@@ -200,7 +205,7 @@ HRESULT initParameters( void )
 	g_ROIWidth = g_CameraWidth;
 	g_ROIHeight = g_CameraHeight;
 
-	fclose(fp);
+	fs.close();
 
 	return S_OK;
 }
@@ -228,31 +233,32 @@ Following parameters are wrote to the configuration file.
 */
 void saveParameters( void )
 {
-	FILE* fp;
+	std::fstream fs;
 	char buff[512];
 
-	strcpy_s(buff,sizeof(buff),g_ParamPath);
-	strcat_s(buff,sizeof(buff),"\\CONFIG");
+	strcpy(buff,g_ParamPath);
+	strcat(buff,"\\CONFIG");
 
-	if(fopen_s(&fp,buff,"w")!=NULL)
+	fs.open(buff,std::ios::out);
+	if(!fs.is_open())
 	{
 		return;
 	}
 
-	fprintf_s(fp,"#If you want to recover original settings, delete this file and start eye tracker program.\n");
-	fprintf_s(fp,"THRESHOLD=%d\n",g_Threshold);
-	fprintf_s(fp,"MAXPOINTS=%d\n",g_MaxPoints);
-	fprintf_s(fp,"MINPOINTS=%d\n",g_MinPoints);
-	fprintf_s(fp,"PURKINJE_THRESHOLD=%d\n",g_PurkinjeThreshold);
-	fprintf_s(fp,"PURKINJE_SEARCHAREA=%d\n",g_PurkinjeSearchArea);
-	fprintf_s(fp,"PURKINJE_EXCLUDEAREA=%d\n",g_PurkinjeExcludeArea);
-	fprintf_s(fp,"BINOCULAR=%d\n",g_RecordingMode);
-	fprintf_s(fp,"CAMERA_WIDTH=%d\n", g_CameraWidth);
-	fprintf_s(fp,"CAMERA_HEIGHT=%d\n", g_CameraHeight);
-	fprintf_s(fp,"PREVIEW_WIDTH=%d\n", g_PreviewWidth);
-	fprintf_s(fp,"PREVIEW_HEIGHT=%d\n", g_PreviewHeight);
-	fclose(fp);
+	fs << "#If you want to recover original settings, delete this file and start eye tracker program.\n";
+	fs << "THRESHOLD=" << g_Threshold << "\n";
+	fs << "MAXPOINTS=" << g_MaxPoints << "\n";
+	fs << "MINPOINTS=" << g_MinPoints << "\n";
+	fs << "PURKINJE_THRESHOLD=" << g_PurkinjeThreshold << "\n";
+	fs << "PURKINJE_SEARCHAREA=" << g_PurkinjeSearchArea << "\n";
+	fs << "PURKINJE_EXCLUDEAREA=" << g_PurkinjeExcludeArea << "\n";
+	fs << "BINOCULAR=" << g_RecordingMode << "\n";
+	fs << "CAMERA_WIDTH=" <<  g_CameraWidth << "\n";
+	fs << "CAMERA_HEIGHT=" <<  g_CameraHeight << "\n";
+	fs << "PREVIEW_WIDTH=" <<  g_PreviewWidth << "\n";
+	fs << "PREVIEW_HEIGHT=" <<  g_PreviewHeight << "\n";
 
+	fs.close();
 }
 
 /*!
@@ -296,7 +302,7 @@ void printStringToTexture(int StartX, int StartY, TCHAR string[][MENU_STRING_MAX
 	}
 }
 
-HRESULT initSDLTTF(void)
+int initSDLTTF(void)
 {
 	char fontFilePath[512];
 
@@ -304,8 +310,8 @@ HRESULT initSDLTTF(void)
 		return E_FAIL;
 	};
 	
-	strcpy_s(fontFilePath,sizeof(fontFilePath),g_AppDirPath);
-	strcat_s(fontFilePath,sizeof(fontFilePath),"FreeSans.ttf");
+	strcpy(fontFilePath,g_AppDirPath);
+	strcat(fontFilePath,"FreeSans.ttf");
 	if((g_Font=TTF_OpenFont(fontFilePath, MENU_FONT_SIZE))==NULL)
 	{
 		return E_FAIL;
@@ -314,7 +320,7 @@ HRESULT initSDLTTF(void)
 	return S_OK;
 }
 
-HRESULT initSDLSurfaces(void)
+int initSDLSurfaces(void)
 {
 	g_pCameraTextureSurface =  SDL_CreateRGBSurfaceFrom((void*)g_pCameraTextureBuffer, 
 					g_CameraWidth, g_CameraHeight, 32, g_CameraWidth*4,
@@ -379,56 +385,56 @@ void flushGazeData(void)
 	double xy[4];
 	if(g_RecordingMode==RECORDING_MONOCULAR){
 		for(int i=0; i<g_DataCounter; i++){
-			fprintf_s(g_DataFP,"%.3f,",g_TickData[i]);
+			fprintf(g_DataFP,"%.3f,",g_TickData[i]);
 			if(g_EyeData[i][0]<E_PUPIL_PURKINJE_DETECTION_FAIL){
 				if(g_EyeData[i][0] == E_MULTIPLE_PUPIL_CANDIDATES)
-					fprintf_s(g_DataFP,"MULTIPUPIL,MULTIPUPIL\n");
+					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL\n");
 				else if(g_EyeData[i][0] == E_NO_PUPIL_CANDIDATE)
-					fprintf_s(g_DataFP,"NOPUPIL,NOPUPIL\n");
+					fprintf(g_DataFP,"NOPUPIL,NOPUPIL\n");
 				else if(g_EyeData[i][0] == E_NO_PURKINJE_CANDIDATE)
-					fprintf_s(g_DataFP,"NOPURKINJE,NOPURKINJE\n");
+					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE\n");
 				else if(g_EyeData[i][0] == E_NO_FINE_PUPIL_CANDIDATE)
-					fprintf_s(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
+					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
 				else
-					fprintf_s(g_DataFP,"FAIL,FAIL\n");					
+					fprintf(g_DataFP,"FAIL,FAIL\n");					
 			}else{
 				getGazePositionMono(g_EyeData[i], xy);
-				fprintf_s(g_DataFP,"%.1f,%.1f\n" ,xy[MONO_X],xy[MONO_Y]);
+				fprintf(g_DataFP,"%.1f,%.1f\n" ,xy[MONO_X],xy[MONO_Y]);
 			}
 		}
 	}else{ //binocular
 		for(int i=0; i<g_DataCounter; i++){
-			fprintf_s(g_DataFP,"%.3f,",g_TickData[i]);
+			fprintf(g_DataFP,"%.3f,",g_TickData[i]);
 			getGazePositionBin(g_EyeData[i], xy);
 			//left eye
 			if(g_EyeData[i][BIN_LX]<E_PUPIL_PURKINJE_DETECTION_FAIL){
 				if(g_EyeData[i][BIN_LX] == E_MULTIPLE_PUPIL_CANDIDATES)
-					fprintf_s(g_DataFP,"MULTIPUPIL,MULTIPUPIL,");
+					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL,");
 				else if(g_EyeData[i][BIN_LX] == E_NO_PUPIL_CANDIDATE)
-					fprintf_s(g_DataFP,"NOPUPIL,NOPUPIL,");
+					fprintf(g_DataFP,"NOPUPIL,NOPUPIL,");
 				else if(g_EyeData[i][BIN_LX] == E_NO_PURKINJE_CANDIDATE)
-					fprintf_s(g_DataFP,"NOPURKINJE,NOPURKINJE,");
+					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE,");
 				else if(g_EyeData[i][BIN_LX] == E_NO_FINE_PUPIL_CANDIDATE)
-					fprintf_s(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL,");
+					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL,");
 				else
-					fprintf_s(g_DataFP,"FAIL,FAIL,");		
+					fprintf(g_DataFP,"FAIL,FAIL,");		
 			}else{
-				fprintf_s(g_DataFP,"%.1f,%.1f," ,xy[BIN_LX],xy[BIN_LY]);
+				fprintf(g_DataFP,"%.1f,%.1f," ,xy[BIN_LX],xy[BIN_LY]);
 			}
 			//right eye
 			if(g_EyeData[i][BIN_RX]<E_PUPIL_PURKINJE_DETECTION_FAIL){
 				if(g_EyeData[i][BIN_RX] == E_MULTIPLE_PUPIL_CANDIDATES)
-					fprintf_s(g_DataFP,"MULTIPUPIL,MULTIPUPIL\n");
+					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL\n");
 				else if(g_EyeData[i][BIN_RX] == E_NO_PUPIL_CANDIDATE)
-					fprintf_s(g_DataFP,"NOPUPIL,NOPUPIL\n");
+					fprintf(g_DataFP,"NOPUPIL,NOPUPIL\n");
 				else if(g_EyeData[i][BIN_RX] == E_NO_PURKINJE_CANDIDATE)
-					fprintf_s(g_DataFP,"NOPURKINJE,NOPURKINJE\n");
+					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE\n");
 				else if(g_EyeData[i][BIN_RX] == E_NO_FINE_PUPIL_CANDIDATE)
-					fprintf_s(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
+					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
 				else
-					fprintf_s(g_DataFP,"FAIL,FAIL\n");					
+					fprintf(g_DataFP,"FAIL,FAIL\n");					
 			}else{
-				fprintf_s(g_DataFP,"%.1f,%.1f\n" ,xy[BIN_RX],xy[BIN_RY]);
+				fprintf(g_DataFP,"%.1f,%.1f\n" ,xy[BIN_RX],xy[BIN_RY]);
 			}
 		}
 
@@ -498,7 +504,7 @@ void getGazeMono( double detectionResults[8], double TimeImageAquired )
 			QueryPerformanceCounter(&ct);
 			ctd = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
 
-			fprintf_s(g_DataFP,"#OVERFLOW_FLUSH_GAZEDATA,%.3f\n",ctd);
+			fprintf(g_DataFP,"#OVERFLOW_FLUSH_GAZEDATA,%.3f\n",ctd);
 			fflush(g_DataFP);
 
 			//reset counter
@@ -579,7 +585,7 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 			QueryPerformanceCounter(&ct);
 			ctd = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
 
-			fprintf_s(g_DataFP,"#OVERFLOW_FLUSH_GAZEDATA,%.3f\n",ctd);
+			fprintf(g_DataFP,"#OVERFLOW_FLUSH_GAZEDATA,%.3f\n",ctd);
 			fflush(g_DataFP);
 
 			//reset counter
@@ -698,7 +704,7 @@ wWinMain: Entry point of the application.
 @date 2012/05/24
 - Bug fix: The application didn't close properly if multiple problems occurred during initializatin process. To fix this bug, return is called after waitQuitLoop() is finished.
 */
-INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
+int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 {
 	int nInitMessage=0;
 
@@ -725,26 +731,26 @@ INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	}
 
 	char logFilePath[512];
-	strcpy_s(logFilePath,sizeof(logFilePath),g_DataPath);
-	strcat_s(logFilePath,sizeof(logFilePath),"\\Tracker.log");
-	fopen_s(&g_LogFP, logFilePath, "w");
-	if(g_LogFP==NULL){
+	strcpy(logFilePath,g_DataPath);
+	strcat(logFilePath,"\\Tracker.log");
+	g_LogFS.open(logFilePath,std::ios::out);
+	if(!g_LogFS.is_open()){
 		return -1;
 	}
-	fprintf_s(g_LogFP,"initParameters ... OK.\n");
+	g_LogFS << "initParameters ... OK.\n";
 	//TODO output parameters here?
 
 	if(FAILED(initSDLTTF())){
-		fprintf_s(g_LogFP,"initSDLTTF failed. check whether font (FreeSans.ttf) exists in the application directory.\nExit.");
+		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) exists in the application directory.\nExit.";
 		SDL_Quit();
 		return -1;
 	}
-	fprintf_s(g_LogFP,"initSDLTTF ... OK.\n");
+	g_LogFS << "initSDLTTF ... OK.\n";
 
 	//now message can be rendered on screen.
 	char buff[512];
-	strcpy_s(buff,sizeof(buff),"Welcome to GazeParser.Tracker version ");
-	strcat_s(buff,sizeof(buff),VERSION);
+	strcpy(buff,"Welcome to GazeParser.Tracker version ");
+	strcat(buff,VERSION);
 	renderInitMessages(nInitMessage,buff);
 	nInitMessage++;
 	nInitMessage++;
@@ -754,61 +760,61 @@ INT WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	nInitMessage++;
 
 	if(FAILED(initBuffers())){
-		fprintf_s(g_LogFP,"initBuffers failed.\nExit.");
+		g_LogFS << "initBuffers failed.\nExit.";
 		renderInitMessages(nInitMessage,"initBuffers failed. Exit.");
 		Sleep(2000);
 		SDL_Quit();
 		return -1;
 	}
-	fprintf_s(g_LogFP,"initBuffers ... OK.\n");
+	g_LogFS << "initBuffers ... OK.\n";
 	renderInitMessages(nInitMessage,"initBuffers ... OK.");
 	nInitMessage += 1;
 
 	if(FAILED(sockInit())){
-		fprintf_s(g_LogFP,"sockInit failed.\nExit.");
+		g_LogFS << "sockInit failed.\nExit.";
 		renderInitMessages(nInitMessage,"sockInit failed. Exit.");
 		Sleep(2000);
 		SDL_Quit();
 		return -1;
 	}
-	fprintf_s(g_LogFP,"sockInit ... OK.\n");
+	g_LogFS << "sockInit ... OK.\n";
 	renderInitMessages(nInitMessage,"sockInit ... OK.");
 	nInitMessage += 1;
 
 	if(FAILED(sockAccept())){
-		fprintf_s(g_LogFP,"sockAccept failed.\nExit.");
+		g_LogFS << "sockAccept failed.\nExit.";
 		renderInitMessages(nInitMessage,"sockAccept failed. Exit.");
 		Sleep(2000);
 		SDL_Quit();
 		return -1;
 	}
-	fprintf_s(g_LogFP,"sockAccept ... OK.\n");
+	g_LogFS << "sockAccept ... OK.\n";
 	renderInitMessages(nInitMessage,"sockAccept ... OK.");
 	nInitMessage += 1;
 
 	if(FAILED(initCamera(g_ParamPath))){
-		fprintf_s(g_LogFP,"initCamera failed.\nExit.");
+		g_LogFS << "initCamera failed.\nExit.";
 		renderInitMessages(nInitMessage,"initCamera failed. Exit.");
 		Sleep(2000);
 		SDL_Quit();
 		return -1;
 	}
-	fprintf_s(g_LogFP,"initCamera ... OK.\n");
+	g_LogFS << "initCamera ... OK.\n";
 	renderInitMessages(nInitMessage,"initCamera ... OK.");
 	nInitMessage += 1;
 
 	if(FAILED(initSDLSurfaces())){
-		fprintf_s(g_LogFP,"initSDLSurfaces failed.\nExit.");
+		g_LogFS << "initSDLSurfaces failed.\nExit.";
 		renderInitMessages(nInitMessage,"initSDLSurfaces failed. Exit.");
 		Sleep(2000);
 		SDL_Quit();
 		return -1;
 	}
-	fprintf_s(g_LogFP,"initSDLSurfaces ... OK.\n");
+	g_LogFS << "initSDLSurfaces ... OK.\n";
 	renderInitMessages(nInitMessage,"initSDLSurfaces ... OK.");
 	nInitMessage += 1;
 
-	fprintf_s(g_LogFP,"Start.\n\n");
+	g_LogFS << "Start.\n\n";
 	nInitMessage += 1;
 	renderInitMessages(nInitMessage,"Start.");
 	Sleep(2000);
@@ -1032,6 +1038,8 @@ This function must be called when starting calibration.
 */
 void startCalibration(int x1, int y1, int x2, int y2)
 {
+	g_LogFS << "StartCalibration\n";
+
 	g_CalibrationArea.left = x1;
 	g_CalibrationArea.top = y1;
 	g_CalibrationArea.right = x2;
@@ -1053,6 +1061,8 @@ This function must be called when terminating calibration.
 */
 void endCalibration(void)
 {
+	g_LogFS << "EndCalibration\n";
+
 	if(g_RecordingMode==RECORDING_MONOCULAR){
 		estimateParametersMono( g_DataCounter, g_EyeData, g_CalPointData );
 		setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
@@ -1100,6 +1110,8 @@ This function must be called when starting validation.
 */
 void startValidation(int x1, int y1, int x2, int y2)
 {
+	g_LogFS << "StartValidation\n";
+
 	g_CalibrationArea.left = x1;
 	g_CalibrationArea.top = y1;
 	g_CalibrationArea.right = x2;
@@ -1121,6 +1133,8 @@ This function must be called when terminating validation.
 */
 void endValidation(void)
 {
+	g_LogFS << "EndValidation\n";
+
 	setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
 
 	g_isValidating=false;
@@ -1189,21 +1203,27 @@ void startRecording(char* message)
 
 			time(&t);
 			e = localtime_s(&ltm, &t);
-			fprintf_s(g_DataFP,"#START_REC,%d,%d,%d,%d,%d,%d\n",ltm.tm_year+1900,ltm.tm_mon+1,ltm.tm_mday,ltm.tm_hour,ltm.tm_min,ltm.tm_sec);
+			fprintf(g_DataFP,"#START_REC,%d,%d,%d,%d,%d,%d\n",ltm.tm_year+1900,ltm.tm_mon+1,ltm.tm_mday,ltm.tm_hour,ltm.tm_min,ltm.tm_sec);
+			fprintf(g_DataFP,VERSION);
+			fprintf(g_DataFP,"\n");
 			if(message[0]!=NULL)
 			{
-				fprintf_s(g_DataFP,"#MESSAGE,0,%s\n",message);
+				fprintf(g_DataFP,"#MESSAGE,0,%s\n",message);
 			}
 			if(g_RecordingMode==RECORDING_MONOCULAR){
-				fprintf_s(g_DataFP,"#XPARAM,%f,%f,%f\n",g_ParamX[0],g_ParamX[1],g_ParamX[2]);
-				fprintf_s(g_DataFP,"#YPARAM,%f,%f,%f\n",g_ParamY[0],g_ParamY[1],g_ParamY[2]);
+				fprintf(g_DataFP,"#XPARAM,%f,%f,%f\n",g_ParamX[0],g_ParamX[1],g_ParamX[2]);
+				fprintf(g_DataFP,"#YPARAM,%f,%f,%f\n",g_ParamY[0],g_ParamY[1],g_ParamY[2]);
 			}else{
-				fprintf_s(g_DataFP,"#XPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamX[0],g_ParamX[1],g_ParamX[2],g_ParamX[3],g_ParamX[4],g_ParamX[5]);
-				fprintf_s(g_DataFP,"#YPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamY[0],g_ParamY[1],g_ParamY[2],g_ParamY[3],g_ParamY[4],g_ParamY[5]);
+				fprintf(g_DataFP,"#XPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamX[0],g_ParamX[1],g_ParamX[2],g_ParamX[3],g_ParamX[4],g_ParamX[5]);
+				fprintf(g_DataFP,"#YPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamY[0],g_ParamY[1],g_ParamY[2],g_ParamY[3],g_ParamY[4],g_ParamY[5]);
 			}
 			for(int i=0; i<g_NumCalPoint; i++){
-				fprintf_s(g_DataFP,"#CALPOINT,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1]);
+				fprintf(g_DataFP,"#CALPOINT,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1]);
 			}
+
+			g_LogFS << "StartRecording\n";
+		}else{
+			g_LogFS << "StartRecording(no file)\n";
 		}
 
 		clearData();
@@ -1234,7 +1254,7 @@ void stopRecording(char* message)
 		
 		if(g_MessageEnd>0)
 		{
-			fprintf_s(g_DataFP,"%s",g_MessageBuffer);
+			fprintf(g_DataFP,"%s",g_MessageBuffer);
 		}
 		if(message[0]!=NULL)
 		{
@@ -1242,10 +1262,16 @@ void stopRecording(char* message)
 			double ctd;
 			QueryPerformanceCounter(&ct);
 			ctd = 1000 * ((double)(ct.QuadPart - g_RecStartTime.QuadPart) / g_CounterFreq.QuadPart);
-			fprintf_s(g_DataFP,"#MESSAGE,%.3f,%s\n",ctd,message);
+			fprintf(g_DataFP,"#MESSAGE,%.3f,%s\n",ctd,message);
 		}
-		fprintf_s(g_DataFP,"#STOP_REC\n");
+		fprintf(g_DataFP,"#STOP_REC\n");
 		fflush(g_DataFP); //force writing.
+
+		g_LogFS << "StopRecording\n";
+	}
+	else
+	{
+		g_LogFS << "StopRecording (no file)\n";
 	}
 	
 	g_isRecording = false;
@@ -1266,17 +1292,19 @@ As a result, contents of existing file is lost.
 void openDataFile(char* filename)
 {
 	char buff[512];
-	strcpy_s(buff,sizeof(buff),g_DataPath);
-	strcat_s(buff,sizeof(buff),"\\");
-	strcat_s(buff,sizeof(buff),filename);
+	strcpy(buff,g_DataPath);
+	strcat(buff,"\\");
+	strcat(buff,filename);
 
 	if(g_DataFP!=NULL) //if data file has already been opened, close it.
 	{
 		fflush(g_DataFP);
 		fclose(g_DataFP);
+		g_LogFS << "Close datafile to open new datafile\n";
 	}
 
-	fopen_s(&g_DataFP,buff,"w");
+	g_DataFP = fopen(buff,"w");
+	g_LogFS << "OpenDataFile" << buff << "\n";
 }
 
 /*!
@@ -1294,7 +1322,14 @@ void closeDataFile(void)
 		fflush(g_DataFP);
 		fclose(g_DataFP);
 		g_DataFP = NULL;
+		
+		g_LogFS << "CloseDatafile\n";
 	}
+	else
+	{
+		g_LogFS << "No file to close\n";
+	}
+
 }
 
 /*!
@@ -1317,8 +1352,8 @@ void insertMessage(char* message)
 	//check overflow
 	if(MAXMESSAGE-g_MessageEnd < 128)
 	{
-		fprintf_s(g_DataFP,"%s",g_MessageBuffer);
-		fprintf_s(g_DataFP,"#OVERFLOW_FLUSH_MESSAGES,%.3f\n",ctd);
+		fprintf(g_DataFP,"%s",g_MessageBuffer);
+		fprintf(g_DataFP,"#OVERFLOW_FLUSH_MESSAGES,%.3f\n",ctd);
 		fflush(g_DataFP);
 		g_MessageEnd = 0;
 	}
@@ -1343,13 +1378,13 @@ void insertSettings(char* settings)
 		{
 			p2 = strstr(p1,"\\");
 			if(p2==NULL){
-				fprintf_s(g_DataFP,"%s\n",p1);
+				fprintf(g_DataFP,"%s\n",p1);
 				break;
 			}
 			else
 			{
 				*p2 = NULL;
-				fprintf_s(g_DataFP,"%s\n",p1);
+				fprintf(g_DataFP,"%s\n",p1);
 				p1 = p2+1;
 			}
 		}

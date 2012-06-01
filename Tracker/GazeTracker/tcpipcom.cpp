@@ -33,11 +33,11 @@ int g_Received; /*!< */
 /*!
 sockInit: Initialize socket.
 
-@return HRESULT
+@return int
 @retval S_OK
 @retval E_FAIL
 */
-HRESULT sockInit(void)
+int sockInit(void)
 {
 	SDLNet_Init();
 	g_SocketSet = SDLNet_AllocSocketSet(1);
@@ -51,13 +51,15 @@ HRESULT sockInit(void)
 /*!
 sockClose: Close sockets.
 
-@return HRESULT
+@return int
 @retval S_OK
 */
-HRESULT sockClose(void)
+int sockClose(void)
 {
 	SDLNet_TCP_Close(g_SockRecv); 
 	SDLNet_TCP_Close(g_SockSend);
+	g_SockRecv = NULL;
+	g_SockSend = NULL;
 
 	return S_OK;
 }
@@ -66,11 +68,11 @@ HRESULT sockClose(void)
 sockConnect: Connect socket to the client PC to send data.
 
 @param[in] host Client PC's address.
-@return HRESULT
+@return int
 @retval S_OK
 @retval E_FAIL
 */
-HRESULT sockConnect(const char* host)
+int sockConnect(const char* host)
 {
 	IPaddress ip;
 	if(SDLNet_ResolveHost(&ip, host, SEND_PORT)==-1){
@@ -89,11 +91,11 @@ HRESULT sockConnect(const char* host)
 /*!
 sockAccept: Accept connection request from the client PC.
 
-@return HRESULT
+@return int
 @retval S_OK
 @retval E_FAIL
 */
-HRESULT sockAccept(void)
+int sockAccept(void)
 {
 	IPaddress ip;
 	if(SDLNet_ResolveHost(&ip, NULL, RECV_PORT)==-1){
@@ -115,11 +117,11 @@ This function parses commands sent from the Client PC and call appropriate funct
 
 @param[in] hWnd Window handle.
 @param[in] lParam received message.
-@return HRESULT
+@return int
 @retval S_OK
 @retval E_FAIL
 */
-HRESULT sockProcess(void)
+int sockProcess(void)
 {
 	char buff[RECV_BUFFER_SIZE];
 	SDL_Event sdlEvent;
@@ -364,7 +366,6 @@ HRESULT sockProcess(void)
 						double pos[4];
 						char posstr[64];
 						int len;
-						int flag;
 						getEyePosition(pos);
 						if(g_RecordingMode==RECORDING_MONOCULAR){
 							len = sprintf_s(posstr,sizeof(posstr),"%.0f,%.0f#",pos[0],pos[1]);
@@ -379,7 +380,6 @@ HRESULT sockProcess(void)
 					else if(strcmp(buff+nextp,"getCalResults")==0)
 					{
 						int len;
-						int flag;
 						char posstr[128];
 						double goodness[4],maxError[2],meanError[2];
 
@@ -402,7 +402,6 @@ HRESULT sockProcess(void)
 					else if(strcmp(buff+nextp,"getCalResultsDetail")==0)
 					{
 						int len;
-						int flag;
 						char errorstr[8192];
 
 						getCalibrationResultsDetail(errorstr,sizeof(errorstr),&len);
@@ -415,7 +414,6 @@ HRESULT sockProcess(void)
 					else if(strcmp(buff+nextp,"getCurrMenu")==0)
 					{
 						int len;
-						int flag;
 						char tmpstr[63];
 						char menustr[64];
 
@@ -453,19 +451,14 @@ HRESULT sockProcess(void)
 					}
 				}
 			}
+			else
+			{
+				connectionClosed();
+				SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
+				sockClose();
+			}
 		}
 	}
-
-	/*
-	case FD_CONNECT:
-		break;
-
-	case FD_CLOSE:
-		connectionClosed();
-		break;
-	}
-	*/
-
 
 	return S_OK;
 }

@@ -32,13 +32,13 @@ because patameters such as g_CameraWidth are initialized in initParameters().
 This function should be called before initCamera() because, in some cameras,
 buffers must be allocated before camera initialization.
 
-@return HRESULT
+@return int
 @retval S_OK Initialization succeeded.
 @retval E_FAIL Initialization failed.
 
 @date 2012/04/06 created.
 */
-HRESULT initBuffers(void)
+int initBuffers(void)
 {
 	if(g_CameraWidth<=0 || g_CameraHeight<=0 || g_PreviewWidth<=0 || g_PreviewHeight<=0)
 		return E_FAIL;
@@ -137,7 +137,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 			//Center of the ellipse is not in g_ROI 
 			continue;
 		}
-		r.angle *= -1;
+		//This is not necessary for OpenCV2.4
+		//r.angle *= -1;
 
 		unsigned char* p = tmp.ptr<unsigned char>((int)(r.center.y)-g_ROI.y);
 		if(p[(int)(r.center.x)-g_ROI.x]>0){
@@ -168,9 +169,13 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 
 	if(numCandidates>1){
 		//Multipe candidates are found.
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"MULTIPLE_PUPIL_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PUPIL_CANDIDATES;
 	}else if(numCandidates==0){
 		//No candidate is found.
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"NO_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PUPIL_CANDIDATE;
 	}
 
@@ -214,6 +219,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		npc++;
 	}
 	if(npc==0){
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"NO_PURKINJE_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PURKINJE_CANDIDATE;
 	}
 	
@@ -237,6 +244,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	if(candidatePointsFine.size()<10)
 	{
 		//Re-fitted ellipse is too small
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"NO_FINE_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_FINE_PUPIL_CANDIDATE;
 	}
 	
@@ -334,7 +343,8 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 			//Center of the ellipse is not in g_ROI 
 			continue;
 		}
-		r.angle *= -1;
+		//This is not necessary for OpenCV2.4
+		//r.angle *= -1;
 
 		unsigned char* p = tmp.ptr<unsigned char>((int)(r.center.y)-g_ROI.y);
 		if(p[(int)(r.center.x)-g_ROI.x]>0){
@@ -368,9 +378,13 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 
 	if(numCandidates>2){
 		//Multipe candidates are found.
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"MULTIPLE_PUPIL_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PUPIL_CANDIDATES;
 	}else if(numCandidates==0){
 		//No candidate is found.
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"NO_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PUPIL_CANDIDATE;
 	}
 
@@ -423,6 +437,8 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 			npc++;
 		}
 		if(npc==0){
+			if(g_isShowingCameraImage)
+				cv::putText(g_DstImg,"NO_PURKINJE_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 			return E_NO_PURKINJE_CANDIDATE;
 		}
 		
@@ -446,6 +462,8 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 		if(candidatePointsFine[i].size()<10)
 		{
 			//Re-fitted ellipse is too small
+			if(g_isShowingCameraImage)
+				cv::putText(g_DstImg,"NO_FINE_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 			return E_NO_FINE_PUPIL_CANDIDATE;
 		}
 		
@@ -802,9 +820,9 @@ This function is called from sockProcess() when sockProcess() received "saveCame
 void saveCameraImage(char* filename)
 {
 	char buff[512];
-	strcpy_s(buff,sizeof(buff),g_DataPath);
-	strcat_s(buff,sizeof(buff),"\\");
-	strcat_s(buff,sizeof(buff),filename);
+	strcpy(buff,g_DataPath);
+	strcat(buff,"\\");
+	strcat(buff,filename);
 	cv::imwrite(buff, g_DstImg);
 }
 

@@ -1,3 +1,6 @@
+#define _CRT_SECURE_NO_DEPRECATE
+
+
 #include <SDL.h>
 #include <atlbase.h>
 #include "GazeTracker.h"
@@ -8,8 +11,8 @@
 #include <iostream>
 #include <string>
 
-HRESULT InitCamera( void );
-HRESULT getCameraImage( void );
+int InitCamera( void );
+int getCameraImage( void );
 void CleanupCamera( void );
 
 CComPtr<INPCameraCollection> g_cameraCollection;
@@ -31,7 +34,7 @@ Read parameters from the configuration file, start camera and set callback funct
 @attention If there are custom camera menu items, number of custom menu items must be set to g_CustomMenuNum in this function.
 
 @param[in] ParamPath Path to the camera configuration file.
-@return HRESULT
+@return int
 @retval S_OK Camera is successfully initialized.
 @retval E_FAIL Initialization is failed.
 @note This function is necessary when you customize this file for your camera.
@@ -40,31 +43,33 @@ Read parameters from the configuration file, start camera and set callback funct
 @date 2012/05/24
 - Both width and height are checked (640x480 or 320x240).
 */
-HRESULT initCamera( char* ParamPath )
+int initCamera( char* ParamPath )
 {
-	FILE* fp;
+	std::fstream fs;
+	std::string str;
 	char buff[512];
 	char *p,*pp;
 	int param;
 
-	strcpy_s(buff, sizeof(buff), ParamPath);
-	strcat_s(buff, sizeof(buff), CAMERA_CONFIG_FILE);
-	if(!PathFileExists(buff)){
+	str = ParamPath;
+	str.append(CAMERA_CONFIG_FILE);
+	if(!PathFileExists(str.c_str())){
+		std::string configfile;
 		char exefile[512];
-		char configfile[512];
 		char drive[4],dir[512],fname[32],ext[5];
 		errno_t r;
 		GetModuleFileName(NULL,exefile,sizeof(exefile));
 		r = _splitpath_s(exefile,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-		strcpy_s(configfile,sizeof(configfile),drive);
-		strcat_s(configfile,sizeof(configfile),dir);
-		strcat_s(configfile,sizeof(configfile),CAMERA_CONFIG_FILE);
-		CopyFile(configfile,buff,true);
+		configfile.append(drive);
+		configfile.append(dir);
+		configfile.append(CAMERA_CONFIG_FILE);
+		CopyFile(configfile.c_str(),str.c_str(),true);
 	}
 
-	if(fopen_s(&fp,buff,"r")==NULL)
+	fs.open(buff,std::ios::in);
+	if(fs.is_open())
 	{
-		while(fgets(buff,sizeof(buff),fp)!=NULL)
+		while(fs.getline(buff,sizeof(buff)-1))
 		{
 			if(buff[0]=='#') continue;
 			if((p=strchr(buff,'='))==NULL) continue;
@@ -76,7 +81,7 @@ HRESULT initCamera( char* ParamPath )
 			else if(strcmp(buff,"EXPOSURE")==0) g_Exposure = param;
 			else if(strcmp(buff,"INTENSITY")==0) g_Intensity = param;
 		}
-		fclose(fp);
+		fs.close();
 	}else{
 		return E_FAIL;
 	}
@@ -139,12 +144,12 @@ HRESULT initCamera( char* ParamPath )
 /*!
 getCameraImage: Get new camera image.
 
-@return HRESULT
+@return int
 @retval S_OK New frame is available.
 @retval E_FAIL There is no new frame.
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT getCameraImage( void )
+int getCameraImage( void )
 {
 	g_camera->GetFrame(0, &g_frame);
 
@@ -190,23 +195,24 @@ saveCameraParameters: Save current camera parameters to the camera configuration
  */
 void saveCameraParameters(char* ParamPath)
 {
-	FILE* fp;
+	std::fstream fs;
 	char buff[512];
 
-	strcpy_s(buff,sizeof(buff),ParamPath);
-	strcat_s(buff,sizeof(buff),CAMERA_CONFIG_FILE);
+	strcpy(buff,ParamPath);
+	strcat(buff,CAMERA_CONFIG_FILE);
 
-	if(fopen_s(&fp,buff,"w")!=NULL)
+	fs.open(buff,std::ios::out);
+	if(!fs.is_open())
 	{
 		return;
 	}
 
-	fprintf_s(fp,"#If you want to recover original settings, delete this file and start eye tracker program.\n");
-	fprintf_s(fp,"FRAME_RATE=%d\n",g_FrameRate);
-	fprintf_s(fp,"EXPOSURE=%d\n",g_Exposure);
-	fprintf_s(fp,"INTENSITY=%d\n",g_Intensity);
+	fs << "#If you want to recover original settings, delete this file and start eye tracker program.\n";
+	fs << "FRAME_RATE=" << g_FrameRate << "\n";
+	fs << "EXPOSURE=" << g_Exposure << "\n";
+	fs << "INTENSITY=" << g_Intensity << "\n";
 
-	fclose(fp);
+	fs.close();
 
 	return;
 }
@@ -220,12 +226,12 @@ This function is when left or right cursor key is pressed.
 
 @param[in] SDLevent Event object.
 @param[in] currentMenuPosition Current menu position.
-@return HRESULT
+@return int
 @retval S_OK 
 @retval E_FAIL 
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
+int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 {
 	switch(SDLevent->type){
 	case SDL_KEYDOWN:

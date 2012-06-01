@@ -8,6 +8,9 @@
 - Custom menu is supported.
 */
 
+#define _CRT_SECURE_NO_DEPRECATE
+
+
 #include <atlbase.h>
 #include "GazeTracker.h"
 
@@ -56,13 +59,13 @@ Read parameters from the configuration file, start camera and set callback funct
 @attention If there are custom camera menu items, number of custom menu items must be set to g_CustomMenuNum in this function.
 
 @param[in] ParamPath Path to the camera configuration file.
-@return HRESULT
+@return int
 @retval S_OK Camera is successfully initialized.
 @retval E_FAIL Initialization is failed.
 @note This function is necessary when you customize this file for your camera.
 @todo check whether number of custom menus are too many.
  */
-HRESULT initCamera( char* ParamPath )
+int initCamera( char* ParamPath )
 {
 	g_VideoCapture = cv::VideoCapture(0);
 	if(!g_VideoCapture.isOpened())
@@ -96,12 +99,12 @@ HRESULT initCamera( char* ParamPath )
 /*!
 getCameraImage: Get new camera image.
 
-@return HRESULT
+@return int
 @retval S_OK New frame is available.
 @retval E_FAIL There is no new frame.
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT getCameraImage( void )
+int getCameraImage( void )
 {
 	if(g_NewFrameAvailable)
 	{
@@ -147,12 +150,12 @@ This function is called when left or right cursor key is pressed.
 
 @param[in] SDLevent Event object.
 @param[in] currentMenuPosition Current menu position.
-@return HRESULT
+@return int
 @retval S_OK 
 @retval E_FAIL 
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
+int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 {
 	// no custom menu for this camera
 	return S_OK;

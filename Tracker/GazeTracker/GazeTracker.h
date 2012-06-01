@@ -7,6 +7,7 @@
 @date 2012/03/23
 - Custom menu is supported.
 */
+#pragma comment(lib,"C:\\Program Files\\Interface\\GPC5300\\lib\\IfCml.lib")
 
 #ifdef TOSHIBA
 
