@@ -40,7 +40,7 @@
 @attention Number of menu items (sum of original items and custom items) and 
 length of custom menu texts must be smaller than MENU_MAX_ITEMS and MENU_STRING_MAX, respectively.
 */
-TCHAR g_MenuString[MENU_MAX_ITEMS][MENU_STRING_MAX]; 
+std::string g_MenuString[MENU_MAX_ITEMS];
 
 SDL_Surface* g_pSDLscreen;
 SDL_Surface* g_pCameraTextureSurface;
@@ -287,19 +287,19 @@ updateMenuText: update menu text.
 */
 void updateMenuText( void )
 {
-	_stprintf_s(g_MenuString[MENU_THRESH_PUPIL],    MENU_STRING_MAX, _T("PupilThreshold(%d)"), g_Threshold);
-	_stprintf_s(g_MenuString[MENU_THRESH_PURKINJE], MENU_STRING_MAX, _T("PurkinjeThreshold(%d)"), g_PurkinjeThreshold);
-	_stprintf_s(g_MenuString[MENU_MINPOINTS],       MENU_STRING_MAX, _T("MinPoints(%d)"), g_MinPoints);
-	_stprintf_s(g_MenuString[MENU_MAXPOINTS],       MENU_STRING_MAX, _T("MaxPoints(%d)"), g_MaxPoints);
-	_stprintf_s(g_MenuString[MENU_SEARCHAREA],      MENU_STRING_MAX, _T("PurkinjeSearchArea(%d)"), g_PurkinjeSearchArea);
-	_stprintf_s(g_MenuString[MENU_EXCLUDEAREA],     MENU_STRING_MAX, _T("PurkinjeExcludeArea(%d)"), g_PurkinjeExcludeArea);
-
+	g_MenuString[MENU_THRESH_PUPIL] << "PupilThreshold(" << g_Threshold <<")";
+	g_MenuString[MENU_THRESH_PURKINJE] << "PurkinjeThreshold(" << g_PurkinjeThreshold << ")";
+	g_MenuString[MENU_MINPOINTS],       "MinPoints(%d)", g_MinPoints);
+	g_MenuString[MENU_MAXPOINTS],       "MaxPoints(%d)", g_MaxPoints);
+	g_MenuString[MENU_SEARCHAREA],      "PurkinjeSearchArea(%d)", g_PurkinjeSearchArea);
+	g_MenuString[MENU_EXCLUDEAREA],     "PurkinjeExcludeArea(%d)", g_PurkinjeExcludeArea);
+	
 	return;
 }
 
 /*
 */
-void printStringToTexture(int StartX, int StartY, TCHAR string[][MENU_STRING_MAX], int numItems, int fontsize, SDL_Surface* pSurface)
+void printStringToTexture(int StartX, int StartY, std::string strings, int numItems, int fontsize, SDL_Surface* pSurface)
 {
 	int SX = StartX;
 	int SY = StartY;
@@ -311,7 +311,7 @@ void printStringToTexture(int StartX, int StartY, TCHAR string[][MENU_STRING_MAX
 
 	for(int l=0; l<numItems; l++)
 	{
-		textSurface = TTF_RenderUTF8_Solid(g_Font, string[l], color);
+		textSurface = TTF_RenderUTF8_Solid(g_Font, string[l].c_str(), color);
 		dstRect.x = SX;
 		dstRect.y = SY;
 		SDL_BlitSurface(textSurface, NULL, pSurface, &dstRect);
@@ -1514,6 +1514,7 @@ This function is called from sockProcess() when sockProcess() received "getCurrM
 */
 void getCurrentMenuString(char *p, int maxlen)
 {
-	sprintf_s(p,maxlen,"%s", g_MenuString[g_CurrentMenuPosition]);
+	for(i=0;i<maxlen;i++) p[i]=\0;
+	g_MenuString[g_CurrentMenuPosition].copy(p,maxlen-1);
 }
 

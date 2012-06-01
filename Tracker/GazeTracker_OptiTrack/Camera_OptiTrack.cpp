@@ -65,10 +65,11 @@ int initCamera( char* ParamPath )
 		configfile.append(CAMERA_CONFIG_FILE);
 		CopyFile(configfile.c_str(),str.c_str(),true);
 	}
-
+	
 	fs.open(buff,std::ios::in);
 	if(fs.is_open())
 	{
+		g_LogFS << "Open camera configuration file (" << buff << ")\n";
 		while(fs.getline(buff,sizeof(buff)-1))
 		{
 			if(buff[0]=='#') continue;
@@ -83,6 +84,7 @@ int initCamera( char* ParamPath )
 		}
 		fs.close();
 	}else{
+		g_LogFS << "ERROR: failed to open camera configuration file (" << buff << ")\n";
 		return E_FAIL;
 	}
 
@@ -95,10 +97,13 @@ int initCamera( char* ParamPath )
 	g_cameraCollection->get_Count(&cameraCount);
 	
 	if(cameraCount<1)
+	{
+		g_LogFS << "ERROR: no camera is found.\n";
 		return E_FAIL;
-
+	}
+	
 	g_cameraCollection->Item(0, &g_camera);
-
+	
 	long serial,width,height,model,revision,rate;
 
 	g_camera->get_SerialNumber(&serial);
@@ -122,7 +127,10 @@ int initCamera( char* ParamPath )
 	else if(g_CameraWidth == 320 && g_CameraHeight == 240)
 		g_camera->SetOption(NP_OPTION_GRAYSCALE_DECIMATION,(CComVariant)2);
 	else
+	{
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight ")\n";
 		return E_FAIL;
+	}
 
 	g_camera->SetOption(NP_OPTION_FRAME_RATE,(CComVariant) g_FrameRate );
 	g_camera->SetOption(NP_OPTION_THRESHOLD,(CComVariant) 254);
@@ -300,8 +308,8 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 */
 void updateCustomMenuText( void )
 {
-	_stprintf_s(g_MenuString[CUSTOMMENU_INTENSITY], MENU_STRING_MAX, _T("LightIntensity(%d)"), g_Intensity);
-	_stprintf_s(g_MenuString[CUSTOMMENU_EXPOSURE],  MENU_STRING_MAX, _T("CameraExposure(%d)"), g_Exposure);
+	g_MenuString[CUSTOMMENU_INTENSITY] << "LightIntensity(" << g_Intensity << ")";
+	g_MenuString[CUSTOMMENU_EXPOSURE] << "CameraExposure(" << g_Exposure << ")";
 
 	return;
 }

@@ -41,13 +41,17 @@ buffers must be allocated before camera initialization.
 int initBuffers(void)
 {
 	if(g_CameraWidth<=0 || g_CameraHeight<=0 || g_PreviewWidth<=0 || g_PreviewHeight<=0)
+	{
+		g_LogFS << "ERROR: wrong camera/preview size\n";
 		return E_FAIL;
+	}
 
 	g_frameBuffer = (unsigned char*)malloc(g_CameraHeight*g_CameraWidth*sizeof(unsigned char));
 	g_pCameraTextureBuffer = (int*)malloc(g_CameraHeight*g_CameraWidth*sizeof(int));
 	g_pCalResultTextureBuffer = (int*)malloc(g_PreviewHeight*g_PreviewWidth*sizeof(int));
 	g_SendImageBuffer = (unsigned char*)malloc(g_ROIHeight*g_ROIWidth*sizeof(unsigned char)+1);
 	if(g_frameBuffer==NULL || g_pCameraTextureBuffer==NULL || g_pCalResultTextureBuffer==NULL){
+		g_LogFS << "ERROR: failed to allocate camera/preview buffer\n";
 		return E_FAIL;
 	}
 

@@ -62,9 +62,15 @@ int initCamera( char* ParamPath )
 	char            buff[512];
 
 	g_TmpFrameBuffer = (unsigned char*)malloc(g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
+	if(g_TmpFrameBuffer==NULL)
+	{
+		g_LogFS << "ERROR: failed to allocate working buffer\n";
+		return E_FAIL;
+	}
 
 	g_CameraDeviceHandle = CmlOpen("IFIMGCML1");
 	if(g_CameraDeviceHandle == INVALID_HANDLE_VALUE){
+		g_LogFS << "ERROR: could not get camera device handle\n";
 		return E_FAIL;
 	}
 
@@ -86,6 +92,7 @@ int initCamera( char* ParamPath )
 	ret = CmlReadCamConfFile(g_CameraDeviceHandle,buff);
 	
 	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not read camera configuration file(" << buff << ")\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}
@@ -102,6 +109,7 @@ int initCamera( char* ParamPath )
 
 	ret = CmlSetCaptureFormatInfo(g_CameraDeviceHandle, &CapFmt);
 	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not set camera image format)\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}
@@ -111,6 +119,7 @@ int initCamera( char* ParamPath )
 
 	ret =  CmlRegistMemInfo(g_CameraDeviceHandle, g_TmpFrameBuffer, BufSize, &g_CameraMemHandle);
 	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not allocate buffer)\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}
@@ -118,6 +127,7 @@ int initCamera( char* ParamPath )
 	// Set Capture Configration
 	ret = CmlSetCapConfig(g_CameraDeviceHandle,g_CameraMemHandle,&CapFmt);
 	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not set camera configuration)\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}

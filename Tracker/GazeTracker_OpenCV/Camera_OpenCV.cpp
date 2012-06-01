@@ -70,6 +70,7 @@ int initCamera( char* ParamPath )
 	g_VideoCapture = cv::VideoCapture(0);
 	if(!g_VideoCapture.isOpened())
 	{
+		g_LogFS << "ERROR: no VideoCapture device is found.\n";
 		return E_FAIL;
 	}
 
@@ -78,10 +79,12 @@ int initCamera( char* ParamPath )
 
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
 	{
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight ")\n";
 		return E_FAIL;
 	}
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
 	{
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight ")\n";
 		return E_FAIL;
 	}
 
@@ -89,6 +92,7 @@ int initCamera( char* ParamPath )
 	g_pThread = SDL_CreateThread(captureCameraThread, NULL);
 	if(g_pThread==NULL)
 	{
+		g_LogFS << "ERROR: failed to start thread\n";
 		g_runThread = false;
 		return E_FAIL;
 	}

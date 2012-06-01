@@ -13,6 +13,8 @@
 #define VERSION "0.5.0"
 
 #include <SDL.h>
+#include <string.h>
+#include <iostream.h>
 
 #define PREVIEW_WIDTH  640
 #define PREVIEW_HEIGHT 480
@@ -104,13 +106,14 @@ extern int g_ROIHeight;
 
 extern bool g_isShowingCameraImage;
 
-
 extern double g_ParamX[6],g_ParamY[6]; //Monocular: 3 params, Binocular 6 parameters.
 extern int g_Threshold;
 
 extern int g_RecordingMode;
 
 extern char g_DataPath[512];
+
+extern std::fstream g_LogFS;
 
 extern void startCalibration(int x1, int y1, int x2, int y2);
 extern void getCalSample(double x, double y);
@@ -140,13 +143,13 @@ extern int initCamera( char* ParamPath );
 extern int getCameraImage( void );
 extern void cleanupCamera( void );
 
-extern LARGE_INTEGER g_CounterFreq;
+//DetectEye.cpp
+extern int initBuffers(void);
 
 //custom menu
 extern int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition);
 extern int g_CustomMenuNum;
 extern void saveCameraParameters(char* ParamPath);
 extern void updateCustomMenuText( void );
-extern TCHAR g_MenuString[MENU_MAX_ITEMS][MENU_STRING_MAX];
+extern std::string g_MenuString[MENU_MAX_ITEMS];
 
-extern int initBuffers(void);
