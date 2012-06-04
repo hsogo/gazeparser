@@ -170,7 +170,7 @@ extern std::string g_MenuString[MENU_MAX_ITEMS];
 //Platform dependent
 int initTimer(void);
 double getCurrentTime(void);
-void sleepMilliseconds(double);
+void sleepMilliseconds(int);
 int getDataDirectoryPath(std::string* path);
 int getApplicationDirectoryPath(std::string* path);
 int getParameterDirectoryPath(std::string* path);

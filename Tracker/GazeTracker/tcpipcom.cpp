@@ -158,7 +158,7 @@ int sockProcess(void)
 				}
 			}
 		}else{
-			g_LogFS << "ERROR: failed to open receiving socket\n";
+			//g_LogFS << "ERROR: failed to open receiving socket\n";
 		}
 	}
 

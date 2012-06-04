@@ -186,6 +186,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\GazeTracker\PlatformDependent.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\GazeTracker\tcpipcom.cpp"
 				>
 			</File>

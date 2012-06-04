@@ -181,6 +181,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PlatformDependent.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\tcpipcom.cpp"
 				>
 			</File>

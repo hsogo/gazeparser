@@ -12,7 +12,6 @@
 #include <sstream>
 #include <string>
 
-int InitCamera( void );
 int getCameraImage( void );
 void CleanupCamera( void );
 
@@ -44,7 +43,7 @@ Read parameters from the configuration file, start camera and set callback funct
 @date 2012/05/24
 - Both width and height are checked (640x480 or 320x240).
 */
-int initCamera( char* ParamPath )
+int initCamera( const char* ParamPath )
 {
 	std::fstream fs;
 	std::string str;
@@ -67,7 +66,7 @@ int initCamera( char* ParamPath )
 		CopyFile(configfile.c_str(),str.c_str(),true);
 	}
 	
-	fs.open(buff,std::ios::in);
+	fs.open(str.c_str(),std::ios::in);
 	if(fs.is_open())
 	{
 		g_LogFS << "Open camera configuration file (" << buff << ")\n";
@@ -202,7 +201,7 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
  */
-void saveCameraParameters(char* ParamPath)
+void saveCameraParameters(const char* ParamPath)
 {
 	std::fstream fs;
 	char buff[512];
