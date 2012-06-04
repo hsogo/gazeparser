@@ -498,7 +498,7 @@ class BaseController:
         ESC or Q Exit calibration
         ======== ================================================
         
-        :return: pygame.locals.K_ESCAPE or pygame.locals.K_q
+        :return: 'space' or 'q'
             depending on which key is pressed to terminate calibration loop.
         
         .. todo:: support psychopy pyglet backend. return value should be modified.

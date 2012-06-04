@@ -757,11 +757,21 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
     return 'SUCCESS'
 
 
-def TobiiToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=True):
+def TobiiToGazeParser(inputfile,overwrite=False,config=None):
     """
-    Under construction
-    Currently this converter is not impremented.
-    .. todo:: imprement Tobii to GazeParser datafile.
+    Convert an Tobii TSV file to a GazeParser file.
+    Text export configuration should be 'All data'.
+    If TSV file name is 'foo.tsv', the output file name is 'foo.db'
+    
+    :param str inputfile:
+        name of TSV file to be converted.
+    :param Boolean overwrite:
+        If this parameter is true, output file is overwritten.
+        The default value is False.
+    :param GazeParser.Configuration config:
+        Specify conversion configurations.  If config is not an instance
+        of GazeParser.Configuration, default configuration is used. The 
+        default value is None.
     """
     (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
     filenameRoot,ext = os.path.splitext(srcFilename)
@@ -860,18 +870,6 @@ def TobiiToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=Tr
         duration = endTime-startTime
         (cogx,cogy) = numpy.mean(Glist[startIndex:endIndex,:],axis=0)
         FixList.append(GazeParser.FixationData((startTime,endTime),(duration,cogx,cogy),Tlist))
-    
-    """
-    elif itemList[0] == "EFIX" and flgInBlock: # End of a fixation
-        listFixationTime.append([int(itemList[2]),int(itemList[3])])
-        listFixationData.append([int(itemList[4]),float(itemList[5]),float(itemList[6])])
-        # (Duration, COG_x, COG_Y)
-
-    FixList = []
-    for fix in range(len(listFixationTime)):
-        if listFixationTime[fix][0] >= listBlock[blk][0] and listFixationTime[fix][1] <= listBlock[blk][1]:
-            FixList.append(GazeParser.FixationData(listFixationTime[fix],listFixationitemList[fix],Tlist))
-    """
     
     #build MessageData
     MsgList = []
