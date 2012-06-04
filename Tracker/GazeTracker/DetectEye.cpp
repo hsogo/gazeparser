@@ -92,7 +92,7 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	cv::Mat roi;
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
-	std::vector<std::vector<cv::Point>>::iterator it;
+	std::vector<std::vector<cv::Point> >::iterator it;
 	std::vector<cv::Point> candidatePoints;
 	std::vector<cv::Point> candidatePointsFine;
 	std::vector<cv::Point>::iterator itFine;
@@ -298,7 +298,7 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 	cv::Mat roi;
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
-	std::vector<std::vector<cv::Point>>::iterator it;
+	std::vector<std::vector<cv::Point> >::iterator it;
 	std::vector<cv::Point> candidatePoints[2];
 	std::vector<cv::Point> candidatePointsFine[2];
 	std::vector<cv::Point>::iterator itFine;
@@ -820,12 +820,11 @@ This function is called from sockProcess() when sockProcess() received "saveCame
 @param[in] filename Name of image file.
 @return No value is returned.
 */
-void saveCameraImage(char* filename)
+void saveCameraImage(const char* filename)
 {
-	char buff[512];
-	strcpy(buff,g_DataPath);
-	strcat(buff,"\\");
-	strcat(buff,filename);
-	cv::imwrite(buff, g_DstImg);
+	std::string str(g_DataPath);
+	str.append(PATH_SEPARATOR);
+	str.append(filename);
+	cv::imwrite(str.c_str(), g_DstImg);
 }
 

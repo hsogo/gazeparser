@@ -9,10 +9,6 @@
 - Custom menu is supported.
 */
 
-#ifdef _WIN32
-#include	<windows.h>
-#endif
-
 #include	"GazeTracker.h"
 #include	"SDL_net.h"
 #include	"SDL.h"
@@ -386,9 +382,9 @@ int sockProcess(void)
 						int len;
 						getEyePosition(pos);
 						if(g_RecordingMode==RECORDING_MONOCULAR){
-							len = sprintf_s(posstr,sizeof(posstr),"%.0f,%.0f#",pos[0],pos[1]);
+							len = snprintf(posstr,sizeof(posstr),"%.0f,%.0f#",pos[0],pos[1]);
 						}else{
-							len = sprintf_s(posstr,sizeof(posstr),"%.0f,%.0f,%.0f,%.0f#",pos[0],pos[1],pos[2],pos[3]);
+							len = snprintf(posstr,sizeof(posstr),"%.0f,%.0f,%.0f,%.0f#",pos[0],pos[1],pos[2],pos[3]);
 						}
 						SDLNet_TCP_Send(g_SockSend,posstr,len);
 
@@ -404,9 +400,9 @@ int sockProcess(void)
 						getCalibrationResults(goodness,maxError,meanError);
 
 						if(g_RecordingMode==RECORDING_MONOCULAR){
-							len = sprintf_s(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f#",goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
+							len = snprintf(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f#",goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
 						}else{
-							len = sprintf_s(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f#",
+							len = snprintf(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f#",
 								goodness[BIN_LX],goodness[BIN_LY],meanError[BIN_L],maxError[BIN_LX],
 								goodness[BIN_RX],goodness[BIN_RY],meanError[BIN_R],maxError[BIN_RX]);
 						}
@@ -435,7 +431,7 @@ int sockProcess(void)
 						char menustr[64];
 
 						getCurrentMenuString(tmpstr,sizeof(tmpstr));
-						len = sprintf_s(menustr,sizeof(menustr),"%s#",tmpstr);
+						len = snprintf(menustr,sizeof(menustr),"%s#",tmpstr);
 
 						SDLNet_TCP_Send(g_SockSend,menustr,len);
 
@@ -455,7 +451,7 @@ int sockProcess(void)
 					else if(strcmp(buff+nextp,"saveCameraImage")==0)
 					{
 						char* param = buff+nextp+16;
-						saveCameraImage(param);
+						saveCameraImage((const char*)param);
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;

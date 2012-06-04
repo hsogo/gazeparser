@@ -16,6 +16,7 @@
 #include "SDL_ttf.h"
 
 #include <fstream>
+#include <iostream>
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
@@ -71,9 +72,9 @@ int g_PurkinjeExcludeArea = 20; /*!<  */
 
 bool g_isShowingCameraImage = true; /*!< If true, camera image is rendered. This must be false while recording.*/
 
-char g_ParamPath[512]; /*!< Holds path to the parameter file directory*/
-char g_DataPath[512];  /*!< Holds path to the data file directory*/
-char g_AppDirPath[512];   /*!< Holds path to the executable file directory*/
+std::string g_ParamPath; /*!< Holds path to the parameter file directory*/
+std::string g_DataPath;  /*!< Holds path to the data file directory*/
+std::string g_AppDirPath;   /*!< Holds path to the executable file directory*/
 
 int g_CurrentMenuPosition = 0;  /*!< Holds current menu position.*/
 int g_CustomMenuNum = 0; /*!< Holds how many custom menu items are defined.*/
@@ -104,9 +105,6 @@ bool g_isCalibrated = false;
 bool g_isShowingCalResult = false;
 
 double g_RecStartTime;
-#ifdef _WIN32
-LARGE_INTEGER g_CounterFreq;
-#endif
 
 double g_CalPointList[MAXCALPOINT][2];
 
@@ -116,23 +114,7 @@ std::fstream g_LogFS;
 char g_MessageBuffer[MAXMESSAGE];
 int g_MessageEnd;
 
-int initTimer(void)
-{
-	QueryPerformanceFrequency(&g_CounterFreq);
-	return S_OK;
-}
 
-
-double getCurrentTime(void)
-{
-#ifdef _WIN32
-	LARGE_INTEGER ct;
-	QueryPerformanceCounter(&ct);
-	return 1000 * ((double)ct.QuadPart/(double)g_CounterFreq.QuadPart);
-#else
-
-#endif
-}
 
 /*!
 initParameters: Read parameters from the configuration file to initialize application.
@@ -163,43 +145,23 @@ Following parameters are read from a configuration file named "CONFIG".
 int initParameters( void )
 {
 	std::fstream fs;
-	char buff[512];
+	std::string fname;
+	char buff[1024];
 	char *p,*pp;
-	char drive[4],dir[512],fname[32],ext[5];
-	errno_t r;
 	int param;
 
-	GetEnvironmentVariable("HOMEDRIVE",g_DataPath,sizeof(g_DataPath));
-	GetEnvironmentVariable("HOMEPATH",buff,sizeof(buff));
-	strcat(g_DataPath, buff);
-	strcat(g_DataPath, "\\GazeTracker");
+	getDataDirectoryPath(&g_DataPath);
+	getApplicationDirectoryPath(&g_AppDirPath);
+	getParameterDirectoryPath(&g_ParamPath);
 
-	GetModuleFileName(NULL,buff,sizeof(buff));
-	r = _splitpath_s(buff,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-	strcpy(g_AppDirPath,drive);
-	strcat(g_AppDirPath,dir);
+	checkDirectory(g_DataPath);
+	checkDirectory(g_ParamPath);
+	checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath);
 
-	GetEnvironmentVariable("APPDATA",g_ParamPath,sizeof(g_ParamPath));
-	strcat(g_ParamPath, "\\GazeTracker");
-
-	if(!PathIsDirectory(g_DataPath)){
-		CreateDirectory(g_DataPath,NULL);
-	}
-
-	if(!PathIsDirectory(g_ParamPath)){
-		CreateDirectory(g_ParamPath,NULL);		
-	}
-
-	strcpy(buff,g_ParamPath);
-	strcat(buff,"\\CONFIG");
-	if(!PathFileExists(buff)){
-		char configfile[512];
-		strcpy(configfile,g_AppDirPath);
-		strcat(configfile,"\\CONFIG");
-		CopyFile(configfile,buff,true);
-	}
-
-	fs.open(buff, std::ios::in);
+	fname.assign(g_ParamPath);
+	fname.append(PATH_SEPARATOR);
+	fname.append("CONFIG");
+	fs.open(fname.c_str(), std::ios::in);
 	if(!fs.is_open())
 	{
 		return E_FAIL;
@@ -257,12 +219,11 @@ Following parameters are wrote to the configuration file.
 void saveParameters( void )
 {
 	std::fstream fs;
-	char buff[512];
+	std::string str(g_ParamPath);
 
-	strcpy(buff,g_ParamPath);
-	strcat(buff,"\\CONFIG");
+	str.append("\\CONFIG");
 
-	fs.open(buff,std::ios::out);
+	fs.open(str.c_str(),std::ios::out);
 	if(!fs.is_open())
 	{
 		return;
@@ -339,15 +300,15 @@ void printStringToTexture(int StartX, int StartY, std::string *strings, int numI
 
 int initSDLTTF(void)
 {
-	char fontFilePath[512];
+	std::string fontFilePath(g_AppDirPath);
 
 	if(TTF_Init()==-1){
 		return E_FAIL;
 	};
 	
-	strcpy(fontFilePath,g_AppDirPath);
-	strcat(fontFilePath,"FreeSans.ttf");
-	if((g_Font=TTF_OpenFont(fontFilePath, MENU_FONT_SIZE))==NULL)
+	fontFilePath.append(PATH_SEPARATOR);
+	fontFilePath.append("FreeSans.ttf");
+	if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
 	{
 		return E_FAIL;
 	}
@@ -682,7 +643,7 @@ Call this function once immediately before start recording.
 @return No value is returned.
 @todo show more information.
 */
-void renderBeforeRecording(char* message)
+void renderBeforeRecording(const char* message)
 {
 	SDL_Surface* textSurface;
 	SDL_Rect dstRect;
@@ -705,7 +666,7 @@ void renderBeforeRecording(char* message)
 	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
 }
 
-void renderInitMessages(int n, char* message)
+void renderInitMessages(int n, const char* message)
 {
 	SDL_Surface* textSurface;
 	SDL_Rect dstRect;
@@ -729,8 +690,16 @@ wWinMain: Entry point of the application.
 @date 2012/05/24
 - Bug fix: The application didn't close properly if multiple problems occurred during initializatin process. To fix this bug, return is called after waitQuitLoop() is finished.
 */
+#ifdef _WIN32
 int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 {
+#else
+int main(int argc, char* argv[])
+{
+	//in Linux, argv[0] must be copied to resolve application directory later.
+	//see getApplicationDirectoryPath() in PratformDependent.cpp 
+	g_AppDirPath.assign(argv[0]);
+#endif
 	int nInitMessage=0;
 
 	SDL_Init(SDL_INIT_VIDEO);
@@ -742,27 +711,23 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	}
 	SDL_WM_SetCaption("GazeParser.Tracker",NULL);
 
-	initTimer();
-
-	HANDLE hProcessID = GetCurrentProcess();
-	SetPriorityClass(hProcessID,HIGH_PRIORITY_CLASS);
-	//SetPriorityClass(hProcessID,NORMAL_PRIORITY_CLASS);
-	//SetPriorityClass(hProcessID,REALTIME_PRIORITY_CLASS);
-
 	if(FAILED(initParameters())){
 		SDL_Quit();
 		return -1;
 	}
 
-	char logFilePath[512];
-	strcpy(logFilePath,g_DataPath);
-	strcat(logFilePath,"\\Tracker.log");
-	g_LogFS.open(logFilePath,std::ios::out);
+	std::string logFilePath;
+	getLogFilePath(&logFilePath);
+	g_LogFS.open(logFilePath.c_str(),std::ios::out);
 	if(!g_LogFS.is_open()){
 		return -1;
 	}
 	g_LogFS << "initParameters ... OK.\n";
+
 	//TODO output parameters here?
+
+	initTimer();
+	//TODO output timer initialization results?
 
 	if(FAILED(initSDLTTF())){
 		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) exists in the application directory.\nExit.";
@@ -786,7 +751,7 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	if(FAILED(initBuffers())){
 		g_LogFS << "initBuffers failed.\nExit.";
 		renderInitMessages(nInitMessage,"initBuffers failed. Exit.");
-		Sleep(2000);
+		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
@@ -797,7 +762,7 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	if(FAILED(sockInit())){
 		g_LogFS << "sockInit failed.\nExit.";
 		renderInitMessages(nInitMessage,"sockInit failed. Exit.");
-		Sleep(2000);
+		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
@@ -808,7 +773,7 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	if(FAILED(sockAccept())){
 		g_LogFS << "sockAccept failed.\nExit.";
 		renderInitMessages(nInitMessage,"sockAccept failed. Exit.");
-		Sleep(2000);
+		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
@@ -816,10 +781,10 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	renderInitMessages(nInitMessage,"sockAccept ... OK.");
 	nInitMessage += 1;
 
-	if(FAILED(initCamera(g_ParamPath))){
+	if(FAILED(initCamera(g_ParamPath.c_str()))){
 		g_LogFS << "initCamera failed.\nExit.";
 		renderInitMessages(nInitMessage,"initCamera failed. Exit.");
-		Sleep(2000);
+		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
@@ -830,7 +795,7 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	if(FAILED(initSDLSurfaces())){
 		g_LogFS << "initSDLSurfaces failed.\nExit.";
 		renderInitMessages(nInitMessage,"initSDLSurfaces failed. Exit.");
-		Sleep(2000);
+		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
@@ -841,7 +806,7 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 	g_LogFS << "Start.\n\n";
 	nInitMessage += 1;
 	renderInitMessages(nInitMessage,"Start.");
-	Sleep(2000);
+	sleepMilliseconds(2000);
 
 	SDL_Event SDLevent;
 	int done = false;
@@ -1012,7 +977,7 @@ int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
 
 	cleanupCamera();
 	saveParameters();
-	saveCameraParameters(g_ParamPath);
+	saveCameraParameters(g_ParamPath.c_str());
 	cleanup();
 	SDL_Quit();
     return 0;
@@ -1209,11 +1174,10 @@ This function is called from sockProcess() when sockProcess() received "startRec
 @param[in] message Message text to be inserted to the data file.
 @return No value is returned.
 */
-void startRecording(char* message)
+void startRecording(const char* message)
 {
 	time_t t;
-	errno_t e;
-	struct tm ltm;
+	struct tm *ltm;
 
 	if(g_isCalibrated){ //if calibration has finished and recording has not been started, then start recording.
 
@@ -1223,8 +1187,8 @@ void startRecording(char* message)
 			renderBeforeRecording(message);
 
 			time(&t);
-			e = localtime_s(&ltm, &t);
-			fprintf(g_DataFP,"#START_REC,%d,%d,%d,%d,%d,%d\n",ltm.tm_year+1900,ltm.tm_mon+1,ltm.tm_mday,ltm.tm_hour,ltm.tm_min,ltm.tm_sec);
+			ltm = localtime(&t);
+			fprintf(g_DataFP,"#START_REC,%d,%d,%d,%d,%d,%d\n",ltm->tm_year+1900,ltm->tm_mon+1,ltm->tm_mday,ltm->tm_hour,ltm->tm_min,ltm->tm_sec);			if(message[0]!=NULL)
 			fprintf(g_DataFP,"#TRACKER_VERSION,%s\n",VERSION);
 			if(message[0]!=NULL)
 			{
@@ -1266,7 +1230,7 @@ Call flushGazeData(), output #MESSAGE and then output #STOP_REC.
 @param[in] message Message text to be inserted to the data file.
 @return No value is returned.
 */
-void stopRecording(char* message)
+void stopRecording(const char* message)
 {
 	if(g_DataFP!=NULL)
 	{
@@ -1307,10 +1271,9 @@ As a result, contents of existing file is lost.
 */
 void openDataFile(char* filename)
 {
-	char buff[512];
-	strcpy(buff,g_DataPath);
-	strcat(buff,"\\");
-	strcat(buff,filename);
+	std::string str(g_DataPath);
+	str.append("\\");
+	str.append(filename);
 
 	if(g_DataFP!=NULL) //if data file has already been opened, close it.
 	{
@@ -1319,8 +1282,14 @@ void openDataFile(char* filename)
 		g_LogFS << "Close datafile to open new datafile\n";
 	}
 
-	g_DataFP = fopen(buff,"w");
-	g_LogFS << "OpenDataFile" << buff << "\n";
+	g_DataFP = fopen(str.c_str(),"w");
+	if(g_DataFP==NULL){
+		g_LogFS << "Failed to open data file (" << str << ")\n";
+	}
+	else
+	{
+		g_LogFS << "Open Data File (" << str << ")\n";
+	}
 }
 
 /*!
@@ -1362,7 +1331,7 @@ void insertMessage(char* message)
 {
 	double ctd;
 	ctd = getCurrentTime() - g_RecStartTime;
-	g_MessageEnd += sprintf_s(g_MessageBuffer+g_MessageEnd,MAXMESSAGE-g_MessageEnd,"#MESSAGE,%.3f,%s\n",ctd,message);
+	g_MessageEnd += snprintf(g_MessageBuffer+g_MessageEnd,MAXMESSAGE-g_MessageEnd,"#MESSAGE,%.3f,%s\n",ctd,message);
 	//check overflow
 	if(MAXMESSAGE-g_MessageEnd < 128)
 	{
@@ -1504,10 +1473,10 @@ void getCalibrationResultsDetail( char* errorstr, int size, int* len)
 	{
 		if(g_RecordingMode==RECORDING_MONOCULAR){ //monocular
 			getGazePositionMono(g_EyeData[idx], xy);
-			l = sprintf_s(dstbuf, s, "%.0f,%.0f,%.0f,%.0f,",g_CalPointData[idx][0],g_CalPointData[idx][1],xy[MONO_X],xy[MONO_Y]);
+			l = snprintf(dstbuf, s, "%.0f,%.0f,%.0f,%.0f,",g_CalPointData[idx][0],g_CalPointData[idx][1],xy[MONO_X],xy[MONO_Y]);
 		}else{ //binocular
 			getGazePositionBin(g_EyeData[idx], xy);
-			l = sprintf_s(dstbuf, s, "%.0f,%.0f,%.0f,%.0f,%.0f,%.0f,",g_CalPointData[idx][0],g_CalPointData[idx][1],xy[BIN_LX],xy[BIN_LY],xy[BIN_RX],xy[BIN_RY]);
+			l = snprintf(dstbuf, s, "%.0f,%.0f,%.0f,%.0f,%.0f,%.0f,",g_CalPointData[idx][0],g_CalPointData[idx][1],xy[BIN_LX],xy[BIN_LY],xy[BIN_RX],xy[BIN_RY]);
 		}
 		dstbuf = dstbuf+l;
 		s -= l;

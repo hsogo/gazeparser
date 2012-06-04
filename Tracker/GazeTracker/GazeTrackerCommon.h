@@ -12,6 +12,18 @@
 
 #define VERSION "0.5.0"
 
+#ifdef _WIN32
+#include <windows.h>
+#define snprintf sprintf_s
+#define PATH_SEPARATOR "\\"
+#else
+#define S_OK                             0
+#define E_FAIL                 -2147467259
+#define SUCCEEDED(Status) ((int)(Status) >= 0)
+#define FAILED(Status) ((int)(Status)<0)
+#define PATH_SEPARATOR "/"
+#endif
+
 #include <SDL.h>
 #include <string>
 #include <iostream> 
@@ -111,7 +123,9 @@ extern int g_Threshold;
 
 extern int g_RecordingMode;
 
-extern char g_DataPath[512];
+extern std::string g_DataPath;
+extern std::string g_AppPath;
+extern std::string g_ParamPath;
 
 extern std::fstream g_LogFS;
 
@@ -128,20 +142,21 @@ extern void getCurrentMenuString(char *p, int maxlen);
 
 extern void toggleCalResult(void);
 
-extern void startRecording(char* message);
-extern void stopRecording(char* message);
+extern void startRecording(const char* message);
+extern void stopRecording(const char* message);
 extern void openDataFile(char* filename);
 extern void closeDataFile(void);
 extern void insertMessage(char* message);
 extern void insertSettings(char* settings);
 extern void connectionClosed(void);
 extern void getEyePosition(double* pos);
-extern void saveCameraImage(char* filename);
+extern void saveCameraImage(const char* filename);
 
 //Camera.cpp
-extern int initCamera( char* ParamPath );
+extern int initCamera( const char* ParamPath );
 extern int getCameraImage( void );
 extern void cleanupCamera( void );
+extern void saveCameraParameters(const char* ParamPath);
 
 //DetectEye.cpp
 extern int initBuffers(void);
@@ -149,7 +164,17 @@ extern int initBuffers(void);
 //custom menu
 extern int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition);
 extern int g_CustomMenuNum;
-extern void saveCameraParameters(char* ParamPath);
 extern void updateCustomMenuText( void );
 extern std::string g_MenuString[MENU_MAX_ITEMS];
+
+//Platform dependent
+int initTimer(void);
+double getCurrentTime(void);
+void sleepMilliseconds(double);
+int getDataDirectoryPath(std::string* path);
+int getApplicationDirectoryPath(std::string* path);
+int getParameterDirectoryPath(std::string* path);
+int getLogFilePath(std::string* path);
+int checkDirectory(std::string path);
+int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath);
 

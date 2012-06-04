@@ -62,7 +62,7 @@ Read parameters from the configuration file, start camera and set callback funct
 @note This function is necessary when you customize this file for your camera.
 @todo check whether number of custom menus are too many.
  */
-int initCamera( char* ParamPath )
+int initCamera( const char* ParamPath )
 {
 	g_VideoCapture = cv::VideoCapture(0);
 	if(!g_VideoCapture.isOpened())
@@ -136,7 +136,7 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
  */
-void saveCameraParameters(char* ParamPath)
+void saveCameraParameters(const char* ParamPath)
 {
 	// no custom parameters for this camera
 	return;
