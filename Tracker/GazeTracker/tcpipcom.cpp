@@ -9,12 +9,16 @@
 - Custom menu is supported.
 */
 
+#ifdef _WIN32
 #include	<windows.h>
+#endif
+
 #include	"GazeTracker.h"
 #include	"SDL_net.h"
 #include	"SDL.h"
 
 #include	<stdio.h>
+#include	<fstream>
 
 #define RECV_PORT        10000
 #define SEND_PORT        10001
@@ -102,7 +106,7 @@ int sockAccept(void)
 {
 	IPaddress ip;
 	if(SDLNet_ResolveHost(&ip, NULL, RECV_PORT)==-1){
-		g_LogFS << "ERROR: failed to resolve host (" << host << ")\n";
+		g_LogFS << "ERROR: failed to resolve host\n";
 		return E_FAIL;
 	}
 

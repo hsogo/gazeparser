@@ -17,14 +17,18 @@
 
 #include <fstream>
 
-#include <atlbase.h>
-#include <time.h>
-#include <process.h>
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
 
 #include "GazeTracker.h"
 #include "resource.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#include <atlbase.h>
+#include <time.h>
+#include <process.h>
+#endif
 
 #define MENU_ITEM_HEIGHT 24
 #define MENU_FONT_SIZE 20
@@ -287,19 +291,31 @@ updateMenuText: update menu text.
 */
 void updateMenuText( void )
 {
-	g_MenuString[MENU_THRESH_PUPIL] << "PupilThreshold(" << g_Threshold <<")";
-	g_MenuString[MENU_THRESH_PURKINJE] << "PurkinjeThreshold(" << g_PurkinjeThreshold << ")";
-	g_MenuString[MENU_MINPOINTS],       "MinPoints(%d)", g_MinPoints);
-	g_MenuString[MENU_MAXPOINTS],       "MaxPoints(%d)", g_MaxPoints);
-	g_MenuString[MENU_SEARCHAREA],      "PurkinjeSearchArea(%d)", g_PurkinjeSearchArea);
-	g_MenuString[MENU_EXCLUDEAREA],     "PurkinjeExcludeArea(%d)", g_PurkinjeExcludeArea);
+	std::stringstream ss;
+	ss << "PupilThreshold(" << g_Threshold << ")";
+	g_MenuString[MENU_THRESH_PUPIL] = ss.str();
+	ss.str("");
+	ss << "PurkinjeThreshold(" << g_PurkinjeThreshold << ")";
+	g_MenuString[MENU_THRESH_PURKINJE] = ss.str();
+	ss.str("");
+	ss << "MinPoints(" << g_MinPoints << ")";
+	g_MenuString[MENU_MINPOINTS] = ss.str();
+	ss.str("");
+	ss << "MaxPoints(" << g_MaxPoints << ")";
+	g_MenuString[MENU_MAXPOINTS] = ss.str();
+	ss.str("");
+	ss  << "PurkinjeSearchArea(" << g_PurkinjeSearchArea << ")";
+	g_MenuString[MENU_SEARCHAREA] = ss.str();
+	ss.str("");
+	ss  << "PurkinjeExcludeArea(" << g_PurkinjeExcludeArea << ")";
+	g_MenuString[MENU_EXCLUDEAREA] = ss.str();
 	
 	return;
 }
 
 /*
 */
-void printStringToTexture(int StartX, int StartY, std::string strings, int numItems, int fontsize, SDL_Surface* pSurface)
+void printStringToTexture(int StartX, int StartY, std::string *strings, int numItems, int fontsize, SDL_Surface* pSurface)
 {
 	int SX = StartX;
 	int SY = StartY;
@@ -311,7 +327,7 @@ void printStringToTexture(int StartX, int StartY, std::string strings, int numIt
 
 	for(int l=0; l<numItems; l++)
 	{
-		textSurface = TTF_RenderUTF8_Solid(g_Font, string[l].c_str(), color);
+		textSurface = TTF_RenderUTF8_Solid(g_Font, strings[l].c_str(), color);
 		dstRect.x = SX;
 		dstRect.y = SY;
 		SDL_BlitSurface(textSurface, NULL, pSurface, &dstRect);
@@ -1514,7 +1530,7 @@ This function is called from sockProcess() when sockProcess() received "getCurrM
 */
 void getCurrentMenuString(char *p, int maxlen)
 {
-	for(i=0;i<maxlen;i++) p[i]=\0;
+	for(int i=0;i<maxlen;i++) p[i]=NULL;
 	g_MenuString[g_CurrentMenuPosition].copy(p,maxlen-1);
 }
 

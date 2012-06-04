@@ -10,14 +10,13 @@
 */
 
 
-//#include <cxcore.h>
-//#include <cv.h>
-//#include <highgui.h>
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
 #include "GazeTracker.h"
+
+#include <fstream>
 
 cv::Mat g_SrcImg;
 cv::Mat g_DstImg;

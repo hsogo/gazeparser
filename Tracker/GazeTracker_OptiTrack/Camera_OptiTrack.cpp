@@ -2,13 +2,14 @@
 
 
 #include <SDL.h>
-#include <atlbase.h>
 #include "GazeTracker.h"
 #include "C:/Program Files/NaturalPoint/Optitrack/inc/optitrack.h"
 #import  "C:/Program Files/NaturalPoint/Optitrack/inc/optitrack.tlb"
 
+#include <atlbase.h>
+
 #include <fstream>
-#include <iostream>
+#include <sstream>
 #include <string>
 
 int InitCamera( void );
@@ -128,7 +129,7 @@ int initCamera( char* ParamPath )
 		g_camera->SetOption(NP_OPTION_GRAYSCALE_DECIMATION,(CComVariant)2);
 	else
 	{
-		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight ")\n";
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")\n";
 		return E_FAIL;
 	}
 
@@ -308,8 +309,12 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 */
 void updateCustomMenuText( void )
 {
-	g_MenuString[CUSTOMMENU_INTENSITY] << "LightIntensity(" << g_Intensity << ")";
-	g_MenuString[CUSTOMMENU_EXPOSURE] << "CameraExposure(" << g_Exposure << ")";
+	std::stringstream ss;
+	ss << "LightIntensity(" << g_Intensity << ")";
+	g_MenuString[CUSTOMMENU_INTENSITY] = ss.str();
+	ss.str("");
+	ss << "CameraExposure(" << g_Exposure << ")";
+	g_MenuString[CUSTOMMENU_EXPOSURE] = ss.str();
 
 	return;
 }

@@ -15,7 +15,6 @@
 #include "GazeTracker.h"
 
 #include <fstream>
-#include <iostream>
 #include <string>
 
 #include "C:\Program Files\Interface\GPC5300\include\IFCml.h"

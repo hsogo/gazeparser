@@ -13,8 +13,8 @@
 #define VERSION "0.5.0"
 
 #include <SDL.h>
-#include <string.h>
-#include <iostream.h>
+#include <string>
+#include <iostream> 
 
 #define PREVIEW_WIDTH  640
 #define PREVIEW_HEIGHT 480

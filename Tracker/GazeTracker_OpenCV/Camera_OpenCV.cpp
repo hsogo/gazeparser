@@ -10,12 +10,9 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
 
-
-#include <atlbase.h>
 #include "GazeTracker.h"
 
 #include <fstream>
-#include <iostream>
 #include <string>
 
 #include "SDL.h"
@@ -79,12 +76,12 @@ int initCamera( char* ParamPath )
 
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
 	{
-		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight ")\n";
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")\n";
 		return E_FAIL;
 	}
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
 	{
-		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight ")\n";
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")\n";
 		return E_FAIL;
 	}
 
