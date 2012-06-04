@@ -379,18 +379,6 @@ class GazeData(object):
         else:
             self._config = config
         
-        """
-        self._screenOrigin = config.SCREEN_ORIGIN
-        self._trackerOrigin = config.TRACKER_ORIGIN
-        self._screenWidth = config.SCREEN_WIDTH
-        self._screenHeight = config.SCREEN_HEIGHT
-        self._viewingDistance = config.VIEWING_DISTANCE
-        self._saccadeVelocityThreshold = config.SACCADE_VELOCITY_THRESHOLD
-        self._saccadeAccerelationThreshold = config.SACCADE_VELOCITY_THRESHOLD
-        self._saccadeMinimumDuration = config.SACCADE_MINIMUM_DURATION
-        self._dotsPerCentimeter = (config.DOTS_PER_CENTIMETER_H,config.DOTS_PER_CENTIMETER_V)
-        """
-        
         cm2deg = 180/numpy.pi*numpy.arctan(1.0/self._config.VIEWING_DISTANCE)
         self._deg2pix = numpy.array((self._config.DOTS_PER_CENTIMETER_H/cm2deg,
                                      self._config.DOTS_PER_CENTIMETER_V/cm2deg))

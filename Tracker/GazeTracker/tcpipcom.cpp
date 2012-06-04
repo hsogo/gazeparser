@@ -9,21 +9,23 @@
 - Custom menu is supported.
 */
 
-#include	<windows.h>
-#include	<winsock.h>
 #include	"GazeTracker.h"
+#include	"SDL_net.h"
+#include	"SDL.h"
 
 #include	<stdio.h>
+#include	<fstream>
 
 #define RECV_PORT        10000
 #define SEND_PORT        10001
 
 #define RECV_BUFFER_SIZE	1024
 
-SOCKET g_SockRecv = INVALID_SOCKET; /*!< Socket for receiving */
-SOCKET g_SockSend = INVALID_SOCKET; /*!< Socket for sending */
-SOCKET g_SockServ = INVALID_SOCKET; /*!< Socket for service */
-HOSTENT *g_pHE; /*!< */
+TCPsocket g_SockRecv; /*!< Socket for receiving */
+TCPsocket g_SockSend; /*!< Socket for sending */
+TCPsocket g_SockServ; /*!< Socket for service */
+
+SDLNet_SocketSet g_SocketSet;
 
 unsigned char* g_SendImageBuffer;  /*!< Buffer for sending camera image. Additional 1 byte is necessary for the END code.*/
 int g_Received; /*!< */
@@ -31,30 +33,34 @@ int g_Received; /*!< */
 /*!
 sockInit: Initialize socket.
 
-@return HRESULT
+@return int
 @retval S_OK
 @retval E_FAIL
 */
-HRESULT sockInit(HWND hWnd)
+int sockInit(void)
 {
-    WSADATA wsa;
-    int ret;
-    if((ret=WSAStartup(MAKEWORD(1,1), &wsa))){
+	SDLNet_Init();
+	g_SocketSet = SDLNet_AllocSocketSet(1);
+	if(!g_SocketSet){
+		g_LogFS << "ERROR: failed to allocate socket set\n";
 		return E_FAIL;
 	}
+
     return S_OK;
 }
 
 /*!
 sockClose: Close sockets.
 
-@return HRESULT
+@return int
 @retval S_OK
 */
-HRESULT sockClose(void)
+int sockClose(void)
 {
-	closesocket(g_SockRecv); 
-	closesocket(g_SockSend);
+	SDLNet_TCP_Close(g_SockRecv); 
+	SDLNet_TCP_Close(g_SockSend);
+	g_SockRecv = NULL;
+	g_SockSend = NULL;
 
 	return S_OK;
 }
@@ -62,46 +68,25 @@ HRESULT sockClose(void)
 /*!
 sockConnect: Connect socket to the client PC to send data.
 
-@param[in] hWnd Window handle.
 @param[in] host Client PC's address.
-@return HRESULT
+@return int
 @retval S_OK
 @retval E_FAIL
 */
-HRESULT sockConnect(HWND hWnd, LPCSTR host)
+int sockConnect(const char* host)
 {
-    SOCKADDR_IN cl_sin;                                     //SOCKADDR_IN structure
-
-    //open socket
-    g_SockSend = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);       //failed to create socket
-    if(g_SockSend==INVALID_SOCKET){
+	IPaddress ip;
+	if(SDLNet_ResolveHost(&ip, host, SEND_PORT)==-1){
+		g_LogFS << "ERROR: failed to resolve host (" << host << ")\n";
 		return E_FAIL;
-    }
+	}
 
-    memset(&cl_sin, 0x00, sizeof(cl_sin));                  //initialize structure
-    cl_sin.sin_family = AF_INET;                            //internet
-    cl_sin.sin_port   = htons(SEND_PORT);                        //port number
+	g_SockSend= SDLNet_TCP_Open(&ip);
+	if(!g_SockSend){
+		g_LogFS << "ERROR: failed to open sending socket\n";
+		return E_FAIL;
+	}
 
-    if(!(g_pHE=gethostbyname(host))){                         //getting address
-        return E_FAIL;
-    }
-    memcpy(&cl_sin.sin_addr, g_pHE->h_addr, g_pHE->h_length);   //copy the address
-
-    //setting asynchronous mode
-    if(WSAAsyncSelect(g_SockSend, hWnd, WM_TCPSOCKET, FD_CONNECT)==SOCKET_ERROR){
-        closesocket(g_SockSend);
-        g_SockSend=INVALID_SOCKET;
-        return E_FAIL;
-    }
-
-    //connecting
-    if(connect(g_SockSend, (LPSOCKADDR)&cl_sin, sizeof(cl_sin))==SOCKET_ERROR){
-        if(WSAGetLastError()!=WSAEWOULDBLOCK){
-            closesocket(g_SockSend);
-            g_SockSend=INVALID_SOCKET;
-            return E_FAIL;
-        }
-    }
     return S_OK;
 }
 
@@ -109,44 +94,25 @@ HRESULT sockConnect(HWND hWnd, LPCSTR host)
 /*!
 sockAccept: Accept connection request from the client PC.
 
-@param[in] hWnd Window handle.
-@return HRESULT
+@return int
 @retval S_OK
 @retval E_FAIL
 */
-HRESULT sockAccept(HWND hWnd)
+int sockAccept(void)
 {
-    SOCKADDR_IN sv_sin;                                 //SOCKADDR_INç\ë¢ëÃ
-
-    //socket for server
-    g_SockServ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if(g_SockServ == INVALID_SOCKET){                      //failed to create socket
-        return E_FAIL;
-    }
-
-    memset(&sv_sin, 0x00, sizeof(sv_sin));              //initialize structure
-    sv_sin.sin_family      = AF_INET;                   //internet
-    sv_sin.sin_port        = htons(RECV_PORT);               //port number
-    sv_sin.sin_addr.s_addr = htonl(INADDR_ANY);         //setting address
-
-    if(bind(g_SockServ, (LPSOCKADDR)&sv_sin, sizeof(sv_sin))==SOCKET_ERROR){
-        closesocket(g_SockServ);
-        g_SockServ = INVALID_SOCKET;
-        return E_FAIL;
-    }
-
-    if(listen(g_SockServ, 1)==SOCKET_ERROR){               //failed to accept connection
-        closesocket(g_SockServ);
-        g_SockServ = INVALID_SOCKET;
-        return E_FAIL;
-    }
-
-    //setting asynchronous mode
-    if(WSAAsyncSelect(g_SockServ, hWnd, WM_TCPSOCKET, FD_ACCEPT)==SOCKET_ERROR){
-        closesocket(g_SockServ);
-        g_SockServ = INVALID_SOCKET;
+	IPaddress ip;
+	if(SDLNet_ResolveHost(&ip, NULL, RECV_PORT)==-1){
+		g_LogFS << "ERROR: failed to resolve host\n";
 		return E_FAIL;
-    }
+	}
+
+	g_SockServ= SDLNet_TCP_Open(&ip);
+	if(!g_SockServ){
+		g_LogFS << "ERROR: failed to open server socket\n";
+		return E_FAIL;
+	}
+
+	g_LogFS << "open server socket\n";
     return S_OK;
 }
 
@@ -157,347 +123,356 @@ This function parses commands sent from the Client PC and call appropriate funct
 
 @param[in] hWnd Window handle.
 @param[in] lParam received message.
-@return HRESULT
+@return int
 @retval S_OK
 @retval E_FAIL
 */
-HRESULT sockProcess(HWND hWnd, LPARAM lParam)
+int sockProcess(void)
 {
 	char buff[RECV_BUFFER_SIZE];
+	SDL_Event sdlEvent;
 
-	if(WSAGETSELECTERROR(lParam)!=0)
-		return E_FAIL;
-	switch(WSAGETSELECTEVENT(lParam))
+	//check accepted
+	if(!g_SockRecv)
 	{
-	case FD_ACCEPT:
-		//called when accepted.
-		SOCKADDR_IN cl_sin;
-		int len;
-		len = sizeof(cl_sin);
-		g_SockRecv = accept(g_SockServ,(LPSOCKADDR)&cl_sin,&len);
-		WSAAsyncSelect(g_SockRecv, hWnd, WM_TCPSOCKET, FD_READ|FD_CLOSE);
+		g_SockRecv = SDLNet_TCP_Accept(g_SockServ);
 
-		sockConnect(hWnd,inet_ntoa(cl_sin.sin_addr));
-		break;
-
-	case FD_READ:
-		g_Received = recv(g_SockRecv, buff, RECV_BUFFER_SIZE, 0);
-		if(g_Received>0)
-		{
-			int nextp=0;
-			while(nextp<g_Received){
-				if(strcmp(buff+nextp,"key_Q")==0){
-					PostMessage(hWnd, WM_KEYDOWN, 'Q', NULL);
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"key_UP")==0)
+		if(g_SockRecv){
+			g_LogFS << "open receiving socket\n";
+			SDLNet_TCP_AddSocket(g_SocketSet, g_SockRecv);
+			IPaddress* remote_ip;
+			remote_ip = SDLNet_TCP_GetPeerAddress(g_SockRecv);
+			if(!remote_ip){
+				g_LogFS << "could not get remote IP address\n";
+				SDLNet_TCP_Close(g_SockRecv);
+				g_SockRecv = NULL;
+				g_LogFS << "close receiving socket\n";
+			}else{
+				const char* host;
+				host = SDLNet_ResolveIP(remote_ip);
+				if(FAILED(sockConnect(host)))
 				{
-					PostMessage(hWnd, WM_KEYDOWN, VK_UP, NULL);
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"key_DOWN")==0)
-				{
-					PostMessage(hWnd, WM_KEYDOWN, VK_DOWN, NULL);				
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"key_LEFT")==0)
-				{
-					PostMessage(hWnd, WM_KEYDOWN, VK_LEFT, NULL);
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"key_RIGHT")==0)
-				{
-					PostMessage(hWnd, WM_KEYDOWN, VK_RIGHT, NULL);				
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"getImageData")==0)
-				{
-					int index;
-					for(int y = 0; y<g_ROIHeight; y++){
-						for(int x=0; x<g_ROIWidth; x++){
-							index = g_ROIWidth*y+x;
-							g_SendImageBuffer[index] = (unsigned)(g_pCameraTextureBuffer[g_CameraWidth*(y+(g_CameraHeight-g_ROIHeight)/2)+(x+(g_CameraWidth-g_ROIWidth)/2)] & 0x000000ff);
-							if(g_SendImageBuffer[index]==255){
-								g_SendImageBuffer[index] = 254;
-							}else if(g_SendImageBuffer[index] < g_Threshold){
-								g_SendImageBuffer[index] = 0;
-							}
-						}
-					}
-					
-					g_SendImageBuffer[index] = 255;
-					send(g_SockSend, (char*)g_SendImageBuffer, g_ROIWidth*g_ROIHeight+1, 0);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"startCal")==0)
-				{
-					char* param = buff+nextp+9;
-					char* p;
-					int x1,y1,x2,y2;
-
-					x1 = strtol(param, &p, 10);
-					p++;
-					y1 = strtol(p, &p, 10);
-					p++;
-					x2 = strtol(p, &p, 10);
-					p++;
-					y2 = strtol(p, &p, 10);
-
-					startCalibration(x1,y1,x2,y2);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"getCalSample")==0)
-				{
-					char* param = buff+nextp+13;
-					char* p;
-					double x,y;
-
-					x = strtod(param, &p);
-					p++;
-					y = strtod(p, &p);
-					getCalSample(x,y);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"endCal")==0)
-				{
-					endCalibration();
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"startVal")==0)
-				{
-					char* param = buff+nextp+9;
-					char* p;
-					int x1,y1,x2,y2;
-
-					x1 = strtol(param, &p, 10);
-					p++;
-					y1 = strtol(p, &p, 10);
-					p++;
-					x2 = strtol(p, &p, 10);
-					p++;
-					y2 = strtol(p, &p, 10);
-
-					startValidation(x1,y1,x2,y2);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"getValSample")==0)
-				{
-					char* param = buff+nextp+13;
-					char* p;
-					double x,y;
-
-					x = strtod(param, &p);
-					p++;
-					y = strtod(p, &p);
-					getValSample(x,y);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"endVal")==0)
-				{
-					endValidation();
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"toggleCalResult")==0)
-				{
-					toggleCalResult();
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"startRecording")==0)
-				{
-					char* param = buff+nextp+15;
-					startRecording(param);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"stopRecording")==0)
-				{
-					char* param = buff+nextp+14;
-					stopRecording(param);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"openDataFile")==0)
-				{
-					char* param = buff+nextp+13;
-					openDataFile(param);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"closeDataFile")==0)
-				{
-					closeDataFile();
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"insertMessage")==0)
-				{
-					char* param = buff+nextp+14;
-					insertMessage(param);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"getEyePosition")==0)
-				{
-					double pos[4];
-					char posstr[64];
-					int len;
-					int flag;
-					getEyePosition(pos);
-					if(g_RecordingMode==RECORDING_MONOCULAR){
-						len = sprintf_s(posstr,sizeof(posstr),"%.0f,%.0f#",pos[0],pos[1]);
-					}else{
-						len = sprintf_s(posstr,sizeof(posstr),"%.0f,%.0f,%.0f,%.0f#",pos[0],pos[1],pos[2],pos[3]);
-					}
-					flag = 1; //send with NO_DLAY mode.
-					setsockopt(g_SockSend,IPPROTO_TCP,TCP_NODELAY,(char*)&flag, sizeof(flag));
-					send(g_SockSend,posstr,len, 0);
-					flag = 0; //exit from NO_DLAY mode.
-					setsockopt(g_SockSend,IPPROTO_TCP,TCP_NODELAY,(char*)&flag, sizeof(flag));
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"getCalResults")==0)
-				{
-					int len;
-					int flag;
-					char posstr[128];
-					double goodness[4],maxError[2],meanError[2];
-
-					getCalibrationResults(goodness,maxError,meanError);
-
-					if(g_RecordingMode==RECORDING_MONOCULAR){
-						len = sprintf_s(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f#",goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
-					}else{
-						len = sprintf_s(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f#",
-							goodness[BIN_LX],goodness[BIN_LY],meanError[BIN_L],maxError[BIN_LX],
-							goodness[BIN_RX],goodness[BIN_RY],meanError[BIN_R],maxError[BIN_RX]);
-					}
-
-
-					flag = 1; //send with NO_DLAY mode.
-					setsockopt(g_SockSend,IPPROTO_TCP,TCP_NODELAY,(char*)&flag, sizeof(flag));
-					send(g_SockSend,posstr,len, 0);
-					flag = 0; //exit from NO_DLAY mode.
-					setsockopt(g_SockSend,IPPROTO_TCP,TCP_NODELAY,(char*)&flag, sizeof(flag));
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"getCalResultsDetail")==0)
-				{
-					int len;
-					int flag;
-					char errorstr[8192];
-
-					getCalibrationResultsDetail(errorstr,sizeof(errorstr),&len);
-
-					flag = 1; //send with NO_DLAY mode.
-					setsockopt(g_SockSend,IPPROTO_TCP,TCP_NODELAY,(char*)&flag, sizeof(flag));
-					send(g_SockSend,errorstr,len, 0);
-					flag = 0; //exit from NO_DLAY mode.
-					setsockopt(g_SockSend,IPPROTO_TCP,TCP_NODELAY,(char*)&flag, sizeof(flag));
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"getCurrMenu")==0)
-				{
-					int len;
-					int flag;
-					char tmpstr[63];
-					char menustr[64];
-
-					getCurrentMenuString(tmpstr,sizeof(tmpstr));
-					len = sprintf_s(menustr,sizeof(menustr),"%s#",tmpstr);
-
-					flag = 1; //send with NO_DLAY mode.
-					setsockopt(g_SockSend,IPPROTO_TCP,TCP_NODELAY,(char*)&flag, sizeof(flag));
-					send(g_SockSend,menustr,len, 0);
-					flag = 0; //exit from NO_DLAY mode.
-					setsockopt(g_SockSend,IPPROTO_TCP,TCP_NODELAY,(char*)&flag, sizeof(flag));
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"insertSettings")==0)
-				{
-					char* param = buff+nextp+15;
-					insertSettings(param);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else if(strcmp(buff+nextp,"saveCameraImage")==0)
-				{
-					char* param = buff+nextp+16;
-					saveCameraImage(param);
-
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-					while(buff[nextp]!=0) nextp++;
-					nextp++;
-				}
-				else
-				{
-					return E_FAIL;
+					SDLNet_TCP_Close(g_SockRecv);
+					g_SockRecv = NULL;
+					g_LogFS << "close receiving socket\n";
 				}
 			}
+		}else{
+			//g_LogFS << "ERROR: failed to open receiving socket\n";
 		}
-		break;
-
-	case FD_CONNECT:
-		break;
-
-	case FD_CLOSE:
-		connectionClosed();
-		break;
 	}
 
+	int numReady;
+	numReady = SDLNet_CheckSockets(g_SocketSet,0);
+	if(numReady>0)
+	{
+		if(SDLNet_SocketReady(g_SockRecv))
+		{
+			g_Received = SDLNet_TCP_Recv(g_SockRecv, buff, RECV_BUFFER_SIZE);
+			if(g_Received>0)
+			{
+				int nextp=0;
+				while(nextp<g_Received){
+					if(strcmp(buff+nextp,"key_Q")==0){
+						sdlEvent.type = SDL_KEYDOWN;
+						sdlEvent.key.keysym.sym = SDLK_q;
+						SDL_PushEvent(&sdlEvent);
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"key_UP")==0)
+					{
+						sdlEvent.type = SDL_KEYDOWN;
+						sdlEvent.key.keysym.sym = SDLK_UP;
+						SDL_PushEvent(&sdlEvent);
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"key_DOWN")==0)
+					{
+						sdlEvent.type = SDL_KEYDOWN;
+						sdlEvent.key.keysym.sym = SDLK_DOWN;
+						SDL_PushEvent(&sdlEvent);
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"key_LEFT")==0)
+					{
+						sdlEvent.type = SDL_KEYDOWN;
+						sdlEvent.key.keysym.sym = SDLK_LEFT;
+						SDL_PushEvent(&sdlEvent);
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"key_RIGHT")==0)
+					{
+						sdlEvent.type = SDL_KEYDOWN;
+						sdlEvent.key.keysym.sym = SDLK_RIGHT;
+						SDL_PushEvent(&sdlEvent);
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getImageData")==0)
+					{
+						int index;
+						for(int y = 0; y<g_ROIHeight; y++){
+							for(int x=0; x<g_ROIWidth; x++){
+								index = g_ROIWidth*y+x;
+								g_SendImageBuffer[index] = (unsigned)(g_pCameraTextureBuffer[g_CameraWidth*(y+(g_CameraHeight-g_ROIHeight)/2)+(x+(g_CameraWidth-g_ROIWidth)/2)] & 0x000000ff);
+								if(g_SendImageBuffer[index]==255){
+									g_SendImageBuffer[index] = 254;
+								}else if(g_SendImageBuffer[index] < g_Threshold){
+									g_SendImageBuffer[index] = 0;
+								}
+							}
+						}
+						
+						g_SendImageBuffer[index] = 255;
+						SDLNet_TCP_Send(g_SockSend, (char*)g_SendImageBuffer, g_ROIWidth*g_ROIHeight+1);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"startCal")==0)
+					{
+						char* param = buff+nextp+9;
+						char* p;
+						int x1,y1,x2,y2;
+
+						x1 = strtol(param, &p, 10);
+						p++;
+						y1 = strtol(p, &p, 10);
+						p++;
+						x2 = strtol(p, &p, 10);
+						p++;
+						y2 = strtol(p, &p, 10);
+
+						startCalibration(x1,y1,x2,y2);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getCalSample")==0)
+					{
+						char* param = buff+nextp+13;
+						char* p;
+						double x,y;
+
+						x = strtod(param, &p);
+						p++;
+						y = strtod(p, &p);
+						getCalSample(x,y);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"endCal")==0)
+					{
+						endCalibration();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"startVal")==0)
+					{
+						char* param = buff+nextp+9;
+						char* p;
+						int x1,y1,x2,y2;
+
+						x1 = strtol(param, &p, 10);
+						p++;
+						y1 = strtol(p, &p, 10);
+						p++;
+						x2 = strtol(p, &p, 10);
+						p++;
+						y2 = strtol(p, &p, 10);
+
+						startValidation(x1,y1,x2,y2);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getValSample")==0)
+					{
+						char* param = buff+nextp+13;
+						char* p;
+						double x,y;
+
+						x = strtod(param, &p);
+						p++;
+						y = strtod(p, &p);
+						getValSample(x,y);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"endVal")==0)
+					{
+						endValidation();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"toggleCalResult")==0)
+					{
+						toggleCalResult();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"startRecording")==0)
+					{
+						char* param = buff+nextp+15;
+						startRecording(param);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"stopRecording")==0)
+					{
+						char* param = buff+nextp+14;
+						stopRecording(param);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"openDataFile")==0)
+					{
+						char* param = buff+nextp+13;
+						openDataFile(param);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"closeDataFile")==0)
+					{
+						closeDataFile();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"insertMessage")==0)
+					{
+						char* param = buff+nextp+14;
+						insertMessage(param);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getEyePosition")==0)
+					{
+						double pos[4];
+						char posstr[64];
+						int len;
+						getEyePosition(pos);
+						if(g_RecordingMode==RECORDING_MONOCULAR){
+							len = snprintf(posstr,sizeof(posstr),"%.0f,%.0f#",pos[0],pos[1]);
+						}else{
+							len = snprintf(posstr,sizeof(posstr),"%.0f,%.0f,%.0f,%.0f#",pos[0],pos[1],pos[2],pos[3]);
+						}
+						SDLNet_TCP_Send(g_SockSend,posstr,len);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getCalResults")==0)
+					{
+						int len;
+						char posstr[128];
+						double goodness[4],maxError[2],meanError[2];
+
+						getCalibrationResults(goodness,maxError,meanError);
+
+						if(g_RecordingMode==RECORDING_MONOCULAR){
+							len = snprintf(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f#",goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
+						}else{
+							len = snprintf(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f#",
+								goodness[BIN_LX],goodness[BIN_LY],meanError[BIN_L],maxError[BIN_LX],
+								goodness[BIN_RX],goodness[BIN_RY],meanError[BIN_R],maxError[BIN_RX]);
+						}
+
+						SDLNet_TCP_Send(g_SockSend,posstr,len);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getCalResultsDetail")==0)
+					{
+						int len;
+						char errorstr[8192];
+
+						getCalibrationResultsDetail(errorstr,sizeof(errorstr),&len);
+
+						SDLNet_TCP_Send(g_SockSend,errorstr,len);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getCurrMenu")==0)
+					{
+						int len;
+						char tmpstr[63];
+						char menustr[64];
+
+						getCurrentMenuString(tmpstr,sizeof(tmpstr));
+						len = snprintf(menustr,sizeof(menustr),"%s#",tmpstr);
+
+						SDLNet_TCP_Send(g_SockSend,menustr,len);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"insertSettings")==0)
+					{
+						char* param = buff+nextp+15;
+						insertSettings(param);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"saveCameraImage")==0)
+					{
+						char* param = buff+nextp+16;
+						saveCameraImage((const char*)param);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else
+					{
+						return E_FAIL;
+					}
+				}
+			}
+			else
+			{
+				g_LogFS << "connection may be closed by peer\n";
+				connectionClosed();
+				SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
+				sockClose();
+			}
+		}
+	}
 
 	return S_OK;
 }

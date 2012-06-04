@@ -8,16 +8,16 @@
 - Custom menu is supported.
 */
 
-#include <windows.h>
+#define _CRT_SECURE_NO_DEPRECATE
+
+
 #include <atlbase.h>
 #include "GazeTracker.h"
 
 #include <fstream>
-#include <iostream>
 #include <string>
 
 #include "C:\Program Files\Interface\GPC5300\include\IFCml.h"
-#pragma comment(lib,"C:\\Program Files\\Interface\\GPC5300\\lib\\IfCml.lib")
 
 
 HANDLE g_CameraDeviceHandle; /*!< Holds camera device handle */
@@ -36,8 +36,8 @@ CallBackProc: Grab camera images.
  */
 void CALLBACK CallBackProc(DWORD IntFlg, DWORD User)
 {
-	g_NewFrameAvailable = true;
 	memcpy(g_frameBuffer, g_TmpFrameBuffer, g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
+	g_NewFrameAvailable = true;
 }
 
 /*!
@@ -47,13 +47,13 @@ Read parameters from the configuration file, start camera and set callback funct
 @attention If there are custom camera menu items, number of custom menu items must be set to g_CustomMenuNum in this function.
 
 @param[in] ParamPath Path to the camera configuration file.
-@return HRESULT
+@return int
 @retval S_OK Camera is successfully initialized.
 @retval E_FAIL Initialization is failed.
 @note This function is necessary when you customize this file for your camera.
 @todo check whether number of custom menus are too many.
  */
-HRESULT initCamera( char* ParamPath )
+int initCamera( const char* ParamPath )
 {
 	INT				ret;
 	DWORD			BufSize;
@@ -61,14 +61,20 @@ HRESULT initCamera( char* ParamPath )
 	char            buff[512];
 
 	g_TmpFrameBuffer = (unsigned char*)malloc(g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-
-	g_CameraDeviceHandle = CmlOpen("IFIMGCML1");
-	if(g_CameraDeviceHandle == INVALID_HANDLE_VALUE){
+	if(g_TmpFrameBuffer==NULL)
+	{
+		g_LogFS << "ERROR: failed to allocate working buffer\n";
 		return E_FAIL;
 	}
 
-	strcpy_s(buff, sizeof(buff), ParamPath);
-	strcat_s(buff, sizeof(buff), CAMERA_CONFIG_FILE);
+	g_CameraDeviceHandle = CmlOpen("IFIMGCML1");
+	if(g_CameraDeviceHandle == INVALID_HANDLE_VALUE){
+		g_LogFS << "ERROR: could not get camera device handle\n";
+		return E_FAIL;
+	}
+
+	strcpy(buff, ParamPath);
+	strcat(buff, CAMERA_CONFIG_FILE);
 	if(!PathFileExists(buff)){
 		char exefile[512];
 		char configfile[512];
@@ -76,15 +82,16 @@ HRESULT initCamera( char* ParamPath )
 		errno_t r;
 		GetModuleFileName(NULL,exefile,sizeof(exefile));
 		r = _splitpath_s(exefile,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-		strcpy_s(configfile,sizeof(configfile),drive);
-		strcat_s(configfile,sizeof(configfile),dir);
-		strcat_s(configfile,sizeof(configfile),CAMERA_CONFIG_FILE);
+		strcpy(configfile,drive);
+		strcat(configfile,dir);
+		strcat(configfile,CAMERA_CONFIG_FILE);
 		CopyFile(configfile,buff,true);
 	}
 	
 	ret = CmlReadCamConfFile(g_CameraDeviceHandle,buff);
 	
 	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not read camera configuration file(" << buff << ")\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}
@@ -101,6 +108,7 @@ HRESULT initCamera( char* ParamPath )
 
 	ret = CmlSetCaptureFormatInfo(g_CameraDeviceHandle, &CapFmt);
 	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not set camera image format)\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}
@@ -110,6 +118,7 @@ HRESULT initCamera( char* ParamPath )
 
 	ret =  CmlRegistMemInfo(g_CameraDeviceHandle, g_TmpFrameBuffer, BufSize, &g_CameraMemHandle);
 	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not allocate buffer)\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}
@@ -117,6 +126,7 @@ HRESULT initCamera( char* ParamPath )
 	// Set Capture Configration
 	ret = CmlSetCapConfig(g_CameraDeviceHandle,g_CameraMemHandle,&CapFmt);
 	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not set camera configuration)\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}
@@ -144,12 +154,12 @@ HRESULT initCamera( char* ParamPath )
 /*!
 getCameraImage: Get new camera image.
 
-@return HRESULT
+@return int
 @retval S_OK New frame is available.
 @retval E_FAIL There is no new frame.
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT getCameraImage( void )
+int getCameraImage( void )
 {
 	if(g_NewFrameAvailable)
 	{
@@ -174,6 +184,11 @@ void cleanupCamera()
 	ret = CmlFreeMemInfo(g_CameraDeviceHandle,g_CameraMemHandle);
 	ret = CmlClose(g_CameraDeviceHandle);
 	CmlOutputPower(g_CameraDeviceHandle,IFCML_PWR_OFF);
+	if(g_TmpFrameBuffer!=NULL)
+	{
+		free(g_TmpFrameBuffer);
+		g_TmpFrameBuffer = NULL;
+	}
 }
 
 /*!
@@ -183,7 +198,7 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
  */
-void saveCameraParameters(char* ParamPath)
+void saveCameraParameters(const char* ParamPath)
 {
 	// no custom parameters for this camera
 	return;
@@ -194,19 +209,16 @@ customCameraMenu: Process camera-dependent custom menu items. If there is no cus
 
 Your camera may have some parameters which you want to adjust with previewing camera image.
 In such cases, write nesessary codes to adjust these parameters in this function.
-This function is called from initD3D() at first, and from MsgProc() when left or right cursor key is pressed.
+This function is called when left or right cursor key is pressed.
 
-@param[in] hWnd passed from MsgProc.
-@param[in] msg passed from MsgProc.
-@param[in] wParam passed from MsgProc.
-@param[in] lParam passed from MsgProc.
+@param[in] SDLevent Event object.
 @param[in] currentMenuPosition Current menu position.
-@return HRESULT
+@return int
 @retval S_OK 
 @retval E_FAIL 
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int currentMenuPosition)
+int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 {
 	// no custom menu for this camera
 	return S_OK;

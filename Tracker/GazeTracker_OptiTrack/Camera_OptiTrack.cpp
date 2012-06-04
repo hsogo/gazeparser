@@ -1,15 +1,18 @@
-#include <windows.h>
-#include <atlbase.h>
+#define _CRT_SECURE_NO_DEPRECATE
+
+
+#include <SDL.h>
 #include "GazeTracker.h"
 #include "C:/Program Files/NaturalPoint/Optitrack/inc/optitrack.h"
 #import  "C:/Program Files/NaturalPoint/Optitrack/inc/optitrack.tlb"
 
+#include <atlbase.h>
+
 #include <fstream>
-#include <iostream>
+#include <sstream>
 #include <string>
 
-HRESULT InitCamera( void );
-HRESULT getCameraImage( void );
+int getCameraImage( void );
 void CleanupCamera( void );
 
 CComPtr<INPCameraCollection> g_cameraCollection;
@@ -31,7 +34,7 @@ Read parameters from the configuration file, start camera and set callback funct
 @attention If there are custom camera menu items, number of custom menu items must be set to g_CustomMenuNum in this function.
 
 @param[in] ParamPath Path to the camera configuration file.
-@return HRESULT
+@return int
 @retval S_OK Camera is successfully initialized.
 @retval E_FAIL Initialization is failed.
 @note This function is necessary when you customize this file for your camera.
@@ -40,31 +43,34 @@ Read parameters from the configuration file, start camera and set callback funct
 @date 2012/05/24
 - Both width and height are checked (640x480 or 320x240).
 */
-HRESULT initCamera( char* ParamPath )
+int initCamera( const char* ParamPath )
 {
-	FILE* fp;
+	std::fstream fs;
+	std::string str;
 	char buff[512];
 	char *p,*pp;
 	int param;
 
-	strcpy_s(buff, sizeof(buff), ParamPath);
-	strcat_s(buff, sizeof(buff), CAMERA_CONFIG_FILE);
-	if(!PathFileExists(buff)){
+	str = ParamPath;
+	str.append(CAMERA_CONFIG_FILE);
+	if(!PathFileExists(str.c_str())){
+		std::string configfile;
 		char exefile[512];
-		char configfile[512];
 		char drive[4],dir[512],fname[32],ext[5];
 		errno_t r;
 		GetModuleFileName(NULL,exefile,sizeof(exefile));
 		r = _splitpath_s(exefile,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-		strcpy_s(configfile,sizeof(configfile),drive);
-		strcat_s(configfile,sizeof(configfile),dir);
-		strcat_s(configfile,sizeof(configfile),CAMERA_CONFIG_FILE);
-		CopyFile(configfile,buff,true);
+		configfile.append(drive);
+		configfile.append(dir);
+		configfile.append(CAMERA_CONFIG_FILE);
+		CopyFile(configfile.c_str(),str.c_str(),true);
 	}
-
-	if(fopen_s(&fp,buff,"r")==NULL)
+	
+	fs.open(str.c_str(),std::ios::in);
+	if(fs.is_open())
 	{
-		while(fgets(buff,sizeof(buff),fp)!=NULL)
+		g_LogFS << "Open camera configuration file (" << buff << ")\n";
+		while(fs.getline(buff,sizeof(buff)-1))
 		{
 			if(buff[0]=='#') continue;
 			if((p=strchr(buff,'='))==NULL) continue;
@@ -76,8 +82,9 @@ HRESULT initCamera( char* ParamPath )
 			else if(strcmp(buff,"EXPOSURE")==0) g_Exposure = param;
 			else if(strcmp(buff,"INTENSITY")==0) g_Intensity = param;
 		}
-		fclose(fp);
+		fs.close();
 	}else{
+		g_LogFS << "ERROR: failed to open camera configuration file (" << buff << ")\n";
 		return E_FAIL;
 	}
 
@@ -90,10 +97,13 @@ HRESULT initCamera( char* ParamPath )
 	g_cameraCollection->get_Count(&cameraCount);
 	
 	if(cameraCount<1)
+	{
+		g_LogFS << "ERROR: no camera is found.\n";
 		return E_FAIL;
-
+	}
+	
 	g_cameraCollection->Item(0, &g_camera);
-
+	
 	long serial,width,height,model,revision,rate;
 
 	g_camera->get_SerialNumber(&serial);
@@ -117,7 +127,10 @@ HRESULT initCamera( char* ParamPath )
 	else if(g_CameraWidth == 320 && g_CameraHeight == 240)
 		g_camera->SetOption(NP_OPTION_GRAYSCALE_DECIMATION,(CComVariant)2);
 	else
+	{
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")\n";
 		return E_FAIL;
+	}
 
 	g_camera->SetOption(NP_OPTION_FRAME_RATE,(CComVariant) g_FrameRate );
 	g_camera->SetOption(NP_OPTION_THRESHOLD,(CComVariant) 254);
@@ -139,12 +152,12 @@ HRESULT initCamera( char* ParamPath )
 /*!
 getCameraImage: Get new camera image.
 
-@return HRESULT
+@return int
 @retval S_OK New frame is available.
 @retval E_FAIL There is no new frame.
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT getCameraImage( void )
+int getCameraImage( void )
 {
 	g_camera->GetFrame(0, &g_frame);
 
@@ -188,25 +201,26 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
  */
-void saveCameraParameters(char* ParamPath)
+void saveCameraParameters(const char* ParamPath)
 {
-	FILE* fp;
+	std::fstream fs;
 	char buff[512];
 
-	strcpy_s(buff,sizeof(buff),ParamPath);
-	strcat_s(buff,sizeof(buff),CAMERA_CONFIG_FILE);
+	strcpy(buff,ParamPath);
+	strcat(buff,CAMERA_CONFIG_FILE);
 
-	if(fopen_s(&fp,buff,"w")!=NULL)
+	fs.open(buff,std::ios::out);
+	if(!fs.is_open())
 	{
 		return;
 	}
 
-	fprintf_s(fp,"#If you want to recover original settings, delete this file and start eye tracker program.\n");
-	fprintf_s(fp,"FRAME_RATE=%d\n",g_FrameRate);
-	fprintf_s(fp,"EXPOSURE=%d\n",g_Exposure);
-	fprintf_s(fp,"INTENSITY=%d\n",g_Intensity);
+	fs << "#If you want to recover original settings, delete this file and start eye tracker program.\n";
+	fs << "FRAME_RATE=" << g_FrameRate << "\n";
+	fs << "EXPOSURE=" << g_Exposure << "\n";
+	fs << "INTENSITY=" << g_Intensity << "\n";
 
-	fclose(fp);
+	fs.close();
 
 	return;
 }
@@ -216,26 +230,22 @@ customCameraMenu: Process camera-dependent custom menu items. If there is no cus
 
 Your camera may have some parameters which you want to adjust with previewing camera image.
 In such cases, write nesessary codes to adjust these parameters in this function.
-This function is called from initD3D() at first, and from MsgProc() when left or right cursor key is pressed.
+This function is when left or right cursor key is pressed.
 
-@param[in] hWnd passed from MsgProc.
-@param[in] msg passed from MsgProc.
-@param[in] wParam passed from MsgProc.
-@param[in] lParam passed from MsgProc.
+@param[in] SDLevent Event object.
 @param[in] currentMenuPosition Current menu position.
-@return HRESULT
+@return int
 @retval S_OK 
 @retval E_FAIL 
 @note This function is necessary when you customize this file for your camera.
 */
-HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int currentMenuPosition)
+int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 {
-	switch( msg )
-	{
-	case WM_KEYDOWN:
-		switch(wParam)
+	switch(SDLevent->type){
+	case SDL_KEYDOWN:
+		switch(SDLevent->key.keysym.sym)
 		{
-		case VK_LEFT:
+		case SDLK_LEFT:
 			switch(currentMenuPosition)
 			{
 			case CUSTOMMENU_INTENSITY:
@@ -255,7 +265,7 @@ HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int 
 			}
 			break;
 
-		case VK_RIGHT:
+		case SDLK_RIGHT:
 			switch(currentMenuPosition)
 			{
 			case CUSTOMMENU_INTENSITY:
@@ -298,8 +308,12 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 */
 void updateCustomMenuText( void )
 {
-	_stprintf_s(g_MenuString[CUSTOMMENU_INTENSITY], MENU_STRING_MAX, _T("LightIntensity(%d)"), g_Intensity);
-	_stprintf_s(g_MenuString[CUSTOMMENU_EXPOSURE],  MENU_STRING_MAX, _T("CameraExposure(%d)"), g_Exposure);
+	std::stringstream ss;
+	ss << "LightIntensity(" << g_Intensity << ")";
+	g_MenuString[CUSTOMMENU_INTENSITY] = ss.str();
+	ss.str("");
+	ss << "CameraExposure(" << g_Exposure << ")";
+	g_MenuString[CUSTOMMENU_EXPOSURE] = ss.str();
 
 	return;
 }

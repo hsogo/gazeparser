@@ -8,24 +8,25 @@
 - Custom menu is supported.
 */
 
-#pragma comment(lib,"d3dxof.lib")
-#pragma comment(lib,"dxguid.lib")
-#pragma comment(lib,"d3dx9d.lib")
-#pragma comment(lib,"d3d9.lib")
-#pragma comment(lib,"winmm.lib")
-#if _DEBUG
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cxcore210d.lib")
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cv210d.lib")
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\highgui210d.lib")
+
+
+#define VERSION "0.5.0"
+
+#ifdef _WIN32
+#include <windows.h>
+#define snprintf sprintf_s
+#define PATH_SEPARATOR "\\"
 #else
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cxcore210.lib")
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\cv210.lib")
-    #pragma comment(lib,"C:\\OpenCV2.1\\lib\\highgui210.lib")
+#define S_OK                             0
+#define E_FAIL                 -2147467259
+#define SUCCEEDED(Status) ((int)(Status) >= 0)
+#define FAILED(Status) ((int)(Status)<0)
+#define PATH_SEPARATOR "/"
 #endif
-#pragma comment(lib,"Ws2_32.lib")
 
-
-#define WM_TCPSOCKET     (WM_USER+1)
+#include <SDL.h>
+#include <string>
+#include <iostream> 
 
 #define PREVIEW_WIDTH  640
 #define PREVIEW_HEIGHT 480
@@ -96,13 +97,13 @@ extern void estimateParametersMono(int dataCounter, double eyeData[MAXDATA][4], 
 extern void estimateParametersBin(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
 extern void getGazePositionMono(double* im, double* xy);
 extern void getGazePositionBin(double* im, double* xy);
-extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], RECT calArea);
+extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], double calArea[4]);
 extern void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], double Goodness[4], double MaxError[2], double MeanError[2] );
 extern void drawRecordingMessage( void );
 
-extern HRESULT sockInit(HWND hWnd);
-extern HRESULT sockAccept(HWND hWnd);
-extern HRESULT sockProcess(HWND hWnd, LPARAM lParam);
+extern int sockInit(void);
+extern int sockAccept(void);
+extern int sockProcess(void);
 
 extern unsigned char* g_frameBuffer;
 extern int* g_pCameraTextureBuffer;
@@ -117,13 +118,16 @@ extern int g_ROIHeight;
 
 extern bool g_isShowingCameraImage;
 
-
 extern double g_ParamX[6],g_ParamY[6]; //Monocular: 3 params, Binocular 6 parameters.
 extern int g_Threshold;
 
 extern int g_RecordingMode;
 
-extern char g_DataPath[512];
+extern std::string g_DataPath;
+extern std::string g_AppPath;
+extern std::string g_ParamPath;
+
+extern std::fstream g_LogFS;
 
 extern void startCalibration(int x1, int y1, int x2, int y2);
 extern void getCalSample(double x, double y);
@@ -138,28 +142,39 @@ extern void getCurrentMenuString(char *p, int maxlen);
 
 extern void toggleCalResult(void);
 
-extern void startRecording(char* message);
-extern void stopRecording(char* message);
+extern void startRecording(const char* message);
+extern void stopRecording(const char* message);
 extern void openDataFile(char* filename);
 extern void closeDataFile(void);
 extern void insertMessage(char* message);
 extern void insertSettings(char* settings);
 extern void connectionClosed(void);
 extern void getEyePosition(double* pos);
-extern void saveCameraImage(char* filename);
+extern void saveCameraImage(const char* filename);
 
 //Camera.cpp
-extern HRESULT initCamera( char* ParamPath );
-extern HRESULT getCameraImage( void );
+extern int initCamera( const char* ParamPath );
+extern int getCameraImage( void );
 extern void cleanupCamera( void );
+extern void saveCameraParameters(const char* ParamPath);
 
-extern LARGE_INTEGER g_CounterFreq;
+//DetectEye.cpp
+extern int initBuffers(void);
 
 //custom menu
-extern HRESULT customCameraMenu(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, int currentMenuPosition);
+extern int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition);
 extern int g_CustomMenuNum;
-extern void saveCameraParameters(char* ParamPath);
 extern void updateCustomMenuText( void );
-extern TCHAR g_MenuString[MENU_MAX_ITEMS][MENU_STRING_MAX];
+extern std::string g_MenuString[MENU_MAX_ITEMS];
 
-extern HRESULT initBuffers(void);
+//Platform dependent
+int initTimer(void);
+double getCurrentTime(void);
+void sleepMilliseconds(int);
+int getDataDirectoryPath(std::string* path);
+int getApplicationDirectoryPath(std::string* path);
+int getParameterDirectoryPath(std::string* path);
+int getLogFilePath(std::string* path);
+int checkDirectory(std::string path);
+int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath);
+
