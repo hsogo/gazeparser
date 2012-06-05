@@ -173,7 +173,7 @@ int initParameters( void )
 		if((p=strchr(buff,'='))==NULL) continue;
 
 		param = strtol(p+1,&pp,10);
-		*p = NULL;
+		*p = '\0';
 
 		if(strcmp(buff,"THRESHOLD")==0) g_Threshold = param;
 		else if(strcmp(buff,"MAXPOINTS")==0) g_MaxPoints = param;
@@ -221,7 +221,8 @@ void saveParameters( void )
 	std::fstream fs;
 	std::string str(g_ParamPath);
 
-	str.append("\\CONFIG");
+	str.append(PATH_SEPARATOR);
+	str.append("CONFIG");
 
 	fs.open(str.c_str(),std::ios::out);
 	if(!fs.is_open())
@@ -656,7 +657,7 @@ void renderBeforeRecording(const char* message)
 	dstRect.y = (g_PreviewHeight-MENU_FONT_SIZE)/2;
 	SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
 
-	if(message[0]!=NULL)
+	if(message[0]!='\0')
 	{
 		textSurface = TTF_RenderUTF8_Solid(g_Font, message, color);
 		dstRect.y += MENU_ITEM_HEIGHT;
@@ -1188,9 +1189,9 @@ void startRecording(const char* message)
 
 			time(&t);
 			ltm = localtime(&t);
-			fprintf(g_DataFP,"#START_REC,%d,%d,%d,%d,%d,%d\n",ltm->tm_year+1900,ltm->tm_mon+1,ltm->tm_mday,ltm->tm_hour,ltm->tm_min,ltm->tm_sec);			if(message[0]!=NULL)
+			fprintf(g_DataFP,"#START_REC,%d,%d,%d,%d,%d,%d\n",ltm->tm_year+1900,ltm->tm_mon+1,ltm->tm_mday,ltm->tm_hour,ltm->tm_min,ltm->tm_sec);
 			fprintf(g_DataFP,"#TRACKER_VERSION,%s\n",VERSION);
-			if(message[0]!=NULL)
+			if(message[0]!='\0')
 			{
 				fprintf(g_DataFP,"#MESSAGE,0,%s\n",message);
 			}
@@ -1240,7 +1241,7 @@ void stopRecording(const char* message)
 		{
 			fprintf(g_DataFP,"%s",g_MessageBuffer);
 		}
-		if(message[0]!=NULL)
+		if(message[0]!='\0')
 		{
 			fprintf(g_DataFP,"#MESSAGE,%.3f,%s\n",getCurrentTime()-g_RecStartTime,message);
 		}
@@ -1272,7 +1273,7 @@ As a result, contents of existing file is lost.
 void openDataFile(char* filename)
 {
 	std::string str(g_DataPath);
-	str.append("\\");
+	str.append(PATH_SEPARATOR);
 	str.append(filename);
 
 	if(g_DataFP!=NULL) //if data file has already been opened, close it.
@@ -1359,14 +1360,14 @@ void insertSettings(char* settings)
 	{
 		while(true)
 		{
-			p2 = strstr(p1,"\\");
+			p2 = strstr(p1,"/");
 			if(p2==NULL){
 				fprintf(g_DataFP,"%s\n",p1);
 				break;
 			}
 			else
 			{
-				*p2 = NULL;
+				*p2 = '\0';
 				fprintf(g_DataFP,"%s\n",p1);
 				p1 = p2+1;
 			}
@@ -1499,7 +1500,7 @@ This function is called from sockProcess() when sockProcess() received "getCurrM
 */
 void getCurrentMenuString(char *p, int maxlen)
 {
-	for(int i=0;i<maxlen;i++) p[i]=NULL;
+	for(int i=0;i<maxlen;i++) p[i]='\0'; //clear buffer
 	g_MenuString[g_CurrentMenuPosition].copy(p,maxlen-1);
 }
 

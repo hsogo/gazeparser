@@ -12,9 +12,10 @@
 #include	"GazeTracker.h"
 #include	"SDL_net.h"
 #include	"SDL.h"
-
 #include	<stdio.h>
 #include	<fstream>
+
+#include	<arpa/inet.h>
 
 #define RECV_PORT        10000
 #define SEND_PORT        10001
@@ -86,10 +87,24 @@ int sockConnect(const char* host)
 		g_LogFS << "ERROR: failed to open sending socket\n";
 		return E_FAIL;
 	}
+	g_LogFS << "open sending socket\n";
 
     return S_OK;
 }
 
+int sockConnectIP(IPaddress* ip)
+{
+	ip->port = htons(SEND_PORT);
+
+	g_SockSend= SDLNet_TCP_Open(ip);
+	if(!g_SockSend){
+		g_LogFS << "ERROR: failed to open sending socket\n";
+		return E_FAIL;
+	}
+	g_LogFS << "open sending socket\n";
+
+    return S_OK;
+}
 
 /*!
 sockAccept: Accept connection request from the client PC.
@@ -148,9 +163,24 @@ int sockProcess(void)
 				g_SockRecv = NULL;
 				g_LogFS << "close receiving socket\n";
 			}else{
+				/*
 				const char* host;
 				host = SDLNet_ResolveIP(remote_ip);
+				if(!host)
+				{
+					g_LogFS << "could not resolve remote IP address\n";
+					SDLNet_TCP_Close(g_SockRecv);
+					g_SockRecv = NULL;
+					g_LogFS << "close receiving socket\n";
+				}
 				if(FAILED(sockConnect(host)))
+				{
+					SDLNet_TCP_Close(g_SockRecv);
+					g_SockRecv = NULL;
+					g_LogFS << "close receiving socket\n";
+				}
+				*/
+				if(FAILED(sockConnectIP(remote_ip)))
 				{
 					SDLNet_TCP_Close(g_SockRecv);
 					g_SockRecv = NULL;
