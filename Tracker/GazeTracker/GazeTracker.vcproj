@@ -59,7 +59,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib SDL_net.lib SDLmain.lib SDL.lib SDL_ttf.lib opencv_core240d.lib opencv_imgproc240d.lib opencv_highgui240d.lib"
+				AdditionalDependencies="winmm.lib Ws2_32.lib SDL_net.lib SDLmain.lib SDL.lib SDL_ttf.lib opencv_core240d.lib opencv_imgproc240d.lib opencv_highgui240d.lib"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>
@@ -130,7 +130,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib SDL_net.lib SDLmain.lib SDL.lib SDL_ttf.lib opencv_core240.lib opencv_imgproc240.lib opencv_highgui240.lib"
+				AdditionalDependencies="winmm.lib Ws2_32.lib SDL_net.lib SDLmain.lib SDL.lib SDL_ttf.lib opencv_core240.lib opencv_imgproc240.lib opencv_highgui240.lib"
 				OutputFile="$(OutDir)\tracker.exe"
 				GenerateDebugInformation="true"
 				OptimizeReferences="2"

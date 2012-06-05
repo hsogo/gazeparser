@@ -9,13 +9,17 @@
 - Custom menu is supported.
 */
 
+#ifdef _WIN32
+#include	<Winsock2.h>
+#else
+#include	<arpa/inet.h>
+#endif
+
 #include	"GazeTracker.h"
 #include	"SDL_net.h"
 #include	"SDL.h"
 #include	<stdio.h>
 #include	<fstream>
-
-#include	<arpa/inet.h>
 
 #define RECV_PORT        10000
 #define SEND_PORT        10001
