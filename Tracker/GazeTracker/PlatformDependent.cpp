@@ -4,14 +4,10 @@
 #include <windows.h>
 #include <shlwapi.h>
 LARGE_INTEGER g_CounterFreq;
-#elif defined(__MACH__)
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <time.h>
+#include <sys/time.h>
 #endif
 
 #include <string>
@@ -67,11 +63,11 @@ int getDataDirectoryPath(std::string* path)
 {
 #ifdef _WIN32
 	path->assign(std::getenv("USERPROFILE"));
-	path->append("\\GazeTracker");
 #else
 	path->assign(std::getenv("HOME"));
-	path->append("/GazeTracker");
 #endif
+	path->append(PATH_SEPARATOR);
+	path->append("GazeTracker");
 	return 0;
 }
 
@@ -101,24 +97,19 @@ int getParameterDirectoryPath(std::string* path)
 {
 #ifdef _WIN32
 	path->assign(std::getenv("APPDATA"));
-	path->append("\\GazeTracker");
-	//path(std::getenv("APPDATA"));
-	//path.append("\\GazeTracker");
 #else
 	path->assign(std::getenv("HOME"));
-	path->append("/GazeTracker");
 #endif
+	path->append(PATH_SEPARATOR);
+	path->append("GazeTracker");
 	return 0;
 }
 
 int getLogFilePath(std::string* path)
 {
 	path->assign(g_DataPath);
-#ifdef _WIN32
-	path->append("\\Tracker.log");
-#else
-	path->append("/Tracker.log");
-#endif
+	path->append(PATH_SEPARATOR);
+	path->append("Tracker.log");
 	return 0;
 }
 
@@ -149,24 +140,27 @@ int checkDirectory(std::string path)
 int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath)
 {
 	std::string str(path);
+	str.append(PATH_SEPARATOR);
+	str.append("CONFIG");
+
 #ifdef _WIN32
-	str.append("\\CONFIG");
 	if(!PathFileExists(str.c_str())){
 		std::string strFrom(sourcePath);
-		strFrom.append("\\CONFIG");
+		strFrom.append(PATH_SEPARATOR);
+		strFrom.append("CONFIG");
 		CopyFile(strFrom.c_str(),str.c_str(),true);
 	}
 #else
 	int res;
 	struct stat statbuff;
-	str.append("/CONFIG");
 	
 	res = stat(str.c_str(),&statbuff);
 
 	if(res<0)
 	{
 		std::string strFrom(sourcePath);
-		strFrom.append("/CONFIG");
+		strFrom.append(PATH_SEPARATOR);
+		strFrom.append("CONFIG");
 		std::ifstream fromFS(strFrom.c_str(),std::ios::binary);
 		std::ofstream toFS(str.c_str(),std::ios::binary);
 		std::copy( std::istreambuf_iterator< char >( fromFS ),
