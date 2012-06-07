@@ -1,6 +1,5 @@
 #define _CRT_SECURE_NO_DEPRECATE
 
-
 #include <SDL.h>
 #include "GazeTracker.h"
 #include "C:/Program Files/NaturalPoint/Optitrack/inc/optitrack.h"
@@ -52,6 +51,7 @@ int initCamera( const char* ParamPath )
 	int param;
 
 	str = ParamPath;
+	str.append(PATH_SEPARATOR);
 	str.append(CAMERA_CONFIG_FILE);
 	if(!PathFileExists(str.c_str())){
 		std::string configfile;
@@ -62,6 +62,7 @@ int initCamera( const char* ParamPath )
 		r = _splitpath_s(exefile,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
 		configfile.append(drive);
 		configfile.append(dir);
+		configfile.append(PATH_SEPARATOR);
 		configfile.append(CAMERA_CONFIG_FILE);
 		CopyFile(configfile.c_str(),str.c_str(),true);
 	}
@@ -204,12 +205,12 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 void saveCameraParameters(const char* ParamPath)
 {
 	std::fstream fs;
-	char buff[512];
+	str::string str(ParamPath);
 
-	strcpy(buff,ParamPath);
-	strcat(buff,CAMERA_CONFIG_FILE);
+	str.append(PATH_SEPARATOR);
+	str.append(CAMERA_CONFIG_FILE);
 
-	fs.open(buff,std::ios::out);
+	fs.open(str.c_str(),std::ios::out);
 	if(!fs.is_open())
 	{
 		return;

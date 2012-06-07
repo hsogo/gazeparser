@@ -12,14 +12,14 @@
 #define _CRT_SECURE_NO_DEPRECATE
 
 
-#include "SDL.h"
-#include "SDL_ttf.h"
+#include <SDL.h>
+#include <SDL_ttf.h>
 
 #include <fstream>
 #include <iostream>
 
-#include "opencv2/opencv.hpp"
-#include "opencv2/core/core.hpp"
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
 
 #include "GazeTracker.h"
 #include "resource.h"

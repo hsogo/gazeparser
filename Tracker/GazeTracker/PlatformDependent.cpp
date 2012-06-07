@@ -1,3 +1,14 @@
+/*!
+@file PlatformDependent.cpp
+@author Hiroyuki Sogo
+@copyright GNU General Public License (GPL) version 3.
+@brief Platform-dependent procedures are defined.
+
+@date 2012/06/05
+- Appended to project.
+*/
+
+
 #include "GazeTracker.h"
 
 #ifdef _WIN32

@@ -15,11 +15,11 @@
 #include <fstream>
 #include <string>
 
-#include "SDL.h"
+#include <SDL.h>
 
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/opencv.hpp"
-#include "opencv2/core/core.hpp"
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
 
 cv::VideoCapture g_VideoCapture;
 SDL_Thread *g_pThread;
@@ -36,7 +36,10 @@ int captureCameraThread(void *unused)
 		if(g_VideoCapture.grab())
 		{
 			g_VideoCapture.retrieve(frame);
-			cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
+			if(frame.channels()==3)
+				cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
+			else
+				monoFrame = frame;
 			for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
 			{
 				g_frameBuffer[idx] = monoFrame.data[idx];
