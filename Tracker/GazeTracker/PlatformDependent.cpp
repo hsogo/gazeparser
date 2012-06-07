@@ -4,6 +4,10 @@
 #include <windows.h>
 #include <shlwapi.h>
 LARGE_INTEGER g_CounterFreq;
+#elif defined(__MACH__)
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -15,6 +19,7 @@ LARGE_INTEGER g_CounterFreq;
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
+
 
 int initTimer(void)
 {
@@ -38,7 +43,11 @@ double getCurrentTime(void)
 	LARGE_INTEGER ct;
 	QueryPerformanceCounter(&ct);
 	return 1000 * ((double)ct.QuadPart/(double)g_CounterFreq.QuadPart);
-#else
+#elif defined(__MACH__)
+	struct timeval tv;
+	int ret = gettimeofday(&tv, NULL);
+ 	return (tv.tv_sec * 1000) + ((double)tv.tv_usec / 1000);
+#else //Linux
 	struct timespec tp;
 	clock_gettime(CLOCK_MONOTONIC, &tp);
 	return (tp.tv_sec * 1000) + ((double)tp.tv_nsec / 1000000);
