@@ -166,7 +166,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		}else{
 			//Ellipse is too narrow.
 			//If g_isShowingCameraImage is true, draw ellipse with thin line.
-			if(g_isShowingCameraImage) cv::ellipse(g_DstImg,r,CV_RGB(0,0,255));
+			//2012/06/08 Don't draw narrow ellipses
+			//if(g_isShowingCameraImage) cv::ellipse(g_DstImg,r,CV_RGB(0,0,255));
 		}
 	}
 
@@ -342,18 +343,20 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 		cv::RotatedRect r;
 		r = cv::fitEllipse(points);
 
-		if(r.center.x<g_ROI.x || r.center.y<g_ROI.y){
+		if(r.center.x<=g_ROI.x || r.center.y<=g_ROI.y || r.center.x>=g_ROI.x+g_ROI.width || r.center.y>=g_ROI.y+g_ROI.height){
 			//Center of the ellipse is not in g_ROI 
 			continue;
 		}
 		//This is not necessary for OpenCV2.4
 		//r.angle *= -1;
 
+		/* This check may cause pupil detection failure when display image is reflected on the cornea
 		unsigned char* p = tmp.ptr<unsigned char>((int)(r.center.y)-g_ROI.y);
 		if(p[(int)(r.center.x)-g_ROI.x]>0){
 			//Center of the ellipse is not in g_ROI 
 			continue;
 		}
+		*/
 
 		//Check the shape of the ellipse
 		if( 0.75 < r.size.height/r.size.width && r.size.height/r.size.width < 1.3333 &&
@@ -375,7 +378,8 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 		}else{
 			//Ellipse is too narrow.
 			//If g_isShowingCameraImage is true, draw ellipse with thin line.
-			if(g_isShowingCameraImage) cv::ellipse(g_DstImg,r,CV_RGB(0,0,255));
+			//2012/06/08 Don't draw narrow ellipses
+			//if(g_isShowingCameraImage) cv::ellipse(g_DstImg,r,CV_RGB(0,0,255));
 		}
 	}
 
