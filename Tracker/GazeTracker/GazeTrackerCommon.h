@@ -124,7 +124,7 @@ extern int g_Threshold;
 extern int g_RecordingMode;
 
 extern std::string g_DataPath;
-extern std::string g_AppPath;
+extern std::string g_AppDirPath;
 extern std::string g_ParamPath;
 
 extern std::fstream g_LogFS;

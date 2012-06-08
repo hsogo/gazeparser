@@ -8,6 +8,9 @@
 - Appended to project.
 */
 
+#ifdef _WIN32
+#define _CRT_SECURE_NO_DEPRECATE
+#endif
 
 #include "GazeTracker.h"
 
@@ -152,13 +155,13 @@ int checkAndCopyFile(std::string path, const char* filename, std::string sourceP
 {
 	std::string str(path);
 	str.append(PATH_SEPARATOR);
-	str.append("CONFIG");
+	str.append(filename);
 
 #ifdef _WIN32
 	if(!PathFileExists(str.c_str())){
 		std::string strFrom(sourcePath);
 		strFrom.append(PATH_SEPARATOR);
-		strFrom.append("CONFIG");
+		strFrom.append(filename);
 		CopyFile(strFrom.c_str(),str.c_str(),true);
 	}
 #else
@@ -171,7 +174,7 @@ int checkAndCopyFile(std::string path, const char* filename, std::string sourceP
 	{
 		std::string strFrom(sourcePath);
 		strFrom.append(PATH_SEPARATOR);
-		strFrom.append("CONFIG");
+		strFrom.append(filename);
 		std::ifstream fromFS(strFrom.c_str(),std::ios::binary);
 		std::ofstream toFS(str.c_str(),std::ios::binary);
 		std::copy( std::istreambuf_iterator< char >( fromFS ),

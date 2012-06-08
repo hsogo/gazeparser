@@ -53,20 +53,9 @@ int initCamera( const char* ParamPath )
 	str = ParamPath;
 	str.append(PATH_SEPARATOR);
 	str.append(CAMERA_CONFIG_FILE);
-	if(!PathFileExists(str.c_str())){
-		std::string configfile;
-		char exefile[512];
-		char drive[4],dir[512],fname[32],ext[5];
-		errno_t r;
-		GetModuleFileName(NULL,exefile,sizeof(exefile));
-		r = _splitpath_s(exefile,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-		configfile.append(drive);
-		configfile.append(dir);
-		configfile.append(PATH_SEPARATOR);
-		configfile.append(CAMERA_CONFIG_FILE);
-		CopyFile(configfile.c_str(),str.c_str(),true);
-	}
-	
+
+	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+
 	fs.open(str.c_str(),std::ios::in);
 	if(fs.is_open())
 	{
@@ -205,7 +194,7 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 void saveCameraParameters(const char* ParamPath)
 {
 	std::fstream fs;
-	str::string str(ParamPath);
+	std::string str(ParamPath);
 
 	str.append(PATH_SEPARATOR);
 	str.append(CAMERA_CONFIG_FILE);

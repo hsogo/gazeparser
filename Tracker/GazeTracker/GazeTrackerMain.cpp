@@ -1500,7 +1500,6 @@ This function is called from sockProcess() when sockProcess() received "getCurrM
 */
 void getCurrentMenuString(char *p, int maxlen)
 {
-	for(int i=0;i<maxlen;i++) p[i]='\0'; //clear buffer
-	g_MenuString[g_CurrentMenuPosition].copy(p,maxlen-1);
+	strncpy(p, g_MenuString[g_CurrentMenuPosition].c_str(), maxlen-1);
 }
 

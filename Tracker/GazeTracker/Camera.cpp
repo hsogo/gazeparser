@@ -58,7 +58,7 @@ int initCamera( const char* ParamPath )
 	INT				ret;
 	DWORD			BufSize;
 	IFCMLCAPFMT     CapFmt;
-	char            buff[512];
+	std::string     str;
 
 	g_TmpFrameBuffer = (unsigned char*)malloc(g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
 	if(g_TmpFrameBuffer==NULL)
@@ -73,25 +73,16 @@ int initCamera( const char* ParamPath )
 		return E_FAIL;
 	}
 
-	strcpy(buff, ParamPath);
-	strcat(buff, CAMERA_CONFIG_FILE);
-	if(!PathFileExists(buff)){
-		char exefile[512];
-		char configfile[512];
-		char drive[4],dir[512],fname[32],ext[5];
-		errno_t r;
-		GetModuleFileName(NULL,exefile,sizeof(exefile));
-		r = _splitpath_s(exefile,drive,sizeof(drive),dir,sizeof(dir),fname,sizeof(fname),ext,sizeof(ext));
-		strcpy(configfile,drive);
-		strcat(configfile,dir);
-		strcat(configfile,CAMERA_CONFIG_FILE);
-		CopyFile(configfile,buff,true);
-	}
+	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+
+	str.assign(g_ParamPath);
+	str.append(PATH_SEPARATOR);
+	str.append(CAMERA_CONFIG_FILE);
 	
-	ret = CmlReadCamConfFile(g_CameraDeviceHandle,buff);
+	ret = CmlReadCamConfFile(g_CameraDeviceHandle,str.c_str());
 	
 	if(ret != IFCML_ERROR_SUCCESS){
-		g_LogFS << "ERROR: could not read camera configuration file(" << buff << ")\n";
+		g_LogFS << "ERROR: could not read camera configuration file(" << str << ")\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}
@@ -108,7 +99,7 @@ int initCamera( const char* ParamPath )
 
 	ret = CmlSetCaptureFormatInfo(g_CameraDeviceHandle, &CapFmt);
 	if(ret != IFCML_ERROR_SUCCESS){
-		g_LogFS << "ERROR: could not set camera image format)\n";
+		g_LogFS << "ERROR: could not set camera image format\n";
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}

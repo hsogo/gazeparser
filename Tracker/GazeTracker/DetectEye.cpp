@@ -140,14 +140,14 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 			//Center of the ellipse is not in g_ROI 
 			continue;
 		}
-		//This is not necessary for OpenCV2.4
-		//r.angle *= -1;
 
+		/* This check may cause pupil detection failure when display image is reflected on the cornea
 		unsigned char* p = tmp.ptr<unsigned char>((int)(r.center.y)-g_ROI.y);
 		if(p[(int)(r.center.x)-g_ROI.x]>0){
 			//Center of the ellipse is not in g_ROI 
 			continue;
 		}
+		*/
 
 		//Check the shape of the ellipse
 		if( 0.75 < r.size.height/r.size.width && r.size.height/r.size.width < 1.3333 &&
