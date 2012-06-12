@@ -9,8 +9,10 @@ A data block starts with #START_REC and ends with #STOP_REC, which are inserted 
 Numbers after #START_REC shows recorded year, month, day, hour, minute and second.
 #MESSAGE is inserted if startRecording() is called with a message string (line 5).
 #XPARAM and #YPARAM indicate calibration parameters (line 6-7).
+#CALPOINT is position of calibration target to calculate calibration parameters (i.e. #XPARAM and #YPARAM) (line 8-16).
+If you use 9 positions for calibration, 9 #CALPOINT lines are output.
 
-The recorded data follows these lines (line 8-).
+The recorded data follows these lines (line 17-).
 The first element of the recorded data is the timestamp when the gaze position is recorded.
 The second and the thrid element indicate horizontal and vertical gaze position in the screen coordinate if recording mode is monocluar.
 If recording mode is binocular, the second and third element indicate horizontal and vertical gaze position of the left eye, and the fourth and fifth element indidate gaze position of the right eye.::
@@ -22,9 +24,18 @@ If recording mode is binocular, the second and third element indicate horizontal
     005: #MESSAGE,0,trial1
     006: #XPARAM,-53.020081,-2.346666,979.127991,0.000000,0.000000
     007: #YPARAM,-0.342159,-66.443535,-397.927063,0.000000,0.000000
-    008: 1.2,618.3,515.7
-    009: 2.6,622.7,509.0
-    010: 4.4,622.9,525.8
+    008: #CALPOINT,960,290
+    009: #CALPOINT,1310,790
+    010: #CALPOINT,610,790
+    011: #CALPOINT,960,540
+    012: #CALPOINT,1310,540
+    013: #CALPOINT,960,790
+    014: #CALPOINT,610,290
+    015: #CALPOINT,1310,290
+    016: #CALPOINT,610,540
+    017: 1.2,618.3,515.7
+    018: 2.6,622.7,509.0
+    019: 4.4,622.9,525.8
 
 At the end of the data block, messages inseted by :func:`~GazeParser.TrackingToools.BaseController.sendMessage`, are output (line 825-837).
 If recording duration is very long (depending on sampling frequency of the camera), messages are output in between the recorded data to prevent buffer overrun.
