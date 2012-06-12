@@ -1,5 +1,5 @@
 # -*- coding:shift_jis -*-
-import GazeParser.Tracker
+import GazeParser.TrackingTools
 import VisionEgg
 import VisionEgg.Core
 import VisionEgg.Textures
@@ -58,9 +58,9 @@ wf.winfo_toplevel().destroy()
 
 fname = tkFileDialog.askopenfilename()
 
-tracker = GazeParser.Tracker.getController(backend='VisionEgg',dummy=wf.isDummy.get())
+tracker = GazeParser.TrackingTools.getController(backend='VisionEgg',dummy=wf.isDummy.get())
 tracker.setReceiveImageSize((320,240))
-tracker.connect(wf.IPAdressEntry.get())
+tracker.connect(wf.IPAdressEntry.get(),port1=10000,port2=10001)
 
 screen = VisionEgg.Core.get_default_screen();
 SX,SY = screen.size

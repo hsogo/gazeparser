@@ -77,6 +77,8 @@ class BaseController:
         self.calAreaSet = False
         self.calTargetPosSet = False
         
+        self.prevBuffer = ''
+        
         if sys.platform == 'win32':
             self.clock = time.clock
         else:
@@ -310,14 +312,16 @@ class BaseController:
             [r,w,c] = select.select(self.readSockList,[],[],0)
             for x in r:
                 try:
-                    newData = x.recv(32)
+                    newData = x.recv(4096)
                 except:
                     isInLoop = False
                 if newData:
                     if '#' in newData:
-                        if newData.index('#')+1 < len(newData):
-                            print newData
-                        data += newData[:newData.index('#')]
+                        delimiterIndex = newData.index('#')
+                        if delimiterIndex+1 < len(newData):
+                            print 'getEyePosition:', newData
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
                         hasGotEye = True
                         isInLoop = False
                         break
@@ -365,15 +369,17 @@ class BaseController:
             [r,w,c] = select.select(self.readSockList,[],[],0)
             for x in r:
                 try:
-                    newData = x.recv(32)
+                    newData = x.recv(4096)
                 except:
                     #print 'recv error in getCalibrationResults'
                     isInLoop = False
                 if newData:
                     if '#' in newData:
-                        if newData.index('#')+1 < len(newData):
-                            print newData
-                        data += newData[:newData.index('#')]
+                        delimiterIndex = newData.index('#')
+                        if delimiterIndex+1 < len(newData):
+                            print 'getCurrentMenuItem:', newData
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
                         hasGotMenu = True
                         isInLoop = False
                         break
@@ -412,15 +418,17 @@ class BaseController:
             [r,w,c] = select.select(self.readSockList,[],[],0)
             for x in r:
                 try:
-                    newData = x.recv(32)
+                    newData = x.recv(4096)
                 except:
                     #print 'recv error in getCalibrationResults'
                     isInLoop = False
                 if newData:
                     if '#' in newData:
-                        if newData.index('#')+1 < len(newData):
-                            print newData
-                        data += newData[:newData.index('#')]
+                        delimiterIndex = newData.index('#')
+                        if delimiterIndex+1 < len(newData):
+                            print 'getCalibrationResults', newData
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
                         hasGotCal = True
                         isInLoop = False
                         break
@@ -474,7 +482,7 @@ class BaseController:
         if len(data) == self.imageWidth*self.imageHeight:
             self.PILimg.putdata(data)
         else:
-            print len(data),self.imageWidth*self.imageHeight
+            print 'getCameraImage: got ', len(data), ' expected ', self.imageWidth*self.imageHeight
     
     def sendCommand(self, command):
         """
@@ -591,7 +599,7 @@ class BaseController:
         
         .. todo:: psychopy support
         """
-        self.sendSock.send('getCalResultsDetail'+chr(0))
+        self.sendCommand('getCalResultsDetail'+chr(0))
         hasGotCal = False
         isInLoop = True
         data = ''
@@ -603,15 +611,17 @@ class BaseController:
             [r,w,c] = select.select(self.readSockList,[],[],0)
             for x in r:
                 try:
-                    newData = x.recv(32)
+                    newData = x.recv(4096)
                 except:
                     #print 'recv error in getCalibrationResults'
                     isInLoop = False
                 if newData:
                     if '#' in newData:
-                        if newData.index('#')+1 < len(newData):
-                            print newData
-                        data += newData[:newData.index('#')]
+                        delimiterIndex = newData.index('#')
+                        if delimiterIndex+1 < len(newData):
+                            print 'getCalibrationResultsDetail', newData
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
                         hasGotCal = True
                         isInLoop = False
                         break
@@ -629,6 +639,7 @@ class BaseController:
             retval = [float(x) for x in data.split(',')]
             if self.isMonocularRecording:
                 if len(retval)%4 != 0:
+                    print 'getCalibrationResultsDetail: illeagal data', retval
                     self.drawCalibrationResults()
                     return None
                 
@@ -640,6 +651,7 @@ class BaseController:
                 self.drawCalibrationResults()
             else:
                 if len(retval)%6 != 0:
+                    print 'getCalibrationResultsDetail: illeagal data', retval
                     self.drawCalibrationResults()
                     return None
                 

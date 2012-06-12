@@ -1,0 +1,52 @@
+
+Introduction
+============
+.. _ipython-highlighting:
+
+GazeParser is a library for gaze tracking, parsing and visualizing.
+GazeParser consists of following three components.
+
+#. A gaze-tracking application running on Microsoft Windows. (Tracker)
+#. A Python module for synchronizing visual stimuli and the Tracker. (GazeParser.TrackingTools)
+#. Python modules for parsing gaze-tracking data. (GazePaser.Core, GazePaser.Converter, ..)
+
+.. sourcecode:: ipython
+
+    In [1]: import GazeParser
+    In [2]: (data, additionalData) = GazeParser.load('datafile.db')
+    In [3]: data
+    Out[3]: [<GazeParser.Core.GazeData object at 0x03D87870>,
+             <GazeParser.Core.GazeData object at 0x03F11DF0>]
+    In [4]: data[0].getMessageTextList()
+    Out[4]: ['Trial Start,
+             'Stimulus Left',
+             'Response, Space Key' , 
+             'Trial End']
+    In [5]: msg = data[0].Msg[1]
+    In [6]: sac = data[0].getNextEvent(msg, eventType='saccade')
+    In [7]: sac.relativeStartTime(msg.time)
+    Out[7]: 210.39
+    In [8]: from GazeParser.Graphics import drawScatterPlot
+    In [9]: drawScatterPlot(data[0])
+
+
+Contents
+============
+
+.. toctree::
+   :maxdepth: 1
+   
+   rec/index
+   tut/index
+   app/index
+   ref/index
+   todo
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
