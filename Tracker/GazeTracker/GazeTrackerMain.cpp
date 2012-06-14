@@ -9,8 +9,7 @@
 - Custom menu is supported.
  */
 
-#define _CRT_SECURE_NO_DEPRECATE
-
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <SDL.h>
 #include <SDL_ttf.h>
@@ -21,7 +20,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 
-#include "GazeTracker.h"
+#include "GazeTrackerCommon.h"
 #include "resource.h"
 
 #ifdef _WIN32
@@ -151,7 +150,7 @@ int initParameters( void )
 	int param;
 
 	getDataDirectoryPath(&g_DataPath);
-	getApplicationDirectoryPath(&g_AppDirPath);
+	//getApplicationDirectoryPath(&g_AppDirPath);
 	getParameterDirectoryPath(&g_ParamPath);
 
 	checkDirectory(g_DataPath);
@@ -187,6 +186,7 @@ int initParameters( void )
 		else if(strcmp(buff,"PREVIEW_WIDTH")==0) g_PreviewWidth = param;
 		else if(strcmp(buff,"PREVIEW_HEIGHT")==0) g_PreviewHeight = param;
 	}
+
 	g_ROIWidth = g_CameraWidth;
 	g_ROIHeight = g_CameraHeight;
 
@@ -289,7 +289,7 @@ void printStringToTexture(int StartX, int StartY, std::string *strings, int numI
 
 	for(int l=0; l<numItems; l++)
 	{
-		textSurface = TTF_RenderUTF8_Solid(g_Font, strings[l].c_str(), color);
+		textSurface = TTF_RenderUTF8_Blended(g_Font, strings[l].c_str(), color);
 		dstRect.x = SX;
 		dstRect.y = SY;
 		SDL_BlitSurface(textSurface, NULL, pSurface, &dstRect);
@@ -652,14 +652,14 @@ void renderBeforeRecording(const char* message)
 
 	SDL_FillRect(g_pSDLscreen, NULL, 0);
 
-	textSurface = TTF_RenderUTF8_Solid(g_Font, "Now recording...", color);
+	textSurface = TTF_RenderUTF8_Blended(g_Font, "Now recording...", color);
 	dstRect.x = 10;
 	dstRect.y = (g_PreviewHeight-MENU_FONT_SIZE)/2;
 	SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
 
 	if(message[0]!='\0')
 	{
-		textSurface = TTF_RenderUTF8_Solid(g_Font, message, color);
+		textSurface = TTF_RenderUTF8_Blended(g_Font, message, color);
 		dstRect.y += MENU_ITEM_HEIGHT;
 		SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
 	}
@@ -673,7 +673,7 @@ void renderInitMessages(int n, const char* message)
 	SDL_Rect dstRect;
 	SDL_Color color={255,255,255};
 
-	textSurface = TTF_RenderUTF8_Solid(g_Font, message, color);
+	textSurface = TTF_RenderUTF8_Blended(g_Font, message, color);
 	dstRect.x = 10;
 	dstRect.y = MENU_ITEM_HEIGHT*n+10;
 	SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
@@ -681,26 +681,22 @@ void renderInitMessages(int n, const char* message)
 	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
 }
 
-/*!
-wWinMain: Entry point of the application.
 
-@param[in] hInst
+/*
+main: Entry point of the application
 
 @return int termination code.
 
-@date 2012/05/24
-- Bug fix: The application didn't close properly if multiple problems occurred during initializatin process. To fix this bug, return is called after waitQuitLoop() is finished.
 */
-#ifdef _WIN32
-int WINAPI wWinMain( HINSTANCE hInst, HINSTANCE, LPWSTR, INT )
+int main(int argc, char** argv)
 {
-#else
-int main(int argc, char* argv[])
-{
-	//in Linux, argv[0] must be copied to resolve application directory later.
+	int index;
+	//argv[0] must be copied to resolve application directory later.
 	//see getApplicationDirectoryPath() in PratformDependent.cpp 
 	g_AppDirPath.assign(argv[0]);
-#endif
+	index = g_AppDirPath.find_last_of(PATH_SEPARATOR);
+	g_AppDirPath.erase(index);
+
 	int nInitMessage=0;
 
 	SDL_Init(SDL_INIT_VIDEO);
@@ -738,10 +734,9 @@ int main(int argc, char* argv[])
 	g_LogFS << "initSDLTTF ... OK.\n";
 
 	//now message can be rendered on screen.
-	char buff[512];
-	strcpy(buff,"Welcome to GazeParser.Tracker version ");
-	strcat(buff,VERSION);
-	renderInitMessages(nInitMessage,buff);
+	std::string str("Welcome to GazeParser.Tracker version ");
+	str.append(VERSION);
+	renderInitMessages(nInitMessage,str.c_str());
 	nInitMessage++;
 	nInitMessage++;
 	renderInitMessages(nInitMessage,"initParameters ... OK.");

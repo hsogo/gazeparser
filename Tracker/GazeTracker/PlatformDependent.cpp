@@ -12,7 +12,7 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #endif
 
-#include "GazeTracker.h"
+#include "GazeTrackerCommon.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -85,6 +85,7 @@ int getDataDirectoryPath(std::string* path)
 	return 0;
 }
 
+/*
 int getApplicationDirectoryPath(std::string* path)
 {
 #ifdef _WIN32
@@ -106,6 +107,7 @@ int getApplicationDirectoryPath(std::string* path)
 #endif
 	return 0;
 }
+*/
 
 int getParameterDirectoryPath(std::string* path)
 {

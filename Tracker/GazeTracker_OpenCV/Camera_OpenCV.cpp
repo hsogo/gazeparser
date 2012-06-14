@@ -8,8 +8,6 @@
 - Custom menu is supported.
 */
 
-#define _CRT_SECURE_NO_DEPRECATE
-
 #include "GazeTracker.h"
 
 #include <fstream>
@@ -24,6 +22,25 @@
 cv::VideoCapture g_VideoCapture;
 SDL_Thread *g_pThread;
 bool g_runThread;
+
+int g_SleepDuration = 0;
+double g_FrameRate = 100;
+
+double g_Intensity = 1.0;
+double g_Exposure = 1.0;
+double g_Brightness = 1.0;
+double g_Contrast = 1.0;
+double g_Gain = 1.0;
+
+#define CAMERA_PARAM_INTENSITY   0
+#define CAMERA_PARAM_EXPOSURE    1
+#define CAMERA_PARAM_BRIGHTNESS  2
+#define CAMERA_PARAM_CONTRAST    3
+#define CAMERA_PARAM_GAIN        4
+#define CAMERA_PARAM_FRAMERATE   5
+#define CAMERA_PARAM_NUM         6
+
+bool g_isParameterSpecified[CAMERA_PARAM_NUM] = {false,false,false,false,false,false};
 
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
 
@@ -46,6 +63,11 @@ int captureCameraThread(void *unused)
 			}
 			g_NewFrameAvailable = true;
 		}
+
+		if(g_SleepDuration>=0.0)
+		{
+			sleepMilliseconds(g_SleepDuration);
+		}
 	}
 
 	return 0;
@@ -67,6 +89,66 @@ Read parameters from the configuration file, start camera and set callback funct
  */
 int initCamera( const char* ParamPath )
 {
+	std::fstream fs;
+	std::string str;
+	char *p,*pp;
+	char buff[1024];
+	double param;
+
+	str = ParamPath;
+	str.append(PATH_SEPARATOR);
+	str.append(CAMERA_CONFIG_FILE);
+
+	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+
+	fs.open(str.c_str(),std::ios::in);
+	if(fs.is_open())
+	{
+		g_LogFS << "Open camera configuration file (" << str << ")\n";
+		while(fs.getline(buff,sizeof(buff)-1))
+		{
+			if(buff[0]=='#') continue;
+			if((p=strchr(buff,'='))==NULL) continue;
+
+			param = strtod(p+1,&pp); //paramete is not int but double
+			*p = NULL;
+
+			if(strcmp(buff,"SLEEP_DURATION")==0)
+			{
+				g_SleepDuration = (int)param;
+			}
+			else if(strcmp(buff,"FRAME_RATE")==0)
+			{
+				g_FrameRate = param;
+				g_isParameterSpecified[CAMERA_PARAM_FRAMERATE]=true;
+			}
+			else if(strcmp(buff,"EXPOSURE")==0)
+			{
+				g_Exposure = param;
+				g_isParameterSpecified[CAMERA_PARAM_EXPOSURE]=true;
+			}
+			else if(strcmp(buff,"BRIGHTNESS")==0)
+			{
+				g_Brightness = param;
+				g_isParameterSpecified[CAMERA_PARAM_BRIGHTNESS]=true;
+			}
+			else if(strcmp(buff,"CONTRAST")==0)
+			{
+				g_Contrast = param;
+				g_isParameterSpecified[CAMERA_PARAM_CONTRAST]=true;
+			}
+			else if(strcmp(buff,"GAIN")==0)
+			{
+				g_Gain = param;
+				g_isParameterSpecified[CAMERA_PARAM_GAIN]=true;
+			}
+		}
+		fs.close();
+	}else{
+		g_LogFS << "ERROR: failed to open camera configuration file (" << str << ")\n";
+		return E_FAIL;
+	}
+
 	g_VideoCapture = cv::VideoCapture(0);
 	if(!g_VideoCapture.isOpened())
 	{
@@ -86,6 +168,42 @@ int initCamera( const char* ParamPath )
 	{
 		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")\n";
 		return E_FAIL;
+	}
+
+	if(g_isParameterSpecified[CAMERA_PARAM_FRAMERATE])
+	{
+		g_VideoCapture.set(CV_CAP_PROP_FPS,g_FrameRate);
+		param = g_VideoCapture.get(CV_CAP_PROP_FPS);
+		if(param != g_FrameRate)
+			g_LogFS << "WARINING: tried to set FRAMERATE " << g_FrameRate << ", but returned value was " << param << std::endl;
+	}
+	if(g_isParameterSpecified[CAMERA_PARAM_BRIGHTNESS])
+	{
+		g_VideoCapture.set(CV_CAP_PROP_BRIGHTNESS,g_Brightness);
+		param = g_VideoCapture.get(CV_CAP_PROP_BRIGHTNESS);
+		if(param != g_Brightness)
+			g_LogFS << "WARINING: tried to set BRIGHTNESS " << g_Brightness << ", but returned value was " << param << std::endl;
+	}
+	if(g_isParameterSpecified[CAMERA_PARAM_CONTRAST])
+	{
+		g_VideoCapture.set(CV_CAP_PROP_CONTRAST,g_Contrast);
+		param = g_VideoCapture.get(CV_CAP_PROP_CONTRAST);
+		if(param != g_Contrast)
+			g_LogFS << "WARINING: tried to set CONTRAST " << g_Contrast << ", but returned value was " << param << std::endl;
+	}
+	if(g_isParameterSpecified[CAMERA_PARAM_GAIN])
+	{
+		g_VideoCapture.set(CV_CAP_PROP_GAIN,g_Gain);
+		param = g_VideoCapture.get(CV_CAP_PROP_GAIN);
+		if(param != g_Gain)
+			g_LogFS << "WARINING: tried to set GAIN " << g_Gain << ", but returned value was " << param << std::endl;
+	}
+	if(g_isParameterSpecified[CAMERA_PARAM_EXPOSURE])
+	{
+		g_VideoCapture.set(CV_CAP_PROP_EXPOSURE,g_Exposure);
+		param = g_VideoCapture.get(CV_CAP_PROP_EXPOSURE);
+		if(param != g_Exposure)
+			g_LogFS << "WARINING: tried to set EXPOSURE " << g_Exposure << ", but returned value was " << param << std::endl;
 	}
 
 	g_runThread = true;

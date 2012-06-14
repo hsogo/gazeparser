@@ -1,5 +1,3 @@
-#define _CRT_SECURE_NO_DEPRECATE
-
 #include <SDL.h>
 #include "GazeTracker.h"
 #include "C:/Program Files/NaturalPoint/Optitrack/inc/optitrack.h"

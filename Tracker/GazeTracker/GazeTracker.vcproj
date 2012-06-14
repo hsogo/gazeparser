@@ -5,6 +5,7 @@
 	Name="GazeTracker"
 	ProjectGUID="{0E6DF15D-D6F2-4F41-B04F-D88F721E60D0}"
 	RootNamespace="GazeTracker"
+	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -41,10 +42,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="IMPERX"
+				PreprocessorDefinitions="IMPERX;WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -113,9 +115,10 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="IMPERX"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;IMPERX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -168,26 +171,6 @@
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
-			<File
-				RelativePath=".\Camera.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\DetectEye.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\GazeTrackerMain.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\PlatformDependent.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\tcpipcom.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="ヘッダー ファイル"

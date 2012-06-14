@@ -15,6 +15,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #define snprintf sprintf_s
+#define strncpy(dst,src,size) strcpy_s(dst,size,src)
 #define PATH_SEPARATOR "\\"
 #else
 #define S_OK                             0
@@ -172,7 +173,7 @@ int initTimer(void);
 double getCurrentTime(void);
 void sleepMilliseconds(int);
 int getDataDirectoryPath(std::string* path);
-int getApplicationDirectoryPath(std::string* path);
+//int getApplicationDirectoryPath(std::string* path);
 int getParameterDirectoryPath(std::string* path);
 int getLogFilePath(std::string* path);
 int checkDirectory(std::string path);
