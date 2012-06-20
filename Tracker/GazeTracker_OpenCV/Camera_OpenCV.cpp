@@ -47,7 +47,7 @@ volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grab
 int captureCameraThread(void *unused)
 {
 	cv::Mat frame, monoFrame;
-
+    
 	while(g_runThread)
 	{
 		if(g_VideoCapture.grab())
@@ -59,18 +59,18 @@ int captureCameraThread(void *unused)
 				monoFrame = frame;
 			for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
 			{
-				g_frameBuffer[idx] = monoFrame.data[idx];
+				g_frameBuffer[idx] = (unsigned char)monoFrame.data[idx];
 			}
 			g_NewFrameAvailable = true;
-		}
-
-		if(g_SleepDuration>=0.0)
-		{
-			sleepMilliseconds(g_SleepDuration);
+            
+            if(g_SleepDuration>0.0)
+            {
+                sleepMilliseconds(g_SleepDuration);
+            }
 		}
 	}
-
-	return 0;
+    
+    return 0;
 }
 
 
