@@ -22,9 +22,11 @@
 cv::VideoCapture g_VideoCapture;
 SDL_Thread *g_pThread;
 bool g_runThread;
+double g_prevCaptureTime;
 
 int g_SleepDuration = 0;
-double g_FrameRate = 100;
+double g_FrameRate = 30;
+bool g_isThreadMode = false;
 
 double g_Intensity = 1.0;
 double g_Exposure = 1.0;
@@ -47,7 +49,7 @@ volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grab
 int captureCameraThread(void *unused)
 {
 	cv::Mat frame, monoFrame;
-    
+	
 	while(g_runThread)
 	{
 		if(g_VideoCapture.grab())
@@ -104,7 +106,7 @@ int initCamera( const char* ParamPath )
 	fs.open(str.c_str(),std::ios::in);
 	if(fs.is_open())
 	{
-		g_LogFS << "Open camera configuration file (" << str << ")\n";
+		g_LogFS << "Open camera configuration file (" << str << ")" << std::endl;
 		while(fs.getline(buff,sizeof(buff)-1))
 		{
 			if(buff[0]=='#') continue;
@@ -117,6 +119,13 @@ int initCamera( const char* ParamPath )
 			{
 				g_SleepDuration = (int)param;
 			}
+            else if(strcmp(buff,"USE_THREAD")==0)
+            {
+                if((int)param!=0)
+                {
+                    g_isThreadMode = true;
+                }
+            }
 			else if(strcmp(buff,"FRAME_RATE")==0)
 			{
 				g_FrameRate = param;
@@ -145,7 +154,7 @@ int initCamera( const char* ParamPath )
 		}
 		fs.close();
 	}else{
-		g_LogFS << "ERROR: failed to open camera configuration file (" << str << ")\n";
+		g_LogFS << "ERROR: failed to open camera configuration file (" << str << ")" << std::endl;
 		return E_FAIL;
 	}
 
@@ -161,12 +170,12 @@ int initCamera( const char* ParamPath )
 
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
 	{
-		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")\n";
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
 		return E_FAIL;
 	}
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
 	{
-		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")\n";
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
 		return E_FAIL;
 	}
 
@@ -206,14 +215,26 @@ int initCamera( const char* ParamPath )
 			g_LogFS << "WARINING: tried to set EXPOSURE " << g_Exposure << ", but returned value was " << param << std::endl;
 	}
 
-	g_runThread = true;
-	g_pThread = SDL_CreateThread(captureCameraThread, NULL);
-	if(g_pThread==NULL)
-	{
-		g_LogFS << "ERROR: failed to start thread\n";
-		g_runThread = false;
-		return E_FAIL;
-	}
+    if(g_isThreadMode)
+    {
+        g_runThread = true;
+        g_pThread = SDL_CreateThread(captureCameraThread, NULL);
+        if(g_pThread==NULL)
+        {
+            g_LogFS << "ERROR: failed to start thread" << std::endl;
+            g_runThread = false;
+            return E_FAIL;
+        }
+        else
+        {
+            g_LogFS << "Start CameraThread" << std::endl;
+        }
+    }
+    else
+    {
+        g_prevCaptureTime = getCurrentTime();
+        g_LogFS << "Start without threading" << std::endl;
+    }
 
 	return S_OK;
 }
@@ -228,11 +249,39 @@ getCameraImage: Get new camera image.
 */
 int getCameraImage( void )
 {
-	if(g_NewFrameAvailable)
-	{
-		g_NewFrameAvailable = false;
-		return S_OK;
-	}
+    if(g_isThreadMode)
+    {
+        if(g_NewFrameAvailable)
+        {
+            g_NewFrameAvailable = false;
+            return S_OK;
+        }
+    }
+    else // non-threading mode
+    {
+        double t;
+        t = getCurrentTime();
+        if(t-g_prevCaptureTime > g_SleepDuration)
+        {
+            
+            cv::Mat frame, monoFrame;
+            
+            if(g_VideoCapture.grab())
+            {
+                g_VideoCapture.retrieve(frame);
+                if(frame.channels()==3)
+                    cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
+                else
+                    monoFrame = frame;
+                for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
+                {
+                    g_frameBuffer[idx] = (unsigned char)monoFrame.data[idx];
+                }
+                g_prevCaptureTime = getCurrentTime();
+                return S_OK;
+            }
+        }
+    }
 
 	return E_FAIL;
 }
