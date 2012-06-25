@@ -1,4 +1,4 @@
-#include <SDL.h>
+#include <SDL/SDL.h>
 #include "GazeTracker.h"
 #include "C:/Program Files/NaturalPoint/Optitrack/inc/optitrack.h"
 #import  "C:/Program Files/NaturalPoint/Optitrack/inc/optitrack.tlb"

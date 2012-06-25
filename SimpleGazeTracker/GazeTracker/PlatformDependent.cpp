@@ -81,7 +81,7 @@ int getDataDirectoryPath(std::string* path)
 	path->assign(std::getenv("HOME"));
 #endif
 	path->append(PATH_SEPARATOR);
-	path->append("GazeTracker");
+	path->append("SimpleGazeTracker");
 	return 0;
 }
 
@@ -112,12 +112,13 @@ int getApplicationDirectoryPath(std::string* path)
 int getParameterDirectoryPath(std::string* path)
 {
 #ifdef _WIN32
-	path->assign(std::getenv("APPDATA"));
+	path->assign(std::getenv("USERPROFILE"));
+	//path->assign(std::getenv("APPDATA"));
 #else
 	path->assign(std::getenv("HOME"));
 #endif
 	path->append(PATH_SEPARATOR);
-	path->append("GazeTracker");
+	path->append("SimpleGazeTracker");
 	return 0;
 }
 

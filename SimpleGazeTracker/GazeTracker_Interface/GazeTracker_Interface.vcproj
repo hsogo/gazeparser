@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="GazeTracker_Interface"
+	Name="SimpleGazeTracker_GPC5300"
 	ProjectGUID="{F64918EA-DD9F-4213-ABE2-28B571DC1AAB}"
 	RootNamespace="GazeTracker_Interface"
 	Keyword="Win32Proj"
@@ -221,6 +221,36 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\CAMERA.cfg"
+			DeploymentContent="true"
+			>
+		</File>
+		<File
+			RelativePath=".\CONFIG"
+			DeploymentContent="true"
+			>
+		</File>
+		<File
+			RelativePath="..\GazeTracker\libfreetype-6.dll"
+			DeploymentContent="true"
+			>
+		</File>
+		<File
+			RelativePath="..\GazeTracker\LICENSE.freetype.txt"
+			DeploymentContent="true"
+			>
+		</File>
+		<File
+			RelativePath="..\GazeTracker\LICENSE.zlib.txt"
+			DeploymentContent="true"
+			>
+		</File>
+		<File
+			RelativePath="..\GazeTracker\zlib1.dll"
+			DeploymentContent="true"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
