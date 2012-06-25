@@ -1,19 +1,19 @@
 ChangeLog
 ====================
 
-GazeParser 0.5.0alpha1
+GazeParser 0.5.0alpha
 ----------------------
 
-(released 2012/06/25)
+(released 2012/06/26)
 
 * CHANGED: GazeParser.Tracker is renamed to SimpleGazeTracker and now runs on Windows, Linux and Mac OS X.
     - ADDED: There are three editions of SimpleGazeTracker, OptiTrack, InterfaceGPC5300, and OpenCV.
         * OpenCV edition runs on Windows, Linux and Mac OS X.
         * Optitrack and InterfaceGPC5300 editions run on only Windows.
-    - CHANGED: Location of configuration files is moved from %APPDATA%\GazeTracker to %HOMEDRIVE%%HOMEPATH%\GazeParser\SimpleGazeTracker in Windows.
+    - CHANGED: Location of configuration files is moved from %APPDATA%\GazeTracker to %USERPROFILE%\GazeParser\SimpleGazeTracker in Windows.
     - CHANGED: New SimpleGazeTracker depends on SDL instead of DirectX and WinSock.
     - ADDED: Tentative binocular recording mode.
-    - ADDED: Log 
+    - ADDED: Application log is output to Tracker.log in the data directory.
 * ADDED: :func:`GazeParser.Core.GazeData.findMessage`
     
 
