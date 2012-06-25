@@ -3,8 +3,8 @@ How to generate GazeParser data file
 
 GazeParser.Converter module includes conversion tools to generate GazeParser data file.
 Currently, GazeTracker data file (\*.csv) and Eyelink EDF file (\*.edf) are supported.
-To generate GazePaser datafile from GazeParser.Tracker data file, use :func:`~GazeParser.Converter.TrackerToGazeParser` method.
-In the following example, 'data.csv' is a GazeParser.Tracker data file to be converted. ::
+To generate GazePaser datafile from SimpleGazeTracker data file, use :func:`~GazeParser.Converter.TrackerToGazeParser` method.
+In the following example, 'data.csv' is a SimpleGazeTracker data file to be converted. ::
 
     import GazeParser.Converter
     GazeParser.Converter.TrackerToGazeParser('data.csv')
@@ -25,7 +25,7 @@ config            Specify a GazeParser.Configuration file where conversion param
                   See :class:`~GazeParser.Configuration` for detail.
                   Default value is *None*
 useFileParameters If this parameter is True, conversion parameters are overwritten by 
-                  parameters recorded in GazeParser.Tracker data file.
+                  parameters recorded in SimpleGazeTracker data file.
                   See :class:`~GazeParser.TrackingTools` for detail.
                   Default value is *None*
 ================= =======================================================================

@@ -1,4 +1,4 @@
-How to control GazeParser.Tracker from a python script
+How to control SimpleGazeTracker from a python script
 ======================================================
 
 Example of experiment script (VisionEgg)

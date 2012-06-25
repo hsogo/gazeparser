@@ -6,6 +6,7 @@
 
 import GazeParser
 import numpy
+import re
 
 class SaccadeData(object):
     """
@@ -682,6 +683,41 @@ class GazeData(object):
             ret.append(self.Msg[i].text)
         
         return ret
+        
+    def findMessage(self,text,byIndices=False,useRegexp=False):
+        """
+        Get messages including specified text.
+        
+        :param str text:
+            A text to be found.
+        :param bool byIndices:
+            If ture, matched messages are returned by a list of indices.
+            Otherwise, matched messages are returned by a list of GazeParser.Core.MessageData objects.
+            Default value is False.
+        :param bool useRegexp:
+            If true, 'text' parapeter is considered as a regular expression.
+            Default value is False.
+        """
+        ret = []
+        
+        if useRegexp:
+            p = re.compile(text)
+            for i in range(self.nMsg):
+                if p.search(self.Msg[i].text)!=None:
+                    if byIndices:
+                        ret.append(i)
+                    else:
+                        ret.append(self.Msg[i])
+        else:
+            for i in range(self.nMsg):
+                if text in self.Msg[i].text:
+                    if byIndices:
+                        ret.append(i)
+                    else:
+                        ret.append(self.Msg[i])
+        
+        return ret
+        
     
     def getPreviousEvent(self,event,step=1,eventType=None):
         """

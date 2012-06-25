@@ -1,16 +1,32 @@
 ChangeLog
 ====================
 
+GazeParser 0.5.0alpha1
+----------------------
+
+(released 2012/06/25)
+
+* CHANGED: GazeParser.Tracker is renamed to SimpleGazeTracker and now runs on Windows, Linux and Mac OS X.
+    - ADDED: There are three editions of SimpleGazeTracker, OptiTrack, InterfaceGPC5300, and OpenCV.
+        * OpenCV edition runs on Windows, Linux and Mac OS X.
+        * Optitrack and InterfaceGPC5300 editions run on only Windows.
+    - CHANGED: Location of configuration files is moved from %APPDATA%\GazeTracker to %HOMEDRIVE%%HOMEPATH%\GazeParser\SimpleGazeTracker in Windows.
+    - CHANGED: New SimpleGazeTracker depends on SDL instead of DirectX and WinSock.
+    - ADDED: Tentative binocular recording mode.
+    - ADDED: Log 
+* ADDED: :func:`GazeParser.Core.GazeData.findMessage`
+    
+
 GazeParser 0.4.1
 --------------------
 
 (released 2012/05/25)
 
-* ADDED: :func:`~GazeParser.Converter.TobiiToGazeParser`
+* ADDED: :func:`GazeParser.Converter.TobiiToGazeParser`
 * CHANGED: GazeParser.TrackingTools module is updated.
-    - :func:`~GazeParser.TrackingTools.BaseController.calibrationLoop` returns **'space' and 'q'** instead of pygame.locals.K_SPACE and pygame.locals.K_q.
-    - :class:`~GazeParser.TrackingTools.ControllerPsychoPyBackend` supports pyglet window.
-    - :class:`~GazeParser.TrackingTools.ControllerPsychoPyBackend` supports *unit* options.
+    - :func:`GazeParser.TrackingTools.BaseController.calibrationLoop` returns **'space' and 'q'** instead of pygame.locals.K_SPACE and pygame.locals.K_q.
+    - :class:`GazeParser.TrackingTools.ControllerPsychoPyBackend` supports pyglet window.
+    - :class:`GazeParser.TrackingTools.ControllerPsychoPyBackend` supports *unit* options.
     
     .. note:: Gaze position is recorded in *pix* in the data file.
 

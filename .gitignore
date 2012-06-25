@@ -1,0 +1,5 @@
+GazeParser/build
+GazeParser/dist
+GazeParser/docs/_build
+GazeParser/GazeParser.egg-info
+*.pyc

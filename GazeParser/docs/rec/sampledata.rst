@@ -1,7 +1,7 @@
-Format of the GazeParser.Tracker CSV data file
+Format of the SimpleGazeTracker CSV data file
 ======================================================
 
-Here is a sample of the GazeParser.Tracker CSV data file.
+Here is a sample of the SimpleGazeTracker CSV data file.
 At the beginning of the data file, recording conditions are output (line 1-3).
 Following it, data blocks are output.
 

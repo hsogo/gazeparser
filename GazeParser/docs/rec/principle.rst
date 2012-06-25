@@ -1,15 +1,15 @@
 .. _measurement-principle-label:
 
-Measurement principle of GazeParser.Tracker
+Measurement principle of SimpleGazeTracker
 ==================================================
 
 Detecting eye position
 ----------------------
 
-GazeParser.Tracker estimates gaze direction from position of the reflection of a light source from outer surface of the cornea (corneal reflextion method).
+SimpleGazeTracker estimates gaze direction from position of the reflection of a light source from outer surface of the cornea (corneal reflextion method).
 This image is called *the first Purkinje image*.
 One of a weak point of corneal reflection method is that very slight head movement may affect recording quality.
-To overcome this problem, GazeParser.Tracker uses position of the first Purkinje image relative to the center of pupil.
+To overcome this problem, SimpleGazeTracker uses position of the first Purkinje image relative to the center of pupil.
 
 1. Pupil and the first Purkinje image appear in the captured image like this. Note that the captured image is actually monochrome.
 
@@ -41,7 +41,7 @@ Calibration
 ----------------------
 
 Let (U,V) denote position of the center of the first Purkinje image relative to the center of the pupil.
-GazeParser.Tracker maps (U,V) to the gaze position on the screen coordinate by quite simple way.
+SimpleGazeTracker maps (U,V) to the gaze position on the screen coordinate by quite simple way.
 
 .. math::
     (X,Y) = (a_x U + b_x Y +c_x, a_y U + b_y V + c_y)

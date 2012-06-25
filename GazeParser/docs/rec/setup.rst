@@ -1,7 +1,7 @@
 Hardware setup
 ==================================================
 
-Two computers (PC) are necessary to use the GazeParser.Tracker.
+Two computers (PC) are necessary to use the SimpleGazeTracker.
 The first PC grabs ocular image and estimate  gaze position (Recorder PC).
 The other PC presents stimuli to a participant (Presentation PC).
 
@@ -12,7 +12,7 @@ It is recommended that these PCs should not be connected to global network.
 2. Connect a camera unit to the Recorder PC. If the camera requires specific 
 software, install them.
 
-3. Install GazeParser.Tracker to the Recorder PC.
+3. Install SimpleGazeTracker to the Recorder PC.
 
 4. Set a head- and chin-rest in front of a participant.
 Recording without a head- and chin-rest is not recommended.
@@ -47,9 +47,9 @@ An IR LED lighting is placed below the display.
 Adjusting camera (monocular recording)
 ==================================================
 
-Start GazeParser.Tracker and confirm that camera image is presented on the display of the Recorder PC.
-If GazeParser.Tracker does not start, please confirm that the camera unit is recognized by the Recorder PC (see instruction of your camera device).
-If no camera image is appeared nevertheless GazeParser.Tracker seems to be running, please make sure that you have properly positioned the light source.
+Start SimpleGazeTracker and confirm that camera image is presented on the display of the Recorder PC.
+If SimpleGazeTracker does not start, please confirm that the camera unit is recognized by the Recorder PC (see instruction of your camera device).
+If no camera image is appeared nevertheless SimpleGazeTracker seems to be running, please make sure that you have properly positioned the light source.
 
 Ask your participant to sit on a chair and put his/her head on head- and chin-rest.
 Adjust the position and the orientation of the camera so that either left or right eye of the participant is captured as large as possible.
@@ -82,7 +82,7 @@ The meaning of the parameters are following.
 **Exposure (for OptiTrack V100R2, V120Slim)**
     Adjust exposure duration of the camera unit.
 
-Run GazeParser.Tracker on the Recorder PC and inspect the camera image.
+Run SimpleGazeTracker on the Recorder PC and inspect the camera image.
 Figure 5 shows an example of good recording condition.
 The pupil is colored in blue and the first purkinje image is marked.
 
@@ -105,7 +105,7 @@ Increase **PupilThreshold**. Otherwise, adjust settings of the camera (such as s
    Figure 7
 
 In the following example (Figure 8), the camera is so distant that facial parts other than the eye are also captured.
-Such settings may decrease recording speed because the GazeParser.Tracker has to reject non-pupil dark areas.
+Such settings may decrease recording speed because the SimpleGazeTracker has to reject non-pupil dark areas.
 Furthermore, small pupil image decrease recording quality because it is difficult to estimate pupil center accurately.
 Please adjust camera position and/or change camera lens.
 

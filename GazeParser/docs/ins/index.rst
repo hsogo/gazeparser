@@ -32,15 +32,15 @@ Install either of these files to computers which you plan to use stimulus presen
 
 If you plan to record gaze data, install one of following files to a computer which you plan to use recording gaze data.
 
-- **GazeParser.Tracker-x.x.x-optitrack-y.y.yyy.msi**: GazeParser.Tracker installer for OptiTrack V120 or V100R2 cameras
-    Probably OptiTrack Baseline 2D SDK will be necessary to use GazeParser.Tracker.
+- **SimpleGazeTracker-x.x.x-optitrack-y.y.yyy.msi**: SimpleGazeTracker installer for OptiTrack V120 or V100R2 cameras
+    Probably OptiTrack Baseline 2D SDK will be necessary to use SimpleGazeTracker.
     The SDK can be downloaded from OptiTrack Downloads page.
 
     `<http://www.naturalpoint.com/optitrack/downloads/archives.html>`_
 
-    Version number following 'optitrack-' in the GazeParser.Tracker installer indicates which version of SDK is necessary.
-    For example, if name of the GazeParser.Tracker installer is GazeParser.Tracker-0.4.0-optitrack-**1.3.038**.msi, OptiTrack 2D SDK 1.3.038 is necessary.
+    Version number following 'optitrack-' in the SimpleGazeTracker installer indicates which version of SDK is necessary.
+    For example, if name of the SimpleGazeTracker installer is SimpleGazeTracker-0.4.0-optitrack-**1.3.038**.msi, OptiTrack 2D SDK 1.3.038 is necessary.
 
-- **GazeParser.Tracker-x.x.x-interface-gpc5300.msi**: GazeParser.Tracker installer for CameraLink image grabber manufactured by `Interface Corporation <http://www.interface.co.jp/>`_.
+- **SimpleGazeTracker-x.x.x-interface-gpc5300.msi**: SimpleGazeTracker installer for CameraLink image grabber manufactured by `Interface Corporation <http://www.interface.co.jp/>`_.
     A CameraLink image grabber supported by Interface GPC5300 software must be installed to the recording PC.
     

@@ -5,7 +5,7 @@ Calibration procedure
 
 Typical calibration procedure is like following.
 
-1. Start GazeParser.Tracker on the Recorder PC. GazeParser.Tracker should be started before calling connect() on the Presentation PC; otherwise, connect() may be failed.
+1. Start SimpleGazeTracker on the Recorder PC. SimpleGazeTracker should be started before calling connect() on the Presentation PC; otherwise, connect() may be failed.
 
 2. Start a script for stimulus presentation. When calibrationLoop() is called in the script, "calibration loop" is started. Use following keys to adjust parameters and perform calibration. You can use the keyboard of both the Recorder PC and the Presentation PC.
 If you want to record your eye movement alone, you can do all operation from the Presentation PC.
@@ -35,7 +35,7 @@ If you want to record your eye movement alone, you can do all operation from the
     Start validation. Calibration must be performed in advance.
 
 **Q**
-    Abort GazeParser.Tracker.
+    Abort SimpleGazeTracker.
 
 **ESC**
     Exit calibration procedure to start recording.
