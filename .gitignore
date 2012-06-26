@@ -8,8 +8,13 @@ _build/
 *.egg-info
 *.pyc
 
+#C++
+*.o
+
+
 #for SimpleGazeTracker_OpenCV testing
-CONFIG
-CONFIG_OPENCV
+
 FreeSans.ttf
+simplegazetracker
+makefile.orig
 

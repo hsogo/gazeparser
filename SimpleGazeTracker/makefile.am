@@ -1,0 +1,13 @@
+bin_PROGRAMS=simplegazetracker
+simplegazetracker_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp\
+    common/DetectEye.cpp common/PlatformDependent.cpp\
+    opencv/Camera_OpenCV.cpp
+
+simplegazetracker_LDADD=$(OPENCV_LIBS) $(SDL_LIBS)
+simplegazetracker_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS)
+
+bindir=$(prefix)/@PACKAGE@
+datadir=$(prefix)/@PACKAGE@
+data_DATA=FreeSans.ttf opencv/CONFIG opencv/CONFIG_OPENCV
+
+
