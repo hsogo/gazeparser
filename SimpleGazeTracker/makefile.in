@@ -33,12 +33,14 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+build_triplet = @build@
 bin_PROGRAMS = simplegazetracker$(EXEEXT)
 subdir = .
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/config.h.in \
-	$(srcdir)/makefile.am $(srcdir)/makefile.in \
-	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
-	depcomp install-sh missing
+DIST_COMMON = README $(am__configure_deps) $(dist_data_DATA) \
+	$(srcdir)/config.h.in $(srcdir)/makefile.am \
+	$(srcdir)/makefile.in $(top_srcdir)/configure AUTHORS COPYING \
+	ChangeLog INSTALL NEWS config.guess config.sub depcomp \
+	install-sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -70,6 +72,10 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(simplegazetracker_SOURCES)
 DIST_SOURCES = $(simplegazetracker_SOURCES)
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -99,7 +105,7 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-DATA = $(data_DATA)
+DATA = $(dist_data_DATA)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -184,7 +190,11 @@ am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
 bindir = $(prefix)/@PACKAGE@
+build = @build@
 build_alias = @build_alias@
+build_cpu = @build_cpu@
+build_os = @build_os@
+build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = $(prefix)/@PACKAGE@
 datarootdir = @datarootdir@
@@ -216,12 +226,12 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 simplegazetracker_SOURCES = common/GazeTrackerMain.cpp common/tcpipcom.cpp\
-    common/DetectEye.cpp common/PlatformDependent.cpp\
-    opencv/Camera_OpenCV.cpp
+    common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
+    opencv/Camera_OpenCV.cpp opencv/GazeTracker.h
 
 simplegazetracker_LDADD = $(OPENCV_LIBS) $(SDL_LIBS)
 simplegazetracker_CPPFLAGS = $(OPENCV_CFLAGS) $(SDL_CFLAGS)
-data_DATA = FreeSans.ttf opencv/CONFIG opencv/CONFIG_OPENCV
+dist_data_DATA = FreeSans.ttf opencv/CONFIG opencv/CONFIG_OPENCV
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -412,10 +422,10 @@ simplegazetracker-Camera_OpenCV.obj: opencv/Camera_OpenCV.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='opencv/Camera_OpenCV.cpp' object='simplegazetracker-Camera_OpenCV.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(simplegazetracker_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o simplegazetracker-Camera_OpenCV.obj `if test -f 'opencv/Camera_OpenCV.cpp'; then $(CYGPATH_W) 'opencv/Camera_OpenCV.cpp'; else $(CYGPATH_W) '$(srcdir)/opencv/Camera_OpenCV.cpp'; fi`
-install-dataDATA: $(data_DATA)
+install-dist_dataDATA: $(dist_data_DATA)
 	@$(NORMAL_INSTALL)
 	test -z "$(datadir)" || $(MKDIR_P) "$(DESTDIR)$(datadir)"
-	@list='$(data_DATA)'; test -n "$(datadir)" || list=; \
+	@list='$(dist_data_DATA)'; test -n "$(datadir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
@@ -425,9 +435,9 @@ install-dataDATA: $(data_DATA)
 	  $(INSTALL_DATA) $$files "$(DESTDIR)$(datadir)" || exit $$?; \
 	done
 
-uninstall-dataDATA:
+uninstall-dist_dataDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(data_DATA)'; test -n "$(datadir)" || list=; \
+	@list='$(dist_data_DATA)'; test -n "$(datadir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(datadir)'; $(am__uninstall_files_from_dir)
 
@@ -705,7 +715,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dataDATA
+install-data-am: install-dist_dataDATA
 
 install-dvi: install-dvi-am
 
@@ -752,7 +762,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS uninstall-dataDATA
+uninstall-am: uninstall-binPROGRAMS uninstall-dist_dataDATA
 
 .MAKE: all install-am install-strip
 
@@ -763,14 +773,15 @@ uninstall-am: uninstall-binPROGRAMS uninstall-dataDATA
 	distclean-generic distclean-hdr distclean-tags distcleancheck \
 	distdir distuninstallcheck dvi dvi-am html html-am info \
 	info-am install install-am install-binPROGRAMS install-data \
-	install-data-am install-dataDATA install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
-	uninstall-am uninstall-binPROGRAMS uninstall-dataDATA
+	install-data-am install-dist_dataDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
+	tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-dist_dataDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

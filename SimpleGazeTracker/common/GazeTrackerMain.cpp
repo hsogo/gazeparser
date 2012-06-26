@@ -21,9 +21,9 @@
 #include <opencv2/core/core.hpp>
 
 #include "GazeTrackerCommon.h"
-#include "resource.h"
 
 #ifdef _WIN32
+#include "resource.h"
 #include <windows.h>
 #include <atlbase.h>
 #include <time.h>
