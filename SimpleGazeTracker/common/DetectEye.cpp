@@ -41,7 +41,8 @@ int initBuffers(void)
 {
 	if(g_CameraWidth<=0 || g_CameraHeight<=0 || g_PreviewWidth<=0 || g_PreviewHeight<=0)
 	{
-		g_LogFS << "ERROR: wrong camera/preview size\n";
+		g_LogFS << "ERROR: wrong camera/preview size (" << g_CameraWidth << "," << g_CameraHeight
+		        << "," << g_PreviewWidth << "," << g_PreviewHeight << ")"<< std::endl;
 		return E_FAIL;
 	}
 
@@ -50,7 +51,7 @@ int initBuffers(void)
 	g_pCalResultTextureBuffer = (int*)malloc(g_PreviewHeight*g_PreviewWidth*sizeof(int));
 	g_SendImageBuffer = (unsigned char*)malloc(g_ROIHeight*g_ROIWidth*sizeof(unsigned char)+1);
 	if(g_frameBuffer==NULL || g_pCameraTextureBuffer==NULL || g_pCalResultTextureBuffer==NULL){
-		g_LogFS << "ERROR: failed to allocate camera/preview buffer\n";
+		g_LogFS << "ERROR: failed to allocate camera/preview buffer" << std::endl;
 		return E_FAIL;
 	}
 

@@ -17,4 +17,4 @@
 
 #endif
 
-#include "../GazeTracker/GazeTrackerCommon.h"
+#include "../common/GazeTrackerCommon.h"

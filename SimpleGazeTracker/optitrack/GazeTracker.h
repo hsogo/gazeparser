@@ -3,5 +3,5 @@
 
 #define CAMERA_CONFIG_FILE "CONFIG_OPTITRACK"
 
-#include "..\\GazeTracker\\GazeTrackerCommon.h"
+#include "../common/GazeTrackerCommon.h"
 

@@ -1,5 +1,15 @@
-GazeParser/build
-GazeParser/dist
-GazeParser/docs/_build
-GazeParser/GazeParser.egg-info
+#backup
+*~
+
+#python
+build/
+dist/
+_build/
+*.egg-info
 *.pyc
+
+#for SimpleGazeTracker_OpenCV testing
+CONFIG
+CONFIG_OPENCV
+FreeSans.ttf
+

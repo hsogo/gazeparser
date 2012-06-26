@@ -113,7 +113,7 @@ int initCamera( const char* ParamPath )
 			if((p=strchr(buff,'='))==NULL) continue;
 
 			param = strtod(p+1,&pp); //paramete is not int but double
-			*p = NULL;
+			*p = '\0';
 
 			if(strcmp(buff,"SLEEP_DURATION")==0)
 			{

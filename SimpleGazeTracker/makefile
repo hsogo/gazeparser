@@ -9,6 +9,6 @@ ifneq ($(UNAME), Darwin)
 LDFLAGS +=  -lrt
 endif
 
-simplegazetracker: GazeTracker/tcpipcom.cpp GazeTracker/DetectEye.cpp GazeTracker/GazeTrackerMain.cpp GazeTracker_OpenCV/Camera_OpenCV.cpp GazeTracker/PlatformDependent.cpp
-	g++ -ggdb -o $@ $(CPPFLAGS) GazeTracker/tcpipcom.cpp GazeTracker/DetectEye.cpp GazeTracker/GazeTrackerMain.cpp GazeTracker_OpenCV/Camera_OpenCV.cpp GazeTracker/PlatformDependent.cpp $(LDFLAGS) 
+simplegazetracker: common/tcpipcom.cpp common/DetectEye.cpp common/GazeTrackerMain.cpp opencv/Camera_OpenCV.cpp common/PlatformDependent.cpp
+	g++ -ggdb -o $@ $(CPPFLAGS) common/tcpipcom.cpp common/DetectEye.cpp common/GazeTrackerMain.cpp opencv/Camera_OpenCV.cpp common/PlatformDependent.cpp $(LDFLAGS) 
 
