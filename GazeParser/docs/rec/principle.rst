@@ -1,4 +1,4 @@
-.. _measurement-principle-label:
+.. _measurement-principle:
 
 Measurement principle of SimpleGazeTracker
 ==================================================

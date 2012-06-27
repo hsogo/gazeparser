@@ -5,7 +5,9 @@ Example of experiment script (VisionEgg)
 ----------------------------------------
 
 At the beginning of script, GazeParser.TrackingTools should be initialized.
-In the following example, IP address of the Recorder PC is 192.168.0.1 and other parameters are set through a configuration file (TrackerSettings.cfg).::
+In the following example, IP address of the Recorder PC is 192.168.0.1 and other parameters are set through a configuration file (TrackerSettings.cfg).
+See :ref:`TrackingTools Configuration file <config-trackingtools-param>` for configuration file.
+::
 
     #at first, prepaer a VisionEgg screen.
     screen = VisionEgg.Core.get_default_screen()
@@ -33,7 +35,7 @@ Set calibration area and calibration target positions. ::
     
     tracker.setCalibrationTargetPositions(calibrationArea, targetPositions)
 
-Set the name of data file.  The extension of the data file is recommended to be '.csv'.
+Set the name of data file.  The extension of the data file is recommended to be '.csv'.::
 
     tracker.openDataFile('test.csv')
 
@@ -46,7 +48,7 @@ Then, send recording parameters.::
     # (snip)
     tracker.sendSettings(config.getParametersAsDict())
 
-You can load parameters from :class:`GazeParser.Configuration` file. See also :ref:`configuration-label` for the configuration file.
+You can load parameters from :class:`GazeParser.Configuration` file. See also :ref:`config-gazeparser` for the configuration file.
 It is recommended that you prepare a configuration file for each hardware setting.::
 
     GazeParser.Configuration.load('settings.cfg')
@@ -103,7 +105,7 @@ The last element is the passed string.::
 If you want to use gaze-contingent stimuli (such as moving window or moving mask),
 you can get current gaze postion by calling getEyePosition().::
 
-    (eyeX,eyeY) = tracker.getEyePosition()
+    gazePosition = tracker.getEyePosition()
 
 At the end of the experiment, call closeDataFile() to close the data file on the Recorder PC.::
 
@@ -151,5 +153,46 @@ To use other units, use 'units' option of :func:`~GazeParser.TrackingTools.BaseC
 Returned values of :func:`~GazeParser.TrackingTools.BaseController.getEyePosition` is 'pix' at default.
 If other units are preferable, call getEyePosition with 'units' option.::
 
-    (eyeX,eyeY) = tracker.getEyePosition(units='deg')
+    gazePosition = tracker.getEyePosition(units='deg')
+
+
+.. _config-trackingtools-param:
+
+TrackingTools Configuration file
+--------------------------------------
+
+TrackingTools configuration file is a plain text file.
+This is a sample of TrackingTools configuration file.
+
+::
+
+    [Controller]
+    IMAGE_WIDTH = 320
+    IMAGE_HEIGHT = 240
+    PREVIEW_WIDTH = 640
+    PREVIEW_HEIGHT = 480
+    VALIDATION_SHIFT = 20
+    SHOW_CALDISPLAY = True
+
+Following table shows the meaning of these parameters.
+These parameters can be set and changed without using TrackingTools configuration file.
+
+================ ============================================================================ ===================================
+parameter        description                                                                  how to set/change
+================ ============================================================================ ===================================
+IMAGE_WIDTH      Width of the image transfered from the Recorder PC.                          :func:`~GazeParser.TrackingTools.BaseController.setReceiveImageSize`
+                 This parameter must be equal to CAMERA_WIDTH of SimpleGazeTracker
+                 confiuration file.
+IMAGE_HEIGHT     Height of the image transfered from the Recorder PC.                         :func:`~GazeParser.TrackingTools.BaseController.setReceiveImageSize`
+                 This parameter must be equal to CAMERA_HEIGHT of SimpleGazeTracker
+                 confiuration file.
+PREVIEW_WIDTH    Width of the preview image on the presentation PC.                           :func:`~GazeParser.TrackingTools.BaseController.setPreviewImageSize`
+PREVIEW_HEIGHT   Width of the preview image on the presentation PC.                           :func:`~GazeParser.TrackingTools.BaseController.setPreviewImageSize`
+VALIDATION_SHIFT Shift of the target position in the Validation process.                      :func:`~GazeParser.TrackingTools.BaseController.setValidationShift`
+                 If this parameter is 10, target position in the Validation is
+                 10 pixel distant from target position in the Calibration process.
+SHOW_CALDISPLAY  If this parameter is true, preview image is shown at the presentation PC.    (press 'a' key to toggle this 
+                 Set this parameter false if you want to hide preview image from participant. parameter during calibration loop)
+================ ============================================================================ ===================================
+
 

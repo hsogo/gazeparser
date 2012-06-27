@@ -35,8 +35,55 @@ Install either of these files to computers which you plan to use stimulus presen
 - **GazeParser-x.x.x-pyx.x.egg**: python egg file
 - **GazeParser-x.x.x.zip**: zipped file
 
+If you plan to record gaze data, download following source code and build SimpleGazeTracker.
+**Currently, SimpleGazeTracker for Linux is distributed only in source code**.
 
-Bulid SimpleGazeTracker
----------------------------
+- **simplegazetracker-x.x.x.tar.gz**
+
+Build SimpleGazeTracker (Ubuntu 12.04 desktop)
+-----------------------------------------------
+
+OpenCV and SDL are necessary to build SimpleGazeTracker.
+Install following packages in advance.
+Other packages may be necessary depending on your environment.
+
+- libopencv-dev
+- libsdl1.2-dev
+- libsdl-net1.2-dev
+- libsdl-ttf2.0-dev
+
+.. code-block:: bash
+
+    ~$ sudo apt-get install libopencv-dev
+
+Expand gzipped tarball and change working directory to the created directory.
+
+.. code-block:: bash
+
+    ~$ tar zxvf simplegazetracker-x.x.x.tar.gz
+    ~$ cd simplegazetracker-x.x.x
+
+Execute 'configure' script.  If error message is displayed, check missing files and install corresponding packages.
+Ubuntu package search (`<http://packages.ubuntu.com/>`) is useful to search contents of packages.
+
+.. code-block:: bash
+
+    ~/simplegazetracker-x.x.x$ ./configure
+
+If 'configure' script finish successfully, build and install SimpleGazeTracker.
+
+.. code-block:: bash
+
+    ~/simplegazetracker-x.x.x$ make
+    ~/simplegazetracker-x.x.x$ sudo make install
+
+By default, simplegazetracker is installed at /usr/local/simplegazetracker.
+Type as following to comfirm SimpleGazeTracker has been correctly installed.
+If it works correctly, ~/SimpleGazeTracker directory is created at the home directory.
+SimpleGazeTracker will show error message and terminate automatically if you have not connected camera unit in advance.
+
+.. code-block:: bash
+
+    ~/simplegazetracker-x.x.x$ /usr/local/simplegazetracker/simplegazetracker
 
 

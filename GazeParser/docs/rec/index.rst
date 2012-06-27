@@ -3,9 +3,7 @@
 Recording data
 ================================================================
 
-
-The GazeParser library contains an application for recording eye movements named *GazeParser.Tracker*.
-The GazeParser.Tracker runs on the Windows Vista/7 and controlled by A python module :class:`~GazeParser.TrackingTools`.
+GazeParser cooperates with a tiny application named *SimpleGazeParser* to record eye movements.
 
 Contents:
 
@@ -18,4 +16,5 @@ Contents:
    procedure
    programming
    sampledata
+   binocular
 

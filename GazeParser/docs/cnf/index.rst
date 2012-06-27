@@ -1,5 +1,3 @@
-.. _configuration-label:
-
 Configure GazeParser
 ==================================
 
@@ -11,5 +9,5 @@ Contents:
 
    Directory
    ConfigGazeParser
-   ConfigTracker
+   ConfigSimpleGazeTracker
 

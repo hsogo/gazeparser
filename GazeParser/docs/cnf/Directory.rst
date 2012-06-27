@@ -1,7 +1,7 @@
 .. _config-directory:
 
-GazeParser Configuration file
-=============================
+Location of GazeParser Configuration file
+==========================================
 
 GazeParser reads a configuration file named 'GazeParser.cfg' when it is imported.
 GazeParser assumes that the configuration file exists in following directory.
@@ -11,6 +11,7 @@ Platform   Directory
 ========== ================================
 Win32      %HOMEDRIVE%%HOMEPATH%\GazeParser
 Linux      $HOME/GazeParser
+Mac OS X   $HOME/GazeParser
 ========== ================================
 
 If this directory is not found, GazeParser shows following warning message and reads GazeParser.cfg from the application directory.
@@ -45,4 +46,23 @@ GazeParser.Utility.createConfigDir() does not overwrite existing files. If you h
     C:\Python27\lib\site-packages\GazeParser\Tracker.cfg -> D:\Users\user\GazeParser\Tracker.cfg
     GazeParser: ConfigDir is successfully created.
 
+
+Location of SimpleGazeTracker Configuration file
+=================================================
+
+SimpleGazeTracker needs two configuration files.
+
+1. **Camera-independent conifugration file (CONFIG)**
+2. **Camera-dependent configuration file**
+
+These files are located in following directory.
+If the directori does not exist, SimpleGazeTracker automatically creates it.
+
+========== ================================
+Platform   Directory
+========== ================================
+Win32      %USERPROFILE%\SimpleGazeTracker
+Linux      $HOME/SimpleGazeTracker
+Mac OS X   $HOME/SimpleGazeTracker
+========== ================================
 

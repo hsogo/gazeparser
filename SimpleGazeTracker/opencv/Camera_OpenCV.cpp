@@ -161,7 +161,7 @@ int initCamera( const char* ParamPath )
 	g_VideoCapture = cv::VideoCapture(0);
 	if(!g_VideoCapture.isOpened())
 	{
-		g_LogFS << "ERROR: no VideoCapture device is found.\n";
+		g_LogFS << "ERROR: no VideoCapture device is found." << std::endl;
 		return E_FAIL;
 	}
 

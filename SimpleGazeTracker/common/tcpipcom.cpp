@@ -47,7 +47,7 @@ int sockInit(void)
 	SDLNet_Init();
 	g_SocketSet = SDLNet_AllocSocketSet(1);
 	if(!g_SocketSet){
-		g_LogFS << "ERROR: failed to allocate socket set\n";
+		g_LogFS << "ERROR: failed to allocate socket set" << std::endl;
 		return E_FAIL;
 	}
 
@@ -82,16 +82,16 @@ int sockConnect(const char* host)
 {
 	IPaddress ip;
 	if(SDLNet_ResolveHost(&ip, host, SEND_PORT)==-1){
-		g_LogFS << "ERROR: failed to resolve host (" << host << ")\n";
+		g_LogFS << "ERROR: failed to resolve host (" << host << ")" << std::endl;
 		return E_FAIL;
 	}
 
 	g_SockSend= SDLNet_TCP_Open(&ip);
 	if(!g_SockSend){
-		g_LogFS << "ERROR: failed to open sending socket\n";
+		g_LogFS << "ERROR: failed to open sending socket" << std::endl;
 		return E_FAIL;
 	}
-	g_LogFS << "open sending socket\n";
+	g_LogFS << "open sending socket" << std::endl;
 
     return S_OK;
 }
@@ -102,10 +102,10 @@ int sockConnectIP(IPaddress* ip)
 
 	g_SockSend= SDLNet_TCP_Open(ip);
 	if(!g_SockSend){
-		g_LogFS << "ERROR: failed to open sending socket\n";
+		g_LogFS << "ERROR: failed to open sending socket" << std::endl;
 		return E_FAIL;
 	}
-	g_LogFS << "open sending socket\n";
+	g_LogFS << "open sending socket" << std::endl;
 
     return S_OK;
 }
@@ -121,17 +121,17 @@ int sockAccept(void)
 {
 	IPaddress ip;
 	if(SDLNet_ResolveHost(&ip, NULL, RECV_PORT)==-1){
-		g_LogFS << "ERROR: failed to resolve host\n";
+		g_LogFS << "ERROR: failed to resolve host" << std::endl;
 		return E_FAIL;
 	}
 
 	g_SockServ= SDLNet_TCP_Open(&ip);
 	if(!g_SockServ){
-		g_LogFS << "ERROR: failed to open server socket\n";
+		g_LogFS << "ERROR: failed to open server socket" << std::endl;
 		return E_FAIL;
 	}
 
-	g_LogFS << "open server socket\n";
+	g_LogFS << "open server socket" << std::endl;
     return S_OK;
 }
 
@@ -157,42 +157,23 @@ int sockProcess(void)
 		g_SockRecv = SDLNet_TCP_Accept(g_SockServ);
 
 		if(g_SockRecv){
-			g_LogFS << "open receiving socket\n";
+			g_LogFS << "open receiving socket" << std::endl;
 			SDLNet_TCP_AddSocket(g_SocketSet, g_SockRecv);
 			IPaddress* remote_ip;
 			remote_ip = SDLNet_TCP_GetPeerAddress(g_SockRecv);
 			if(!remote_ip){
-				g_LogFS << "could not get remote IP address\n";
+				g_LogFS << "could not get remote IP address" << std::endl;
 				SDLNet_TCP_Close(g_SockRecv);
 				g_SockRecv = NULL;
-				g_LogFS << "close receiving socket\n";
+				g_LogFS << "close receiving socket" << std::endl;
 			}else{
-				/*
-				const char* host;
-				host = SDLNet_ResolveIP(remote_ip);
-				if(!host)
-				{
-					g_LogFS << "could not resolve remote IP address\n";
-					SDLNet_TCP_Close(g_SockRecv);
-					g_SockRecv = NULL;
-					g_LogFS << "close receiving socket\n";
-				}
-				if(FAILED(sockConnect(host)))
-				{
-					SDLNet_TCP_Close(g_SockRecv);
-					g_SockRecv = NULL;
-					g_LogFS << "close receiving socket\n";
-				}
-				*/
 				if(FAILED(sockConnectIP(remote_ip)))
 				{
 					SDLNet_TCP_Close(g_SockRecv);
 					g_SockRecv = NULL;
-					g_LogFS << "close receiving socket\n";
+					g_LogFS << "close receiving socket" << std::endl;
 				}
 			}
-		}else{
-			//g_LogFS << "ERROR: failed to open receiving socket\n";
 		}
 	}
 
@@ -500,7 +481,7 @@ int sockProcess(void)
 			}
 			else
 			{
-				g_LogFS << "connection may be closed by peer\n";
+				g_LogFS << "connection may be closed by peer" << std::endl;
 				connectionClosed();
 				SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
 				sockClose();

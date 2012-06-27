@@ -47,7 +47,7 @@ If you want to record your eye movement alone, you can do all operation from the
     
     Figure 1
 
-3. Adjust the camera position and parameters if necessary.  See :ref:`adjusting-camera-label` for detail.
+3. Adjust the camera position and parameters if necessary.  See :ref:`adjusting-camera` for detail.
 
 4. Do calibration. Ask your participant to track moving small square.
 

@@ -57,7 +57,7 @@ int initCamera( const char* ParamPath )
 	fs.open(str.c_str(),std::ios::in);
 	if(fs.is_open())
 	{
-		g_LogFS << "Open camera configuration file (" << buff << ")\n";
+		g_LogFS << "Open camera configuration file (" << buff << ")" << std::endl;
 		while(fs.getline(buff,sizeof(buff)-1))
 		{
 			if(buff[0]=='#') continue;
@@ -72,7 +72,7 @@ int initCamera( const char* ParamPath )
 		}
 		fs.close();
 	}else{
-		g_LogFS << "ERROR: failed to open camera configuration file (" << buff << ")\n";
+		g_LogFS << "ERROR: failed to open camera configuration file (" << buff << ")" << std::endl;
 		return E_FAIL;
 	}
 
@@ -86,7 +86,7 @@ int initCamera( const char* ParamPath )
 	
 	if(cameraCount<1)
 	{
-		g_LogFS << "ERROR: no camera is found.\n";
+		g_LogFS << "ERROR: no camera is found" << std::endl;
 		return E_FAIL;
 	}
 	
@@ -116,7 +116,7 @@ int initCamera( const char* ParamPath )
 		g_camera->SetOption(NP_OPTION_GRAYSCALE_DECIMATION,(CComVariant)2);
 	else
 	{
-		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")\n";
+		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
 		return E_FAIL;
 	}
 
@@ -203,10 +203,10 @@ void saveCameraParameters(const char* ParamPath)
 		return;
 	}
 
-	fs << "#If you want to recover original settings, delete this file and start eye tracker program.\n";
-	fs << "FRAME_RATE=" << g_FrameRate << "\n";
-	fs << "EXPOSURE=" << g_Exposure << "\n";
-	fs << "INTENSITY=" << g_Intensity << "\n";
+	fs << "#If you want to recover original settings, delete this file and start eye tracker program." << std::endl;
+	fs << "FRAME_RATE=" << g_FrameRate << std::endl;
+	fs << "EXPOSURE=" << g_Exposure << std::endl;
+	fs << "INTENSITY=" << g_Intensity << std::endl;
 
 	fs.close();
 

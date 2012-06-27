@@ -46,12 +46,12 @@ class BaseController:
         Initialize controller.
         
         :param str configFile: name of the configuration file.
-            If None, Tracker.cfg in the application directory is used.
+            If None, TrackingTools.cfg in the application directory is used.
             Default value is None.
         """
         cfgp = ConfigParser.SafeConfigParser()
         if configFile == None: #use default settings
-            ConfigFile = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Tracker.cfg')
+            ConfigFile = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'TrackingTools.cfg')
         else:
             ConfigFile = configFile
         cfgp.read(ConfigFile)
@@ -167,13 +167,24 @@ class BaseController:
         self.calTargetPos = calposlist[:]
         self.calTargetPosSet = True
     
+    def setValidationShift(self, size):
+        """
+        Set shift of the target position in the Validation process.
+        If this parameter is 10, target position in the Validation is
+        10 pixel distant from target position in the Calibration process.
+        
+        :param float size: amount of shift.
+        """
+        
+        self.validationShift = size
+    
     def connect(self, address, port1=10000,port2=10001):
         """
         Connect to the Tracker Host PC. Because most of methods communicate with 
         the Tracker Host PC, this method should be called immediately after controller
         object is created.
         
-        :param str address: IP address of Tracker (e.g. '192.168.1.2')
+        :param str address: IP address of SimpeGazeTracker (e.g. '192.168.1.2').
         :param int port1: TCP/IP port for sending command to Tracker.
             This value must be correspond to configuration of the Tracker.
             Default value is 10000.

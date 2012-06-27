@@ -230,18 +230,18 @@ void saveParameters( void )
 		return;
 	}
 
-	fs << "#If you want to recover original settings, delete this file and start eye tracker program.\n";
-	fs << "THRESHOLD=" << g_Threshold << "\n";
-	fs << "MAXPOINTS=" << g_MaxPoints << "\n";
-	fs << "MINPOINTS=" << g_MinPoints << "\n";
-	fs << "PURKINJE_THRESHOLD=" << g_PurkinjeThreshold << "\n";
-	fs << "PURKINJE_SEARCHAREA=" << g_PurkinjeSearchArea << "\n";
-	fs << "PURKINJE_EXCLUDEAREA=" << g_PurkinjeExcludeArea << "\n";
-	fs << "BINOCULAR=" << g_RecordingMode << "\n";
-	fs << "CAMERA_WIDTH=" <<  g_CameraWidth << "\n";
-	fs << "CAMERA_HEIGHT=" <<  g_CameraHeight << "\n";
-	fs << "PREVIEW_WIDTH=" <<  g_PreviewWidth << "\n";
-	fs << "PREVIEW_HEIGHT=" <<  g_PreviewHeight << "\n";
+	fs << "#If you want to recover original settings, delete this file and start eye tracker program." << std::endl;
+	fs << "THRESHOLD=" << g_Threshold << std::endl;
+	fs << "MAXPOINTS=" << g_MaxPoints << std::endl;
+	fs << "MINPOINTS=" << g_MinPoints << std::endl;
+	fs << "PURKINJE_THRESHOLD=" << g_PurkinjeThreshold << std::endl;
+	fs << "PURKINJE_SEARCHAREA=" << g_PurkinjeSearchArea << std::endl;
+	fs << "PURKINJE_EXCLUDEAREA=" << g_PurkinjeExcludeArea << std::endl;
+	fs << "BINOCULAR=" << g_RecordingMode << std::endl;
+	fs << "CAMERA_WIDTH=" <<  g_CameraWidth << std::endl;
+	fs << "CAMERA_HEIGHT=" <<  g_CameraHeight << std::endl;
+	fs << "PREVIEW_WIDTH=" <<  g_PreviewWidth << std::endl;
+	fs << "PREVIEW_HEIGHT=" <<  g_PreviewHeight << std::endl;
 
 	fs.close();
 }
@@ -393,7 +393,7 @@ void flushGazeData(void)
 				else if(g_EyeData[i][0] == E_NO_FINE_PUPIL_CANDIDATE)
 					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
 				else
-					fprintf(g_DataFP,"FAIL,FAIL\n");					
+					fprintf(g_DataFP,"FAIL,FAIL\n");
 			}else{
 				getGazePositionMono(g_EyeData[i], xy);
 				fprintf(g_DataFP,"%.1f,%.1f\n" ,xy[MONO_X],xy[MONO_Y]);
@@ -429,7 +429,7 @@ void flushGazeData(void)
 				else if(g_EyeData[i][BIN_RX] == E_NO_FINE_PUPIL_CANDIDATE)
 					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
 				else
-					fprintf(g_DataFP,"FAIL,FAIL\n");					
+					fprintf(g_DataFP,"FAIL,FAIL\n");
 			}else{
 				fprintf(g_DataFP,"%.1f,%.1f\n" ,xy[BIN_RX],xy[BIN_RY]);
 			}
@@ -719,7 +719,7 @@ int main(int argc, char** argv)
 	if(!g_LogFS.is_open()){
 		return -1;
 	}
-	g_LogFS << "initParameters ... OK.\n";
+	g_LogFS << "initParameters ... OK." << std::endl;
 
 	//TODO output parameters here?
 
@@ -727,11 +727,11 @@ int main(int argc, char** argv)
 	//TODO output timer initialization results?
 
 	if(FAILED(initSDLTTF())){
-		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) exists in the application directory.\nExit.";
+		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) exists in the application directory. Exit.";
 		SDL_Quit();
 		return -1;
 	}
-	g_LogFS << "initSDLTTF ... OK.\n";
+	g_LogFS << "initSDLTTF ... OK." << std::endl;
 
 	//now message can be rendered on screen.
 	std::string str("Welcome to GazeParser.Tracker version ");
@@ -745,61 +745,61 @@ int main(int argc, char** argv)
 	nInitMessage++;
 
 	if(FAILED(initBuffers())){
-		g_LogFS << "initBuffers failed.\nExit.";
+		g_LogFS << "initBuffers failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"initBuffers failed. Exit.");
 		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
-	g_LogFS << "initBuffers ... OK.\n";
+	g_LogFS << "initBuffers ... OK." << std::endl;
 	renderInitMessages(nInitMessage,"initBuffers ... OK.");
 	nInitMessage += 1;
 
 	if(FAILED(sockInit())){
-		g_LogFS << "sockInit failed.\nExit.";
+		g_LogFS << "sockInit failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"sockInit failed. Exit.");
 		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
-	g_LogFS << "sockInit ... OK.\n";
+	g_LogFS << "sockInit ... OK." << std::endl;
 	renderInitMessages(nInitMessage,"sockInit ... OK.");
 	nInitMessage += 1;
 
 	if(FAILED(sockAccept())){
-		g_LogFS << "sockAccept failed.\nExit.";
+		g_LogFS << "sockAccept failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"sockAccept failed. Exit.");
 		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
-	g_LogFS << "sockAccept ... OK.\n";
+	g_LogFS << "sockAccept ... OK." << std::endl;
 	renderInitMessages(nInitMessage,"sockAccept ... OK.");
 	nInitMessage += 1;
 
 	if(FAILED(initCamera(g_ParamPath.c_str()))){
-		g_LogFS << "initCamera failed.\nExit.";
+		g_LogFS << "initCamera failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"initCamera failed. Exit.");
 		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
-	g_LogFS << "initCamera ... OK.\n";
+	g_LogFS << "initCamera ... OK." << std::endl;
 	renderInitMessages(nInitMessage,"initCamera ... OK.");
 	nInitMessage += 1;
 
 	if(FAILED(initSDLSurfaces())){
-		g_LogFS << "initSDLSurfaces failed.\nExit.";
+		g_LogFS << "initSDLSurfaces failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"initSDLSurfaces failed. Exit.");
 		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
-	g_LogFS << "initSDLSurfaces ... OK.\n";
+	g_LogFS << "initSDLSurfaces ... OK." << std::endl;
 	renderInitMessages(nInitMessage,"initSDLSurfaces ... OK.");
 	nInitMessage += 1;
 
-	g_LogFS << "Start.\n\n";
+	g_LogFS << "Start." << "\n" << std::endl;
 	nInitMessage += 1;
 	renderInitMessages(nInitMessage,"Start.");
 	sleepMilliseconds(2000);
@@ -1020,7 +1020,7 @@ This function must be called when starting calibration.
 */
 void startCalibration(int x1, int y1, int x2, int y2)
 {
-	g_LogFS << "StartCalibration\n";
+	g_LogFS << "StartCalibration" << std::endl;
 
 	g_CalibrationArea[0] = x1;
 	g_CalibrationArea[1] = y1;
@@ -1043,7 +1043,7 @@ This function must be called when terminating calibration.
 */
 void endCalibration(void)
 {
-	g_LogFS << "EndCalibration\n";
+	g_LogFS << "EndCalibration" << std::endl;
 
 	if(g_RecordingMode==RECORDING_MONOCULAR){
 		estimateParametersMono( g_DataCounter, g_EyeData, g_CalPointData );
@@ -1092,7 +1092,7 @@ This function must be called when starting validation.
 */
 void startValidation(int x1, int y1, int x2, int y2)
 {
-	g_LogFS << "StartValidation\n";
+	g_LogFS << "StartValidation" << std::endl;
 
 	g_CalibrationArea[0] = x1;
 	g_CalibrationArea[1] = y1;
@@ -1115,7 +1115,7 @@ This function must be called when terminating validation.
 */
 void endValidation(void)
 {
-	g_LogFS << "EndValidation\n";
+	g_LogFS << "EndValidation" << std::endl;
 
 	setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
 
@@ -1201,9 +1201,9 @@ void startRecording(const char* message)
 				fprintf(g_DataFP,"#CALPOINT,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1]);
 			}
 
-			g_LogFS << "StartRecording\n";
+			g_LogFS << "StartRecording" << std::endl;
 		}else{
-			g_LogFS << "StartRecording(no file)\n";
+			g_LogFS << "StartRecording(no file)" << std::endl;
 		}
 
 		clearData();
@@ -1243,11 +1243,11 @@ void stopRecording(const char* message)
 		fprintf(g_DataFP,"#STOP_REC\n");
 		fflush(g_DataFP); //force writing.
 
-		g_LogFS << "StopRecording\n";
+		g_LogFS << "StopRecording" << std::endl;
 	}
 	else
 	{
-		g_LogFS << "StopRecording (no file)\n";
+		g_LogFS << "StopRecording (no file)" << std::endl;
 	}
 	
 	g_isRecording = false;
@@ -1275,16 +1275,16 @@ void openDataFile(char* filename)
 	{
 		fflush(g_DataFP);
 		fclose(g_DataFP);
-		g_LogFS << "Close datafile to open new datafile\n";
+		g_LogFS << "Close datafile to open new datafile" << std::endl;
 	}
 
 	g_DataFP = fopen(str.c_str(),"w");
 	if(g_DataFP==NULL){
-		g_LogFS << "Failed to open data file (" << str << ")\n";
+		g_LogFS << "Failed to open data file (" << str << ")" << std::endl;
 	}
 	else
 	{
-		g_LogFS << "Open Data File (" << str << ")\n";
+		g_LogFS << "Open Data File (" << str << ")" << std::endl;
 	}
 }
 
@@ -1304,11 +1304,11 @@ void closeDataFile(void)
 		fclose(g_DataFP);
 		g_DataFP = NULL;
 		
-		g_LogFS << "CloseDatafile\n";
+		g_LogFS << "CloseDatafile" << std::endl;
 	}
 	else
 	{
-		g_LogFS << "No file to close\n";
+		g_LogFS << "No file to close" << std::endl;
 	}
 
 }

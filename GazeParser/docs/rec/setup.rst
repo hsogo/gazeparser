@@ -42,7 +42,7 @@ An IR LED lighting is placed below the display.
    Figure 4
 
 
-.. _adjusting-camera-label:
+.. _adjusting-camera:
 
 Adjusting camera (monocular recording)
 ==================================================
@@ -74,7 +74,7 @@ The meaning of the parameters are following.
     Specify the size of the area to explore the first Purkinje image. This value may be adjusted for each participant.
 
 **PurkinjeExcludeArea**
-    Specify the distance from the first Purkinje image for re-fitting ellipse to the pupil. See :ref:`measurement-principle-label` for detail.
+    Specify the distance from the first Purkinje image for re-fitting ellipse to the pupil. See :ref:`measurement-principle` for detail.
 
 **Intensity (only for OptiTrack V100R2)**
     Adjust intensity of the embedded IR LED lighting.
