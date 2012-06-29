@@ -1,7 +1,7 @@
 ChangeLog
 ====================
 
-GazeParser 0.5.0alpha
+GazeParser 0.5.0
 ----------------------
 
 (released 2012/06/28)

@@ -46,4 +46,9 @@ If you plan to record gaze data, install one of following files to a computer wh
 - **SimpleGazeTracker-x.x.x-interface-gpc5300.msi**: SimpleGazeTracker installer for CameraLink image grabber manufactured by `Interface Corporation <http://www.interface.co.jp/>`_.
     A CameraLink image grabber supported by Interface GPC5300 software must be installed to the recording PC.
 
+If you need source files of SimpleGazeTracker, download following file.
+
+- **SimpleGazeTracker-x.x.x-src-vsXXXX.zip**: Zipped archive of source files.
+    Source files of SimpleGazeParser for Microsoft Windows is provided as a project of Microsoft VisualStudio.
+    vsXXXX indicates the version of VisualStudio (e.g. 'vs2008' indicates VisualStudio2008).
 

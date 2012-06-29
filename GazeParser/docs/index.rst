@@ -4,7 +4,7 @@ GazeParser is an open-source library for low-cost gaze tracking, parsing and vis
 News
 ==================
 **2012/06/28**
-    GazeParser 0.5.0alpha is released. See :doc:`changelog` for detail.
+    GazeParser 0.5.0 is released. See :doc:`changelog` for detail.
 
 **2012/05/24**
     GazeParser 0.4.1 is released. See :doc:`changelog` for detail.
