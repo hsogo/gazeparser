@@ -390,6 +390,8 @@ void flushGazeData(void)
 					fprintf(g_DataFP,"NOPUPIL,NOPUPIL\n");
 				else if(g_EyeData[i][0] == E_NO_PURKINJE_CANDIDATE)
 					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE\n");
+				else if(g_EyeData[i][0] == E_MULTIPLE_PURKINJE_CANDIDATES)
+					fprintf(g_DataFP,"MULTIPURKINJE,MULTIPURKINJE\n");
 				else if(g_EyeData[i][0] == E_NO_FINE_PUPIL_CANDIDATE)
 					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
 				else
@@ -411,6 +413,8 @@ void flushGazeData(void)
 					fprintf(g_DataFP,"NOPUPIL,NOPUPIL,");
 				else if(g_EyeData[i][BIN_LX] == E_NO_PURKINJE_CANDIDATE)
 					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE,");
+				else if(g_EyeData[i][BIN_LX] == E_MULTIPLE_PURKINJE_CANDIDATES)
+					fprintf(g_DataFP,"MULTIPURKINJE,MULTIPURKINJE,");
 				else if(g_EyeData[i][BIN_LX] == E_NO_FINE_PUPIL_CANDIDATE)
 					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL,");
 				else
@@ -426,6 +430,8 @@ void flushGazeData(void)
 					fprintf(g_DataFP,"NOPUPIL,NOPUPIL\n");
 				else if(g_EyeData[i][BIN_RX] == E_NO_PURKINJE_CANDIDATE)
 					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE\n");
+				else if(g_EyeData[i][BIN_LX] == E_MULTIPLE_PURKINJE_CANDIDATES)
+					fprintf(g_DataFP,"MULTIPURKINJE,MULTIPURKINJE,");
 				else if(g_EyeData[i][BIN_RX] == E_NO_FINE_PUPIL_CANDIDATE)
 					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
 				else

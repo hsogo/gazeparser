@@ -6,6 +6,9 @@
 
 @date 2012/03/23
 - Custom menu is supported.
+@date 2012/07/02
+- delete obsolete definitions
+- define new error code: E_MULTIPLE_PURKINJE_CANDIDATES
 */
 
 
@@ -32,8 +35,6 @@
 #define PREVIEW_WIDTH  640
 #define PREVIEW_HEIGHT 480
 
-#define SENDIMAGE_WIDTH ROI_WIDTH
-#define SENDIMAGE_HEIGHT ROI_HEIGHT
 
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
@@ -46,11 +47,12 @@
 //Error codes
 #define E_FIRST_ERROR_CODE -10000
 #define E_PUPIL_PURKINJE_DETECTION_FAIL -10000 
-#define E_MULTIPLE_PUPIL_CANDIDATES -10001
-#define E_NO_PUPIL_CANDIDATE        -10002
-#define	E_NO_PURKINJE_CANDIDATE     -10003
-#define E_NO_FINE_PUPIL_CANDIDATE   -10004
-#define S_PUPIL_PURKINJE                 0
+#define E_MULTIPLE_PUPIL_CANDIDATES     -10001
+#define E_NO_PUPIL_CANDIDATE            -10002
+#define	E_NO_PURKINJE_CANDIDATE         -10003
+#define E_MULTIPLE_PURKINJE_CANDIDATES  -10004
+#define E_NO_FINE_PUPIL_CANDIDATE       -10005
+#define S_PUPIL_PURKINJE                     0
 
 //Recording Mode
 #define RECORDING_MONOCULAR 0

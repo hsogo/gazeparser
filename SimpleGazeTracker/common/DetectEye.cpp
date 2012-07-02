@@ -7,6 +7,8 @@
 
 @date 2012/03/23
 - Custom menu is supported.
+@date 2012/07/02
+- define OBLATENESS_LOW and OBLATENESS_HIGH
 */
 
 
@@ -22,6 +24,12 @@ cv::Mat g_SrcImg;
 cv::Mat g_DstImg;
 cv::Mat g_CalImg;
 static cv::Rect g_ROI;
+
+#define OBLATENESS_LOW  0.67
+#define OBLATENESS_HIGH 1.50
+#define MAX_FIRST_CANDIDATES 5
+
+
 
 /*!
 Allocate buffers for receiving, processing and sending camera image.
@@ -83,10 +91,14 @@ detectPupilPurkinjeMono: Detect pupil and purkinje image (monocular recording)
 
 @return int
 @retval S_PUPIL_PURKINJE Pupil and Purkinje images are successfully detected.
-@retval E_MULTIPLE_PUPIL_CANDIDATES There were more than two candidates for pupil.
+@retval E_MULTIPLE_PUPIL_CANDIDATES There were more than MAX_FIRST_CANDIDATES candidates for pupil.
 @retval E_NO_PURKINJE_CANDIDATE There was no candidate for Purkinje image.
+@retval E_MULTIPLE_PURKINJE_CANDIDATES There were more than two Purkinje image candidates.
 @retval E_NO_FINE_PUPIL_CANDIDATE Though candidates for pupil and Purkinje images were found, re-fitting was failed.
- */
+
+@date 2012/07/02
+- Check MAX_FIRST_CANDIDATES pupil candidates at maximum.
+*/
 int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[8])
 {
 	cv::Mat tmp;
@@ -94,11 +106,14 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
 	std::vector<std::vector<cv::Point> >::iterator it;
-	std::vector<cv::Point> candidatePoints;
+	std::vector<cv::Point> firstCandidatePoints[MAX_FIRST_CANDIDATES], candidatePoints;
 	std::vector<cv::Point> candidatePointsFine;
 	std::vector<cv::Point>::iterator itFine;
-	cv::RotatedRect candidateRect, candidateRectFine;
+	cv::RotatedRect firstCandidateRects[MAX_FIRST_CANDIDATES], candidateRect, candidateRectFine;
 	int numCandidates = 0;
+	int numPurkinjeCandidates = 0;
+	int indexPupilPurkinjeCandidate;
+	float PurkinjeCandidateCenterX, PurkinjeCandidateCenterY;
 
 	//If g_isShowingCameraImage is true, copy g_frameBuffer to g_pCameraTextureBuffer
 	if(g_isShowingCameraImage){
@@ -150,7 +165,7 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		}
 
 		//Check the shape of the ellipse
-		if( 0.75 < r.size.height/r.size.width && r.size.height/r.size.width < 1.3333 &&
+		if( OBLATENESS_LOW < r.size.height/r.size.width && r.size.height/r.size.width < OBLATENESS_HIGH &&
 			//This may be a pupil
 			r.center.x>PurkinjeSearchArea && r.center.y>PurkinjeSearchArea && 
 			r.center.x<g_CameraWidth-PurkinjeSearchArea && r.center.y<g_CameraHeight-PurkinjeSearchArea){
@@ -160,19 +175,16 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 					cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-20),cv::Point2f(r.center.x,r.center.y+20),CV_RGB(0,255,0));
 					cv::line(g_DstImg,cv::Point2f(r.center.x-20,r.center.y),cv::Point2f(r.center.x+20,r.center.y),CV_RGB(0,255,0));
 				}
-			candidateRect = r;
-			candidatePoints = *it;
+			firstCandidateRects[numCandidates] = r;
+			firstCandidatePoints[numCandidates] = *it;
 			numCandidates++;
-		}else{
-			//Ellipse is too narrow.
-			//If g_isShowingCameraImage is true, draw ellipse with thin line.
-			//2012/06/08 Don't draw narrow ellipses
-			//if(g_isShowingCameraImage) cv::ellipse(g_DstImg,r,CV_RGB(0,0,255));
+			if(numCandidates>=MAX_FIRST_CANDIDATES)
+				break;
 		}
 	}
 
-	if(numCandidates>1){
-		//Multipe candidates are found.
+	if(numCandidates>=MAX_FIRST_CANDIDATES){
+		//Too many candidates are found.
 		if(g_isShowingCameraImage)
 			cv::putText(g_DstImg,"MULTIPLE_PUPIL_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PUPIL_CANDIDATES;
@@ -183,63 +195,82 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		return E_NO_PUPIL_CANDIDATE;
 	}
 
-	//Get a region where we search the 1st Purkinje image.
-	int x = (int)(candidateRect.center.x)-PurkinjeSearchArea;
-	int y = (int)(candidateRect.center.y)-PurkinjeSearchArea;
-	int w = PurkinjeSearchArea*2;
-	int h = PurkinjeSearchArea*2;
+	for(int ic=0; ic<numCandidates; ic++)
+	{
+		//Get a region where we search the 1st Purkinje image.
+		int x = (int)(firstCandidateRects[ic].center.x)-PurkinjeSearchArea;
+		int y = (int)(firstCandidateRects[ic].center.y)-PurkinjeSearchArea;
+		int w = PurkinjeSearchArea*2;
+		int h = PurkinjeSearchArea*2;
+		
+		unsigned char* p;
+		float cogx,cogy;
+		
+		//Find areas brighter than PurkinjeThreshold
+		p = g_SrcImg.ptr<unsigned char>((int)firstCandidateRects[ic].center.y);
+		cv::threshold(g_SrcImg(cv::Rect(x,y,w,h)),roi,PurkinjeThreshold,200,CV_THRESH_BINARY);
+		cv::findContours(roi, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(x,y));
+		
+		int npc = 0;
+		float dx1,dx2,dy1,dy2;
+		cogx = cogy = 0.0;
+		for(it=contours.begin(); it!=contours.end(); it++){
+			if((int)(*it).size()<6){
+				//Contour of the area is too short.
+				continue;
+			}
 
-	
-	unsigned char* p;
-	float cogx,cogy;
-	
-	//Find areas brighter than PurkinjeThreshold
-	p = g_SrcImg.ptr<unsigned char>((int)candidateRect.center.y);
-	cv::threshold(g_SrcImg(cv::Rect(x,y,w,h)),roi,PurkinjeThreshold,200,CV_THRESH_BINARY);
-	cv::findContours(roi, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(x,y));
-	
-	int npc = 0;
-	float dx1,dx2,dy1,dy2;
-	cogx = cogy = 0.0;
-	for(it=contours.begin(); it!=contours.end(); it++){
-		if((int)(*it).size()<6){
-			//Contour of the area is too short.
-			continue;
+			//Fit elliipse
+			cv::Mat points(*it);
+			cv::RotatedRect r;
+			r = cv::fitEllipse(points);
+			dx1 = firstCandidateRects[ic].center.x-cogx;
+			dy1 = firstCandidateRects[ic].center.y-cogy;
+			dx2 = firstCandidateRects[ic].center.x-r.center.x;
+			dy2 = firstCandidateRects[ic].center.y-r.center.y;
+			//Find bright area nearest to the pupil center.
+			if(dx1*dx1+dy1*dy1 > dx2*dx2+dy2*dy2){
+				cogx = r.center.x;
+				cogy = r.center.y;
+			}
+			npc++;
 		}
 
-		//Fit elliipse
-		cv::Mat points(*it);
-		cv::RotatedRect r;
-		r = cv::fitEllipse(points);
-		dx1 = candidateRect.center.x-cogx;
-		dy1 = candidateRect.center.y-cogy;
-		dx2 = candidateRect.center.x-r.center.x;
-		dy2 = candidateRect.center.y-r.center.y;
-		//Find bright area nearest to the pupil center.
-		if(dx1*dx1+dy1*dy1 > dx2*dx2+dy2*dy2){
-			cogx = r.center.x;
-			cogy = r.center.y;
+		if(npc!=0){
+			indexPupilPurkinjeCandidate = ic;
+			candidateRect = firstCandidateRects[ic];
+			candidatePoints = firstCandidatePoints[ic];
+			PurkinjeCandidateCenterX = cogx;
+			PurkinjeCandidateCenterY = cogy;
+			numPurkinjeCandidates++;
+
+			if(g_isShowingCameraImage){
+				cv::rectangle(g_DstImg,cv::Rect(x,y,w,h),CV_RGB(255,255,255));
+				cv::line(g_DstImg,cv::Point2f(cogx,cogy-20),cv::Point2f(cogx,cogy+20),CV_RGB(255,192,0));
+				cv::line(g_DstImg,cv::Point2f(cogx-20,cogy),cv::Point2f(cogx+20,cogy),CV_RGB(255,192,0));
+				cv::circle(g_DstImg,cv::Point2d(cogx,cogy),PurkinjeExclude,CV_RGB(255,192,0));
+			}
 		}
-		npc++;
 	}
-	if(npc==0){
+
+	if(numPurkinjeCandidates==0)
+	{
 		if(g_isShowingCameraImage)
 			cv::putText(g_DstImg,"NO_PURKINJE_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PURKINJE_CANDIDATE;
 	}
-	
-	if(g_isShowingCameraImage){
-		cv::rectangle(g_DstImg,cv::Rect(x,y,w,h),CV_RGB(255,255,255));
-		cv::line(g_DstImg,cv::Point2f(cogx,cogy-20),cv::Point2f(cogx,cogy+20),CV_RGB(255,192,0));
-		cv::line(g_DstImg,cv::Point2f(cogx-20,cogy),cv::Point2f(cogx+20,cogy),CV_RGB(255,192,0));
-		cv::circle(g_DstImg,cv::Point2d(cogx,cogy),PurkinjeExclude,CV_RGB(255,192,0));
+	else if(numPurkinjeCandidates>1)
+	{
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"MULTIPLE_PURKINJE_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
+		return E_MULTIPLE_PURKINJE_CANDIDATES;
 	}
-	
+
 
 	//Re-fit ellipse
 	for(itFine = candidatePoints.begin(); itFine != candidatePoints.end(); itFine++){
 		 
-		if( ((*itFine).x-cogx)*((*itFine).x-cogx) + ((*itFine).y-cogy)*((*itFine).y-cogy) >PurkinjeExclude*PurkinjeExclude){
+		if( ((*itFine).x-PurkinjeCandidateCenterX)*((*itFine).x-PurkinjeCandidateCenterX) + ((*itFine).y-PurkinjeCandidateCenterY)*((*itFine).y-PurkinjeCandidateCenterY) >PurkinjeExclude*PurkinjeExclude){
 			candidatePointsFine.push_back(*itFine);
 			if(g_isShowingCameraImage) cv::circle(g_DstImg,*itFine,1,CV_RGB(255,255,255));
 		}
@@ -254,7 +285,6 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	}
 	
 	candidateRectFine = cv::fitEllipse(cv::Mat(candidatePointsFine));
-	candidateRectFine.angle *= -1;
 	if(g_isShowingCameraImage){
 		cv::ellipse(g_DstImg,candidateRectFine,CV_RGB(0,255,192),2);
 		cv::line(g_DstImg,cv::Point2f(candidateRectFine.center.x,candidateRectFine.center.y-20),cv::Point2f(candidateRectFine.center.x,candidateRectFine.center.y+20),CV_RGB(0,255,192));
@@ -264,8 +294,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 
 	results[MONO_PUPIL_X] = candidateRectFine.center.x;
 	results[MONO_PUPIL_Y] = candidateRectFine.center.y;
-	results[MONO_PURKINJE_X] = cogx;
-	results[MONO_PURKINJE_Y] = cogy;
+	results[MONO_PURKINJE_X] = PurkinjeCandidateCenterX;
+	results[MONO_PURKINJE_Y] = PurkinjeCandidateCenterY;
 
 	return S_PUPIL_PURKINJE;
 }
@@ -289,10 +319,14 @@ detectPupilPurkinjeBin: Detect pupil and purkinje image (Binocular recording)
 
 @return int
 @retval S_PUPIL_PURKINJE Pupil and Purkinje images are successfully detected.
-@retval E_MULTIPLE_PUPIL_CANDIDATES There were more than three candidates for pupil.
+@retval E_MULTIPLE_PUPIL_CANDIDATES There were more than MAX_FIRST_CANDIDATES candidates for pupil.
 @retval E_NO_PURKINJE_CANDIDATE There was no candidate for Purkinje image.
+@retval E_MULTIPLE_PURKINJE_CANDIDATES There were more than two Purkinje image candidates.
 @retval E_NO_FINE_PUPIL_CANDIDATE Though candidates for pupil and Purkinje images were found, re-fitting was failed.
- */
+
+@date 2012/07/02
+- Check MAX_FIRST_CANDIDATES pupil candidates at maximum.
+*/
 int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[8])
 {
 	cv::Mat tmp;
@@ -300,11 +334,13 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Vec4i> hierarchy;
 	std::vector<std::vector<cv::Point> >::iterator it;
-	std::vector<cv::Point> candidatePoints[2];
+	std::vector<cv::Point> firstCandidatePoints[MAX_FIRST_CANDIDATES];
 	std::vector<cv::Point> candidatePointsFine[2];
 	std::vector<cv::Point>::iterator itFine;
-	cv::RotatedRect candidateRect[2], candidateRectFine[2];
+	cv::RotatedRect firstCandidateRects[MAX_FIRST_CANDIDATES], candidateRectFine[2];
 	int numCandidates = 0;
+	int numPurkinjeCandidates = 0;
+	int numFinalPupilPurkinje = 0;
 
 	//If g_isShowingCameraImage is true, copy g_frameBuffer to g_pCameraTextureBuffer
 	if(g_isShowingCameraImage){
@@ -356,7 +392,7 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 		}
 
 		//Check the shape of the ellipse
-		if( 0.75 < r.size.height/r.size.width && r.size.height/r.size.width < 1.3333 &&
+		if( OBLATENESS_LOW < r.size.height/r.size.width && r.size.height/r.size.width < OBLATENESS_HIGH &&
 			//This may be a pupil
 			r.center.x>PurkinjeSearchArea && r.center.y>PurkinjeSearchArea && 
 			r.center.x<g_CameraWidth-PurkinjeSearchArea && r.center.y<g_CameraHeight-PurkinjeSearchArea){
@@ -366,22 +402,16 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 					cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-20),cv::Point2f(r.center.x,r.center.y+20),CV_RGB(0,255,0));
 					cv::line(g_DstImg,cv::Point2f(r.center.x-20,r.center.y),cv::Point2f(r.center.x+20,r.center.y),CV_RGB(0,255,0));
 				}
-			if(numCandidates<2)
-			{
-				candidateRect[numCandidates] = r;
-				candidatePoints[numCandidates] = *it;
-			}
+			firstCandidateRects[numCandidates] = r;
+			firstCandidatePoints[numCandidates] = *it;
 			numCandidates++;
-		}else{
-			//Ellipse is too narrow.
-			//If g_isShowingCameraImage is true, draw ellipse with thin line.
-			//2012/06/08 Don't draw narrow ellipses
-			//if(g_isShowingCameraImage) cv::ellipse(g_DstImg,r,CV_RGB(0,0,255));
+			if(numCandidates>=MAX_FIRST_CANDIDATES)
+				break;
 		}
 	}
 
-	if(numCandidates>2){
-		//Multipe candidates are found.
+	if(numCandidates>=MAX_FIRST_CANDIDATES){
+		//Too many candidates are found.
 		if(g_isShowingCameraImage)
 			cv::putText(g_DstImg,"MULTIPLE_PUPIL_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PUPIL_CANDIDATES;
@@ -402,9 +432,9 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 	results[BIN_PURKINJE_RY] = E_NO_PUPIL_CANDIDATE;
 
 	//Get a region where we search the 1st Purkinje image.
-	for(int i=0; i<numCandidates; i++){
-		int x= (int)(candidateRect[i].center.x)-PurkinjeSearchArea;
-		int y = (int)(candidateRect[i].center.y)-PurkinjeSearchArea;
+	for(int ic=0; ic<numCandidates; ic++){
+		int x= (int)(firstCandidateRects[ic].center.x)-PurkinjeSearchArea;
+		int y = (int)(firstCandidateRects[ic].center.y)-PurkinjeSearchArea;
 		int w = PurkinjeSearchArea*2;
 		int h = PurkinjeSearchArea*2;
 	
@@ -412,7 +442,7 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 		float cogx,cogy;
 		
 		//Find areas brighter than PurkinjeThreshold
-		p = g_SrcImg.ptr<unsigned char>((int)candidateRect[i].center.y);
+		p = g_SrcImg.ptr<unsigned char>((int)firstCandidateRects[ic].center.y);
 		cv::threshold(g_SrcImg(cv::Rect(x,y,w,h)),roi,PurkinjeThreshold,200,CV_THRESH_BINARY);
 		cv::findContours(roi, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(x,y));
 		
@@ -429,10 +459,10 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 			cv::Mat points(*it);
 			cv::RotatedRect r;
 			r = cv::fitEllipse(points);
-			dx1 = candidateRect[i].center.x-cogx;
-			dy1 = candidateRect[i].center.y-cogy;
-			dx2 = candidateRect[i].center.x-r.center.x;
-			dy2 = candidateRect[i].center.y-r.center.y;
+			dx1 = firstCandidateRects[ic].center.x-cogx;
+			dy1 = firstCandidateRects[ic].center.y-cogy;
+			dx2 = firstCandidateRects[ic].center.x-r.center.x;
+			dy2 = firstCandidateRects[ic].center.y-r.center.y;
 			//Find bright area nearest to the pupil center.
 			if(dx1*dx1+dy1*dy1 > dx2*dx2+dy2*dy2){
 				cogx = r.center.x;
@@ -441,10 +471,10 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 			npc++;
 		}
 		if(npc==0){
-			if(g_isShowingCameraImage)
-				cv::putText(g_DstImg,"NO_PURKINJE_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
-			return E_NO_PURKINJE_CANDIDATE;
+			//no Purkinje Image
+			continue;
 		}
+		numPurkinjeCandidates++;
 		
 		if(g_isShowingCameraImage){
 			cv::rectangle(g_DstImg,cv::Rect(x,y,w,h),CV_RGB(255,255,255));
@@ -453,44 +483,63 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 			cv::circle(g_DstImg,cv::Point2d(cogx,cogy),PurkinjeExclude,CV_RGB(255,192,0));
 		}
 		
-
-		//Re-fit ellipse
-		for(itFine = candidatePoints[i].begin(); itFine != candidatePoints[i].end(); itFine++){
-			 
-			if( ((*itFine).x-cogx)*((*itFine).x-cogx) + ((*itFine).y-cogy)*((*itFine).y-cogy) >PurkinjeExclude*PurkinjeExclude){
-				candidatePointsFine[i].push_back(*itFine);
-				if(g_isShowingCameraImage) cv::circle(g_DstImg,*itFine,1,CV_RGB(255,255,255));
-			}
-		}
-
-		if(candidatePointsFine[i].size()<10)
+		if(numFinalPupilPurkinje<2)
 		{
-			//Re-fitted ellipse is too small
-			if(g_isShowingCameraImage)
-				cv::putText(g_DstImg,"NO_FINE_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
-			return E_NO_FINE_PUPIL_CANDIDATE;
-		}
-		
-		candidateRectFine[i] = cv::fitEllipse(cv::Mat(candidatePointsFine[i]));
-		candidateRectFine[i].angle *= -1;
-		if(g_isShowingCameraImage){
-			cv::ellipse(g_DstImg,candidateRectFine[i],CV_RGB(0,255,192),2);
-			cv::line(g_DstImg,cv::Point2f(candidateRectFine[i].center.x,candidateRectFine[i].center.y-20),cv::Point2f(candidateRectFine[i].center.x,candidateRectFine[i].center.y+20),CV_RGB(0,255,192));
-			cv::line(g_DstImg,cv::Point2f(candidateRectFine[i].center.x-20,candidateRectFine[i].center.y),cv::Point2f(candidateRectFine[i].center.x+20,candidateRectFine[i].center.y),CV_RGB(0,255,192));
-		}
+			//Re-fit ellipse
+			for(itFine = firstCandidatePoints[ic].begin(); itFine != firstCandidatePoints[ic].end(); itFine++){
+				 
+				if( ((*itFine).x-cogx)*((*itFine).x-cogx) + ((*itFine).y-cogy)*((*itFine).y-cogy) >PurkinjeExclude*PurkinjeExclude){
+					candidatePointsFine[numFinalPupilPurkinje].push_back(*itFine);
+					if(g_isShowingCameraImage) cv::circle(g_DstImg,*itFine,1,CV_RGB(255,255,255));
+				}
+			}
 
-		if(candidateRectFine[i].center.x<g_CameraWidth/2){ //leftside of the camera image = right eye
-			results[BIN_PUPIL_RX] = candidateRectFine[i].center.x;
-			results[BIN_PUPIL_RY] = candidateRectFine[i].center.y;
-			results[BIN_PURKINJE_RX] = cogx;
-			results[BIN_PURKINJE_RY] = cogy;
-		}else{
-			results[BIN_PUPIL_LX] = candidateRectFine[i].center.x;
-			results[BIN_PUPIL_LY] = candidateRectFine[i].center.y;
-			results[BIN_PURKINJE_LX] = cogx;
-			results[BIN_PURKINJE_LY] = cogy;
-		}
+			if(candidatePointsFine[numFinalPupilPurkinje].size()<10)
+			{
+				// no fine pupil candidates
+				continue;
+			}
 
+			candidateRectFine[numFinalPupilPurkinje] = cv::fitEllipse(cv::Mat(candidatePointsFine[numFinalPupilPurkinje]));
+			if(g_isShowingCameraImage){
+				cv::ellipse(g_DstImg,candidateRectFine[numFinalPupilPurkinje],CV_RGB(0,255,192),2);
+				cv::line(g_DstImg,cv::Point2f(candidateRectFine[numFinalPupilPurkinje].center.x,candidateRectFine[numFinalPupilPurkinje].center.y-20),cv::Point2f(candidateRectFine[numFinalPupilPurkinje].center.x,candidateRectFine[numFinalPupilPurkinje].center.y+20),CV_RGB(0,255,192));
+				cv::line(g_DstImg,cv::Point2f(candidateRectFine[numFinalPupilPurkinje].center.x-20,candidateRectFine[numFinalPupilPurkinje].center.y),cv::Point2f(candidateRectFine[numFinalPupilPurkinje].center.x+20,candidateRectFine[numFinalPupilPurkinje].center.y),CV_RGB(0,255,192));
+			}
+
+			if(candidateRectFine[numFinalPupilPurkinje].center.x<g_CameraWidth/2){ //leftside of the camera image = right eye
+				results[BIN_PUPIL_RX] = candidateRectFine[numFinalPupilPurkinje].center.x;
+				results[BIN_PUPIL_RY] = candidateRectFine[numFinalPupilPurkinje].center.y;
+				results[BIN_PURKINJE_RX] = cogx;
+				results[BIN_PURKINJE_RY] = cogy;
+			}else{
+				results[BIN_PUPIL_LX] = candidateRectFine[numFinalPupilPurkinje].center.x;
+				results[BIN_PUPIL_LY] = candidateRectFine[numFinalPupilPurkinje].center.y;
+				results[BIN_PURKINJE_LX] = cogx;
+				results[BIN_PURKINJE_LY] = cogy;
+			}
+
+			numFinalPupilPurkinje++;
+		}
+	}
+
+	if(numPurkinjeCandidates==0)
+	{
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"NO_PURKINJE_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
+		return E_NO_PURKINJE_CANDIDATE;
+	}
+	else if(numPurkinjeCandidates>2)
+	{
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"MULTIPLE_PURKINJE_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
+		return E_MULTIPLE_PURKINJE_CANDIDATES;
+	}
+	else if(numFinalPupilPurkinje==0)
+	{
+		if(g_isShowingCameraImage)
+			cv::putText(g_DstImg,"NO_FINE_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
+		return E_NO_FINE_PUPIL_CANDIDATE;
 	}
 
 	return S_PUPIL_PURKINJE;
