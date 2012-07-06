@@ -3,7 +3,7 @@
 @author Hiroyuki Sogo
 @copyright GNU General Public License (GPL) version 3.
 
-@brief Main part of GazeParser.Tracker application.
+@brief Main part of SimpleGazeTracker application.
 
 @date 2012/03/23
 - Custom menu is supported.
@@ -712,7 +712,7 @@ int main(int argc, char** argv)
 		SDL_Quit();
 		return -1;
 	}
-	SDL_WM_SetCaption("GazeParser.Tracker",NULL);
+	SDL_WM_SetCaption("SimpleGazeTracker",NULL);
 
 	if(FAILED(initParameters())){
 		SDL_Quit();
@@ -740,7 +740,7 @@ int main(int argc, char** argv)
 	g_LogFS << "initSDLTTF ... OK." << std::endl;
 
 	//now message can be rendered on screen.
-	std::string str("Welcome to GazeParser.Tracker version ");
+	std::string str("Welcome to SimpleGazeTracker version ");
 	str.append(VERSION);
 	renderInitMessages(nInitMessage,str.c_str());
 	nInitMessage++;
