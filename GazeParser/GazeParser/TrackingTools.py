@@ -810,7 +810,7 @@ class BaseController:
         else:
             return True
     
-    def getSpatialError(position=None, responseKey='space'):
+    def getSpatialError(self, position=None, responseKey='space'):
         """
         Verify measurement error at a given position on the screen.
         
@@ -842,6 +842,11 @@ class BaseController:
         
         self.calTargetPosition = position
         
+        self.showCameraImage = False
+        self.showCalImage = False
+        self.showCalTarget = True
+        self.showCalDisplay = False
+        
         isWaitingKey = True
         while isWaitingKey:
             keys = self.getKeys()
@@ -856,18 +861,18 @@ class BaseController:
             if eyepos[0] == None:
                 error = None
             else:
-                error = numpy.linarg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+                error = numpy.linalg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
             retval = (error, eyepos)
             
         else: #binocular
             if eyepos[0] == None:
                 errorL = None
             else:
-                errorL = numpy.linarg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+                errorL = numpy.linalg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
             if eyepos[2] == None:
                 errorR = None
             else:
-                errorR = numpy.linarg.norm((eyepos[2]-position[0],eyepos[3]-position[1]))
+                errorR = numpy.linalg.norm((eyepos[2]-position[0],eyepos[3]-position[1]))
             
             if errorL != None and errorR != None:
                 error = (errorL+errorR)/2.0
@@ -1035,7 +1040,7 @@ class ControllerPsychoPyBackend(BaseController):
         ..todo: write document.
         """
         pixArea = self.convertToPix(area, units, forceToInt = True)
-        
+        pixCalposlist = [self.convertToPix(calpos, units, forceToInt = True) for calpos in calposlist]
         """
         if units == 'norm':
             pixArea = [int(area[0]*self.win.size[0]/2),int(area[1]*self.win.size[1]/2),int(area[2]*self.win.size[0]/2),int(area[3]*self.win.size[1]/2)]
@@ -1064,29 +1069,33 @@ class ControllerPsychoPyBackend(BaseController):
         return self.convertFromPix(e)
     
     #Override
-    def getSpatialError(position=None, responseKey='space', units='pix'):
+    def getSpatialError(self, position=None, responseKey='space', units='pix'):
         if position != None:
-            posInFix = self.convertToPix(position, units)
-            
-        eyepos = self.convertFromPix(BaseController.getSpatialError(posInFix, responseKey)[-1], units)
+            posInPix = self.convertToPix(position, units)
+        else:
+            position = (0, 0)
+            posInPix = (0, 0)
+        
+        error = BaseController.getSpatialError(self, position=posInPix, responseKey=responseKey)
+        eyepos = self.convertFromPix(error[-1], units)
         
         # following part is copied from BaseController.getSpatialError
         if len(eyepos)==2: #monocular
             if eyepos[0] == None:
                 error = None
             else:
-                error = numpy.linarg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+                error = numpy.linalg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
             retval = (error, eyepos)
             
         else: #binocular
             if eyepos[0] == None:
                 errorL = None
             else:
-                errorL = numpy.linarg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+                errorL = numpy.linalg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
             if eyepos[2] == None:
                 errorR = None
             else:
-                errorR = numpy.linarg.norm((eyepos[2]-position[0],eyepos[3]-position[1]))
+                errorR = numpy.linalg.norm((eyepos[2]-position[0],eyepos[3]-position[1]))
             
             if errorL != None and errorR != None:
                 error = (errorL+errorR)/2.0
@@ -1095,7 +1104,7 @@ class ControllerPsychoPyBackend(BaseController):
         
         return retval
     
-    def convertToPix(pos, units, forceToInt=False):
+    def convertToPix(self, pos, units, forceToInt=False):
         retval = []
         if units == 'norm':
             for i in range(len(pos)):
@@ -1125,7 +1134,7 @@ class ControllerPsychoPyBackend(BaseController):
                 else:
                     retval.append(self.deg2pix(pos[i]))
         elif units == 'pix':
-            retval = pos
+            retval = list(pos)
         else:
             raise ValueError, 'units must bet norm, height, cm, deg or pix.'
         
@@ -1136,7 +1145,7 @@ class ControllerPsychoPyBackend(BaseController):
         
         return retval
     
-    def convertFromPix(pos,units):
+    def convertFromPix(self, pos, units):
         retval = []
         if units == 'norm':
             for i in range(len(pos)):
@@ -1165,7 +1174,7 @@ class ControllerPsychoPyBackend(BaseController):
                 else:
                     retval.append(self.pix2deg(pos[i]))
         elif units == 'pix':
-            retval =  pos
+            retval =  list(pos)
         else:
             raise ValueError, 'units must bet norm, height, cm, deg or pix.'
         
@@ -1178,6 +1187,8 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
     """
     def __init__(self, configFile):
         ControllerVisionEggBackend.__init__(self, configFile)
+        from pygame import mouse
+        self.mouse = mouse
     
     def connect(self, address, port1=10000, port2=10001):
         """
@@ -1201,7 +1212,8 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         Dummy function for debugging. This method returns current mouse position.
         """
-        return self.pygame.mouse.get_pos()
+        pos = self.mouse.get_pos()
+        return (pos[0], self.screenHeight-pos[1])
     
     def sendMessage(self, message):
         """
@@ -1273,7 +1285,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         Dummy function for debugging. This method returns current eye position
         """
-        return self.mouse.getPos()
+        return self.myMouse.getPos()
     
     def sendMessage(self, message):
         """
@@ -1314,6 +1326,9 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     def sendCommand(self, command):
         print 'Dummy sendCommand: '+ command
     
+    def setCalibrationScreen(self, win):
+        ControllerPsychoPyBackend.setCalibrationScreen(self,win)
+        self.myMouse = self.mouse(win=self.win)
 
 
 def getController(backend, configFile=None, dummy=False):
