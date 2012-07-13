@@ -96,6 +96,8 @@ int initCamera( const char* ParamPath )
 	char *p,*pp;
 	char buff[1024];
 	double param;
+	
+	int cameraID = 0;
 
 	str = ParamPath;
 	str.append(PATH_SEPARATOR);
@@ -119,13 +121,17 @@ int initCamera( const char* ParamPath )
 			{
 				g_SleepDuration = (int)param;
 			}
-            else if(strcmp(buff,"USE_THREAD")==0)
-            {
-                if((int)param!=0)
-                {
-                    g_isThreadMode = true;
-                }
-            }
+			else if(strcmp(buff,"USE_THREAD")==0)
+			{
+				if((int)param!=0)
+				{
+					g_isThreadMode = true;
+				}
+			}
+			else if(strcmp(buff,"CAMERA_ID")==0)
+			{
+				cameraID = (int)param;
+			}
 			else if(strcmp(buff,"FRAME_RATE")==0)
 			{
 				g_FrameRate = param;
@@ -158,7 +164,7 @@ int initCamera( const char* ParamPath )
 		return E_FAIL;
 	}
 
-	g_VideoCapture = cv::VideoCapture(0);
+	g_VideoCapture = cv::VideoCapture(cameraID);
 	if(!g_VideoCapture.isOpened())
 	{
 		g_LogFS << "ERROR: no VideoCapture device is found." << std::endl;

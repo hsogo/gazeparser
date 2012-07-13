@@ -90,6 +90,12 @@ Lines start with '#' are ignored.  This is an example of CONFIG_OPENCV.
 ===================== ============================================================== =========================
 Parameter             Description                                                    Adjustable at run-time
 ===================== ============================================================== =========================
+CAMERA_ID             This integer is passed to the constructor or CV::VideoCapture. NO
+                      Usually you need not write this parameter to the configuration 
+                      file if you connect only one camera to your PC.  If you have 
+                      multiple cameras on your PC and SimpleGazeTracker does not
+                      use desirable camera, use this parameter to tell
+                      SimpleGazeTracker which camera should be used.
 USE_THREAD            This parameter must be **0** or **1**.  A saparate thread is   NO
                       used to capture image if the value is 1.  Generally, using 
                       separate thread results in better performance: however, 
