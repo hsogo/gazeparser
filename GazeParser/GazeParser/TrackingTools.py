@@ -8,7 +8,6 @@
 
 import Image
 import ImageDraw
-#import pygame, pygame.locals
 
 import socket
 import select
@@ -19,6 +18,7 @@ import os
 import sys
 import ConfigParser
 
+import numpy
 
 ControllerDefaults = {
 'IMAGE_WIDTH': 320,
@@ -32,7 +32,7 @@ ControllerDefaults = {
 
 class BaseController:
     """
-    Base class for GazeParser.Tracker controllers. Following methods must be overridden.
+    Base class for SimpleGazeTracker controllers. Following methods must be overridden.
     
     - self.setCalibrationScreen(self, screen)
     - self.updateScreen(self)
@@ -519,8 +519,6 @@ class BaseController:
         
         :return: 'space' or 'q'
             depending on which key is pressed to terminate calibration loop.
-        
-        .. todo:: support psychopy pyglet backend. return value should be modified.
         """
         if not (self.calTargetPosSet and self.calAreaSet):
             print 'Calibration parameters are not set.'
@@ -599,16 +597,16 @@ class BaseController:
     
     def getCalibrationResultsDetail(self,timeout=0.2):
         """
+        Get detailed calibration results.
         
         :param float timeout:
             If the Tracker Host PC does not respond within this duration, '----'
             is returned. Unit is second. Default value is 0.2
         :return:
-            
+            Detailed Calibration
         
-        .. note:: Usually, you don't need use this method.
-        
-        .. todo:: psychopy support
+        .. note:: Usually, you don't need use this method because this method 
+            is automatically called form doCalibration() and doValidation().
         """
         self.sendCommand('getCalResultsDetail'+chr(0))
         hasGotCal = False
@@ -811,12 +809,77 @@ class BaseController:
             return False
         else:
             return True
+    
+    def getSpatialError(position=None, responseKey='space'):
+        """
+        Verify measurement error at a given position on the screen.
+        
+        :param position:
+            A tuple of two numbers that represents target position in screen coordinate.
+            If None, the center of the screen is used.  Default value is None.
+        :param responseKey:
+            When this key is pressed, eye position is measured and spatial error is 
+            evaluated.  Default value is 'space'.
+            
+        :return:
+            If recording mode is monocular, a tuple of two elements is retuened.
+            The first element is the distance from target to measured eye position.
+            The second element is a tuple that represents measured eye position.
+            If measurement is failed, the first element is None.
+            
+            If recording mode is binocular, a tuple of four elements is returned.
+            The first, second and third element is the distance from target to 
+            measured eye position.  The second and third element are the results 
+            for left eye and right eye, respectively.  These elements are None if 
+            measurement of corresponding eye is failed.  The first element is 
+            the average of the second and third element.  If measurement of either
+            Left or Right eye is failed, the first element is also None.
+            The fourth element is measured eye position.
+        
+        """
+        if position==None:
+            position = self.screenCenter
+        
+        self.calTargetPosition = position
+        
+        isWaitingKey = True
+        while isWaitingKey:
+            keys = self.getKeys()
+            for key in keys:
+                if key == responseKey:
+                    isWaitingKey = False
+                    eyepos = self.getEyePosition()
+                    break
+            self.updateScreen()
+        
+        if len(eyepos)==2: #monocular
+            if eyepos[0] == None:
+                error = None
+            else:
+                error = numpy.linarg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+            retval = (error, eyepos)
+            
+        else: #binocular
+            if eyepos[0] == None:
+                errorL = None
+            else:
+                errorL = numpy.linarg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+            if eyepos[2] == None:
+                errorR = None
+            else:
+                errorR = numpy.linarg.norm((eyepos[2]-position[0],eyepos[3]-position[1]))
+            
+            if errorL != None and errorR != None:
+                error = (errorL+errorR)/2.0
+            
+            retval = (error, errorL, errorR, eyepos)
+        
+        return retval
 
 
 class ControllerVisionEggBackend(BaseController):
     """
-    
-    
+    SimpleGazeTracker controller for VisionEgg.
     """
     
     def __init__(self, configFile=None):
@@ -855,6 +918,7 @@ class ControllerVisionEggBackend(BaseController):
         """
         self.screen = screen
         (self.screenWidth, self.screenHeight) = screen.size
+        self.screenCenter = (screen.size[0]/2, screen.size[1]/2)
         self.caltarget = self.VETarget2D(size=(10,10),on=False,color=(0,0,0))
         self.PILimgCAL = Image.new('L',(self.screenWidth,self.screenHeight))
         self.texture = self.VETexture(self.PILimg)
@@ -902,14 +966,12 @@ class ControllerVisionEggBackend(BaseController):
             keys.append('right')
         
         return keys
+    
 
 
 class ControllerPsychoPyBackend(BaseController):
     """
-    
-    .. note::
-        Currentry, PsychoPy controller must be used with pygame screen
-        and 'deg' unit.
+    SimpleGazeTracker controller for PsychoPy.
     """
     def __init__(self, configFile=None):
         """
@@ -939,6 +1001,7 @@ class ControllerPsychoPyBackend(BaseController):
         """
         self.win = win
         (self.screenWidth, self.screenHeight) = win.size
+        self.screenCenter = (0,0)
         self.caltarget = self.PPRect(self.win,width=10,height=10,units='pix')
         self.PILimgCAL = Image.new('L',(self.screenWidth,self.screenHeight))
         self.img = self.PPSimpleImageStim(self.win, self.PILimg)
@@ -968,6 +1031,12 @@ class ControllerPsychoPyBackend(BaseController):
     
     #Override
     def setCalibrationTargetPositions(self, area, calposlist, units='pix'):
+        """
+        ..todo: write document.
+        """
+        pixArea = self.convertToPix(area, units, forceToInt = True)
+        
+        """
         if units == 'norm':
             pixArea = [int(area[0]*self.win.size[0]/2),int(area[1]*self.win.size[1]/2),int(area[2]*self.win.size[0]/2),int(area[3]*self.win.size[1]/2)]
             pixCalposlist = [[int(p[0]*self.win.size[0]/2),int(p[1]*self.win.size[1]/2)] for p in calposlist]
@@ -985,43 +1054,118 @@ class ControllerPsychoPyBackend(BaseController):
             pixCalposlist = calposlist
         else:
             raise ValueError, 'units must bet norm, height, cm, deg or pix.'
+        """
         
         BaseController.setCalibrationTargetPositions(self,pixArea,pixCalposlist)
     
     #Override
     def getEyePosition(self, timeout=0.02, units='pix'):
         e = BaseController.getEyePosition(self, timeout)
+        return self.convertFromPix(e)
+    
+    #Override
+    def getSpatialError(position=None, responseKey='space', units='pix'):
+        if position != None:
+            posInFix = self.convertToPix(position, units)
+            
+        eyepos = self.convertFromPix(BaseController.getSpatialError(posInFix, responseKey)[-1], units)
+        
+        # following part is copied from BaseController.getSpatialError
+        if len(eyepos)==2: #monocular
+            if eyepos[0] == None:
+                error = None
+            else:
+                error = numpy.linarg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+            retval = (error, eyepos)
+            
+        else: #binocular
+            if eyepos[0] == None:
+                errorL = None
+            else:
+                errorL = numpy.linarg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+            if eyepos[2] == None:
+                errorR = None
+            else:
+                errorR = numpy.linarg.norm((eyepos[2]-position[0],eyepos[3]-position[1]))
+            
+            if errorL != None and errorR != None:
+                error = (errorL+errorR)/2.0
+            
+            retval = (error, errorL, errorR, eyepos)
+        
+        return retval
+    
+    def convertToPix(pos, units, forceToInt=False):
+        retval = []
         if units == 'norm':
-            retval = []
-            for i in range(len(e)):
-                if e[i] == None:
+            for i in range(len(pos)):
+                if pos[i] == None:
                     retval.append(None)
                 else:
                     if i%2==0: #X
-                        retval.append(e[i]/float(self.win.size[0]/2))
+                        retval.append(pos[i]*self.win.size[0]/2)
                     else: #Y
-                        retval.append(e[i]/float(self.win.size[1]/2))
+                        retval.append(pos[i]*self.win.size[1]/2)
         elif units == 'height':
-            retval = []
-            for i in range(len(e)):
-                if e[i] == None:
+            for i in range(len(pos)):
+                if pos[i] == None:
                     retval.append(None)
                 else:
-                    retval.append(e[i]/float(self.win.size[1]/2))
+                    retval.append(pos[i]*self.win.size[1]/2)
         elif units == 'cm':
-            retval = []
-            for i in range(len(e)):
-                if e[i] == None:
+            for i in range(len(pos)):
+                if pos[i] == None:
                     retval.append(None)
                 else:
-                    retval.append(pix2cm(e[i]))
+                    retval.append(self.cm2pix(pos[i]))
         elif units == 'deg':
-                if e[i] == None:
+            for i in range(len(pos)):
+                if pos[i] == None:
                     retval.append(None)
                 else:
-                    retval.append(pix2deg(e[i]))
+                    retval.append(self.deg2pix(pos[i]))
         elif units == 'pix':
-            retval =  e
+            retval = pos
+        else:
+            raise ValueError, 'units must bet norm, height, cm, deg or pix.'
+        
+        if forceToInt:
+            for i in range(len(retval)):
+                if retval[i] != None:
+                    retval[i] = int(retval[i])
+        
+        return retval
+    
+    def convertFromPix(pos,units):
+        retval = []
+        if units == 'norm':
+            for i in range(len(pos)):
+                if pos[i] == None:
+                    retval.append(None)
+                else:
+                    if i%2==0: #X
+                        retval.append(pos[i]/float(self.win.size[0]/2))
+                    else: #Y
+                        retval.append(pos[i]/float(self.win.size[1]/2))
+        elif units == 'height':
+            for i in range(len(pos)):
+                if pos[i] == None:
+                    retval.append(None)
+                else:
+                    retval.append(pos[i]/float(self.win.size[1]/2))
+        elif units == 'cm':
+            for i in range(len(pos)):
+                if pos[i] == None:
+                    retval.append(None)
+                else:
+                    retval.append(self.pix2cm(pos[i]))
+        elif units == 'deg':
+                if pos[i] == None:
+                    retval.append(None)
+                else:
+                    retval.append(self.pix2deg(pos[i]))
+        elif units == 'pix':
+            retval =  pos
         else:
             raise ValueError, 'units must bet norm, height, cm, deg or pix.'
         
@@ -1055,9 +1199,9 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
     
     def getEyePosition(self, timeout=0.02):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method returns current mouse position.
         """
-        return [None, None]
+        return self.pygame.mouse.get_pos()
     
     def sendMessage(self, message):
         """
@@ -1104,6 +1248,8 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     """
     def __init__(self, configFile):
         ControllerPsychoPyBackend.__init__(self, configFile)
+        from psychopy.event import Mouse
+        self.mouse = Mouse
     
     def connect(self, address, port1=10000, port2=10001):
         """
@@ -1125,9 +1271,9 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     
     def getEyePosition(self, timeout=0.02):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method returns current eye position
         """
-        return [None, None]
+        return self.mouse.getPos()
     
     def sendMessage(self, message):
         """

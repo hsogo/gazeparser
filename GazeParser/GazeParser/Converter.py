@@ -575,7 +575,7 @@ def applyFilter(T, HV, config, decimals=2):
 
 def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=True):
     """
-    Convert an GazeParser.Tracker data file to a GazeParser file.
+    Convert an SimpleGazeTracker data file to a GazeParser file.
     If GazeTracker data file name is 'foo.csv', the output file name is 'foo.db'
     
     :param str inputfile:
