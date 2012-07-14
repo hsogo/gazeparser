@@ -989,7 +989,4 @@ class GazeData(object):
                 return r
             else: #binocular
                 return (l+r)/2.0
-            
-    
-    def getTimeInRectangleRegion(self,rectangle):
-        pass
+

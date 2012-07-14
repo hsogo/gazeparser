@@ -733,7 +733,7 @@ class BaseController:
             else:
                 self.messageText='LEFT(black) X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f / RIGHT(white) X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
         except:
-            self.messageText='getCalResults failed.'
+            self.messageText='Calibration/Validation failed.'
         
         self.getCalibrationResultsDetail()
         
@@ -795,7 +795,7 @@ class BaseController:
             else:
                 self.messageText='LEFT X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f / RIGHT X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
         except:
-            self.messageText.text='getcalibrationResults failed.'
+            self.messageText='Calibration/Validation failed.'
         
         self.getCalibrationResultsDetail()
     
@@ -810,7 +810,7 @@ class BaseController:
         else:
             return True
     
-    def getSpatialError(self, position=None, responseKey='space'):
+    def getSpatialError(self, position=None, responseKey='space', message=None):
         """
         Verify measurement error at a given position on the screen.
         
@@ -820,9 +820,12 @@ class BaseController:
         :param responseKey:
             When this key is pressed, eye position is measured and spatial error is 
             evaluated.  Default value is 'space'.
-            
+        :param message:
+            If a string is given, the string is presented on the screen.
+            Default value is None.
+        
         :return:
-            If recording mode is monocular, a tuple of two elements is retuened.
+            If recording mode is monocular, a tuple of two elements is returned.
             The first element is the distance from target to measured eye position.
             The second element is a tuple that represents measured eye position.
             If measurement is failed, the first element is None.
@@ -845,7 +848,11 @@ class BaseController:
         self.showCameraImage = False
         self.showCalImage = False
         self.showCalTarget = True
-        self.showCalDisplay = False
+        if message == None:
+            self.showCalDisplay = False
+        else:
+            self.showCalDisplay = True
+            self.messageText = message
         
         isWaitingKey = True
         while isWaitingKey:
@@ -1069,14 +1076,14 @@ class ControllerPsychoPyBackend(BaseController):
         return self.convertFromPix(e)
     
     #Override
-    def getSpatialError(self, position=None, responseKey='space', units='pix'):
+    def getSpatialError(self, position=None, responseKey='space', units='pix', message=None):
         if position != None:
             posInPix = self.convertToPix(position, units)
         else:
             position = (0, 0)
             posInPix = (0, 0)
         
-        error = BaseController.getSpatialError(self, position=posInPix, responseKey=responseKey)
+        error = BaseController.getSpatialError(self, position=posInPix, responseKey=responseKey, message=message)
         eyepos = self.convertFromPix(error[-1], units)
         
         # following part is copied from BaseController.getSpatialError
@@ -1183,7 +1190,7 @@ class ControllerPsychoPyBackend(BaseController):
 
 class DummyVisionEggBackend(ControllerVisionEggBackend):
     """
-    .. todo:: getEyePosition should emulate eye movement (with mouse?).
+    
     """
     def __init__(self, configFile):
         ControllerVisionEggBackend.__init__(self, configFile)
@@ -1246,6 +1253,9 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         return 'Dummy Results'
     
     def getCameraImage(self):
+        draw = ImageDraw.Draw(self.PILimg)
+        draw.rectangle(((0,0),(self.imageWidth,self.imageHeight)),fill=0)
+        draw.text((64,64),'Camera Preview',fill=255)
         return None
     
     def getCalibrationResultsDetail(self,timeout=0.2):
@@ -1254,9 +1264,32 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
     def sendCommand(self, command):
         print 'Dummy sendCommand: '+ command
     
+    def setCalibrationScreen(self, screen):
+        ControllerVisionEggBackend.setCalibrationScreen(self,screen)
+        draw = ImageDraw.Draw(self.PILimgCAL)
+        draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=0)
+        draw.text((64,64),'Calibration/Validation Results',fill=255)
+        self.drawCalibrationResults()
+    
+    def doCalibration(self):
+        BaseController.doCalibration(self)
+        if self.showCalDisplay == True:
+            self.showCalImage = True
+        else:
+            self.showCalImage = False
+        self.messageText = 'Dummy Results'
+    
+    def doValidation(self):
+        BaseController.doValidation(self)
+        if self.showCalDisplay == True:
+            self.showCalImage = True
+        else:
+            self.showCalImage = False
+        self.messageText = 'Dummy Results'
+    
 class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     """
-    .. todo:: getEyePosition should emulate eye movement (with mouse?).
+    
     """
     def __init__(self, configFile):
         ControllerPsychoPyBackend.__init__(self, configFile)
@@ -1318,6 +1351,9 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         return 'Dummy Results'
     
     def getCameraImage(self):
+        draw = ImageDraw.Draw(self.PILimg)
+        draw.rectangle(((0,0),(self.imageWidth,self.imageHeight)),fill=0)
+        draw.text((64,64),'Camera Preview',fill=255)
         return None
     
     def getCalibrationResultsDetail(self,timeout=0.2):
@@ -1329,7 +1365,26 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     def setCalibrationScreen(self, win):
         ControllerPsychoPyBackend.setCalibrationScreen(self,win)
         self.myMouse = self.mouse(win=self.win)
-
+        draw = ImageDraw.Draw(self.PILimgCAL)
+        draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=0)
+        draw.text((64,64),'Calibration/Validation Results',fill=255)
+        self.drawCalibrationResults()
+    
+    def doCalibration(self):
+        BaseController.doCalibration(self)
+        if self.showCalDisplay == True:
+            self.showCalImage = True
+        else:
+            self.showCalImage = False
+        self.messageText = 'Dummy Results'
+    
+    def doValidation(self):
+        BaseController.doValidation(self)
+        if self.showCalDisplay == True:
+            self.showCalImage = True
+        else:
+            self.showCalImage = False
+        self.messageText = 'Dummy Results'
 
 def getController(backend, configFile=None, dummy=False):
     """

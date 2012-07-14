@@ -12,30 +12,22 @@ import GazeParser.TrackingTools
 class FileWindow(Tkinter.Frame):
     def __init__(self,master=None):
         Tkinter.Frame.__init__(self,master)
+        self.option_add('*font', 'Helvetica 12')
         self.FileNameEntry = Tkinter.StringVar()
         self.IPAdressEntry = Tkinter.StringVar()
         self.IPAdressEntry.set('192.168.1.1')
         self.cameraSize = Tkinter.StringVar()
         self.cameraSize.set('320,240')
         self.isDummy = Tkinter.BooleanVar()
-        Tkinter.Label(self,text=u'Datafile name',
-                      font=('Helvetica', '12')).grid(row=0,column=0,padx=5,pady=5)
-        Tkinter.Entry(self,textvariable=self.FileNameEntry,
-                      font=('Helvetica', '12')).grid(row=0,column=1,padx=5,pady=5)
-        Tkinter.Label(self,text=u'.csv',
-                      font=('Helvetica', '12')).grid(row=0,column=2,padx=5,pady=5)
-        Tkinter.Label(self,text=u'SimpleGazeTracker address',
-                      font=('Helvetica', '12')).grid(row=1,column=0,padx=5,pady=5)
-        Tkinter.Entry(self,textvariable=self.IPAdressEntry,
-                      font=('Helvetica', '12')).grid(row=1,column=1,padx=5,pady=5)
-        Tkinter.Label(self,text=u'Capture image size',
-                      font=('Helvetica', '12')).grid(row=2,column=0,padx=5,pady=5)
-        Tkinter.Entry(self,textvariable=self.cameraSize,
-                      font=('Helvetica', '12')).grid(row=2,column=1,padx=5,pady=5)
-        Tkinter.Checkbutton(self,text=u'Use dummy mode',variable = self.isDummy,
-                      font=('Helvetica', '12')).grid(row=3,columnspan=3,padx=5,pady=5)
-        Tkinter.Button(self,text=u'OK',command=self.quit,
-                      font=('Helvetica', '12')).grid(row=4,columnspan=3,ipadx=15,pady=5)
+        Tkinter.Label(self,text=u'Datafile name').grid(row=0,column=0,padx=5,pady=5)
+        Tkinter.Entry(self,textvariable=self.FileNameEntry).grid(row=0,column=1,padx=5,pady=5)
+        Tkinter.Label(self,text=u'.csv').grid(row=0,column=2,padx=5,pady=5)
+        Tkinter.Label(self,text=u'SimpleGazeTracker address').grid(row=1,column=0,padx=5,pady=5)
+        Tkinter.Entry(self,textvariable=self.IPAdressEntry).grid(row=1,column=1,padx=5,pady=5)
+        Tkinter.Label(self,text=u'Capture image size').grid(row=2,column=0,padx=5,pady=5)
+        Tkinter.Entry(self,textvariable=self.cameraSize).grid(row=2,column=1,padx=5,pady=5)
+        Tkinter.Checkbutton(self,text=u'Use dummy mode (for standalone debug)',variable = self.isDummy).grid(row=3,columnspan=3,padx=5,pady=5)
+        Tkinter.Button(self,text=u'OK',command=self.quit).grid(row=4,columnspan=3,ipadx=15,pady=5)
         self.pack()
 
 wf = FileWindow()
@@ -52,6 +44,9 @@ wf.winfo_toplevel().destroy()
 tracker = GazeParser.TrackingTools.getController(backend='VisionEgg',dummy=wf.isDummy.get())
 tracker.setReceiveImageSize((cameraX,cameraY))
 tracker.connect(wf.IPAdressEntry.get())
+
+if wf.isDummy.get():
+    VisionEgg.config.VISIONEGG_HIDE_MOUSE = False
 
 screen = VisionEgg.Core.get_default_screen();
 SX,SY = screen.size
@@ -74,16 +69,19 @@ for p in calTargetPos:
 tracker.setCalibrationScreen(screen)
 tracker.setCalibrationTargetPositions(calarea, calTargetPos)
 
-res = tracker.calibrationLoop()
-if res=='q':
-    sys.exit(0)
+while True:
+    res = tracker.calibrationLoop()
+    if res=='q':
+        sys.exit(0)
+    if tracker.isCalibrationFinished():
+        break
 
 stim = VisionEgg.MoreStimuli.Target2D(size=(5,5))
 marker = VisionEgg.MoreStimuli.Target2D(size=(2,2),color=(1,1,0))
 viewport = VisionEgg.Core.Viewport(screen=screen,stimuli=[stim,marker])
 
 for tr in range(2):
-    error = tracker.getSpatialError()
+    error = tracker.getSpatialError(message='Press space key')
     
     targetPositionList = [(SX/2+100*random.randint(-3,3),SY/2+100*random.randint(-3,3)) for i in range(10)]
     targetPositionList.insert(0,(SX/2,SY/2))
