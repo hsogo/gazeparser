@@ -229,11 +229,13 @@ int sockProcess(void)
 					}
 					else if(strcmp(buff+nextp,"getImageData")==0)
 					{
-						int index;
-						for(int y = 0; y<g_ROIHeight; y++){
+						int index, offsetX, offsetY;
+						for(int y=0; y<g_ROIHeight; y++){
 							for(int x=0; x<g_ROIWidth; x++){
 								index = g_ROIWidth*y+x;
-								g_SendImageBuffer[index] = (unsigned)(g_pCameraTextureBuffer[g_CameraWidth*(y+(g_CameraHeight-g_ROIHeight)/2)+(x+(g_CameraWidth-g_ROIWidth)/2)] & 0x000000ff);
+								g_SendImageBuffer[index] = (unsigned)(g_pCameraTextureBuffer[
+								        g_CameraWidth*(y+(g_CameraHeight-g_ROIHeight)/2)+
+								                      (x+(g_CameraWidth-g_ROIWidth)/2)] & 0x000000ff);
 								if(g_SendImageBuffer[index]==255){
 									g_SendImageBuffer[index] = 254;
 								}else if(g_SendImageBuffer[index] < g_Threshold){

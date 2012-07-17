@@ -120,6 +120,7 @@ extern int g_ROIWidth;
 extern int g_ROIHeight;
 
 extern bool g_isShowingCameraImage;
+extern int g_isShowDetectionErrorMsg;
 
 extern double g_ParamX[6],g_ParamY[6]; //Monocular: 3 params, Binocular 6 parameters.
 extern int g_Threshold;

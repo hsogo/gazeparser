@@ -71,6 +71,7 @@ int g_PurkinjeExcludeArea = 20; /*!<  */
 
 bool g_isShowingCameraImage = true; /*!< If true, camera image is rendered. This must be false while recording.*/
 
+
 std::string g_ParamPath; /*!< Holds path to the parameter file directory*/
 std::string g_DataPath;  /*!< Holds path to the data file directory*/
 std::string g_AppDirPath;   /*!< Holds path to the executable file directory*/
@@ -95,6 +96,7 @@ double g_CalMaxError[2]; /*!< Holds maximum calibration error. Only one element 
 double g_CalMeanError[2]; /*!< Holds mean calibration error. Only one element is used when recording mode is monocular.*/
 
 int g_RecordingMode = RECORDING_BINOCULAR; /*! Holds recording mode. @note This value is modified only when application is being initialized (i.e. in initParam()).*/
+int g_isShowDetectionErrorMsg = 0; /*Holds DetectionError message visibility.*/
 
 int g_DataCounter = 0;
 bool g_isRecording = false;
@@ -134,12 +136,14 @@ Following parameters are read from a configuration file named "CONFIG".
 -CAMERA_HEIGHT  (g_CameraHeight)
 -PREVIEW_WIDTH  (g_PreviewWidth)
 -PREVIEW_HEIGHT  (g_PreviewHeight)
+-SHOW_DETECTIONERROR_MSG  (g_isShowDetectionErrorMsg)
 
 @return int
 @retval S_OK Camera is successfully initialized.
 @retval E_FAIL Initialization is failed.
 
 @date 2012/04/06 CAMERA_WIDTH, CAMERA_HEIGHT, PREVIEW_WIDTH and PREVIEW_HEIGHT are supported.
+@date 2012/07/17 ROI_WIDTH, ROI_HEIGHT and SHOW_DETECTIONERROR_MSG are supported.
  */
 int initParameters( void )
 {
@@ -185,11 +189,14 @@ int initParameters( void )
 		else if(strcmp(buff,"CAMERA_HEIGHT")==0) g_CameraHeight = param;
 		else if(strcmp(buff,"PREVIEW_WIDTH")==0) g_PreviewWidth = param;
 		else if(strcmp(buff,"PREVIEW_HEIGHT")==0) g_PreviewHeight = param;
+		else if(strcmp(buff,"ROI_WIDTH")==0) g_ROIWidth = param;
+		else if(strcmp(buff,"ROI_HEIGHT")==0) g_ROIHeight = param;
+		else if(strcmp(buff,"SHOW_DETECTIONERROR_MSG")==0) g_isShowDetectionErrorMsg = param;
 	}
 
-	g_ROIWidth = g_CameraWidth;
-	g_ROIHeight = g_CameraHeight;
-
+	if(g_ROIWidth==0) g_ROIWidth = g_CameraWidth;
+	if(g_ROIHeight==0) g_ROIHeight = g_CameraHeight;
+	
 	fs.close();
 
 	return S_OK;
@@ -211,10 +218,14 @@ Following parameters are wrote to the configuration file.
 -CAMERA_HEIGHT  (g_CameraHeight)
 -PREVIEW_WIDTH  (g_PreviewWidth)
 -PREVIEW_HEIGHT  (g_PreviewHeight)
+-ROI_WIDTH  (g_ROIWidth)
+-ROI_HEIGHT  (g_ROIHeight)
+-SHOW_DETECTIONERROR_MSG  (g_isShowDetectionErrorMsg)
 
 @return No value is returned.
 
 @date 2012/04/06 CAMERA_WIDTH, CAMERA_HEIGHT, PREVIEW_WIDTH and PREVIEW_HEIGHT are supported.
+@date 2012/07/17 ROI_WIDTH, ROI_Height, SHOW_DETECTIONERROR_MSG are supported.
 */
 void saveParameters( void )
 {
@@ -242,6 +253,22 @@ void saveParameters( void )
 	fs << "CAMERA_HEIGHT=" <<  g_CameraHeight << std::endl;
 	fs << "PREVIEW_WIDTH=" <<  g_PreviewWidth << std::endl;
 	fs << "PREVIEW_HEIGHT=" <<  g_PreviewHeight << std::endl;
+	if(g_ROIWidth==g_CameraWidth)
+	{
+		fs << "ROI_WIDTH=0" << std::endl;	
+	}
+	else{
+		fs << "ROI_WIDTH=" <<  g_ROIWidth << std::endl;
+	}
+	if(g_ROIHeight==g_CameraHeight)
+	{
+		fs << "ROI_HEIGHT=0" << std::endl;	
+	}
+	else
+	{
+		fs << "ROI_HEIGHT=" <<  g_ROIHeight << std::endl;
+	}
+	fs << "SHOW_DETECTIONERROR_MSG=" << g_isShowDetectionErrorMsg << std::endl;
 
 	fs.close();
 }

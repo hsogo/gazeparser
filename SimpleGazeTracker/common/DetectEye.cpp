@@ -54,6 +54,12 @@ int initBuffers(void)
 		return E_FAIL;
 	}
 
+	if(g_ROIWidth<=0||g_ROIHeight<=0||g_ROIWidth>g_CameraWidth||g_ROIHeight>g_ROIHeight)
+	{
+		g_LogFS << "ERROR: ROI width/height must be smaller than Camera width/height" << std::endl;
+		return E_FAIL;
+	}
+
 	g_frameBuffer = (unsigned char*)malloc(g_CameraHeight*g_CameraWidth*sizeof(unsigned char));
 	g_pCameraTextureBuffer = (int*)malloc(g_CameraHeight*g_CameraWidth*sizeof(int));
 	g_pCalResultTextureBuffer = (int*)malloc(g_PreviewHeight*g_PreviewWidth*sizeof(int));
@@ -66,7 +72,9 @@ int initBuffers(void)
 	g_SrcImg = cv::Mat(g_CameraHeight,g_CameraWidth,CV_8UC1,g_frameBuffer);
 	g_DstImg = cv::Mat(g_CameraHeight,g_CameraWidth,CV_8UC4,g_pCameraTextureBuffer);
 	g_CalImg = cv::Mat(g_PreviewHeight,g_PreviewWidth,CV_8UC4,g_pCalResultTextureBuffer);
-	g_ROI = cv::Rect(0,0,g_CameraWidth,g_CameraHeight);
+	g_ROI = cv::Rect(int((g_CameraWidth-g_ROIWidth)/2),
+	                 int((g_CameraHeight-g_ROIHeight)/2),
+	                 g_ROIWidth,g_ROIHeight);
 
 	return S_OK;
 }
@@ -185,12 +193,12 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 
 	if(numCandidates>=MAX_FIRST_CANDIDATES){
 		//Too many candidates are found.
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"MULTIPLE_PUPIL_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PUPIL_CANDIDATES;
 	}else if(numCandidates==0){
 		//No candidate is found.
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PUPIL_CANDIDATE;
 	}
@@ -255,13 +263,13 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 
 	if(numPurkinjeCandidates==0)
 	{
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_PURKINJE_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PURKINJE_CANDIDATE;
 	}
 	else if(numPurkinjeCandidates>1)
 	{
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"MULTIPLE_PURKINJE_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PURKINJE_CANDIDATES;
 	}
@@ -279,7 +287,7 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	if(candidatePointsFine.size()<10)
 	{
 		//Re-fitted ellipse is too small
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_FINE_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_FINE_PUPIL_CANDIDATE;
 	}
@@ -412,12 +420,12 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 
 	if(numCandidates>=MAX_FIRST_CANDIDATES){
 		//Too many candidates are found.
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"MULTIPLE_PUPIL_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PUPIL_CANDIDATES;
 	}else if(numCandidates==0){
 		//No candidate is found.
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PUPIL_CANDIDATE;
 	}
@@ -525,19 +533,19 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 
 	if(numPurkinjeCandidates==0)
 	{
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_PURKINJE_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PURKINJE_CANDIDATE;
 	}
 	else if(numPurkinjeCandidates>2)
 	{
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"MULTIPLE_PURKINJE_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PURKINJE_CANDIDATES;
 	}
 	else if(numFinalPupilPurkinje==0)
 	{
-		if(g_isShowingCameraImage)
+		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_FINE_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_FINE_PUPIL_CANDIDATE;
 	}
