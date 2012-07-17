@@ -80,20 +80,20 @@ tracker = GazeParser.TrackingTools.getController(backend='PsychoPy',dummy=FileWi
 tracker.setReceiveImageSize((cameraX,cameraY))
 tracker.connect(FileWindowValues['address'])
 
-win = psychopy.visual.Window(size=(1024,768),units='pix')
+win = psychopy.visual.Window(size=(1024,768),units='norm')
 
 tracker.openDataFile(dataFileName+'.csv')
 tracker.sendSettings(GazeParser.config.getParametersAsDict())
 
 
-calarea = [-400,-300,400,300]
+calarea = [-0.8,-0.8,0.8,0.8]
 calTargetPos = [[   0,   0],
-                [-350,-250],[-350,  0],[-350,250],
-                [   0,-250],[   0,  0],[   0,250],
-                [ 350,-250],[ 350,  0],[ 350,250]]
+                [-0.6,-0.6],[-0.6,  0],[-0.6,0.6],
+                [   0,-0.6],[   0,  0],[   0,0.6],
+                [ 0.6,-0.6],[ 0.6,  0],[ 0.6,0.6]]
 
 tracker.setCalibrationScreen(win)
-tracker.setCalibrationTargetPositions(calarea, calTargetPos)
+tracker.setCalibrationTargetPositions(calarea, calTargetPos,units='norm')
 
 while True:
     res = tracker.calibrationLoop()
@@ -102,14 +102,14 @@ while True:
     if tracker.isCalibrationFinished():
         break
 
-stim = psychopy.visual.Rect(win, width=5, height=5, units='pix')
-marker = psychopy.visual.Rect(win, width=2, height=2, units='pix', fillColor=(1,1,0),lineWidth=0.1)
+stim = psychopy.visual.Rect(win, width=0.03, height=0.04, units='norm')
+marker = psychopy.visual.Rect(win, width=0.009, height=0.012, units='norm', fillColor=(1,1,0),lineWidth=0.1)
 
 trialClock = psychopy.core.Clock()
 for tr in range(2):
-    error = tracker.getSpatialError(message='Press space key')
+    error = tracker.getSpatialError(message='Press space key', units='norm')
     
-    targetPositionList = [(100*random.randint(-3,3),100*random.randint(-3,3)) for i in range(10)]
+    targetPositionList = [(0.1*random.randint(-3,3),0.1*random.randint(-3,3)) for i in range(10)]
     targetPositionList.insert(0,(0,0))
     currentPosition = 0
     previousPosition = 0
@@ -140,7 +140,7 @@ for tr in range(2):
             previousPosition = currentPosition
         
         preGet = trialClock.getTime()
-        eyePos= tracker.getEyePosition()
+        eyePos= tracker.getEyePosition(units='norm')
         postGet = trialClock.getTime()
         if not eyePos[0] == None:
             data.append((1000*preGet,1000*postGet,1000*(postGet-preGet),targetPosition[0],targetPosition[1],eyePos[0],eyePos[1]))
@@ -161,12 +161,12 @@ for tr in range(2):
     
     fp.write('trial%d\n' % (tr+1))
     if error[0] != None:
-        fp.write('getSpatialError: %.2f,%.2f,%.2f\n' % (error[0],error[-1][0],error[-1][1]))
+        fp.write('getSpatialError: %.4f,%.4f,%.4f\n' % (error[0],error[-1][0],error[-1][1]))
     else:
         fp.write('getSpatialError: None\n')
     fp.write('SentAt,ReceivedAt,Lag,TargetX,TargetY,EyeX,EyeY\n')
     for d in data:
-        fp.write('%.1f,%.1f,%.1f,%d,%d,%.1f,%.1f\n' % d)
+        fp.write('%.1f,%.1f,%.1f,%.4f,%.4f,%.4f,%.4f\n' % d)
     fp.flush()
     
 tracker.closeDataFile()

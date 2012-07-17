@@ -30,7 +30,7 @@ ControllerDefaults = {
 }
 
 
-class BaseController:
+class BaseController(object):
     """
     Base class for SimpleGazeTracker controllers. Following methods must be overridden.
     
@@ -272,7 +272,7 @@ class BaseController:
         message = '/'.join(configlist)
         self.sendSock.send('insertSettings'+chr(0)+message+chr(0))
     
-    def startRecording(self,message='',wait=0.1):
+    def startRecording(self,message='', wait=0.1):
         """
         Send a command to start recording.
         Message can be inserted to describe trial condition and so on.
@@ -286,7 +286,7 @@ class BaseController:
         self.sendSock.send('startRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
     
-    def stopRecording(self,message='',wait=0.1):
+    def stopRecording(self,message='', wait=0.1):
         """
         Send a command to stop recording.
         Message can be inserted to describe exit code and so on.
@@ -299,6 +299,33 @@ class BaseController:
         """
         self.sendSock.send('stopRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
+    
+    def startMeasurement(self, wait=0.1):
+        """
+        Send a command to start measurement without recording.
+        This method is the same as startRecording() except data is not output
+        to the data file.  This method is called by getSpatialError().
+        Usually, you need not call this method.
+        
+        :param float wait:
+            Duration of waiting for processing on the Tracker Host PC.
+            Unit is second. Default value is 0.1
+        """    
+        self.sendSock.send('startMeasurement'+chr(0))
+        time.sleep(wait)
+        
+    def stopMeasurement(self, wait=0.1):
+        """
+        Send a command to stop measurement.
+        See satrtMeasurement() for detail.
+        
+        :param float wait:
+            Duration of waiting for processing on the Tracker Host PC.
+            Unit is second. Default value is 0.1
+        """
+        self.sendSock.send('stopMeasurement'+chr(0))
+        time.sleep(wait)
+    
     
     def getEyePosition(self,timeout=0.02):
         """
@@ -854,6 +881,8 @@ class BaseController:
             self.showCalDisplay = True
             self.messageText = message
         
+        self.startMeasurement()
+        
         isWaitingKey = True
         while isWaitingKey:
             keys = self.getKeys()
@@ -863,6 +892,8 @@ class BaseController:
                     eyepos = self.getEyePosition()
                     break
             self.updateScreen()
+        
+        self.stopMeasurement()
         
         if len(eyepos)==2: #monocular
             if eyepos[0] == None:
@@ -1073,10 +1104,10 @@ class ControllerPsychoPyBackend(BaseController):
     #Override
     def getEyePosition(self, timeout=0.02, units='pix'):
         e = BaseController.getEyePosition(self, timeout)
-        return self.convertFromPix(e)
+        return self.convertFromPix(e, units)
     
     #Override
-    def getSpatialError(self, position=None, responseKey='space', units='pix', message=None):
+    def getSpatialError(self, position=None, responseKey='space', message=None, units='pix'):
         if position != None:
             posInPix = self.convertToPix(position, units)
         else:
@@ -1314,11 +1345,15 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         print 'close (dummy)'
     
-    def getEyePosition(self, timeout=0.02):
+    def getEyePosition(self, timeout=0.02, units='pix'):
         """
         Dummy function for debugging. This method returns current eye position
         """
-        return self.myMouse.getPos()
+        e = self.myMouse.getPos()
+        if self.win.units=='pix':
+            return self.convertFromPix(e, units)
+        else:
+            return e
     
     def sendMessage(self, message):
         """
@@ -1364,6 +1399,8 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     
     def setCalibrationScreen(self, win):
         ControllerPsychoPyBackend.setCalibrationScreen(self,win)
+        if self.win.units != 'pix':
+            print 'warning: getEyePosition() of dummy controller will not work correctly when default units of the window is not \'pix\'.'
         self.myMouse = self.mouse(win=self.win)
         draw = ImageDraw.Draw(self.PILimgCAL)
         draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=0)

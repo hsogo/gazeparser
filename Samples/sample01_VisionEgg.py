@@ -138,7 +138,7 @@ for tr in range(2):
     
     fp.write('trial%d\n' % (tr+1))
     if error[0] != None:
-        fp.write('getSpatialError: %.2f (%.2f,%.2f)\n' % (error[0],error[-1][0],error[-1][1]))
+        fp.write('getSpatialError: %.2f,%.2f,%.2f\n' % (error[0],error[-1][0],error[-1][1]))
     else:
         fp.write('getSpatialError: None\n')
     fp.write('SentAt,ReceivedAt,Lag,TargetX,TargetY,EyeX,EyeY\n')
