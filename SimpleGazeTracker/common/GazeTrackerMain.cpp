@@ -1221,6 +1221,10 @@ void startRecording(const char* message)
 
 		g_RecStartTime = getCurrentTime();
 	}
+	else
+	{
+		g_LogFS << "Warning: startRecording is called before calibration" << std::endl;
+	}
 }
 
 /*!
@@ -1231,33 +1235,41 @@ Call flushGazeData(), output #MESSAGE and then output #STOP_REC.
 
 @param[in] message Message text to be inserted to the data file.
 @return No value is returned.
+@date 2012/07/17 add warinig message.
 */
 void stopRecording(const char* message)
 {
-	if(g_DataFP!=NULL)
+	if(g_isRecording)
 	{
-		flushGazeData();
-		
-		if(g_MessageEnd>0)
+		if(g_DataFP!=NULL)
 		{
-			fprintf(g_DataFP,"%s",g_MessageBuffer);
+			flushGazeData();
+			
+			if(g_MessageEnd>0)
+			{
+				fprintf(g_DataFP,"%s",g_MessageBuffer);
+			}
+			if(message[0]!='\0')
+			{
+				fprintf(g_DataFP,"#MESSAGE,%.3f,%s\n",getCurrentTime()-g_RecStartTime,message);
+			}
+			fprintf(g_DataFP,"#STOP_REC\n");
+			fflush(g_DataFP); //force writing.
+	
+			g_LogFS << "StopRecording" << std::endl;
 		}
-		if(message[0]!='\0')
+		else
 		{
-			fprintf(g_DataFP,"#MESSAGE,%.3f,%s\n",getCurrentTime()-g_RecStartTime,message);
+			g_LogFS << "StopRecording (no file)" << std::endl;
 		}
-		fprintf(g_DataFP,"#STOP_REC\n");
-		fflush(g_DataFP); //force writing.
-
-		g_LogFS << "StopRecording" << std::endl;
+	
+		g_isRecording = false;
+		g_isShowingCameraImage = true;
 	}
 	else
 	{
-		g_LogFS << "StopRecording (no file)" << std::endl;
+		g_LogFS << "Warning: stopRecording is called before starting" << std::endl;
 	}
-	
-	g_isRecording = false;
-	g_isShowingCameraImage = true;
 }
 
 /*!
@@ -1502,5 +1514,59 @@ This function is called from sockProcess() when sockProcess() received "getCurrM
 void getCurrentMenuString(char *p, int maxlen)
 {
 	strncpy(p, g_MenuString[g_CurrentMenuPosition].c_str(), maxlen-1);
+}
+
+
+/*!
+startMeasurement: start measurement without recording.
+
+This function is called from sockProcess() when sockProcess() received "startMeasurement" command.
+
+@param[out] p Pointer to the buffer to which menu text is written.
+@param[in] maxlen Size of buffer pointed by p.
+@return No value is returned.
+@date 2012/07/17 Created.
+*/
+void startMeasurement(void)
+{
+	if(g_isCalibrated){
+		clearData();
+		g_DataCounter = 0;
+		g_MessageEnd = 0;
+		g_isRecording = true;
+		g_isShowingCameraImage = false;
+		g_isShowingCalResult = false;
+
+		g_RecStartTime = getCurrentTime();
+		g_LogFS << "StartMeasurement" << std::endl;
+	}
+	else
+	{
+		g_LogFS << "Warning: StartMeasurement is called before calibration" << std::endl;
+	}
+}
+
+
+/*!
+startMeasurement: stop measurement.
+
+This function is called from sockProcess() when sockProcess() received "stopMeasurement" command.
+
+@return No value is returned.
+@date 2012/07/17 Created.
+*/
+void stopMeasurement(void)
+{
+	if(g_isRecording)
+	{
+		g_LogFS << "StopMeasurement" << std::endl;
+	
+		g_isRecording = false;
+		g_isShowingCameraImage = true;
+	}
+	else
+	{
+		g_LogFS << "Waring: StopMeasurement is called before starting." << std::endl;	
+	}
 }
 

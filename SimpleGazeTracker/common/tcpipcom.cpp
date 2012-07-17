@@ -473,6 +473,20 @@ int sockProcess(void)
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
 					}
+					else if(strcmp(buff+nextp,"startMeasurement")==0)
+					{
+						startMeasurement();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"stopMeasurement")==0)
+					{
+						stopMeasurement();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}					
 					else
 					{
 						return E_FAIL;
