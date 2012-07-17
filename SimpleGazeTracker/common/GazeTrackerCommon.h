@@ -154,6 +154,8 @@ extern void insertSettings(char* settings);
 extern void connectionClosed(void);
 extern void getEyePosition(double* pos);
 extern void saveCameraImage(const char* filename);
+extern void startMeasurement(void);
+extern void stopMeasurement(void);
 
 //Camera.cpp
 extern int initCamera( const char* ParamPath );
