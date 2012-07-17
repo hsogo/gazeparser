@@ -13,7 +13,7 @@
 
 
 
-#define VERSION "0.5.0"
+#define VERSION "0.5.1"
 
 #ifdef _WIN32
 #include <windows.h>
