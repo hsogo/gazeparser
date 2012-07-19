@@ -81,7 +81,7 @@ def getRotatedTrajectory(sac,refPoint=None,refPointRelative=None,rot=None,unit='
     If it is preferable that the origin of the rotated trajectory is the same to 
     that of the original trajectory, set 'original' to the parameter 'origin'.
     
-    :param sac: :class: An instance of `~GazeParser.Core.SaccadeData`.
+    :param sac: An instance of :class:`~GazeParser.Core.SaccadeData`.
     :param refPoint: The reference point for rotation. See above for detail.
     :param refPointRelative: The reference point for rotation. See above for detail.
     :param rot: The angle of rotation.

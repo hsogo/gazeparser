@@ -156,3 +156,52 @@ The position of the camera must be adjusted.
    
    Figure 14
 
+*New in 0.5.1* If SHOW_DETECTIONERROR_MSG option in the SimpleGazeTracker is set to 1, an error message is 
+overlaid on the camera preview image (Figure 15).
+
+.. figure:: settings111.jpg
+    
+    Figure 15
+
+============================ ======================================================================
+Message                      Description
+============================ ======================================================================
+NO_PUPIL_CANDIDATE           No pupil candidates was found.
+MULTIPLE_PUPIL_CANDIDATES    Multiple pupil candidates were found.
+NO_PURKINJE_CANDIDATE        At least one pupil candidate was found, but there was no candidate
+                             for the first Purkinje image.
+MULTIPLE_PURKINJE_CANDIDATES At least one pupil candidate was found, but multiple candidates
+                             for the first Purkinje image were found.
+NO_FINE_PUPIL_CANDIDATE      A pair of pupil candidate and candidate for the first Purkinje image
+                             was found, but re-fitting ellipse to the pupil was failed.
+============================ ======================================================================
+
+.. _set-roi:
+
+Setting region of interest (ROI)
+==================================
+
+*New in 0.5.1*
+
+If camera's field of view is too wide to capture eye only, you can set 'regions of interest (ROI)' to restrict image area where SimpleGazeTracker searches pupil and the first Purkinje image.
+To set ROI, set non-zero positive integer to ROI_WIDTH and ROI_HEIGHT options in the SimpleGazeTracker configuration file.
+In the following example (Figure 16), size of camera image is 640x480 and ROI_WIDTH and ROI_HEIGHT are set to 320 and 240, respectively.
+Thin white rectangular frame represents the ROI.  **The center of the ROI is fixed at the center of camera image**.
+Note that dark areas outside the ROI are not colored blue.  This indicates that SimpleGazeTracker ignores these areas.
+
+.. figure:: roi001.jpg
+    
+    Figure 16
+
+When SimpleGazeTracker is requested to send camera preview image, SimpleGazeTracker sends image only inside of the ROI.
+Therefore, **IMAGE_WIDTH and IMAGE_HEIGHT of GazeParser.TrackingTools configuration file must be equal to ROI_WIDTH and ROI_HEIGHT, respectively**.
+Figure 17 shows camera preview on the Recording PC when camera position and ROI settings are the same to those for Figure 16.
+
+.. figure:: roi002.jpg
+    
+    Figure 17
+
+.. important:: 
+    Generally to say, cutting out 320x240 image from an image captured by 640x480 camera is not better than an image captured by 320x420 camera if the sensor size of the cameras are the same.
+    If possible, it is recommended to change camera or lens rather than using ROI.
+

@@ -9,7 +9,7 @@ GazeParser assumes that the configuration file exists in following directory.
 ========== ================================
 Platform   Directory
 ========== ================================
-Win32      %HOMEDRIVE%%HOMEPATH%\GazeParser
+Win32      %USERPROFILE%\GazeParser
 Linux      $HOME/GazeParser
 Mac OS X   $HOME/GazeParser
 ========== ================================

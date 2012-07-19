@@ -1,6 +1,19 @@
 ChangeLog
 ====================
 
+GazeParser 0.5.1
+----------------------
+
+* CHANGED: SimpleGazeTracker 
+    - ADDED: Camera ID
+    - ADDED: ROI_WIDTH and ROI_HEIGHT
+    - ADDED: SHOW_DETECTIONERROR_MSG
+* CHANGED: GazeParser.TrackingTools
+    - dummy mode mouse
+* ADDED: :func:`GazeParser.TrackingTools.BaseController.getSpatialError`
+* FIXED: Welcome message of SimpleGazeTracker was wrong.
+* FIXED: :func:`GazeParser.TrackingTools.ControllerPsychoPyBackend.getSpatialError` did not work when 'units' was not 'pix'.
+
 GazeParser 0.5.0
 ----------------------
 

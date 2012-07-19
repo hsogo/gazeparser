@@ -15,6 +15,7 @@ Contents:
    setup
    procedure
    programming
+   standalone
    sampledata
    binocular
 

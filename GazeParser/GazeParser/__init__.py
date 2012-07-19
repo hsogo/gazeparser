@@ -13,9 +13,7 @@ import sys
 
 appDir = os.path.abspath(os.path.dirname(__file__))
 if sys.platform == 'win32':
-    homeDir = os.environ['HOMEPATH']
-    if homeDir[0] == '\\':
-        homeDir = os.environ['HOMEDRIVE'] + homeDir
+    homeDir = os.environ['USERPROFILE']
     configDir = os.path.join(homeDir,'GazeParser')
 else:
     homeDir = os.environ['HOME']

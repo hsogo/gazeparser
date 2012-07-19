@@ -9,10 +9,6 @@ Setup and calibration
 To enable binocular recording mode, set BINOCULAR=1 in the CONFIG file (:ref:`config-simpleazetracker`).
 Then, set image size of camera very wide (such as 640x240).
 
-.. note::
-    Currently OptiTrack edition cannot be used for binocular recording because supported cameras 
-    (OptiTrack V100R2 and V120slim) do not accept such image size.
-
 Basic operations is the same as those in monocular mode.
 Adjust position of camera and IR illumination so that pupil and the Purkinje image of both eyes are detected (Figure 1).
 SimpleGazeTracker assumes that pupil whose center is in the left half of the image is right eye and vice vasa.
@@ -35,6 +31,15 @@ On the Recording PC, the results for left and right eye are indicated by blue an
 .. figure:: binocular003.png
 
     Figure 3
+
+Although it is highly recommended to use cameras whose image size can be configured to be very wide, you can set ROI to achieve very wide image.
+In the case shown in Figure 4, camera's image size is 640x480 and ROI is set to 640x240.
+See :ref:`set-roi`.
+
+.. figure:: binocular004.jpg
+    
+    Figure 4
+
 
 Programming
 --------------------------

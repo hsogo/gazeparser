@@ -117,11 +117,11 @@ Example of experiment script (PsychoPy)
 
 Procedure of using GazeParser.TrackingTools with PsychoPy is similar to that with VisionEgg: however, there are several exceptions.
 At first, :func:`GazeParser.TrackingTools.getController` has to be called with *backend='PsychoPy'*.
-Then, pass a PsychoPy window to :func:`~GazeParser.TrackingTools.BaseController.setCalibrationScreen`.
+Then, pass a PsychoPy window to :func:`~GazeParser.TrackingTools.ControllerPsychoPyBackend.setCalibrationScreen`.
 ::
 
     myWin = psychopy.visual.Window()
-    tracker = getController(backend='VisionEgg',config='TrackerSettings.cfg')
+    tracker = getController(backend='PsychoPy',config='TrackerSettings.cfg')
     tracker.connect('192.168.0.1')
     tracker.setCalibrationScreen(myWin)
 
@@ -138,7 +138,7 @@ Note that the origin of the screen coordinate is aligned with the screen center 
     
     tracker.setCalibrationTargetPositions(calibrationArea, targetPositions)
 
-To use other units, use 'units' option of :func:`~GazeParser.TrackingTools.BaseController.setCalibrationTargetPositions`.::
+To use other units, use 'units' option of :func:`~GazeParser.TrackingTools.ControllerPsychoPyBackend.setCalibrationTargetPositions`.::
 
     taretPositions = (( 0.0, 0.0),
                       (-3.0,-2.5),(0.0,-2.5),(3.0,-2.5),
@@ -150,7 +150,7 @@ To use other units, use 'units' option of :func:`~GazeParser.TrackingTools.BaseC
 .. important::
     Units of gaze position in the data file are fixed to 'pix' even if other units are used to initialize calibration target positions.
 
-Returned values of :func:`~GazeParser.TrackingTools.BaseController.getEyePosition` is 'pix' at default.
+Returned values of :func:`~GazeParser.TrackingTools.ControllerPsychoPyBackend.getEyePosition` is 'pix' at default.
 If other units are preferable, call getEyePosition with 'units' option.::
 
     gazePosition = tracker.getEyePosition(units='deg')
@@ -181,11 +181,13 @@ These parameters can be set and changed without using TrackingTools configuratio
 parameter        description                                                                  how to set/change
 ================ ============================================================================ ===================================
 IMAGE_WIDTH      Width of the image transfered from the Recorder PC.                          :func:`~GazeParser.TrackingTools.BaseController.setReceiveImageSize`
-                 This parameter must be equal to CAMERA_WIDTH of SimpleGazeTracker
-                 confiuration file.
+                 If you set non-zero value to ROI_WIDTH in SimpleGazeTracker configuration
+                 file, this value must be equal to ROI_WIDTH.  Otherwise, this value must 
+                 be equal to CAMERA_WIDTH in SimpleGazeTracker configuration file.
 IMAGE_HEIGHT     Height of the image transfered from the Recorder PC.                         :func:`~GazeParser.TrackingTools.BaseController.setReceiveImageSize`
-                 This parameter must be equal to CAMERA_HEIGHT of SimpleGazeTracker
-                 confiuration file.
+                 If you set non-zero value to ROI_HEIGHT in SimpleGazeTracker configuration
+                 file, this value must be equal to ROI_HEIGHT.  Otherwise, this value must 
+                 be equal to CAMERA_HEIGHT in SimpleGazeTracker configuration file.
 PREVIEW_WIDTH    Width of the preview image on the presentation PC.                           :func:`~GazeParser.TrackingTools.BaseController.setPreviewImageSize`
 PREVIEW_HEIGHT   Width of the preview image on the presentation PC.                           :func:`~GazeParser.TrackingTools.BaseController.setPreviewImageSize`
 VALIDATION_SHIFT Shift of the target position in the Validation process.                      :func:`~GazeParser.TrackingTools.BaseController.setValidationShift`

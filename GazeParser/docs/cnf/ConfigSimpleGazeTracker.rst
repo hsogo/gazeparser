@@ -34,29 +34,42 @@ Lines start with '#' are ignored.  This is an example of CONFIG.
         Binocular=0
     
 
-===================== ============================================================== =========================
-Parameter             Description                                                    Adjustable at run-time
-===================== ============================================================== =========================
-BINOCULAR             This parameter must be **0** or **1**.  If the value is 1,     NO
-                      SimpleGazeTracker runs at binocular recording mode.            
-                      Otherwise, it runs at monocular recording mode.                
-THRESHOLD             This parameter affects detection of pupil.                     YES
-                      See :ref:`adjusting-camera` for detal.                         
-MAXPOINTS             This parameter affects detection of pupil.                     YES
-                      See :ref:`adjusting-camera` for detal.                         
-MINPOINTS             This parameter affects detection of pupil.                     YES
-                      See :ref:`adjusting-camera` for detal.                         
-PURKINJE_THRESHOLD    This parameter affects detection of the first Purkinje image.  YES
-                      See :ref:`adjusting-camera` for detal.                         
-PURKINJE_SEARCHAREA   This parameter affects detection of the first Purkinje image.  YES
-                      See :ref:`adjusting-camera` for detal.                         
-PURKINJE_EXCLUDEAREA  This parameter affects detection of pupil center.              YES
-                      See :ref:`adjusting-camera` for detal.                         
-CAMERA_WIDTH          Width of the image sent from the camear.                       NO
-CAMERA_HEIGHT         Height of the image sent from the camear.                      NO
-PREVIEW_WIDTH         Width of the preview image on the screen of the Recorder PC.   NO
-PREVIEW_HEIGHT        Height of the preview image on the screen of the Recorder PC.  NO
-===================== ============================================================== =========================
+======================= ============================================================== =========================
+Parameter               Description                                                    Adjustable at run-time
+======================= ============================================================== =========================
+BINOCULAR               This parameter must be **0** or **1**.  If the value is 1,     NO
+                        SimpleGazeTracker runs at binocular recording mode.            
+                        Otherwise, it runs at monocular recording mode.                
+THRESHOLD               This parameter affects detection of pupil.                     YES
+                        See :ref:`adjusting-camera` for detal.                         
+MAXPOINTS               This parameter affects detection of pupil.                     YES
+                        See :ref:`adjusting-camera` for detal.                         
+MINPOINTS               This parameter affects detection of pupil.                     YES
+                        See :ref:`adjusting-camera` for detal.                         
+PURKINJE_THRESHOLD      This parameter affects detection of the first Purkinje image.  YES
+                        See :ref:`adjusting-camera` for detal.                         
+PURKINJE_SEARCHAREA     This parameter affects detection of the first Purkinje image.  YES
+                        See :ref:`adjusting-camera` for detal.                         
+PURKINJE_EXCLUDEAREA    This parameter affects detection of pupil center.              YES
+                        See :ref:`adjusting-camera` for detal.                         
+CAMERA_WIDTH            Width of the image sent from the camear.                       NO
+CAMERA_HEIGHT           Height of the image sent from the camear.                      NO
+PREVIEW_WIDTH           Width of the preview image on the screen of the Recorder PC.   NO
+PREVIEW_HEIGHT          Height of the preview image on the screen of the Recorder PC.  NO
+ROI_WIDTH               If this value is not 0, SimpleGazeTracker searches pupil and   NO
+                        the first Purkinje image only from the region specified by
+                        this parameter and ROI_HEIGHT. See :ref:`set-roi` for detail.
+                        **New in 0.5.1**
+ROI_HEIGHT              If this value is not 0, SimpleGazeTracker searches pupil and   NO
+                        the first Purkinje image only from the region specified by
+                        this parameter and ROI_WIDTH. See :ref:`set-roi` for detail.
+                        **New in 0.5.1**
+SHOW_DETECTIONERROR_MSG This parameter must be **0** or **1**.  If the value is 1,     NO
+                        Error message is overlaid on the camer apreview image if 
+                        detection of pupil and the first Purkinje image is failed.
+                        See :ref:`adjusting-camera` for detal.
+                        **New in 0.5.1**
+======================= ============================================================== =========================
 
 Opions for OpenCV edition (in CONFIG_OPENCV)
 ---------------------------------------------
@@ -96,6 +109,7 @@ CAMERA_ID             This integer is passed to the constructor or CV::VideoCapt
                       multiple cameras on your PC and SimpleGazeTracker does not
                       use desirable camera, use this parameter to tell
                       SimpleGazeTracker which camera should be used.
+                      **New in 0.5.1**
 USE_THREAD            This parameter must be **0** or **1**.  A saparate thread is   NO
                       used to capture image if the value is 1.  Generally, using 
                       separate thread results in better performance: however, 

@@ -373,7 +373,6 @@ class BaseController(object):
                 else:
                     return retval
             else:
-                #TODO: if only one eye is detected?
                 if len(retval) != 4:
                     return [None,None,None,None]
                 else:
@@ -387,7 +386,7 @@ class BaseController(object):
     def getCurrentMenuItem(self,timeout=0.2):
         """
         Get current menu item on the Tracker Host PC as a text.
-        Usually, you don't need use this method.
+        *Usually, you don't need use this method.*
         
         :param float timeout:
             If the Tracker Host PC does not respond within this duration, '----'
@@ -430,6 +429,7 @@ class BaseController(object):
     def getCalibrationResults(self,timeout=0.2):
         """
         Get a summary of calibration results.
+        *Usually, you don't need use this method.*
         
         :param float timeout:
             If the Host Tracker PC does not respond within this duration, '----'
@@ -442,7 +442,6 @@ class BaseController(object):
             When binocular, return value is a tuple of 8 elements: the former 4 elements 
             correspond to left eye and the latter 4 elements correspond to right eye.
             
-        .. note:: Usually, you don't need use this method.
         """
         self.sendSock.send('getCalResults'+chr(0))
         hasGotCal = False
@@ -487,12 +486,12 @@ class BaseController(object):
         """
         Get current camera image. If image data is successfully received,
         the data is set to self.PILimg.
+        *Usually, you don't need use this method.*
         
         :param float timeout:
             If the Host Tracker PC does not respond within this duration, image 
             is not updated. Unit is second. Default value is 0.2
         
-        .. note:: Usually, you don't need use this method.
         """
         self.sendSock.send('getImageData'+chr(0))
         hasGotImage = False
@@ -526,7 +525,7 @@ class BaseController(object):
         """
         Send a raw Tracker command to the Tracker Host PC.
         
-        .. note:: Usually, you don't need use this method.
+        *Usually, you don't need use this method.*
         """
         self.sendSock.send(command)
     
@@ -626,14 +625,14 @@ class BaseController(object):
         """
         Get detailed calibration results.
         
+        *Usually, you don't need use this method because this method 
+        is automatically called form doCalibration() and doValidation().*
+        
         :param float timeout:
             If the Tracker Host PC does not respond within this duration, '----'
             is returned. Unit is second. Default value is 0.2
         :return:
             Detailed Calibration
-        
-        .. note:: Usually, you don't need use this method because this method 
-            is automatically called form doCalibration() and doValidation().
         """
         self.sendCommand('getCalResultsDetail'+chr(0))
         hasGotCal = False
@@ -865,7 +864,6 @@ class BaseController(object):
             the average of the second and third element.  If measurement of either
             Left or Right eye is failed, the first element is also None.
             The fourth element is measured eye position.
-        
         """
         if position==None:
             position = self.screenCenter
@@ -982,6 +980,11 @@ class ControllerVisionEggBackend(BaseController):
         self.calResultScreenOrigin = (0, 0)
         
     def updateScreen(self):
+        """
+        Update calibration screen.
+        
+        *Usually, you don't need use this method.*
+        """
         self.img.parameters.on = self.showCameraImage
         self.imgCal.parameters.on = self.showCalImage
         self.msgtext.parameters.on = self.showCalDisplay
@@ -994,12 +997,27 @@ class ControllerVisionEggBackend(BaseController):
         self.VEswap_buffers()
     
     def setCameraImage(self):
+        """
+        Set camera preview image.
+        
+        *Usually, you don't need use this method.*
+        """
         self.img.parameters.texture.get_texture_object().put_sub_image(self.PILimg)
     
     def drawCalibrationResults(self):
+        """
+        Set calibration results screen.
+        
+        *Usually, you don't need use this method.*
+        """
         self.imgCal.parameters.texture.get_texture_object().put_sub_image(self.PILimgCAL)
     
     def getKeys(self):
+        """
+        Get key events.
+        
+        *Usually, you don't need use this method.*
+        """
         keys = [self.VEkey.name(e.key) for e in self.VEevent.get(self.VEKEYDOWN)]
         
         keyin = self.VEkey.get_pressed()
@@ -1009,7 +1027,6 @@ class ControllerVisionEggBackend(BaseController):
             keys.append('right')
         
         return keys
-    
 
 
 class ControllerPsychoPyBackend(BaseController):
@@ -1053,6 +1070,11 @@ class ControllerPsychoPyBackend(BaseController):
         self.calResultScreenOrigin = (self.screenWidth/2, self.screenHeight/2)
     
     def updateScreen(self):
+        """
+        Update calibration screen.
+        
+        *Usually, you don't need use this method.*
+        """
         self.caltarget.setPos(self.calTargetPosition,units='pix')
         self.msgtext.setText(self.messageText)
         if self.showCameraImage:
@@ -1067,47 +1089,94 @@ class ControllerPsychoPyBackend(BaseController):
         self.win.flip()
     
     def setCameraImage(self):
+        """
+        Set camera preview image.
+        
+        *Usually, you don't need use this method.*
+        """
         self.img.setImage(self.PILimg)
     
     def drawCalibrationResults(self):
+        """
+        Set calibration results screen.
+        
+        *Usually, you don't need use this method.*
+        """
         self.imgCal.setImage(self.PILimgCAL)
     
     #Override
     def setCalibrationTargetPositions(self, area, calposlist, units='pix'):
         """
-        ..todo: write document.
+        Send calibration area and calibration target positions to the Tracker Host PC.
+        This method must be called before starting calibration.
+        ::
+        
+            calArea = (0, 0, 1024, 768)
+            calPos = ((162,134),(512,134),(862,134),
+                      (162,384),(512,384),(862,384),
+                      (162,634),(512,634),(862,634))
+            tracker.CalibrationTargetPositions(calArea, calPos)
+        
+        :param sequence area: a sequence of for elements which represent
+            left, top, right and bottom of the calibration area.
+        :param sequence calposlist: a list of (x, y) positions of calibration
+            target.
+        :param str units: units of 'area' and 'calposlist'.  'norm', 'height',
+            'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
         """
         pixArea = self.convertToPix(area, units, forceToInt = True)
         pixCalposlist = [self.convertToPix(calpos, units, forceToInt = True) for calpos in calposlist]
-        """
-        if units == 'norm':
-            pixArea = [int(area[0]*self.win.size[0]/2),int(area[1]*self.win.size[1]/2),int(area[2]*self.win.size[0]/2),int(area[3]*self.win.size[1]/2)]
-            pixCalposlist = [[int(p[0]*self.win.size[0]/2),int(p[1]*self.win.size[1]/2)] for p in calposlist]
-        elif units == 'height':
-            pixArea = [int(p*self.win.size[1]/2) for p in area]
-            pixCalposlist = [[int(p[0]*self.win.size[1]/2),int(p[1]*self.win.size[1]/2)] for p in calposlist]
-        elif units == 'cm':
-            pixArea = [int(self.cm2pix(p)) for p in area]
-            pixCalposlist = [[int(self.cm2pix(p[0])),int(self.cm2pix(p[1]))] for p in calposlist]
-        elif units == 'deg':
-            pixArea = [int(self.deg2pix(p)) for p in area]
-            pixCalposlist = [[int(self.deg2pix(p[0])),int(self.deg2pix(p[1]))] for p in calposlist]
-        elif units == 'pix':
-            pixArea = area
-            pixCalposlist = calposlist
-        else:
-            raise ValueError, 'units must bet norm, height, cm, deg or pix.'
-        """
-        
         BaseController.setCalibrationTargetPositions(self,pixArea,pixCalposlist)
     
     #Override
     def getEyePosition(self, timeout=0.02, units='pix'):
+        """
+        Send a command to get current gaze position.
+        
+        :param float timeout:
+            If the Tracker Host PC does not respond within this duration, tuple of Nones
+            are returned. Unit is second. Default value is 0.02
+        :return: a tuple representing holizontal(X) and vertical(Y) gaze position
+            in screen corrdinate. When recording mode is monocular, return value is
+            (X,Y).  When binocular, return value is (Left X, Left Y, Right X, Right Y).
+        :param str units: units of returned value.  'norm', 'height', 'deg', 'cm' and
+            'pix' are accepted.  Default value is 'pix'.
+        """
         e = BaseController.getEyePosition(self, timeout)
         return self.convertFromPix(e, units)
     
     #Override
     def getSpatialError(self, position=None, responseKey='space', message=None, units='pix'):
+        """
+        Verify measurement error at a given position on the screen.
+        
+        :param position:
+            A tuple of two numbers that represents target position in screen coordinate.
+            If None, the center of the screen is used.  Default value is None.
+        :param responseKey:
+            When this key is pressed, eye position is measured and spatial error is 
+            evaluated.  Default value is 'space'.
+        :param message:
+            If a string is given, the string is presented on the screen.
+            Default value is None.
+        :param str units: units of 'position' and returned value.  'norm', 'height',
+            'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
+        
+        :return:
+            If recording mode is monocular, a tuple of two elements is returned.
+            The first element is the distance from target to measured eye position.
+            The second element is a tuple that represents measured eye position.
+            If measurement is failed, the first element is None.
+            
+            If recording mode is binocular, a tuple of four elements is returned.
+            The first, second and third element is the distance from target to 
+            measured eye position.  The second and third element are the results 
+            for left eye and right eye, respectively.  These elements are None if 
+            measurement of corresponding eye is failed.  The first element is 
+            the average of the second and third element.  If measurement of either
+            Left or Right eye is failed, the first element is also None.
+            The fourth element is measured eye position.
+        """
         if position != None:
             posInPix = self.convertToPix(position, units)
         else:
@@ -1143,6 +1212,23 @@ class ControllerPsychoPyBackend(BaseController):
         return retval
     
     def convertToPix(self, pos, units, forceToInt=False):
+        """
+        Convert units of parameters to 'pix'.  This method is called by 
+        setCalibrationTargetPositions, getEyePosition and getSpatialError.
+        
+        *Usually, you don't need use this method.*
+        
+        :param sequence pos:
+            Sequence of positions. odd and even elements correspond to 
+            X and Y components, respectively.
+        :param str units:
+            'norm', 'height', 'deg', 'cm' and 'pix' are accepted.
+        :param bool forceToInt:
+            If true, returned values are forced to integer.
+            Default value is False.
+        
+        :return: converted list.
+        """
         retval = []
         if units == 'norm':
             for i in range(len(pos)):
@@ -1184,6 +1270,20 @@ class ControllerPsychoPyBackend(BaseController):
         return retval
     
     def convertFromPix(self, pos, units):
+        """
+        Convert units of parameters from 'pix'.  This method is called by 
+        setCalibrationTargetPositions, getEyePosition and getSpatialError.
+        
+        *Usually, you don't need use this method.*
+        
+        :param sequence pos:
+            Sequence of positions. odd and even elements correspond to 
+            X and Y components, respectively.
+        :param str units:
+            'norm', 'height', 'deg', 'cm' and 'pix' are accepted.
+        
+        :return: converted list.
+        """
         retval = []
         if units == 'norm':
             for i in range(len(pos)):
@@ -1221,7 +1321,7 @@ class ControllerPsychoPyBackend(BaseController):
 
 class DummyVisionEggBackend(ControllerVisionEggBackend):
     """
-    
+    Dummy controller for VisionEgg.
     """
     def __init__(self, configFile):
         ControllerVisionEggBackend.__init__(self, configFile)
@@ -1277,25 +1377,59 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         print 'stopRecording (dummy): ' + message
     
+    def startMeasurement(self, message='', wait=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
+        print 'startMeasurement (dummy): ' + message
+    
+    def stopMeasurement(self, message='', wait=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
+        print 'stopMeasurement (dummy): ' + message
+    
     def getCurrentMenuItem(self,timeout=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
         return 'Dummy Controller'
     
     def getCalibrationResults(self,timeout=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
         return 'Dummy Results'
     
     def getCameraImage(self):
+        """
+        Dummy function for debugging. This method puts a text
+        'Camera Preview' at the top-left corner of camera preview screen.
+        
+        *Usually, you don't need use this method.*
+        """
         draw = ImageDraw.Draw(self.PILimg)
         draw.rectangle(((0,0),(self.imageWidth,self.imageHeight)),fill=0)
         draw.text((64,64),'Camera Preview',fill=255)
         return None
     
     def getCalibrationResultsDetail(self,timeout=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
         return None
     
     def sendCommand(self, command):
+        """
+        Dummy function for debugging. This method outputs commands to
+        standard output instead of sending it to SimpleGazeTracker.
+        """
         print 'Dummy sendCommand: '+ command
     
     def setCalibrationScreen(self, screen):
+        """
+        Set calibration screen.
+        """
         ControllerVisionEggBackend.setCalibrationScreen(self,screen)
         draw = ImageDraw.Draw(self.PILimgCAL)
         draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=0)
@@ -1303,6 +1437,9 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         self.drawCalibrationResults()
     
     def doCalibration(self):
+        """
+        Emurates calibration procedure.
+        """
         BaseController.doCalibration(self)
         if self.showCalDisplay == True:
             self.showCalImage = True
@@ -1311,6 +1448,9 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         self.messageText = 'Dummy Results'
     
     def doValidation(self):
+        """
+        Emurates validation procedure.
+        """
         BaseController.doValidation(self)
         if self.showCalDisplay == True:
             self.showCalImage = True
@@ -1320,7 +1460,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
     
 class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     """
-    
+    Dummy controller for PsychoPy.
     """
     def __init__(self, configFile):
         ControllerPsychoPyBackend.__init__(self, configFile)
@@ -1347,7 +1487,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     
     def getEyePosition(self, timeout=0.02, units='pix'):
         """
-        Dummy function for debugging. This method returns current eye position
+        Dummy function for debugging. This method returns current mouse position.
         """
         e = self.myMouse.getPos()
         if self.win.units=='pix':
@@ -1379,25 +1519,59 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         print 'stopRecording (dummy): ' + message
     
+    def startMeasurement(self, message='', wait=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
+        print 'startMeasurement (dummy): ' + message
+    
+    def stopMeasurement(self, message='', wait=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
+        print 'stopMeasurement (dummy): ' + message
+    
     def getCurrentMenuItem(self,timeout=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
         return 'Dummy Controller'
     
     def getCalibrationResults(self,timeout=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
         return 'Dummy Results'
     
     def getCameraImage(self):
+        """
+        Dummy function for debugging. This method puts a text
+        'Camera Preview' at the top-left corner of camera preview screen.
+        
+        *Usually, you don't need use this method.*
+        """
         draw = ImageDraw.Draw(self.PILimg)
         draw.rectangle(((0,0),(self.imageWidth,self.imageHeight)),fill=0)
         draw.text((64,64),'Camera Preview',fill=255)
         return None
     
     def getCalibrationResultsDetail(self,timeout=0.2):
+        """
+        Dummy function for debugging. This method do nothing.
+        """
         return None
     
     def sendCommand(self, command):
+        """
+        Dummy function for debugging. This method outputs commands to
+        standard output instead of sending it to SimpleGazeTracker.
+        """
         print 'Dummy sendCommand: '+ command
     
     def setCalibrationScreen(self, win):
+        """
+        Set calibration screen.
+        """
         ControllerPsychoPyBackend.setCalibrationScreen(self,win)
         if self.win.units != 'pix':
             print 'warning: getEyePosition() of dummy controller will not work correctly when default units of the window is not \'pix\'.'
@@ -1408,6 +1582,9 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         self.drawCalibrationResults()
     
     def doCalibration(self):
+        """
+        Emurates calibration procedure.
+        """
         BaseController.doCalibration(self)
         if self.showCalDisplay == True:
             self.showCalImage = True
@@ -1416,6 +1593,9 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         self.messageText = 'Dummy Results'
     
     def doValidation(self):
+        """
+        Emurates validation procedure.
+        """
         BaseController.doValidation(self)
         if self.showCalDisplay == True:
             self.showCalImage = True
@@ -1433,10 +1613,6 @@ def getController(backend, configFile=None, dummy=False):
         Default value is None.
     :param bool dummy: Get dummy controller for standalone debugging.
         Default value is False.
-    
-    .. note::
-        Currentry, PsychoPy controller must be used with pygame screen
-        and 'deg' unit.
     """
     if backend=='VisionEgg':
         if dummy:
