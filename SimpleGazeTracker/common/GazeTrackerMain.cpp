@@ -1013,13 +1013,13 @@ int main(int argc, char** argv)
 }
 
 /*!
-clearData: clear data buffer.
+clearCalibrationData: clear calibration data buffer
 
-This function should be called before starting calibration, validation and recording.
+This function should be called before starting calibration and validation.
 
-@return No value is returned.
+@date 2012/07/24 Created.
 */
-void clearData(void)
+void clearCalibrationData(void)
 {
 	int i;
 	for(i=0; i<g_NumCalPoint; i++)
@@ -1027,6 +1027,22 @@ void clearData(void)
 		g_CalPointData[i][0] = 0;
 		g_CalPointData[i][0] = 0;
 	}
+
+	g_NumCalPoint = 0;
+}
+
+
+/*!
+clearData: clear data buffer.
+
+This function should be called before starting calibration, validation, measurement and recording.
+
+@return No value is returned.
+@date 2012/07/24 calibration data clearance is separated to clearCalibrationData()
+*/
+void clearData(void)
+{
+	int i;
 
 	for(i=0; i<g_DataCounter; i++)
 	{
@@ -1036,7 +1052,6 @@ void clearData(void)
 		g_EyeData[i][3] = 0;
 	}
 
-	g_NumCalPoint = 0;
 	g_DataCounter = 0;
 }
 
@@ -1060,6 +1075,7 @@ void startCalibration(int x1, int y1, int x2, int y2)
 	g_CalibrationArea[2] = x2;
 	g_CalibrationArea[3] = y2;
 	if(!g_isRecording && !g_isValidating && !g_isCalibrating){
+		clearCalibrationData();
 		clearData();
 		g_isCalibrating = true;
 		g_isShowingCalResult = false; //erase calibration result screen.
@@ -1132,6 +1148,7 @@ void startValidation(int x1, int y1, int x2, int y2)
 	g_CalibrationArea[2] = x2;
 	g_CalibrationArea[3] = y2;
 	if(!g_isRecording && !g_isValidating && !g_isCalibrating){ //ready to start calibration?
+		clearCalibrationData();
 		clearData();
 		g_isValidating = true;
 		g_isShowingCalResult = false;
