@@ -5,14 +5,19 @@ GazeParser 0.5.1
 ----------------------
 
 * CHANGED: SimpleGazeTracker 
-    - ADDED: Camera ID
-    - ADDED: ROI_WIDTH and ROI_HEIGHT
-    - ADDED: SHOW_DETECTIONERROR_MSG
+    - CHANGED: Pupil detection algorithm is improved.  Rate of detection failure is reduced when shadows whose size is similar to pupil size are included in captured images.
+    - ADDED: A parameter 'Camera ID' is added to OpenCV edition.  You can specify which camera should be used when multiple camearas are connected to the Recorder PC.
+    - ADDED: A parameter 'SHOW_DETECTIONERROR_MSG' is added to all edition.
+    - ADDED: Parameters 'ROI_WIDTH' and 'ROI_HEIGHT' are added to all edition.  You can specify a subregion where SimpleGazeTracker searches pupil and Purkinje image.
+    - ADDED: Parameters 'PORT_RECV' and 'PORT_SEND' are added to all edition to customize TCP ports.
+    - ADDED: A parameter 'DELAY_CORRECTION' is added to all adition .
 * CHANGED: GazeParser.TrackingTools
-    - dummy mode mouse
-* ADDED: :func:`GazeParser.TrackingTools.BaseController.getSpatialError`
-* FIXED: Welcome message of SimpleGazeTracker was wrong.
+    - CHANGED: Dummy mode is improved.  You can emurate eye movement with mouse when the controller runs as dummy mode.
+    - CHANGED: Parameters 'port1' and 'port2' of :func:`GazeParser.TrackingTools.BaseController.connect` are renamed to portRecv' and 'portSend'
+    - ADDED: :func:`GazeParser.TrackingTools.BaseController.getSpatialError`
+    - ADDED: :func:`GazeParser.TrackingTools.cameraDelayEstimationHelper`
 * FIXED: :func:`GazeParser.TrackingTools.ControllerPsychoPyBackend.getSpatialError` did not work when 'units' was not 'pix'.
+* FIXED: Some minor bugs.
 
 GazeParser 0.5.0
 ----------------------

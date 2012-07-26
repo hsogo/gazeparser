@@ -54,7 +54,7 @@ If no camera image is appeared nevertheless SimpleGazeTracker seems to be runnin
 Ask your participant to sit on a chair and put his/her head on head- and chin-rest.
 Adjust the position and the orientation of the camera so that either left or right eye of the participant is captured as large as possible.
 
-Adjust parameters for detecting the pupil and the first Purkinje image using the up, down, left and right cursor keys on the keyboard (see :ref:`calibration-procedure-label` for key bindings).
+Adjust parameters for detecting the pupil and the first Purkinje image using the up, down, left and right cursor keys on the keyboard (see :ref:`calibration-procedure` for key bindings).
 Note that you can forward the camera image to the Presentation PC and use the keyboard of the Presentation PC if you are going to record your eye movement alone.
 The meaning of the parameters are following.
 

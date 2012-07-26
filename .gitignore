@@ -11,10 +11,10 @@ _build/
 #C++
 *.o
 
-
 #for SimpleGazeTracker_OpenCV testing
 
 FreeSans.ttf
 simplegazetracker
 makefile.orig
+
 

@@ -13,6 +13,16 @@ To use dummy mode, create an controller object with *dummy=True* option.
     #VisionEgg
     tracker = getController(backend='VisionEgg', config='TrackerSettings.cfg', dummy=True)
 
+The dummy controller shows black filled rectangle when camera preview and calibration results are requested (Figure 1 and 2).
+
+.. figure:: dummy001.png
+    
+    Figure 1
+
+.. figure:: dummy002.png
+    
+    Figure 2
+
 The dummy controller output commands to the standard output instead of sending commands to SimpleGazeTracker.
 This is an example of output::
 

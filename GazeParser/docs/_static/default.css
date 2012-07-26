@@ -505,3 +505,12 @@ ul.search li div.context {
 ul.keywordmatches li.goodmatch a {
     font-weight: bold;
 }
+
+
+div.figure {
+    text-align: center;
+}
+
+div.figure p.caption {
+    font-style: italic;
+}

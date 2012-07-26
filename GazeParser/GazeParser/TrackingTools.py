@@ -79,6 +79,8 @@ class BaseController(object):
         
         self.prevBuffer = ''
         
+        self.captureNo = 0
+        
         if sys.platform == 'win32':
             self.clock = time.clock
         else:
@@ -178,28 +180,28 @@ class BaseController(object):
         
         self.validationShift = size
     
-    def connect(self, address, port1=10000,port2=10001):
+    def connect(self, address, portSend=10000, portRecv=10001):
         """
         Connect to the Tracker Host PC. Because most of methods communicate with 
         the Tracker Host PC, this method should be called immediately after controller
         object is created.
         
         :param str address: IP address of SimpeGazeTracker (e.g. '192.168.1.2').
-        :param int port1: TCP/IP port for sending command to Tracker.
+        :param int portSend: TCP/IP port for sending command to Tracker.
             This value must be correspond to configuration of the Tracker.
             Default value is 10000.
-        :param int port2: TCP/IP port for receiving data from Tracker.
+        :param int portRecv: TCP/IP port for receiving data from Tracker.
             This value must be correspond to configuration of the Tracker.
             Default value is 10001.
         """
         print 'Request connection...'
         self.sendSock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self.sendSock.connect((address,port1))
+        self.sendSock.connect((address,portSend))
         res = self.sendSock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         print res
         
         self.serverSock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self.serverSock.bind(('',port2))
+        self.serverSock.bind(('',portRecv))
         self.serverSock.listen(1)
         self.serverSock.setblocking(0)
         
@@ -599,7 +601,8 @@ class BaseController(object):
                     self.showCalImage = False
                     self.doValidation()
                 elif key == 's':
-                    self.sendCommand('saveCameraImage'+chr(0)+str(time.clock())+'.bmp'+chr(0))
+                    self.captureNo += 1
+                    self.sendCommand('saveCameraImage'+chr(0)+'CAP'+str(self.captureNo).zfill(8)+'.bmp'+chr(0))
                 elif key == 'q':
                     self.sendCommand('key_Q'+chr(0))
                     return 'q'
@@ -1328,7 +1331,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         from pygame import mouse
         self.mouse = mouse
     
-    def connect(self, address, port1=10000, port2=10001):
+    def connect(self, address, portSend=10000, portRecv=10001):
         """
         Dummy function for debugging. This method do nothing.
         """
@@ -1467,7 +1470,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         from psychopy.event import Mouse
         self.mouse = Mouse
     
-    def connect(self, address, port1=10000, port2=10001):
+    def connect(self, address, portSend=10000, portRecv=10001):
         """
         Dummy function for debugging. This method do nothing.
         """
@@ -1626,3 +1629,52 @@ def getController(backend, configFile=None, dummy=False):
             return ControllerPsychoPyBackend(configFile)
     elif backend.lower()=='dummy':
         return DummyController()
+
+
+def cameraDelayEstimationHelper(screen, tracker):
+    if isinstance(tracker,ControllerVisionEggBackend):
+        import VisionEgg.Core, VisionEgg.Text, pygame
+        from pygame.locals import KEYDOWN, K_ESCAPE, K_SPACE
+        
+        (x0,y0) = (screen.size[0]/2,screen.size[1]/2)
+        msg = VisionEgg.Text.Text(position=(x0,y0),font_size=96)
+        viewport = VisionEgg.Core.Viewport(screen=screen, stimuli=[msg])
+        
+        frame = 0
+        isRunning = True
+        while isRunning:
+            msg.parameters.text = str(frame)
+            screen.clear()
+            viewport.draw()
+            VisionEgg.Core.swap_buffers()
+            
+            for e in pygame.event.get():
+                if e.type==KEYDOWN and e.key==K_ESCAPE:
+                    isRunning = False
+                elif e.type==KEYDOWN and e.key==K_SPACE:
+                    tracker.sendCommand('saveCameraImage'+chr(0)+'FRAME'+str(frame).zfill(8)+'.bmp'+chr(0))
+            
+            frame += 1
+        
+    elif isinstance(tracker,ControllerPsychoPyBackend):
+        import psychopy.event, psychopy.visual
+        msg = psychopy.visual.TextStim(screen,pos=(0,0))
+        
+        frame = 0
+        isRunning = True
+        while isRunning:
+            msg.setText(str(frame))
+            msg.draw()
+            screen.flip()
+            
+            for key in psychopy.event.getKeys():
+                if key=='escape':
+                    isRunning = False
+                elif key=='space':
+                    tracker.sendCommand('saveCameraImage'+chr(0)+'FRAME'+str(frame).zfill(8)+'.bmp'+chr(0))
+            
+            frame += 1
+        
+    else:
+        raise ValueError
+

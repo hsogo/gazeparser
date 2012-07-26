@@ -22,6 +22,12 @@ Lines start with '#' are ignored.  This is an example of CONFIG.
     CAMERA_HEIGHT=224
     PREVIEW_WIDTH=640
     PREVIEW_HEIGHT=480
+    ROI_WIDTH=0
+    ROI_HEIGHT=0
+    SHOW_DETECTIONERROR_MSG=0
+    PORT_SEND=10001
+    PORT_RECV=10000
+    DELAY_CORRECTION=0
 
 .. note::
     Parameter name is case sensitive. Do not insert any space before and behind '='.::
@@ -68,6 +74,24 @@ SHOW_DETECTIONERROR_MSG This parameter must be **0** or **1**.  If the value is 
                         Error message is overlaid on the camer apreview image if 
                         detection of pupil and the first Purkinje image is failed.
                         See :ref:`adjusting-camera` for detal.
+                        **New in 0.5.1**
+PORT_SEND               TCP/IP Port number for sending information to the Recorder PC. NO
+                        This value must be the same to **portRecv (not portSend)**
+                        parameter of 
+                        :func:`GazeParser.TrackingTools.BaseController.connect`.
+                        Default value is 10001.
+                        **New in 0.5.1**
+PORT_RECV               TCP/IP Port number for receiving commands from the Recorder    NO
+                        PC.  This value must be the same to **portSend
+                        (not portRecv)** parameter of 
+                        :func:`GazeParser.TrackingTools.BaseController.connect`.
+                        Default value is 10000.
+                        **New in 0.5.1**
+DELAY_CORRECTION        If delay in measuring gaze position is unacceptably long,
+                        you can use this parameter to correct delay.  Unit of the 
+                        value is millisedonds.
+                        **Currently, only integer (not float) value is accepted.**
+                        Default value is 0.
                         **New in 0.5.1**
 ======================= ============================================================== =========================
 

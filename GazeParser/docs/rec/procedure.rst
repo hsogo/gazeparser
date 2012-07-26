@@ -1,4 +1,4 @@
-.. _calibration-procedure-label:
+.. _calibration-procedure:
 
 Calibration procedure
 ========================
