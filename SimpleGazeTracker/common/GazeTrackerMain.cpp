@@ -117,6 +117,7 @@ int g_MessageEnd;
 
 int g_PortRecv = PORT_RECV;
 int g_PortSend = PORT_SEND;
+int g_DelayCorrection = 0;
 
 /*!
 initParameters: Read parameters from the configuration file to initialize application.
@@ -140,6 +141,7 @@ Following parameters are read from a configuration file named "CONFIG".
 -SHOW_DETECTIONERROR_MSG  (g_isShowDetectionErrorMsg)
 -PORT_RECV  (g_PortRecv)
 -PORT_SEND  (g_PortSend)
+-DELAY_CORRECTION  (g_DelayCorrection)
 
 @return int
 @retval S_OK Camera is successfully initialized.
@@ -147,7 +149,7 @@ Following parameters are read from a configuration file named "CONFIG".
 
 @date 2012/04/06 CAMERA_WIDTH, CAMERA_HEIGHT, PREVIEW_WIDTH and PREVIEW_HEIGHT are supported.
 @date 2012/07/17 ROI_WIDTH, ROI_HEIGHT and SHOW_DETECTIONERROR_MSG are supported.
-@date 2012/07/26 PORT_SEND and PORT_RECV are supported.
+@date 2012/07/26 DELAY_CORRECTION, PORT_SEND and PORT_RECV are supported.
  */
 int initParameters( void )
 {
@@ -198,6 +200,7 @@ int initParameters( void )
 		else if(strcmp(buff,"SHOW_DETECTIONERROR_MSG")==0) g_isShowDetectionErrorMsg = param;
 		else if(strcmp(buff,"PORT_SEND")==0) g_PortSend = param;
 		else if(strcmp(buff,"PORT_RECV")==0) g_PortRecv = param;
+		else if(strcmp(buff,"DELAY_CORRECTION")==0) g_DelayCorrection = param;
 	}
 
 	if(g_ROIWidth==0) g_ROIWidth = g_CameraWidth;
@@ -229,12 +232,13 @@ Following parameters are wrote to the configuration file.
 -SHOW_DETECTIONERROR_MSG  (g_isShowDetectionErrorMsg)
 -PORT_RECV  (g_PortRecv)
 -PORT_SEND  (g_PortSend)
+-DELAY_CORRECTION  (g_DelayCorrection)
 
 @return No value is returned.
 
 @date 2012/04/06 CAMERA_WIDTH, CAMERA_HEIGHT, PREVIEW_WIDTH and PREVIEW_HEIGHT are supported.
 @date 2012/07/17 ROI_WIDTH, ROI_Height, SHOW_DETECTIONERROR_MSG are supported.
-@date 2012/07/26 PORT_SEND and PORT_RECV are supported.
+@date 2012/07/26 DELAY_CORRECTION, PORT_SEND and PORT_RECV are supported.
 */
 void saveParameters( void )
 {
@@ -280,6 +284,7 @@ void saveParameters( void )
 	fs << "SHOW_DETECTIONERROR_MSG=" << g_isShowDetectionErrorMsg << std::endl;
 	fs << "PORT_SEND=" <<  g_PortSend << std::endl;
 	fs << "PORT_RECV=" <<  g_PortRecv << std::endl;
+	fs << "DELAY_CORRECTION=" << g_DelayCorrection << std::endl;
 
 	fs.close();
 }
@@ -1395,11 +1400,13 @@ if number of messages reached to MAXMESSAGE, messages are written to the file im
 
 @param[in] message Message text.
 @return No value is returned.
+
+@2012/07/26 support DelayCorrection.
 */
 void insertMessage(char* message)
 {
 	double ctd;
-	ctd = getCurrentTime() - g_RecStartTime;
+	ctd = getCurrentTime() - (g_RecStartTime - g_DelayCorrection);
 	g_MessageEnd += snprintf(g_MessageBuffer+g_MessageEnd,MAXMESSAGE-g_MessageEnd,"#MESSAGE,%.3f,%s\n",ctd,message);
 	//check overflow
 	if(MAXMESSAGE-g_MessageEnd < 128)
