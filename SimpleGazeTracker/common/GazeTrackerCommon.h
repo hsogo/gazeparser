@@ -35,7 +35,6 @@
 #define PREVIEW_WIDTH  640
 #define PREVIEW_HEIGHT 480
 
-
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
@@ -43,6 +42,9 @@
 #define MAXCALDATA 7200 // 120*30sec, 393*18.3sec
 #define MAXCALPOINT 100
 #define MAXMESSAGE 65536
+
+#define PORT_RECV        10000
+#define PORT_SEND        10001
 
 //Error codes
 #define E_FIRST_ERROR_CODE -10000
@@ -121,6 +123,9 @@ extern int g_ROIHeight;
 
 extern bool g_isShowingCameraImage;
 extern int g_isShowDetectionErrorMsg;
+
+extern int g_PortRecv;
+extern int g_PortSend;
 
 extern double g_ParamX[6],g_ParamY[6]; //Monocular: 3 params, Binocular 6 parameters.
 extern int g_Threshold;

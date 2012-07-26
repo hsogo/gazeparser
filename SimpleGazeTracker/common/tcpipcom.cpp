@@ -21,9 +21,6 @@
 #include	<stdio.h>
 #include	<fstream>
 
-#define RECV_PORT        10000
-#define SEND_PORT        10001
-
 #define RECV_BUFFER_SIZE	1024
 
 TCPsocket g_SockRecv; /*!< Socket for receiving */
@@ -81,7 +78,7 @@ sockConnect: Connect socket to the client PC to send data.
 int sockConnect(const char* host)
 {
 	IPaddress ip;
-	if(SDLNet_ResolveHost(&ip, host, SEND_PORT)==-1){
+	if(SDLNet_ResolveHost(&ip, host, g_PortSend)==-1){
 		g_LogFS << "ERROR: failed to resolve host (" << host << ")" << std::endl;
 		return E_FAIL;
 	}
@@ -98,7 +95,7 @@ int sockConnect(const char* host)
 
 int sockConnectIP(IPaddress* ip)
 {
-	ip->port = htons(SEND_PORT);
+	ip->port = htons(g_PortSend);
 
 	g_SockSend= SDLNet_TCP_Open(ip);
 	if(!g_SockSend){
@@ -120,7 +117,7 @@ sockAccept: Accept connection request from the client PC.
 int sockAccept(void)
 {
 	IPaddress ip;
-	if(SDLNet_ResolveHost(&ip, NULL, RECV_PORT)==-1){
+	if(SDLNet_ResolveHost(&ip, NULL, g_PortRecv)==-1){
 		g_LogFS << "ERROR: failed to resolve host" << std::endl;
 		return E_FAIL;
 	}
