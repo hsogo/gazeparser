@@ -485,6 +485,20 @@ int sockProcess(void)
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
+					}
+					else if(strcmp(buff+nextp,"allowRendering")==0)
+					{
+						allowRendering();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"inhibitRendering")==0)
+					{
+						inhibitRendering();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
 					}					
 					else
 					{

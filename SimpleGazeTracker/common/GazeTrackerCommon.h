@@ -162,6 +162,8 @@ extern void getEyePosition(double* pos);
 extern void saveCameraImage(const char* filename);
 extern void startMeasurement(void);
 extern void stopMeasurement(void);
+extern void allowRendering(void);
+extern void inhibitRendering(void);
 
 //Camera.cpp
 extern int initCamera( const char* ParamPath );

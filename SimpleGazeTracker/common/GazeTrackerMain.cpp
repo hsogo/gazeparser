@@ -119,6 +119,8 @@ int g_PortRecv = PORT_RECV;
 int g_PortSend = PORT_SEND;
 int g_DelayCorrection = 0;
 
+bool g_isInhibitRendering = false;
+
 /*!
 initParameters: Read parameters from the configuration file to initialize application.
 
@@ -736,6 +738,7 @@ main: Entry point of the application
 
 @return int termination code.
 
+@date 2012/07/27 Don't render screen if g_isInhibitRendering is true.
 */
 int main(int argc, char** argv)
 {
@@ -1013,7 +1016,7 @@ int main(int argc, char** argv)
 
 		}
 
-		if(!g_isRecording)
+		if(!g_isRecording and !g_isInhibitRendering)
 		{ // if it is not under recording, flip screen in a regular way.
 			render();
 		}
@@ -1630,5 +1633,27 @@ void stopMeasurement(void)
 	{
 		g_LogFS << "Waring: StopMeasurement is called before starting." << std::endl;	
 	}
+}
+
+/*!
+allowRendering: allow rendering.
+
+@return No value is returned.
+@date 2012/07/27 Created.
+*/
+void allowRendering(void)
+{
+	g_isInhibitRendering = false;
+}
+
+/*!
+inhibitRendering: inhibit rendering.
+
+@return No value is returned.
+@date 2012/07/27 Created.
+*/
+void inhibitRendering(void)
+{
+	g_isInhibitRendering = true;
 }
 
