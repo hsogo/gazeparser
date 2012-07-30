@@ -46,6 +46,24 @@ bool g_isParameterSpecified[CAMERA_PARAM_NUM] = {false,false,false,false,false,f
 
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
 
+/*!
+getEditionString: Get edition string.
+
+@return edition string.
+
+@date 2012/07/30 created.
+*/
+const char* getEditionString(void)
+{
+	return EDITION;
+}
+
+
+
+/*!
+captureCameraThread: Capture camera image using thread.
+
+*/
 int captureCameraThread(void *unused)
 {
 	cv::Mat frame, monoFrame;

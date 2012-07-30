@@ -6,7 +6,12 @@
 
 @date 2012/03/23
 - Custom menu is supported.
+@date 2012/07/30
+- EDITION is defined here.
 */
+
+#define EDITION "GPC5300 Edition"
+
 #ifdef TOSHIBA
 
 #define CAMERA_CONFIG_FILE "CAMERA_TOSHIBA.cfg"
@@ -17,4 +22,6 @@
 
 #endif
 
+
+#include "C:\Program Files\Interface\GPC5300\include\IFCml.h"
 #include "../common/GazeTrackerCommon.h"

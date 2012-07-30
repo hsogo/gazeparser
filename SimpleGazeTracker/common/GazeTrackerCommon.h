@@ -170,6 +170,7 @@ extern int initCamera( const char* ParamPath );
 extern int getCameraImage( void );
 extern void cleanupCamera( void );
 extern void saveCameraParameters(const char* ParamPath);
+extern const char* getEditionString( void );
 
 //DetectEye.cpp
 extern int initBuffers(void);

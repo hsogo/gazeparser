@@ -25,6 +25,18 @@ int g_Exposure = 399;
 #define CUSTOMMENU_NUM			2
 
 /*!
+getEditionString: Get edition string.
+
+@return edition string.
+
+@date 2012/07/30 created.
+*/
+const char* getEditionString(void)
+{
+	return EDITION;
+}
+
+/*!
 initCamera: Initialize camera.
 
 Read parameters from the configuration file, start camera and set callback function.
@@ -39,6 +51,8 @@ Read parameters from the configuration file, start camera and set callback funct
 
 @date 2012/05/24
 - Both width and height are checked (640x480 or 320x240).
+@date 2012/07/30
+- Configuration file name in the log file is corrected.
 */
 int initCamera( const char* ParamPath )
 {
@@ -57,7 +71,7 @@ int initCamera( const char* ParamPath )
 	fs.open(str.c_str(),std::ios::in);
 	if(fs.is_open())
 	{
-		g_LogFS << "Open camera configuration file (" << buff << ")" << std::endl;
+		g_LogFS << "Open camera configuration file (" << str << ")" << std::endl;
 		while(fs.getline(buff,sizeof(buff)-1))
 		{
 			if(buff[0]=='#') continue;
@@ -72,7 +86,7 @@ int initCamera( const char* ParamPath )
 		}
 		fs.close();
 	}else{
-		g_LogFS << "ERROR: failed to open camera configuration file (" << buff << ")" << std::endl;
+		g_LogFS << "ERROR: failed to open camera configuration file (" << str << ")" << std::endl;
 		return E_FAIL;
 	}
 

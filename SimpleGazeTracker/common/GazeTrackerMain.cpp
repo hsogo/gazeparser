@@ -7,9 +7,12 @@
 
 @date 2012/03/23
 - Custom menu is supported.
+@date 2012/07/30
+- EOG-SimpleGazeTracker concurrent recording mode is appended.  To use this mode, define __DEBUG_WITH_GPC3100.
  */
 
 #define _CRT_SECURE_NO_WARNINGS
+// #define __DEBUG_WITH_GPC3100
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_ttf.h>
@@ -120,6 +123,27 @@ int g_PortSend = PORT_SEND;
 int g_DelayCorrection = 0;
 
 bool g_isInhibitRendering = false;
+
+#ifdef __DEBUG_WITH_GPC3100
+#include "C:\\Program Files\\Interface\\GPC3100\\include\\FbiAd.h"
+#pragma comment(lib, "C:\\Program Files\\Interface\\GPC3100\\lib\\FbiAd.lib")
+WORD g_debug_EOGDATA[MAXDATA];
+HANDLE g_debug_hDeviceHandle;
+ADSMPLCHREQ g_debug_AdSmplChReq;
+
+HRESULT initADConverter()
+{
+	g_debug_hDeviceHandle = AdOpen("FBIAD1");
+	if (g_debug_hDeviceHandle == INVALID_HANDLE_VALUE) {
+		return E_FAIL;
+	}
+
+	g_debug_AdSmplChReq.ulChNo = 1;
+	g_debug_AdSmplChReq.ulRange = AD_5V;
+	return S_OK;
+}
+
+#endif
 
 /*!
 initParameters: Read parameters from the configuration file to initialize application.
@@ -421,6 +445,9 @@ flushGazeData: write data to the datafile.
 This function is called either when recording is stopped or g_DataCounter reached to MAXDATA.
 
 @return No value is returned.
+
+@date 2012/07/30
+- EOG-SimpleGazeTracker concurrent recording mode is appended
 */
 void flushGazeData(void)
 {
@@ -428,6 +455,10 @@ void flushGazeData(void)
 	if(g_RecordingMode==RECORDING_MONOCULAR){
 		for(int i=0; i<g_DataCounter; i++){
 			fprintf(g_DataFP,"%.3f,",g_TickData[i]);
+#ifdef __DEBUG_WITH_GPC3100
+			fprintf(g_DataFP,"%d,",g_debug_EOGDATA[i]);
+#endif
+
 			if(g_EyeData[i][0]<E_PUPIL_PURKINJE_DETECTION_FAIL){
 				if(g_EyeData[i][0] == E_MULTIPLE_PUPIL_CANDIDATES)
 					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL\n");
@@ -450,7 +481,9 @@ void flushGazeData(void)
 		for(int i=0; i<g_DataCounter; i++){
 			fprintf(g_DataFP,"%.3f,",g_TickData[i]);
 			getGazePositionBin(g_EyeData[i], xy);
-			//left eye
+#ifdef __DEBUG_WITH_GPC3100
+			fprintf(g_DataFP,"%d,",g_debug_EOGDATA[i]);
+#endif			//left eye
 			if(g_EyeData[i][BIN_LX]<E_PUPIL_PURKINJE_DETECTION_FAIL){
 				if(g_EyeData[i][BIN_LX] == E_MULTIPLE_PUPIL_CANDIDATES)
 					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL,");
@@ -739,6 +772,8 @@ main: Entry point of the application
 @return int termination code.
 
 @date 2012/07/27 Don't render screen if g_isInhibitRendering is true.
+@date 2012/07/30
+- EOG-SimpleGazeTracker concurrent recording mode is appended
 */
 int main(int argc, char** argv)
 {
@@ -771,6 +806,11 @@ int main(int argc, char** argv)
 	if(!g_LogFS.is_open()){
 		return -1;
 	}
+	std::string str("Welcome to SimpleGazeTracker version ");
+	str.append(VERSION);
+	str.append(" ");
+	str.append(getEditionString());
+	g_LogFS << str << std::endl;
 	g_LogFS << "initParameters ... OK." << std::endl;
 
 	//TODO output parameters here?
@@ -786,8 +826,6 @@ int main(int argc, char** argv)
 	g_LogFS << "initSDLTTF ... OK." << std::endl;
 
 	//now message can be rendered on screen.
-	std::string str("Welcome to SimpleGazeTracker version ");
-	str.append(VERSION);
 	renderInitMessages(nInitMessage,str.c_str());
 	nInitMessage++;
 	nInitMessage++;
@@ -839,6 +877,16 @@ int main(int argc, char** argv)
 	g_LogFS << "initCamera ... OK." << std::endl;
 	renderInitMessages(nInitMessage,"initCamera ... OK.");
 	nInitMessage += 1;
+
+#ifdef __DEBUG_WITH_GPC3100
+	if(FAILED(initADConverter())){
+		g_LogFS << "initAD failed. Exit." << std::endl;
+		renderInitMessages(nInitMessage,"initADConverter failed. Exit.");
+		sleepMilliseconds(2000);
+		SDL_Quit();
+		return -1;
+	}
+#endif
 
 	if(FAILED(initSDLSurfaces())){
 		g_LogFS << "initSDLSurfaces failed. Exit." << std::endl;
@@ -994,6 +1042,9 @@ int main(int argc, char** argv)
 			double detectionResults[8], TimeImageAquired;
 			TimeImageAquired = getCurrentTime() - g_RecStartTime;
 
+#ifdef __DEBUG_WITH_GPC3100
+			AdInputAD( g_debug_hDeviceHandle, 1, AD_INPUT_DIFF, &g_debug_AdSmplChReq, &g_debug_EOGDATA[g_DataCounter]);
+#endif
 			if(g_RecordingMode==RECORDING_MONOCULAR){
 				res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPoints, g_MaxPoints, detectionResults);
 				if(res!=S_PUPIL_PURKINJE)
@@ -1013,10 +1064,9 @@ int main(int argc, char** argv)
 				}
 				getGazeBin(detectionResults, TimeImageAquired);
 			}
-
 		}
 
-		if(!g_isRecording and !g_isInhibitRendering)
+		if(!g_isRecording && !g_isInhibitRendering)
 		{ // if it is not under recording, flip screen in a regular way.
 			render();
 		}
