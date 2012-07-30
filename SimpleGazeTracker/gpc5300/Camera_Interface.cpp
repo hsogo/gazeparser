@@ -17,8 +17,6 @@
 #include <fstream>
 #include <string>
 
-#include "C:\Program Files\Interface\GPC5300\include\IFCml.h"
-
 
 HANDLE g_CameraDeviceHandle; /*!< Holds camera device handle */
 HANDLE g_CameraMemHandle; /*!< Holds camera buffer handle */
@@ -26,6 +24,18 @@ HANDLE g_CameraMemHandle; /*!< Holds camera buffer handle */
 unsigned char* g_TmpFrameBuffer; /*!< Temporary buffer to hold camera image until CallBackProc() is called.*/
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
 
+
+/*!
+getEditionString: Get edition string.
+
+@return edition string.
+
+@date 2012/07/30 created.
+*/
+const char* getEditionString(void)
+{
+	return EDITION;
+}
 
 /*!
 CallBackProc: Grab camera images.

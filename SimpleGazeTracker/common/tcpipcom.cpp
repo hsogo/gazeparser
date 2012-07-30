@@ -226,7 +226,7 @@ int sockProcess(void)
 					}
 					else if(strcmp(buff+nextp,"getImageData")==0)
 					{
-						int index, offsetX, offsetY;
+						int index;
 						for(int y=0; y<g_ROIHeight; y++){
 							for(int x=0; x<g_ROIWidth; x++){
 								index = g_ROIWidth*y+x;
@@ -482,6 +482,20 @@ int sockProcess(void)
 					else if(strcmp(buff+nextp,"stopMeasurement")==0)
 					{
 						stopMeasurement();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"allowRendering")==0)
+					{
+						allowRendering();
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"inhibitRendering")==0)
+					{
+						inhibitRendering();
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
