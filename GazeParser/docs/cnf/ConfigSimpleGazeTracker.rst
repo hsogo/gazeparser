@@ -92,6 +92,7 @@ DELAY_CORRECTION        If delay in measuring gaze position is unacceptably long
                         value is millisedonds.
                         **Currently, only integer (not float) value is accepted.**
                         Default value is 0.
+                        See :ref:`stim_cap_delay` for detail.
                         **New in 0.5.1**
 ======================= ============================================================== =========================
 

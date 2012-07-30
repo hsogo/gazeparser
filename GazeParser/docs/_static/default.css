@@ -514,3 +514,8 @@ div.figure {
 div.figure p.caption {
     font-style: italic;
 }
+
+table.docutils {
+ margin-left: auto;
+ margin-right: auto;
+}

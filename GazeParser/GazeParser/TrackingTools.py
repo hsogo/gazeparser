@@ -1632,13 +1632,33 @@ def getController(backend, configFile=None, dummy=False):
 
 
 def cameraDelayEstimationHelper(screen, tracker):
+    """
+    A simple tool to help estimating measurement delay.
+    See documents of GazeParser for detail.
+    
+    :param screen: an instance of psychopy.visual.Window or VisionEgg.Core.Screen.
+    :param tracker: an instance of GazeParser.TrackingTools.ControllerPsychoPyBackend
+        or GazeParser.TrackingTools.ControllerVisionEggBackend.
+    """
     if isinstance(tracker,ControllerVisionEggBackend):
         import VisionEgg.Core, VisionEgg.Text, pygame
         from pygame.locals import KEYDOWN, K_ESCAPE, K_SPACE
         
         (x0,y0) = (screen.size[0]/2,screen.size[1]/2)
-        msg = VisionEgg.Text.Text(position=(x0,y0),font_size=96)
+        msg = VisionEgg.Text.Text(position=(x0,y0),font_size=64)
         viewport = VisionEgg.Core.Viewport(screen=screen, stimuli=[msg])
+        
+        msg.parameters.text = 'press space'
+        isWaiting = True
+        while isWaiting:
+            screen.clear()
+            viewport.draw()
+            VisionEgg.Core.swap_buffers()
+            for e in pygame.event.get():
+                if e.type==KEYDOWN and e.key==K_SPACE:
+                    isWaiting = False
+        
+        tracker.sendCommand('inhibitRendering'+chr(0))
         
         frame = 0
         isRunning = True
@@ -1656,9 +1676,22 @@ def cameraDelayEstimationHelper(screen, tracker):
             
             frame += 1
         
+        tracker.sendCommand('allowRendering'+chr(0))
+        
     elif isinstance(tracker,ControllerPsychoPyBackend):
         import psychopy.event, psychopy.visual
         msg = psychopy.visual.TextStim(screen,pos=(0,0))
+        
+        msg.setText('press space')
+        isWaiting = True
+        while isWaiting:
+            msg.draw()
+            screen.flip()
+            for key in psychopy.event.getKeys():
+                if key=='space':
+                    isWaiting = False
+        
+        tracker.sendCommand('inhibitRendering'+chr(0))
         
         frame = 0
         isRunning = True
@@ -1674,6 +1707,8 @@ def cameraDelayEstimationHelper(screen, tracker):
                     tracker.sendCommand('saveCameraImage'+chr(0)+'FRAME'+str(frame).zfill(8)+'.bmp'+chr(0))
             
             frame += 1
+        
+        tracker.sendCommand('allowRendering'+chr(0))
         
     else:
         raise ValueError

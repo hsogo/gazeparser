@@ -37,18 +37,19 @@ Unit of this value is milliseconds.::
     217.4,217.7,0.3,0,0,-6.0,-33.0
     (snip)
 
-For reference, the mean and standard deviation of this example output were 0.65ms and 0.79ms, respectively.
-The mode was 0.3ms, and the maximum value was 3.8ms.
+For reference, **the mean and standard deviation of the lag in this example output were 0.65ms and 0.79ms, respectively.
+The mode was 0.3ms, and the maximum value was 3.8ms**.
 PCs used to generate this example output are shown in Table 1.
-::
+**In my experience, the mean and mode of the lag is shorter than 1.0ms when PCs with recent Intel mid-range CPU (e.g. Core i5, i7) and recent OS (e.g. Windows 7, ubuntu 12.04) are used.**
 
 .. table:: Table 1
 
     ================ ============================================================
     Presentation PC  * Core i7 920
-                     * Windows 7 Professional
+                     * Windows 7 Professional SP1
                      * GeForce GTX 550 Ti
-                     * PsychoPy 1.73
+                     * Python 2.7.2
+                     * PsychoPy 1.73.04
     Recorder PC      * Core2 Duo E8500
                      * Ubuntu 12.04
                      * GazeParser 0.5.1 OpenCV edition (USE_THREAD=1)
