@@ -4,8 +4,11 @@ ChangeLog
 GazeParser 0.5.1
 ----------------------
 
+(released 2012/07/31)
+
 * CHANGED: SimpleGazeTracker 
     - CHANGED: Pupil detection algorithm is improved.  Rate of detection failure is reduced when shadows whose size is similar to pupil size are included in captured images.
+    - CHANGED: SimpleGazeTracker edition is output to a log file.
     - ADDED: A parameter 'Camera ID' is added to OpenCV edition.  You can specify which camera should be used when multiple camearas are connected to the Recorder PC.
     - ADDED: A parameter 'SHOW_DETECTIONERROR_MSG' is added to all edition.
     - ADDED: Parameters 'ROI_WIDTH' and 'ROI_HEIGHT' are added to all edition.  You can specify a subregion where SimpleGazeTracker searches pupil and Purkinje image.
@@ -16,6 +19,7 @@ GazeParser 0.5.1
     - CHANGED: Parameters 'port1' and 'port2' of :func:`GazeParser.TrackingTools.BaseController.connect` are renamed to portRecv' and 'portSend'
     - ADDED: :func:`GazeParser.TrackingTools.BaseController.getSpatialError`
     - ADDED: :func:`GazeParser.TrackingTools.cameraDelayEstimationHelper`
+* CHANGED: GazeParser Home directory on Win32 is moved from %HOMEDRIVE%%HOMEPATH%\GazeParser to %USERPROFILE%\GazeParser.
 * FIXED: :func:`GazeParser.TrackingTools.ControllerPsychoPyBackend.getSpatialError` did not work when 'units' was not 'pix'.
 * FIXED: Some minor bugs.
 
