@@ -1,3 +1,14 @@
+New in 0.5.1
+
+* Pupil detection is improved especially when multiple pupil-like
+  dark areas are in captured image.
+* Correction for measurement delay is supported.
+* Port numbers can be configured.
+* Region of interest can be set.
+* Camera can be specified by ID when multiple cameras are connected.
+* Support new features of GazeParser.TrackingTools.
+* Pupil/Purkinje image detection error can be overlaid on preview.
+
 New in 0.5.0alpha
 
 * First release of SimpleGazeTracker OpenCV edition.

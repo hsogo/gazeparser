@@ -1,3 +1,19 @@
+2012-07-31  Hiroyuki Sogo
+
+  release: 0.5.1
+  
+  * improved pupil detection
+  * support for CAMERA_ID option
+  * support for ROI_WIDTH and ROI_HEIGHT options
+  * support for SHOW_DETECTIONERROR_MSG option
+  * support for PORT_SEND and PORT_RECV options
+  * support for DELAY_CORRECTION option
+  * support for startMeasurement and stopMeasurement messages
+  * support for allowRendering and inhibitRendering messages
+  * add concurrent EOG-SimpleGazeTracker recording mode
+    (Interface GPC3100 library and supported AD converter are necessary)
+  * minor bug fix
+
 2012-06-26  Hiroyuki Sogo
 
   release: 0.5.0alpha
