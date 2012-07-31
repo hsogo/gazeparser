@@ -32,13 +32,13 @@ GazeParser installer can be downloaded from following page.
 
 Install either of these files to computers which you plan to use stimulus presentation and data analysis.
 
-- **GazeParser-x.x.x-pyx.x.egg**: python egg file
-- **GazeParser-x.x.x.zip**: zipped file
+- `GazeParser-0.5.1-py2.7.egg <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1-py2.7.egg>`_ : python egg file
+- `GazeParser-0.5.1.zip <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1.zip>`_ : zipped file
 
 If you plan to record gaze data, download following source code and build SimpleGazeTracker.
 **Currently, SimpleGazeTracker for Linux is distributed only in source code**.
 
-- **simplegazetracker-x.x.x.tar.gz**
+- `SimpleGazeTracker-0.5.1.tar.gz <http://sourceforge.net/projects/gazeparser/files/0.5.1/SimpleGazeTracker-0.5.1.tar.gz>`_
 
 Build SimpleGazeTracker (Ubuntu 12.04 desktop)
 -----------------------------------------------
@@ -60,22 +60,22 @@ Expand gzipped tarball and change working directory to the created directory.
 
 .. code-block:: bash
 
-    ~$ tar zxvf simplegazetracker-x.x.x.tar.gz
-    ~$ cd simplegazetracker-x.x.x
+    ~$ tar zxvf SimpleGazeTracker-x.x.x.tar.gz
+    ~$ cd SimpleGazeTracker-x.x.x
 
 Execute 'configure' script.  If error message is displayed, check missing files and install corresponding packages.
 Ubuntu package search (`<http://packages.ubuntu.com/>`) is useful to search contents of packages.
 
 .. code-block:: bash
 
-    ~/simplegazetracker-x.x.x$ ./configure
+    ~/SimpleGazeTracker-x.x.x$ ./configure
 
 If 'configure' script finish successfully, build and install SimpleGazeTracker.
 
 .. code-block:: bash
 
-    ~/simplegazetracker-x.x.x$ make
-    ~/simplegazetracker-x.x.x$ sudo make install
+    ~/SimpleGazeTracker-x.x.x$ make
+    ~/SimpleGazeTracker-x.x.x$ sudo make install
 
 By default, simplegazetracker is installed at /usr/local/simplegazetracker.
 Type as following to comfirm SimpleGazeTracker has been correctly installed.
@@ -84,6 +84,6 @@ SimpleGazeTracker will show error message and terminate automatically if you hav
 
 .. code-block:: bash
 
-    ~/simplegazetracker-x.x.x$ /usr/local/simplegazetracker/simplegazetracker
+    ~/SimpleGazeTracker-x.x.x$ /usr/local/simplegazetracker/simplegazetracker
 
 

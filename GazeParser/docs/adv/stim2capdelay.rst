@@ -157,7 +157,7 @@ Comparing the results of image analysis with the output of DC-EOG, delay from im
 
 Figure 6 shows representative results. Blue lines and green lines show horizontal gaze position recorded by DC-EOG and SimpleGazeTracker, respectively.
 The blue and green lines were quite close with each other when the data were recorded at 250Hz (top row, SimpleGazeTracker GPC5300 edition).
-On the other hand, the blue line preceded the green line when the data were recorded at 60Hz (bottom row, SimpleGazeTracker GPC5300 edition).
+On the other hand, the blue line preceded the green line when the data were recorded at 60Hz (bottom row, SimpleGazeTracker OpenCV edition).
 
 .. figure:: stim2capdelay006.png
     

@@ -25,30 +25,31 @@ GazeParser installer can be downloaded from following page.
 
 Install either of these files to computers which you plan to use stimulus presentation and data analysis.
 
-- **GazeParser-x.x.x-pyx.x.egg**: python egg file
-- **GazeParser-x.x.x.win32.exe**: Windows installer
-- **GazeParser-x.x.x.zip**: zipped file
+- `GazeParser-0.5.1-win32.exe <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1-win32.exe>`_ : Windows installer
+- `GazeParser-0.5.1-py2.7.egg <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1-py2.7.egg>`_ : python egg file
+- `GazeParser-0.5.1.zip <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1.zip>`_ : zipped file
 
 If you plan to record gaze data, install one of following files to a computer which you plan to use recording gaze data.
 
-- **SimpleGazeTracker-x.x.x-optitrack-y.y.yyy.msi**: SimpleGazeTracker installer for OptiTrack V120 or V100R2 cameras
+- `SimpleGazeTracker-0.5.1-optitrack-1.3.038.msi <http://sourceforge.net/projects/gazeparser/files/0.5.1/SimpleGazeTracker-0.5.1-optitrack-1.3.038.msi>`_ : SimpleGazeTracker installer for OptiTrack V120 or V100R2 cameras
     Probably OptiTrack Baseline 2D SDK will be necessary to use SimpleGazeTracker.
     The SDK can be downloaded from OptiTrack Downloads page.
 
     `<http://www.naturalpoint.com/optitrack/downloads/archives.html>`_
 
     Version number following 'optitrack-' in the SimpleGazeTracker installer indicates which version of SDK is necessary.
-    For example, if name of the SimpleGazeTracker installer is SimpleGazeTracker-0.4.0-optitrack-**1.3.038**.msi, OptiTrack 2D SDK 1.3.038 is necessary.
+    For example, if name of the SimpleGazeTracker installer is SimpleGazeTracker-0.5.1-optitrack-**1.3.038**.msi, OptiTrack 2D SDK 1.3.038 is necessary.
 
-- **SimpleGazeTracker-x.x.x-opencv-y.y.yyy.msi**: SimpleGazeTracker installer for cameras supported by OpenCV.
+- `SimpleGazeTracker-0.5.1-opencv-2.4.0.msi <http://sourceforge.net/projects/gazeparser/files/0.5.1/SimpleGazeTracker-0.5.1-opencv-2.4.0.msi>`_ : SimpleGazeTracker installer for cameras supported by OpenCV.
     Necessary interfaces, drivers and other applications depend on camera unit.  Confirm user manual of the camera.
 
+- `SimpleGazeTracker-0.5.1-interface-gpc5300.msi <http://sourceforge.net/projects/gazeparser/files/0.5.1/SimpleGazeTracker-0.5.1-interface-gpc5300.msi>`_ : SimpleGazeTracker installer for cameras supported by OpenCV.
 - **SimpleGazeTracker-x.x.x-interface-gpc5300.msi**: SimpleGazeTracker installer for CameraLink image grabber manufactured by `Interface Corporation <http://www.interface.co.jp/>`_.
     A CameraLink image grabber supported by Interface GPC5300 software must be installed to the recording PC.
 
 If you need source files of SimpleGazeTracker, download following file.
 
-- **SimpleGazeTracker-x.x.x-src-vsXXXX.zip**: Zipped archive of source files.
+- `SimpleGazeTracker-0.5.1-src-vs2008.zip <http://sourceforge.net/projects/gazeparser/files/0.5.1/SimpleGazeTracker-0.5.1-src-vs2008.zip>`_ : Zipped archive of source files.
     Source files of SimpleGazeParser for Microsoft Windows is provided as a project of Microsoft VisualStudio.
     vsXXXX indicates the version of VisualStudio (e.g. 'vs2008' indicates VisualStudio2008).
 
