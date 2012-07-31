@@ -90,15 +90,14 @@ def createConfigDir(overwrite=False):
     AppDir = os.path.abspath(os.path.dirname(__file__))
     
     if sys.platform == 'win32':
-        ConfigDir = os.environ['HOMEPATH']
-        if ConfigDir[0] == '\\':
-            ConfigDir = os.environ['HOMEDRIVE'] + ConfigDir
-        ConfigDir = os.path.join(ConfigDir,'GazeParser')
+	    homeDir = os.environ['USERPROFILE']
+	    configDir = os.path.join(homeDir,'GazeParser')
     else:
-        ConfigDir = os.path.join(ConfigDir,'GazeParser')
+        homeDir = os.environ['HOME']
+        configDir = os.path.join(homeDir,'GazeParser')
     
-    if not os.path.exists(ConfigDir):
-        os.mkdir(ConfigDir)
+    if not os.path.exists(configDir):
+        os.mkdir(configDir)
         print 'GazeParser: ConfigDir is successfully created.'
     else:
         print 'GazeParser: ConfigDir is exsiting.'
@@ -108,7 +107,7 @@ def createConfigDir(overwrite=False):
     for fname in os.listdir(AppDir):
         if fname[-4:] == '.cfg':
             src.append(os.path.join(AppDir,fname))
-            dst.append(os.path.join(ConfigDir,fname[:-4]+'.cfg'))
+            dst.append(os.path.join(configDir,fname[:-4]+'.cfg'))
     
     for i in range(len(src)):
         if overwrite or not os.path.exists(dst[i]):
