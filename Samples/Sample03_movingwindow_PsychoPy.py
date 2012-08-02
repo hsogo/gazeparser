@@ -2,11 +2,11 @@ import psychopy.visual
 import psychopy.event
 import psychopy.core
 import sys
-
 import Image
 import ImageDraw
 import numpy
 import OpenGL.GL
+import os
 
 import GazeParser.TrackingTools
 
@@ -64,15 +64,20 @@ class FileWindow(wx.Frame):
         address = self.addressEdit.GetValue()
         imgsize = self.imgsizeEdit.GetValue()
         isdummy = self.isdummyCheck.GetValue()
+        dlg = wx.FileDialog(None, 'select image file', '', '', '*.*', wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            fname = os.path.join(dlg.GetDirectory(), dlg.GetFilename())
+        dlg.Destroy()
         
-        FileWindowValues = {'filename':filename,'address':address,'imgsize':imgsize,'isdummy':isdummy}
+        FileWindowValues = {'filename':filename,'address':address,'imgsize':imgsize,'isdummy':isdummy,'imgfilename':fname}
         self.Close(True)
 
 FileWindowValues = {}
 application = wx.App(False)
-fw = FileWindow(None,wx.ID_ANY,"Sample03_PsychoPy")
+fw = FileWindow(None,wx.ID_ANY,"Sample03_movingwindow_PsychoPy")
 application.MainLoop()
 
+fname = FileWindowValues['imgfilename']
 
 dataFileName = FileWindowValues['filename']
 fp = open(dataFileName+'_local.csv','w')
@@ -106,40 +111,44 @@ while True:
     if tracker.isCalibrationFinished():
         break
 
-(SX,SY) = win.size
-meshx,meshy = numpy.meshgrid(range(-SX/4,SX/4),range(-SY/4,SY/4))
-imgArray = numpy.ones((SY/2,SX/2,4),numpy.uint8)*128
-imgArray[:,:,3] = 255*(1-numpy.exp(-(meshx/36.0)**2-(meshy/36.0)**2))
+maskImageSize = 512
+meshx,meshy = numpy.meshgrid(range(-maskImageSize/2,maskImageSize/2),range(-maskImageSize/2,maskImageSize/2))
+imgArray = numpy.ones((maskImageSize,maskImageSize,4),numpy.uint8)*128
 maskimage = Image.fromarray(imgArray,mode='RGBA')
-mask = psychopy.visual.PatchStim(win,maskimage)
-stim = psychopy.visual.SimpleImageStim(win,fname)
 
-for tr in range(2):
-    tracker.StartRecording(message='trial'+str(tr+1))
+stim = psychopy.visual.SimpleImageStim(win,fname)
+mask = psychopy.visual.PatchStim(win,maskimage)
+mask.setSize((maskImageSize*4,maskImageSize*4))
+
+for tr in range(5):
+    windowSize = 6.0*(tr+1)
+    imgArray[:,:,3] = 255*(1-numpy.exp(-(meshx/windowSize)**2-(meshy/windowSize)**2))
+    maskimage = Image.fromarray(imgArray,mode='RGBA')
+    mask.setTex(maskimage)
+    
+    tracker.startRecording(message='trial'+str(tr+1))
     
     maskcenter = (0,0)
     flgLoop = True
     while flgLoop: 
-        ex,ey = tracker.GetEyePosition()
-        if not ex == None:
-            maskcenter = (ex,ey)
+        exy = tracker.getEyePosition()
+        if exy[0] != None:
+            if -win.size[0]/2<exy[0]<win.size[0]/2 and -win.size[1]/2<exy[1]<win.size[1]:
+                maskcenter = (exy[0],exy[1])
         
         mask.setPos(maskcenter,units='pix')
         
-        for e in pygame.event.get():
-            if e.type == pygame.locals.KEYDOWN:
-                if e.key == pygame.locals.K_SPACE:
-                    tracker.SendMessage('SPACE pressed.')
-                elif e.key == pygame.locals.K_ESCAPE:
-                    flgLoop = False
+        keyList = psychopy.event.getKeys()
+        if 'space' in keyList:
+            flgLoop = False
         
-        mask.draw()
         stim.draw()
+        mask.draw()
         
         win.flip()
         
-    tracker.StopRecording()
+    tracker.stopRecording()
     
 
-tracker.CloseDataFile()
+tracker.closeDataFile()
 
