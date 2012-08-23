@@ -196,3 +196,47 @@ Delay in the Presentation PC may change depending on operating system and driver
     
     Figure 9
 
+
+
+.. figure:: stim2capdelay010.jpg
+    
+    Figure 10
+
+.. table:: Table 3
+
+    ================ ==================================================================
+    Presentation PC  * [CPU] Core2 Duo E6550
+                     * [GRAPHIC] GeForce 8600 GTS
+                     * [LCD] EIZO EV2313W (60Hz)
+                     * Windows XP Professional SP3
+                     * Python 2.5.4
+                     * VisionEgg 1.2.1
+                     * PsychoPy 1.74.03
+    Recorder PC      * [CPU] Core i7 950
+                     * [Camera] IMPERX Bobcat ICL-B0620 @250Hz
+                     * [DC-OEG] NIHON KODEN AN-601G with Interface PCI-3166
+                     * Windows 7 Professional SP1
+                     * GazeParser 0.5.1 GPC5300 edition
+    ================ ==================================================================
+
+.. figure:: stim2capdelay011.png
+    
+    Figure 11
+
+
+.. figure:: stim2capdelay012.png
+    
+    Figure 12
+
+.. table:: Table 4
+
+    =========== =================== ============================================
+    Library     difference (frames) delay (msec, estimated by differene*1000/60)
+    =========== =================== ============================================
+    PsychoPy    1.27 (SD = 0.32)    21.15 (SD = 5.39)
+    VisionEgg   4.06 (SD = 0.18)    67.71 (SD = 2.82)
+    =========== =================== ============================================
+
+
+
+

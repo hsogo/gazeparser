@@ -111,6 +111,9 @@ This method returns the event (ie. saccade, fixation, blink or message) which fo
 In this example, the third message was 'TARGET2 ON', which was inserted when the peripheral target was appeared.
 To find the saccade following this message, call getNextEvent() like this.
 
+.. note::
+    *New in GazeParser 0.5.1*: You can find messages that include specific text by :func:`~GazeParser.Core.GazeData.findMessage`.
+
 .. sourcecode:: ipython
 
     In [7]: sac = d[0].getNextEvent(d[0].Msg[2],eventType='saccade')
@@ -251,4 +254,3 @@ If you want to check these properties, use data attributes of :class:`~GazeParse
     Out[21]: (521.89999999999998, 437.30000000000001)
     In [22]: sac.end #termination point in the screen coordinate
     Out[22]: (626.79999999999995, 440.80000000000001)
-

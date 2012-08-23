@@ -38,6 +38,7 @@ class BaseController(object):
     - self.updateScreen(self)
     - self.setCameraImage(self)
     - self.drawCalibrationResults(self)
+    - setCalibrationTargetStimulus(self, stim)
     - setCalibrationTargetPositions(self, area, calposlist)
     - self.getKeys(self)
     """
@@ -106,24 +107,20 @@ class BaseController(object):
         self.previewWidth = size[0]
         self.previewHeight = size[1]
     
-    def setCalibrationTargetStimulus(self, stim):
-        """
-        Set calibration target.
-        
-        :param stim: Stimulus object such as circle, rectangle, and so on.
-        """
-        if not hasattr(self, 'caltarget'):
-            print 'Warning: calibration target stimulus will be overridden when setCalibrationScreen is called.'
-        self.caltarget = stim
-    
     def setCalibrationTargetPositions(self, area, calposlist):
         """
         Send calibration area and calibration target positions to the Tracker Host PC.
         This method must be called before starting calibration.
-        ::
+        
+        The order of calibration target positions is shuffled each time calibration
+        is performed. However, the first target position (i.e. the target position 
+        at the beginning of calibration) is always the first element of the list.
+        In the following example, the target is always presented at (512,384) a the 
+        beginning of calibration. ::
         
             calArea = (0, 0, 1024, 768)
-            calPos = ((162,134),(512,134),(862,134),
+            calPos = ((512,384),
+                      (162,134),(512,134),(862,134),
                       (162,384),(512,384),(862,384),
                       (162,634),(512,634),(862,634))
             tracker.CalibrationTargetPositions(calArea, calPos)
@@ -133,6 +130,9 @@ class BaseController(object):
         :param sequence calposlist: a list of (x, y) positions of calibration
             target.
         """
+        area = list(area)
+        calposlist = list(calposlist)
+        
         if len(area) != 4:
             print 'Calibration area must be a sequence of 4 integers.'
             self.calAreaSet = False
@@ -150,21 +150,30 @@ class BaseController(object):
             self.calAreaSet = False
             return
         
-        self.calArea = area
+        self.calArea = tuple(area)
         self.calAreaSet = True
         
         for i in range(len(calposlist)):
             if len(calposlist[i]) != 2:
-                'Calibration position must be a sequence of 2 integers.'
+                print 'Calibration position must be a sequence of 2 integers.'
                 self.calTargetPosSet = False
                 return
             try:
-                calposlist[i][0] = int(calposlist[i][0])
-                calposlist[i][1] = int(calposlist[i][1])
+                calposlist[i] = (int(calposlist[i][0]),int(calposlist[i][1]))
             except:
-                'Calibration position must be a sequence of 2 integers.'
+                print 'Calibration position must be a sequence of 2 integers.'
                 self.calTargetPosSet = False
                 return
+        
+        isDifferentPositionIncluded = False
+        for i in range(1,len(calposlist)):
+            if calposlist[i][0] != calposlist[0][0] or calposlist[i][1] != calposlist[0][1]:
+                isDifferentPositionIncluded = True
+                break
+        if not isDifferentPositionIncluded:
+            print 'At least one different position must be specified.'
+            self.calTargetPosSet = False
+            return
         
         self.calTargetPos = calposlist[:]
         self.calTargetPosSet = True
@@ -265,7 +274,7 @@ class BaseController(object):
         """
         Send a command to insert recording settings to data file.
         
-        :parap dict config: a dictionary object which holds recording settings.
+        :param dict config: a dictionary object which holds recording settings.
         """
         configlist = []
         for key in configDict.keys():
@@ -541,7 +550,7 @@ class BaseController(object):
         Z        Toggle camera image display.
         X        Toggle calibration results display.
         C        Start calibration (call doCalibration() method)
-        V        Start validation (call doCalibration() method)
+        V        Start validation (call doValidation() method)
         ESC or Q Exit calibration
         ======== ================================================
         
@@ -549,8 +558,7 @@ class BaseController(object):
             depending on which key is pressed to terminate calibration loop.
         """
         if not (self.calTargetPosSet and self.calAreaSet):
-            print 'Calibration parameters are not set.'
-            return
+            raise ValueError, 'Calibration parameters are not set.'
         
         self.messageText=self.getCurrentMenuItem()
         self.showCameraImage = False
@@ -713,7 +721,10 @@ class BaseController(object):
         Start calibration process.
         """
         idxlist = range(1,len(self.calTargetPos))
-        random.shuffle(idxlist)
+        while True:
+            random.shuffle(idxlist)
+            if self.calTargetPos[idxlist[0]][0] != self.calTargetPos[0][0] or self.calTargetPos[idxlist[0]][1] != self.calTargetPos[0][1]:
+                break
         idxlist.insert(0,0)
         
         calCheckList = [False for i in range(len(self.calTargetPos))]
@@ -734,6 +745,7 @@ class BaseController(object):
         isCalibrating = True
         startTime = self.clock()
         while isCalibrating:
+            keys = self.getKeys() # necessary to prevent freezing
             ct = self.clock()-startTime
             t1 = ct%2.0
             t2 = int((ct-t1)/2.0)
@@ -745,10 +757,14 @@ class BaseController(object):
                 y = t1*self.calTargetPos[idxlist[t2+1]][1] + (1-t1)*self.calTargetPos[idxlist[t2]][1]
                 self.calTargetPosition = (x,y)
             elif 1.4<t1<1.8:
+                self.calTargetPosition = self.calTargetPos[idxlist[t2+1]]
                 if not calCheckList[t2]:
                     self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[idxlist[t2+1]][0])
                                      +','+str(self.calTargetPos[idxlist[t2+1]][1])+chr(0))
                     calCheckList[t2] = True
+            else:
+                self.calTargetPosition = self.calTargetPos[idxlist[t2+1]]
+            self.updateCalibrationTargetStimulusCallBack(t1,t2+1,self.calTargetPos[idxlist[t2+1]],self.calTargetPosition)
             self.updateScreen()
         
         self.showCalTarget = False
@@ -775,7 +791,10 @@ class BaseController(object):
             self.valTargetPos.append([p[0]+int((random.randint(0,1)-0.5)*2*self.validationShift),p[1]+int((random.randint(0,1)-0.5)*2*self.validationShift)])
         
         idxlist = range(1,len(self.valTargetPos))
-        random.shuffle(idxlist)
+        while True:
+            random.shuffle(idxlist)
+            if self.valTargetPos[idxlist[0]][0] != self.valTargetPos[0][0] or self.valTargetPos[idxlist[0]][1] != self.valTargetPos[0][1]:
+                break
         idxlist.insert(0,0)
         
         calCheckList = [False for i in range(len(self.valTargetPos))]
@@ -796,6 +815,7 @@ class BaseController(object):
         isCalibrating = True
         startTime = self.clock()
         while isCalibrating:
+            keys = self.getKeys() # necessary to prevent freezing
             ct = self.clock()-startTime
             t1 = ct%2.0
             t2 = int((ct-t1)/2.0)
@@ -807,10 +827,14 @@ class BaseController(object):
                 y = t1*self.valTargetPos[idxlist[t2+1]][1] + (1-t1)*self.valTargetPos[idxlist[t2]][1]
                 self.calTargetPosition = (x,y)
             elif 1.4<t1<1.8:
+                self.calTargetPosition = self.valTargetPos[idxlist[t2+1]]
                 if not calCheckList[t2]:
                     self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[idxlist[t2+1]][0])
                                      +','+str(self.valTargetPos[idxlist[t2+1]][1])+chr(0))
                     calCheckList[t2] = True
+            else:
+                self.calTargetPosition = self.valTargetPos[idxlist[t2+1]]
+            self.updateCalibrationTargetStimulusCallBack(t1,t2+1,self.valTargetPos[idxlist[t2+1]],self.calTargetPosition)
             self.updateScreen()
         
         self.showCalTarget = False
@@ -919,7 +943,42 @@ class BaseController(object):
             retval = (error, errorL, errorR, eyepos)
         
         return retval
+    
+    def updateCalibrationTargetStimulusCallBack(self, t, index, targetPosition, currentPosition):
+        """
+        This method is called every time before updating calibration screen.
+        In default, this method do nothing.  If you want to update calibration
+        target during calibration, override this method.
+        
+        :param float t: time spent for current target position. The range of t is 
+            0.0<=t<2.0.  When 0.0<=t<1.0, the calibration target is moving to the 
+            current position.  When 1.0<=t<2.0, the calibration target stays on 
+            the current position.  Calibration data is sampled when 1.4<t<1.8.
+        :param index: This value represents the order of current target position.
+            If the target is moving to or stays on 5th position, this value is 5.
+        :param targetPosition: A tuple of two values.  The target is moving to or 
+            stays on the position indicated by this parameter.
+        :param currentPosition: A tuple of two values that represents current 
+            calibration target position.  This parameter is equal to targetPosition
+            when 1.0<=t<2.0.
+        
+        This is an example of using this method.
+        ::
+        
+            tracker = GazeParser.TrackingTools.getController(backend='VisionEgg')
+            calstim = [VisionEgg.MoreStimuli.Target2D(size=(5,5),color=(1,1,1)),
+                       VisionEgg.MoreStimuli.Target2D(size=(2,2),color=(0,0,0))]
+            tracker.setCalibrationTargetStimulus(calstim)
+        
+            def callback(self, t, index, targetPos, currentPos):
+                if t<1.0:
+                    self.caltarget[0].parameters.size = ((20.0-19.0*t)*5,(20.0-19.0*t)*5)
+                else:
+                    self.caltarget[0].parameters.size = (5,5)
 
+            type(tracker).updateCalibrationTargetStimulusCallBack = callback
+        """
+        return
 
 class ControllerVisionEggBackend(BaseController):
     """
@@ -991,8 +1050,13 @@ class ControllerVisionEggBackend(BaseController):
         self.img.parameters.on = self.showCameraImage
         self.imgCal.parameters.on = self.showCalImage
         self.msgtext.parameters.on = self.showCalDisplay
-        self.caltarget.parameters.on = self.showCalTarget
-        self.caltarget.parameters.position = self.calTargetPosition
+        if isinstance(self.caltarget, tuple):
+            for s in self.caltarget:
+                s.parameters.on = self.showCalTarget
+                s.parameters.position = self.calTargetPosition
+        else:
+            self.caltarget.parameters.on = self.showCalTarget
+            self.caltarget.parameters.position = self.calTargetPosition
         self.msgtext.parameters.text = self.messageText
         
         self.screen.clear()
@@ -1030,6 +1094,26 @@ class ControllerVisionEggBackend(BaseController):
             keys.append('right')
         
         return keys
+
+    def setCalibrationTargetStimulus(self, stim):
+        """
+        Set calibration target.
+        
+        :param stim: Stimulus object such as circle, rectangle, and so on.
+            A list of stimulus objects is also accepted.  If a list of stimulus
+            object is provided, the order of stimulus object corresponds to 
+            the order of drawing.
+        """
+        
+        if isinstance(stim,list) or isinstance(stim,tuple):
+            self.caltarget = tuple(stim)
+            stimlist = [self.img,self.imgCal]
+            stimlist.extend(self.caltarget)
+            stimlist.append(self.msgtext)
+            self.viewport = self.VEViewport(screen=self.screen, stimuli=stimlist)
+        else: #suppose VisionEgg.Core.Stimulus
+            self.caltarget = stim
+            self.viewport = self.VEViewport(screen=self.screen, stimuli=[self.img,self.imgCal,self.caltarget,self.msgtext])
 
 
 class ControllerPsychoPyBackend(BaseController):
@@ -1078,14 +1162,19 @@ class ControllerPsychoPyBackend(BaseController):
         
         *Usually, you don't need use this method.*
         """
-        self.caltarget.setPos(self.calTargetPosition,units='pix')
         self.msgtext.setText(self.messageText)
         if self.showCameraImage:
             self.img.draw()
         if self.showCalImage:
             self.imgCal.draw()
         if self.showCalTarget:
-            self.caltarget.draw()
+            if isinstance(self.caltarget, tuple):
+                for s in self.caltarget:
+                    s.setPos(self.calTargetPosition,units='pix')
+                    s.draw()
+            else:
+                self.caltarget.setPos(self.calTargetPosition,units='pix')
+                self.caltarget.draw()
         if self.showCalDisplay:
             self.msgtext.draw()
         
@@ -1112,12 +1201,18 @@ class ControllerPsychoPyBackend(BaseController):
         """
         Send calibration area and calibration target positions to the Tracker Host PC.
         This method must be called before starting calibration.
-        ::
         
-            calArea = (0, 0, 1024, 768)
-            calPos = ((162,134),(512,134),(862,134),
-                      (162,384),(512,384),(862,384),
-                      (162,634),(512,634),(862,634))
+        The order of calibration target positions is shuffled each time calibration
+        is performed. However, the first target position (i.e. the target position 
+        at the beginning of calibration) is always the first element of the list.
+        In the following example, the target is always presented at (0,0) a the
+        beginning of calibration. ::
+        
+            calArea = (-400, -300, 400, 300)
+            calPos = ((   0,   0),
+                      (-350,-250),(-350,  0),(-350,250),
+                      (   0,-250),(   0,  0),(   0,250),
+                      ( 350,-250),( 350,  0),( 350,250))
             tracker.CalibrationTargetPositions(calArea, calPos)
         
         :param sequence area: a sequence of for elements which represent
@@ -1321,6 +1416,20 @@ class ControllerPsychoPyBackend(BaseController):
         
         return retval
     
+    def setCalibrationTargetStimulus(self, stim):
+        """
+        Set calibration target.
+        
+        :param stim: Stimulus object such as circle, rectangle, and so on.
+            A list of stimulus objects is also accepted.  If a list of stimulus
+            object is provided, the order of stimulus object corresponds to 
+            the order of drawing.
+        """
+        
+        if isinstance(stim,list) or isinstance(stim,tuple):
+            self.caltarget = tuple(stim)
+        else: #suppose VisionEgg.Core.Stimulus
+            self.caltarget = stim
 
 class DummyVisionEggBackend(ControllerVisionEggBackend):
     """

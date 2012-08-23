@@ -3,6 +3,9 @@ GazeParser is an open-source library for low-cost gaze tracking, parsing and vis
 
 News
 ==================
+**2012/08/02**
+    * :ref:`Sample03<sample03>` GazeParser.TrackingTools is added.
+
 **2012/07/31**
     * GazeParser 0.5.1 is released. Pupil detection performance is improved. See :doc:`changelog` for detail.
     * Some issues on synchronization between PCs are described at :ref:`advanced`.

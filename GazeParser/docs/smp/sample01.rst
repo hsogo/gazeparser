@@ -220,6 +220,10 @@ If 'use dummy mode' on the dialog is checked, a dummy controller is created.
 In the following part, several parameters are set.
 :func:`~GazeParser.TrackingTools.ControllerPsychoPyBackend.setCalibrationScreen` must precede
 :func:`~GazeParser.TrackingTools.ControllerPsychoPyBackend.setCalibrationTargetPositions`.
+The first parameter of :func:`~GazeParser.TrackingTools.ControllerPsychoPyBackend.setCalibrationTargetPositions` is used to draw calibration result on the Recorder PC, and does not affect calibration quality.
+The order of calibration target positions (the second parameter) is shuffled each time calibration is performed. 
+However, the first target position (i.e. the target position at the beginning of calibration) is always the first element of the list.
+In the following example, the target is always presented at (0,0) a the beginning of calibration.
 
 .. code-block:: python
     

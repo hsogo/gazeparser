@@ -25,6 +25,7 @@ class FileWindow(Tkinter.Frame):
         self.IPAdressEntry.set('192.168.1.1')
         self.cameraSize = Tkinter.StringVar()
         self.cameraSize.set('320,240')
+        self.windowSize = Tkinter.StringVar()
         self.isDummy = Tkinter.BooleanVar()
         Tkinter.Label(self,text=u'Datafile name').grid(row=0,column=0,padx=5,pady=5)
         Tkinter.Entry(self,textvariable=self.FileNameEntry).grid(row=0,column=1,padx=5,pady=5)
@@ -86,48 +87,41 @@ while True:
 
 meshx,meshy = numpy.meshgrid(range(-SX/4,SX/4),range(-SY/4,SY/4))
 imgArray = numpy.ones((SY/2,SX/2,4),numpy.uint8)*128
-imgArray[:,:,3] = 255*(1-numpy.exp(-(meshx/36.0)**2-(meshy/36.0)**2))
 maskimage = Image.fromarray(imgArray,mode='RGBA')
 
 phototexture = VisionEgg.Textures.Texture(fname)
 masktexture = VisionEgg.Textures.Texture(maskimage)
 stim = VisionEgg.Textures.TextureStimulus(texture=phototexture, size=phototexture.size, anchor='center', position=(SX/2,SY/2))
 mask = VisionEgg.Textures.TextureStimulus(texture=masktexture, size=(SX*2,SY*2), anchor='center', position=(SX/2,SY/2), internal_format=OpenGL.GL.GL_RGBA)
-msg = VisionEgg.Text.Text(text='press space key',position=(SX/2,SY/2), anchor='center')
-viewportStim = VisionEgg.Core.Viewport(screen=screen,stimuli=[stim,mask])
-viewportMsg = VisionEgg.Core.Viewport(screen=screen,stimuli=[msg])
+viewport = VisionEgg.Core.Viewport(screen=screen,stimuli=[stim,mask])
 
-for tr in range(2):
-    flgLoop = True
-    while flgLoop:
-        for e in pygame.event.get():
-            if e.type == pygame.locals.KEYDOWN:
-                if e.key == pygame.locals.K_SPACE:
-                    flgLoop = False
-        screen.clear()
-        viewportMsg.draw()
-        VisionEgg.Core.swap_buffers()
+maskTextureObject = mask.parameters.texture.get_texture_object()
+
+for tr in range(5):
+    windowSize = 6.0*(tr+1)
+    imgArray[:,:,3] = 255*(1-numpy.exp(-(meshx/windowSize)**2-(meshy/windowSize)**2))
+    maskimage = Image.fromarray(imgArray,mode='RGBA')
+    maskTextureObject.put_sub_image(maskimage)
     
     tracker.startRecording(message='trial'+str(tr+1))
     
     maskcenter = (SX/2,SY/2)
     flgLoop = True
     while flgLoop: 
-        ex,ey = tracker.getEyePosition()
-        if not ex == None:
-            maskcenter = (ex,ey)
+        exy = tracker.getEyePosition()
+        if exy[0] != None:
+            if 0<exy[0]<SX and 0<exy[1]<SY:
+                maskcenter = (exy[0],exy[1])
         
         mask.parameters.position = maskcenter
         
         for e in pygame.event.get():
             if e.type == pygame.locals.KEYDOWN:
                 if e.key == pygame.locals.K_SPACE:
-                    tracker.sendMessage('SPACE pressed.')
-                elif e.key == pygame.locals.K_ESCAPE:
                     flgLoop = False
         
         screen.clear()
-        viewportStim.draw()
+        viewport.draw()
         VisionEgg.Core.swap_buffers()
         
     tracker.stopRecording()
