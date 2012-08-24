@@ -68,11 +68,13 @@ class Converter(Tkinter.Frame):
     
     def _convertFiles(self):
         fnames = tkFileDialog.askopenfilenames(filetypes=[('GazeTracker CSV file','*.csv')],initialdir=GazeParser.homeDir)
-        if isinstance(fnames, unicode):
-            fnames = splitFilenames(fnames)
+        
         if fnames=='':
             tkMessageBox.showinfo('info', 'No files')
             return
+        
+        if isinstance(fnames, unicode):
+            fnames = splitFilenames(fnames)
         
         if self.checkOverwrite.get()==1:
             overwrite = True
@@ -161,11 +163,13 @@ class EyelinkConverter(Tkinter.Frame):
     
     def _convertFiles(self):
         fnames = tkFileDialog.askopenfilenames(filetypes=[('Eyelink EDF file','*.edf')],initialdir=GazeParser.homeDir)
-        if isinstance(fnames, unicode):
-            fnames = splitFilenames(fnames)
+        
         if fnames=='':
             tkMessageBox.showinfo('info', 'No files')
             return
+        
+        if isinstance(fnames, unicode):
+            fnames = splitFilenames(fnames)
         
         if self.checkOverwrite.get()==1:
             overwrite = True
@@ -244,11 +248,13 @@ class TobiiConverter(Tkinter.Frame):
     
     def _convertFiles(self):
         fnames = tkFileDialog.askopenfilenames(filetypes=[('Tobii TSV file','*.tsv')],initialdir=GazeParser.homeDir)
-        if isinstance(fnames, unicode):
-            fnames = splitFilenames(fnames)
+        
         if fnames=='':
             tkMessageBox.showinfo('info', 'No files')
             return
+        
+        if isinstance(fnames, unicode):
+            fnames = splitFilenames(fnames)
         
         if self.checkOverwrite.get()==1:
             overwrite = True
@@ -579,25 +585,30 @@ def splitFilenames(filenames):
     return newFilenames
 
 if (__name__ == '__main__'):
+    def ok():
+        c = choice.get()
+        dw = Tkinter.Toplevel()
+        if c==0:
+            Converter(master=dw)
+        elif c==1:
+            EyelinkConverter(master=dw)
+        elif c==2:
+            TobiiConverter(master=dw)
+        elif c==3:
+            InteractiveConfig(master=dw)
+        dw.focus_set()
+        dw.grab_set()
+        #w.transient(mw)
+        #w.resizable(0, 0)
+        dw.wait_window(dw)
+    
     mw = Tkinter.Frame()
     choice = Tkinter.IntVar()
     Tkinter.Radiobutton(mw, text='Converter', variable=choice, value=0).pack()
     Tkinter.Radiobutton(mw, text='Eyelink Converter', variable=choice, value=1).pack()
     Tkinter.Radiobutton(mw, text='Tobii Converter', variable=choice, value=2).pack()
     Tkinter.Radiobutton(mw, text='Interactive Configuration', variable=choice, value=3).pack()
-    Tkinter.Button(mw, text='OK', command=mw.quit).pack()
+    Tkinter.Button(mw, text='OK', command=ok).pack()
     mw.pack()
     mw.mainloop()
-    c = choice.get()
-    mw.destroy()
-    
-    if c==0:
-        w = Converter()
-    elif c==1:
-        w = EyelinkConverter()
-    elif c==2:
-        w = TobiiConverter()
-    elif c==3:
-        w = InteractiveConfig()
-    w.mainloop()
 

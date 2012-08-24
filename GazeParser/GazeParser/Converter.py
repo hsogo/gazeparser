@@ -628,7 +628,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
     print 'parsing...'
     
     for line in fid:
-        itemList = line[:-1].split(',')
+        itemList = line[:-1].rstrip().split(',')
         if itemList[0][0] == '#': #Messages
             if itemList[0] == '#START_REC':
                 flgInBlock = True
