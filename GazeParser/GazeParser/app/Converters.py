@@ -61,43 +61,17 @@ class Converter(Tkinter.Frame):
         Tkinter.Radiobutton(self.filterFrame,text='Forward-Backword Butterworth',variable=self.stringVarDict['FILTER_TYPE'],value='butter_filtfilt').grid(row=3,column=0, sticky=Tkinter.W)
         self.filterFrame.pack(fill=Tkinter.BOTH)
         self.checkOverwrite = Tkinter.IntVar()
-        Tkinter.Button(self.sideFrame,text='Convert Single File',command=self._convertSingleFile).pack(fill=Tkinter.X, padx=10, ipady=2)
-        Tkinter.Button(self.sideFrame,text='Convert Files in a Directory',command=self._convertDirectory).pack(fill=Tkinter.X, padx=10, ipady=2)
+        Tkinter.Button(self.sideFrame,text='Convert Files',command=self._convertFiles).pack(fill=Tkinter.X, padx=10, ipady=2)
         Tkinter.Checkbutton(self.sideFrame,text='Overwrite',variable=self.checkOverwrite).pack()
         self.sideFrame.pack(side=Tkinter.LEFT,anchor=Tkinter.W,fill=Tkinter.BOTH)
         
-    def _convertSingleFile(self):
-        if self.checkOverwrite.get()==1:
-            overwrite = True
-        else:
-            overwrite = False
-        
-        usefileparameters = self.useParameters.get()
-        
-        self._updateParameters()
-        
-        fname = tkFileDialog.askopenfilename(filetypes=[('GazeTracker CSV file','*.csv')],initialdir=GazeParser.homeDir)
-        if fname=='':
-            return
-        try:
-            res = GazeParser.Converter.TrackerToGazeParser(fname,overwrite=overwrite,config=self.config,useFileParameters=usefileparameters)
-        except:
-            info = sys.exc_info()
-            tbinfo = traceback.format_tb(info[2])
-            errormsg = ''
-            for tbi in tbinfo:
-                errormsg += tbi
-            errormsg += '  %s' % str(info[1])
-            tkMessageBox.showerror('Error', errormsg)
-        else:
-            if res == 'SUCCESS':
-                tkMessageBox.showinfo('Info','Convertion done.')
-            else:
-                tkMessageBox.showerror('Info', res)
     
-    def _convertDirectory(self):
-        dname = tkFileDialog.askdirectory(initialdir=GazeParser.homeDir)
-        if dname=='':
+    def _convertFiles(self):
+        fnames = tkFileDialog.askopenfilenames(filetypes=[('GazeTracker CSV file','*.csv')],initialdir=GazeParser.homeDir)
+        if isinstance(fnames, unicode):
+            fnames = splitFilenames(fnames)
+        if fnames=='':
+            tkMessageBox.showinfo('info', 'No files')
             return
         
         if self.checkOverwrite.get()==1:
@@ -108,34 +82,31 @@ class Converter(Tkinter.Frame):
         usefileparameters = self.useParameters.get()
         
         self._updateParameters()
-        ext = '.csv'
         
         donelist = []
         errorlist = []
-        for f in os.listdir(dname):
-            if os.path.splitext(f)[1].lower() == ext:
-                #res = GazeParser.Converter.TrackerToGazeParser(os.path.join(dname,f),overwrite=overwrite,config=self.config,useFileParameters=usefileparameters)
-                try:
-                    res = GazeParser.Converter.TrackerToGazeParser(os.path.join(dname,f),overwrite=overwrite,config=self.config,useFileParameters=usefileparameters)
-                except:
-                    info = sys.exc_info()
-                    tbinfo = traceback.format_tb(info[2])
-                    errormsg = ''
-                    for tbi in tbinfo:
-                        errormsg += tbi
-                    errormsg += '  %s' % str(info[1])
-                    tkMessageBox.showerror('Error', errormsg)
+        for f in fnames:
+            try:
+                res = GazeParser.Converter.TrackerToGazeParser(f,overwrite=overwrite,config=self.config,useFileParameters=usefileparameters)
+            except:
+                info = sys.exc_info()
+                tbinfo = traceback.format_tb(info[2])
+                errormsg = ''
+                for tbi in tbinfo:
+                    errormsg += tbi
+                errormsg += '  %s' % str(info[1])
+                tkMessageBox.showerror('Error', errormsg)
+            else:
+                if res == 'SUCCESS':
+                    donelist.append(f)
                 else:
-                    if res == 'SUCCESS':
-                        donelist.append(f)
-                    else:
-                        #tkMessageBox.showerror('Info', res)
-                        errorlist.append(f)
+                    tkMessageBox.showerror('Info', res)
+                    errorlist.append(f)
         msg = 'Convertion done.\n'+'\n'.join(donelist)
         if len(errorlist) > 0:
             msg += '\n\nError.\n'+'\n'.join(errorlist)
         tkMessageBox.showinfo('info',msg)
-        
+    
     def _loadConfig(self):
         self.ftypes = [('GazeParser ConfigFile', '*.cfg')]
         if os.path.exists(GazeParser.configDir):
@@ -184,71 +155,44 @@ class EyelinkConverter(Tkinter.Frame):
         
         self.goFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.checkOverwrite = Tkinter.IntVar()
-        Tkinter.Button(self.goFrame,text='Convert Single File',command=self._convertSingleFile).pack(fill=Tkinter.X, padx=10, ipady=2)
-        Tkinter.Button(self.goFrame,text='Convert Files in a Directory',command=self._convertDirectory).pack(fill=Tkinter.X, padx=10, ipady=2)
+        Tkinter.Button(self.goFrame,text='Convert Files',command=self._convertFiles).pack(fill=Tkinter.X, padx=10, ipady=2)
         Tkinter.Checkbutton(self.goFrame,text='Overwrite',variable=self.checkOverwrite).pack()
         self.goFrame.pack(anchor=Tkinter.W,fill=Tkinter.X)
-        
-    def _convertSingleFile(self):
-        if self.checkOverwrite.get()==1:
-            overwrite = True
-        else:
-            overwrite = False
-        
-        self._updateParameters()
-        
-        fname = tkFileDialog.askopenfilename(filetypes=[('Eyelink EDF file','*.edf')],initialdir=GazeParser.homeDir)
-        if fname=='':
-            return
-        try:
-            res = GazeParser.Converter.EyelinkToGazeParser(fname,'B',overwrite=overwrite,config=self.config)
-        except:
-            info = sys.exc_info()
-            tbinfo = traceback.format_tb(info[2])
-            errormsg = ''
-            for tbi in tbinfo:
-                errormsg += tbi
-            errormsg += '  %s' % str(info[1])
-            tkMessageBox.showerror('Error', errormsg)
-        else:
-            if res == 'SUCCESS':
-                tkMessageBox.showinfo('Info','Convertion done.')
-            else:
-                tkMessageBox.showerror('Info', res)
     
-    def _convertDirectory(self):
+    def _convertFiles(self):
+        fnames = tkFileDialog.askopenfilenames(filetypes=[('Eyelink EDF file','*.edf')],initialdir=GazeParser.homeDir)
+        if isinstance(fnames, unicode):
+            fnames = splitFilenames(fnames)
+        if fnames=='':
+            tkMessageBox.showinfo('info', 'No files')
+            return
+        
         if self.checkOverwrite.get()==1:
             overwrite = True
         else:
             overwrite = False
         
-        dname = tkFileDialog.askdirectory(initialdir=GazeParser.homeDir)
-        if dname=='':
-            return
-        
         self._updateParameters()
-        ext = '.edf'
         
         donelist = []
         errorlist = []
-        for f in os.listdir(dname):
-            if os.path.splitext(f)[1].lower() == ext:
-                try:
-                    res = GazeParser.Converter.EyelinkToGazeParser(os.path.join(dname,f),'B',overwrite=overwrite,config=self.config)
-                except:
-                    info = sys.exc_info()
-                    tbinfo = traceback.format_tb(info[2])
-                    errormsg = ''
-                    for tbi in tbinfo:
-                        errormsg += tbi
-                    errormsg += '  %s' % str(info[1])
-                    tkMessageBox.showerror('Error', errormsg)
+        for f in fnames:
+            try:
+                res = GazeParser.Converter.EyelinkToGazeParser(f,'B',overwrite=overwrite,config=self.config)
+            except:
+                info = sys.exc_info()
+                tbinfo = traceback.format_tb(info[2])
+                errormsg = ''
+                for tbi in tbinfo:
+                    errormsg += tbi
+                errormsg += '  %s' % str(info[1])
+                tkMessageBox.showerror('Error', errormsg)
+            else:
+                if res == 'SUCCESS':
+                    donelist.append(f)
                 else:
-                    if res == 'SUCCESS':
-                        donelist.append(f)
-                    else:
-                        #tkMessageBox.showerror('Info', res)
-                        errorlist.append(f)
+                    tkMessageBox.showerror('Info', res)
+                    errorlist.append(f)
         msg = 'Convertion done.\n'+'\n'.join(donelist)
         if len(errorlist) > 0:
             msg += '\n\nError.\n'+'\n'.join(errorlist)
@@ -294,71 +238,44 @@ class TobiiConverter(Tkinter.Frame):
         
         self.goFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.checkOverwrite = Tkinter.IntVar()
-        Tkinter.Button(self.goFrame,text='Convert Single File',command=self._convertSingleFile).pack(fill=Tkinter.X, padx=10, ipady=2)
-        Tkinter.Button(self.goFrame,text='Convert Files in a Directory',command=self._convertDirectory).pack(fill=Tkinter.X, padx=10, ipady=2)
+        Tkinter.Button(self.goFrame,text='Convert Files',command=self._convertFiles).pack(fill=Tkinter.X, padx=10, ipady=2)
         Tkinter.Checkbutton(self.goFrame,text='Overwrite',variable=self.checkOverwrite).pack()
         self.goFrame.pack(anchor=Tkinter.W,fill=Tkinter.X)
-        
-    def _convertSingleFile(self):
-        if self.checkOverwrite.get()==1:
-            overwrite = True
-        else:
-            overwrite = False
-        
-        self._updateParameters()
-        
-        fname = tkFileDialog.askopenfilename(filetypes=[('Tobii TSV file','*.tsv')],initialdir=GazeParser.homeDir)
-        if fname=='':
-            return
-        try:
-            res = GazeParser.Converter.TobiiToGazeParser(fname,overwrite=overwrite,config=self.config)
-        except:
-            info = sys.exc_info()
-            tbinfo = traceback.format_tb(info[2])
-            errormsg = ''
-            for tbi in tbinfo:
-                errormsg += tbi
-            errormsg += '  %s' % str(info[1])
-            tkMessageBox.showerror('Error', errormsg)
-        else:
-            if res == 'SUCCESS':
-                tkMessageBox.showinfo('Info','Convertion done.')
-            else:
-                tkMessageBox.showerror('Info', res)
     
-    def _convertDirectory(self):
+    def _convertFiles(self):
+        fnames = tkFileDialog.askopenfilenames(filetypes=[('Tobii TSV file','*.tsv')],initialdir=GazeParser.homeDir)
+        if isinstance(fnames, unicode):
+            fnames = splitFilenames(fnames)
+        if fnames=='':
+            tkMessageBox.showinfo('info', 'No files')
+            return
+        
         if self.checkOverwrite.get()==1:
             overwrite = True
         else:
             overwrite = False
         
-        dname = tkFileDialog.askdirectory(initialdir=GazeParser.homeDir)
-        if dname=='':
-            return
-        
         self._updateParameters()
-        ext = '.tsv'
         
         donelist = []
         errorlist = []
-        for f in os.listdir(dname):
-            if os.path.splitext(f)[1].lower() == ext:
-                try:
-                    res = GazeParser.Converter.TobiiToGazeParser(os.path.join(dname,f),overwrite=overwrite,config=self.config)
-                except:
-                    info = sys.exc_info()
-                    tbinfo = traceback.format_tb(info[2])
-                    errormsg = ''
-                    for tbi in tbinfo:
-                        errormsg += tbi
-                    errormsg += '  %s' % str(info[1])
-                    tkMessageBox.showerror('Error', errormsg)
+        for f in fnames:
+            try:
+                res = GazeParser.Converter.TobiiToGazeParser(f,overwrite=overwrite,config=self.config)
+            except:
+                info = sys.exc_info()
+                tbinfo = traceback.format_tb(info[2])
+                errormsg = ''
+                for tbi in tbinfo:
+                    errormsg += tbi
+                errormsg += '  %s' % str(info[1])
+                tkMessageBox.showerror('Error', errormsg)
+            else:
+                if res == 'SUCCESS':
+                    donelist.append(f)
                 else:
-                    if res == 'SUCCESS':
-                        donelist.append(f)
-                    else:
-                        #tkMessageBox.showerror('Info', res)
-                        errorlist.append(f)
+                    tkMessageBox.showerror('Info', res)
+                    errorlist.append(f)
         msg = 'Convertion done.\n'+'\n'.join(donelist)
         if len(errorlist) > 0:
             msg += '\n\nError.\n'+'\n'.join(errorlist)
@@ -622,7 +539,6 @@ class InteractiveConfig(Tkinter.Frame):
         else:
             self._plotData()
     
-    
     def _exportConfig(self):
         if self.config == None:
             tkMessageBox.showerror('Error','New configuration is empty')
@@ -639,6 +555,28 @@ class InteractiveConfig(Tkinter.Frame):
         except:
             tkMessageBox.showerror('Error','Could not write configuration to ' + fname)
     
+
+def splitFilenames(filenames):
+    tmplist = filenames.split(' ')
+    newFilenames = []
+    i = 0
+    while i<len(tmplist):
+        if tmplist[i][0] == '{': #space is included
+            s = i
+            while tmplist[i][-1] != '}':
+                i+=1
+            fname = ' '.join(tmplist[s:i+1])
+            newFilenames.append(fname[1:-1])
+        elif tmplist[i][-1] == '\\':
+            s = i
+            while tmplist[i][-1] == '\\':
+                i+=1
+            fname = ' '.join(tmplist[s:i+1])
+            newFilenames.append(fname.replace('\\',''))
+        else:
+            newFilenames.append(tmplist[i].replace('\\',''))
+        i+=1
+    return newFilenames
 
 if (__name__ == '__main__'):
     mw = Tkinter.Frame()
