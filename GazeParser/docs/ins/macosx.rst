@@ -32,8 +32,8 @@ GazeParser installer can be downloaded from following page.
 
 Install either of these files to computers which you plan to use stimulus presentation and data analysis.
 
-- `GazeParser-0.5.1-py2.7.egg <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1-py2.7.egg>`_ : python egg file
-- `GazeParser-0.5.1.zip <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1.zip>`_ : zipped file
+- `GazeParser-0.5.2-py2.7.egg <http://sourceforge.net/projects/gazeparser/files/0.5.2/GazeParser-0.5.2-py2.7.egg>`_ : python egg file
+- `GazeParser-0.5.2.zip <http://sourceforge.net/projects/gazeparser/files/0.5.2/GazeParser-0.5.2.zip>`_ : zipped file
 
 If you plan to record gaze data, download following source code and build SimpleGazeTracker.
 **Currently, SimpleGazeTracker for Mac OS X is distributed only in source code**.

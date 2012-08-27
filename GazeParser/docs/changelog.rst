@@ -1,6 +1,22 @@
 ChangeLog
 ====================
 
+GazeParser 0.5.2
+----------------------
+
+(released 2012/08/27)
+
+*SimpleGazeTracker is not updated. Please use SimpleGazeTracker 0.5.1 with GazeParser 0.5.2.*
+
+* CHANGED: GazeParser.TrackingTools
+    - CHANGED: :func:`GazeParser.TrackingTools.BaseController.calibrationLoop` raises ValueError if calibrationLoop is called before setting calibration area and calibration target positions.
+    - CHANGED: :func:`GazeParser.TrackingTools.ControllerVisionEggBackend.setCalibrationTargetStimulus` and :func:`GazeParser.TrackingTools.ControllerPsychoPyBackend.setCalibrationTargetStimulus` support a list of stimulus objects as calibration target.
+    - ADDED: :func:`GazeParser.TrackingTools.BaseController.updateCalibrationTargetStimulusCallBack` is added to support dynamic calibration target. See :ref:`sample04` for detail.
+* FIXED: :func:`GazeParser.TrackingTools.ControllerVisionEggBackend.setCalibrationTargetStimulus` did not work correctly.
+* FIXED: Tuple was not accepted by :func:`GazeParser.TrackingTools.ControllerVisionEggBackend.setCalibrationTargetPositions`.
+* FIXED: :func:`GazeParser.Converter.TrackerToGazeParser` could not convert data files with CR/LF line feed code when running on Linux.
+* FIXED: Size of converter dialog was too small when :module:`GazeParser.Converter.app.Converters` was executed on Linux.
+
 GazeParser 0.5.1
 ----------------------
 

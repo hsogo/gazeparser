@@ -720,12 +720,12 @@ class BaseController(object):
         """
         Start calibration process.
         """
-        idxlist = range(1,len(self.calTargetPos))
+        self.indexList = range(1,len(self.calTargetPos))
         while True:
-            random.shuffle(idxlist)
-            if self.calTargetPos[idxlist[0]][0] != self.calTargetPos[0][0] or self.calTargetPos[idxlist[0]][1] != self.calTargetPos[0][1]:
+            random.shuffle(self.indexList)
+            if self.calTargetPos[self.indexList[0]][0] != self.calTargetPos[0][0] or self.calTargetPos[self.indexList[0]][1] != self.calTargetPos[0][1]:
                 break
-        idxlist.insert(0,0)
+        self.indexList.insert(0,0)
         
         calCheckList = [False for i in range(len(self.calTargetPos))]
         self.showCalTarget = True
@@ -740,6 +740,7 @@ class BaseController(object):
                 if key == 'space':
                     isWaitingKey = False
                     break
+            self.updateCalibrationTargetStimulusCallBack(0,0,self.calTargetPos[0],self.calTargetPosition)
             self.updateScreen()
         
         isCalibrating = True
@@ -753,18 +754,18 @@ class BaseController(object):
                 isCalibrating = False
                 break
             if t1<1.0:
-                x = t1*self.calTargetPos[idxlist[t2+1]][0] + (1-t1)*self.calTargetPos[idxlist[t2]][0]
-                y = t1*self.calTargetPos[idxlist[t2+1]][1] + (1-t1)*self.calTargetPos[idxlist[t2]][1]
+                x = t1*self.calTargetPos[self.indexList[t2+1]][0] + (1-t1)*self.calTargetPos[self.indexList[t2]][0]
+                y = t1*self.calTargetPos[self.indexList[t2+1]][1] + (1-t1)*self.calTargetPos[self.indexList[t2]][1]
                 self.calTargetPosition = (x,y)
             elif 1.4<t1<1.8:
-                self.calTargetPosition = self.calTargetPos[idxlist[t2+1]]
+                self.calTargetPosition = self.calTargetPos[self.indexList[t2+1]]
                 if not calCheckList[t2]:
-                    self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[idxlist[t2+1]][0])
-                                     +','+str(self.calTargetPos[idxlist[t2+1]][1])+chr(0))
+                    self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[self.indexList[t2+1]][0])
+                                     +','+str(self.calTargetPos[self.indexList[t2+1]][1])+chr(0))
                     calCheckList[t2] = True
             else:
-                self.calTargetPosition = self.calTargetPos[idxlist[t2+1]]
-            self.updateCalibrationTargetStimulusCallBack(t1,t2+1,self.calTargetPos[idxlist[t2+1]],self.calTargetPosition)
+                self.calTargetPosition = self.calTargetPos[self.indexList[t2+1]]
+            self.updateCalibrationTargetStimulusCallBack(t1,t2+1,self.calTargetPos[self.indexList[t2+1]],self.calTargetPosition)
             self.updateScreen()
         
         self.showCalTarget = False
@@ -790,12 +791,12 @@ class BaseController(object):
         for p in self.calTargetPos:
             self.valTargetPos.append([p[0]+int((random.randint(0,1)-0.5)*2*self.validationShift),p[1]+int((random.randint(0,1)-0.5)*2*self.validationShift)])
         
-        idxlist = range(1,len(self.valTargetPos))
+        self.indexList = range(1,len(self.valTargetPos))
         while True:
-            random.shuffle(idxlist)
-            if self.valTargetPos[idxlist[0]][0] != self.valTargetPos[0][0] or self.valTargetPos[idxlist[0]][1] != self.valTargetPos[0][1]:
+            random.shuffle(self.indexList)
+            if self.valTargetPos[self.indexList[0]][0] != self.valTargetPos[0][0] or self.valTargetPos[self.indexList[0]][1] != self.valTargetPos[0][1]:
                 break
-        idxlist.insert(0,0)
+        self.indexList.insert(0,0)
         
         calCheckList = [False for i in range(len(self.valTargetPos))]
         self.showCalTarget = True
@@ -823,18 +824,18 @@ class BaseController(object):
                 isCalibrating = False
                 break
             if t1<1.0:
-                x = t1*self.valTargetPos[idxlist[t2+1]][0] + (1-t1)*self.valTargetPos[idxlist[t2]][0]
-                y = t1*self.valTargetPos[idxlist[t2+1]][1] + (1-t1)*self.valTargetPos[idxlist[t2]][1]
+                x = t1*self.valTargetPos[self.indexList[t2+1]][0] + (1-t1)*self.valTargetPos[self.indexList[t2]][0]
+                y = t1*self.valTargetPos[self.indexList[t2+1]][1] + (1-t1)*self.valTargetPos[self.indexList[t2]][1]
                 self.calTargetPosition = (x,y)
             elif 1.4<t1<1.8:
-                self.calTargetPosition = self.valTargetPos[idxlist[t2+1]]
+                self.calTargetPosition = self.valTargetPos[self.indexList[t2+1]]
                 if not calCheckList[t2]:
-                    self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[idxlist[t2+1]][0])
-                                     +','+str(self.valTargetPos[idxlist[t2+1]][1])+chr(0))
+                    self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[self.indexList[t2+1]][0])
+                                     +','+str(self.valTargetPos[self.indexList[t2+1]][1])+chr(0))
                     calCheckList[t2] = True
             else:
-                self.calTargetPosition = self.valTargetPos[idxlist[t2+1]]
-            self.updateCalibrationTargetStimulusCallBack(t1,t2+1,self.valTargetPos[idxlist[t2+1]],self.calTargetPosition)
+                self.calTargetPosition = self.valTargetPos[self.indexList[t2+1]]
+            self.updateCalibrationTargetStimulusCallBack(t1,t2+1,self.valTargetPos[self.indexList[t2+1]],self.calTargetPosition)
             self.updateScreen()
         
         self.showCalTarget = False
@@ -955,6 +956,7 @@ class BaseController(object):
             current position.  When 1.0<=t<2.0, the calibration target stays on 
             the current position.  Calibration data is sampled when 1.4<t<1.8.
         :param index: This value represents the order of current target position.
+            This value is 0 before calibration is initiated by space key press.
             If the target is moving to or stays on 5th position, this value is 5.
         :param targetPosition: A tuple of two values.  The target is moving to or 
             stays on the position indicated by this parameter.

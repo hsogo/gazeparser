@@ -25,9 +25,9 @@ GazeParser installer can be downloaded from following page.
 
 Install either of these files to computers which you plan to use stimulus presentation and data analysis.
 
-- `GazeParser-0.5.1-win32.exe <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1-win32.exe>`_ : Windows installer
-- `GazeParser-0.5.1-py2.7.egg <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1-py2.7.egg>`_ : python egg file
-- `GazeParser-0.5.1.zip <http://sourceforge.net/projects/gazeparser/files/0.5.1/GazeParser-0.5.1.zip>`_ : zipped file
+- `GazeParser-0.5.2-win32.exe <http://sourceforge.net/projects/gazeparser/files/0.5.2/GazeParser-0.5.2-win32.exe>`_ : Windows installer
+- `GazeParser-0.5.2-py2.7.egg <http://sourceforge.net/projects/gazeparser/files/0.5.2/GazeParser-0.5.2-py2.7.egg>`_ : python egg file
+- `GazeParser-0.5.2.zip <http://sourceforge.net/projects/gazeparser/files/0.5.2/GazeParser-0.5.2.zip>`_ : zipped file
 
 If you plan to record gaze data, install one of following files to a computer which you plan to use recording gaze data.
 
@@ -43,8 +43,7 @@ If you plan to record gaze data, install one of following files to a computer wh
 - `SimpleGazeTracker-0.5.1-opencv-2.4.0.msi <http://sourceforge.net/projects/gazeparser/files/0.5.1/SimpleGazeTracker-0.5.1-opencv-2.4.0.msi>`_ : SimpleGazeTracker installer for cameras supported by OpenCV.
     Necessary interfaces, drivers and other applications depend on camera unit.  Confirm user manual of the camera.
 
-- `SimpleGazeTracker-0.5.1-interface-gpc5300.msi <http://sourceforge.net/projects/gazeparser/files/0.5.1/SimpleGazeTracker-0.5.1-interface-gpc5300.msi>`_ : SimpleGazeTracker installer for cameras supported by OpenCV.
-- **SimpleGazeTracker-x.x.x-interface-gpc5300.msi**: SimpleGazeTracker installer for CameraLink image grabber manufactured by `Interface Corporation <http://www.interface.co.jp/>`_.
+- `SimpleGazeTracker-0.5.1-interface-gpc5300.msi <http://sourceforge.net/projects/gazeparser/files/0.5.1/SimpleGazeTracker-0.5.1-interface-gpc5300.msi>`_ : SimpleGazeTracker installer for CameraLink image grabber manufactured by `Interface Corporation <http://www.interface.co.jp/>`_.
     A CameraLink image grabber supported by Interface GPC5300 software must be installed to the recording PC.
 
 If you need source files of SimpleGazeTracker, download following file.

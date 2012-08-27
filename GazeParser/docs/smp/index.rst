@@ -9,4 +9,5 @@ Sample scripts for data recording
    sample01
    sample02
    sample03
+   sample04
 

@@ -15,7 +15,8 @@ In such a case,
 * Participant's eye movement is captured by a camera and sent to the Recorder PC.
 
 This measurement would be simple if there was no delay but participant's response latency in these process:
-however, unfortunately, there are many processes that would cause delay.  Following processes are main sources of delay.
+however, unfortunately, there are many processes that would cause delay.
+Following processes are main sources of delay.
 
 1. Delay from calling flip (PsychoPy) or swap_buffers (VisionEgg) to updating the display
 2. Delay from updating the display to capturing image by the camera.  For example, if sampling frequency of the camera is 60Hz, capture may be delayed about 16.7ms (i.e. 1/60sec) at worst.
@@ -174,7 +175,7 @@ That is, the delay from image capture to recording is considerd to be about 1-2 
     Figure 7
 
 
-Issues on the Presentation PC
+Estimating delay in the Presentation PC
 ---------------------------------------------
 
 It is considered that CRT dislpay has better temporal characteristics compared to LCD.
@@ -196,11 +197,20 @@ Delay in the Presentation PC may change depending on operating system and driver
     
     Figure 9
 
-
+To estimate delay in the Presentation PC more accurately, I measured luminance of the display using a photodiode.
+A photodiode was placed near the edge of the display (Figure 10), and output of the photodiode was recorded by an A/D converter installed on the Presentation PC (Figure 11).
 
 .. figure:: stim2capdelay010.jpg
     
     Figure 10
+
+.. figure:: stim2capdelay011.png
+    
+    Figure 11
+
+During measurement, the entire screen was repeadedly changed from gray to white and white to gray.
+Immediately after a method that changes the screen from gray to white (i.e. psychopy.visual.Window.flip() or VisionEg.Core.swap_buffers())was called, output of the photdiode was recorded for 100 milliseconds.
+Apparatus are shown in Table 3. PsychoPy and VisionEgg were tested on the same hardware.
 
 .. table:: Table 3
 
@@ -213,20 +223,24 @@ Delay in the Presentation PC may change depending on operating system and driver
                      * VisionEgg 1.2.1
                      * PsychoPy 1.74.03
     Recorder PC      * [CPU] Core i7 950
-                     * [Camera] IMPERX Bobcat ICL-B0620 @250Hz
+                     * [Camera] IMPERX Bobcat ICL-B0620 (250Hz)
                      * [DC-OEG] NIHON KODEN AN-601G with Interface PCI-3166
                      * Windows 7 Professional SP1
                      * GazeParser 0.5.1 GPC5300 edition
     ================ ==================================================================
 
-.. figure:: stim2capdelay011.png
-    
-    Figure 11
-
+Figure 12 shows the output of the photodiode averaged over 100 measurements.
+Ignoring delay in starting recording (black dotted arrow in Figure 11), time of the rising edge of the output from the beginning of the recording correspond to the delay between flip()/swap_buffers() and actual display change.
+The delay was approximately 17ms when PsychoPy was used. On the other hand, the delay reached approximately 67ms when VisionEgg was used even though the hardware was exactly the same.
 
 .. figure:: stim2capdelay012.png
     
     Figure 12
+
+To verify this result, I measured delay of the same system using :func:`~GazeParser.TrackingTools.cameraDelayEstimationHelper`.
+The reuslts were shown in Table 4.
+Assuming that difference of 1 frame corresponds to 16.7ms, these results were nearly the same as the delay estimated from Figure 12.
+This means that the entire delay is mainly determined by delay in the Presentation PC when a high-speed camera is used.
 
 .. table:: Table 4
 
@@ -237,6 +251,16 @@ Delay in the Presentation PC may change depending on operating system and driver
     VisionEgg   4.06 (SD = 0.18)    67.71 (SD = 2.82)
     =========== =================== ============================================
 
+.. note::
+    These results **do not** mean that PsychoPy is always better then VisionEgg.
+    For example, PsychoPy exhibited 4-frames delay in Figure 4.
+    Delay in the Presentation PC depends on the hardware, device driver and stimulus presentation library.
 
+Summary
+-------------------
 
+* There is a delay between stimulus presentation and recorded gaze position in the GazeParser/SimpleGazeTracker system.
+* Delay in the Recorder PC is approximately one interval of image capture.
+* When a high-speed camera is used with te Recorder PC, the entire delay is mainly determined by delay in the Presentation PC.
+* Delay in the Presentation PC reaches about 100ms at the worst depending on the hardware, device driver and stimulus presentation library.
 
