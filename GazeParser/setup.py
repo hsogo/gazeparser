@@ -32,15 +32,7 @@ paths, calculating saccade trajectory curvature and so on.
       author_email='hsogo@ehime-u.ac.jp',
       url='http://sourceforge.net/p/gazeparser/',
       license='GNU GPL',
-      #packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-      packages=['GazeParser'],
-      include_package_data=True,
-      zip_safe=False,
-      install_requires=[
-          # -*- Extra requirements: -*-
-      ],
-      entry_points="""
-      # -*- Entry points: -*-
-      """,
-      package_data={'GazeParser':['*.cfg','LICENCE.TXT','app/*.py*','app/img/*.png']}
+      install_requires=[],
+      packages=['GazeParser','GazeParser.app'],
+      package_data={'GazeParser':['LICENSE.txt','*.cfg'],'GazeParser.app':['img/*.png']}
       )

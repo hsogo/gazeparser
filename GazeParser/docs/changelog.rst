@@ -15,7 +15,7 @@ GazeParser 0.5.2
 * FIXED: :func:`GazeParser.TrackingTools.ControllerVisionEggBackend.setCalibrationTargetStimulus` did not work correctly.
 * FIXED: Tuple was not accepted by :func:`GazeParser.TrackingTools.ControllerVisionEggBackend.setCalibrationTargetPositions`.
 * FIXED: :func:`GazeParser.Converter.TrackerToGazeParser` could not convert data files with CR/LF line feed code when running on Linux.
-* FIXED: Size of converter dialog was too small when :module:`GazeParser.Converter.app.Converters` was executed on Linux.
+* FIXED: Size of converter dialog was too small when GazeParser/app/Converters.py was executed on Linux.
 
 GazeParser 0.5.1
 ----------------------

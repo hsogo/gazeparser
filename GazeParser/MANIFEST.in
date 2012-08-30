@@ -1,0 +1,1 @@
+recursive-include GazeParser *.cfg *.txt *.py *.png
