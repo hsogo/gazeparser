@@ -675,7 +675,7 @@ class BaseController(object):
                         data += newData
         
         draw = ImageDraw.Draw(self.PILimgCAL)
-        draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=128)
+        draw.rectangle(((0,0),self.PILimgCAL.size),fill=128)
         if self.showCalDisplay == True:
             self.showCalImage = True
         else:
@@ -1025,16 +1025,16 @@ class ControllerVisionEggBackend(BaseController):
         (self.screenWidth, self.screenHeight) = screen.size
         self.screenCenter = (screen.size[0]/2, screen.size[1]/2)
         self.caltarget = self.VETarget2D(size=(10,10),on=False,color=(0,0,0))
-        self.PILimgCAL = Image.new('L',(self.screenWidth,self.screenHeight))
+        self.PILimgCAL = Image.new('L',(self.screenWidth-self.screenWidth%4,self.screenHeight-self.screenHeight%4))
         self.texture = self.VETexture(self.PILimg)
         self.calTexture = self.VETexture(self.PILimgCAL)
         self.img = self.VETextureStimulus(texture=self.texture,
-                                          size=(self.previewWidth,self.previewHeight),
+                                          size=self.img.size,
                                           position=(self.screenWidth/2,self.screenHeight/2),anchor='center',
                                           on=False,
                                           texture_mag_filter=self.VEGL_NEAREST)
         self.imgCal = self.VETextureStimulus(texture=self.calTexture,
-                                             size=(self.screenWidth,self.screenHeight),
+                                             size=self.PILimgCAL.size,
                                              position=(self.screenWidth/2,self.screenHeight/2),anchor='center',
                                              on=False,
                                              texture_mag_filter=self.VEGL_NEAREST)
@@ -1152,7 +1152,7 @@ class ControllerPsychoPyBackend(BaseController):
         (self.screenWidth, self.screenHeight) = win.size
         self.screenCenter = (0,0)
         self.caltarget = self.PPRect(self.win,width=10,height=10,units='pix')
-        self.PILimgCAL = Image.new('L',(self.screenWidth,self.screenHeight))
+        self.PILimgCAL = Image.new('L',(self.screenWidth-self.screenWidth%4,self.screenHeight-self.screenHeight%4))
         self.img = self.PPSimpleImageStim(self.win, self.PILimg)
         self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL)
         self.msgtext = self.PPTextStim(self.win, pos=(0,-self.previewHeight/2-12), units='pix', text=self.getCurrentMenuItem())
@@ -1546,7 +1546,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         ControllerVisionEggBackend.setCalibrationScreen(self,screen)
         draw = ImageDraw.Draw(self.PILimgCAL)
-        draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=0)
+        draw.rectangle(((0,0),self.PILimgCAL.size),fill=0)
         draw.text((64,64),'Calibration/Validation Results',fill=255)
         self.drawCalibrationResults()
     
@@ -1691,7 +1691,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
             print 'warning: getEyePosition() of dummy controller will not work correctly when default units of the window is not \'pix\'.'
         self.myMouse = self.mouse(win=self.win)
         draw = ImageDraw.Draw(self.PILimgCAL)
-        draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=0)
+        draw.rectangle(((0,0),self.PILimgCAL.size),fill=0)
         draw.text((64,64),'Calibration/Validation Results',fill=255)
         self.drawCalibrationResults()
     
