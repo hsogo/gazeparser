@@ -91,10 +91,11 @@ def createConfigDir(overwrite=False):
     
     if sys.platform == 'win32':
 	    homeDir = os.environ['USERPROFILE']
-	    configDir = os.path.join(homeDir,'GazeParser')
+	    appdataDir = os.environ['APPDATA']
+	    configDir = os.path.join(appdataDir,'GazeParser')
     else:
         homeDir = os.environ['HOME']
-        configDir = os.path.join(homeDir,'GazeParser')
+        configDir = os.path.join(homeDir,'.GazeParser')
     
     if not os.path.exists(configDir):
         os.mkdir(configDir)

@@ -12,21 +12,22 @@ import os
 import sys
 
 appDir = os.path.abspath(os.path.dirname(__file__))
-if sys.platform == 'win32':
+if sys.platform == 'win32': #Windows
     homeDir = os.environ['USERPROFILE']
-    configDir = os.path.join(homeDir,'GazeParser')
-else:
+    appdataDir = os.environ['APPDATA']
+    configDir = os.path.join(appdataDir,'GazeParser')
+else: #MacOS X and Linux
     homeDir = os.environ['HOME']
-    configDir = os.path.join(homeDir,'GazeParser')
-    
+    configDir = os.path.join(homeDir,'.GazeParser')
 
 from GazeParser.Core import *
 from GazeParser.Utility import save, load
 import GazeParser.Configuration
 
+#create config directory if not exist.
 if not os.path.exists(GazeParser.configDir):
-    print 'GazeParser: Warning: configDir (%s) does not exist.' % (GazeParser.configDir)
-    print 'Call GazeParser.Utility.createConfigDir() to create configDir.'
+    from GazeParser.Utility import createConfigDir
+    createConfigDir()
 
 config = GazeParser.Configuration.Config()
 
