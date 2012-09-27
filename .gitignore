@@ -11,10 +11,10 @@ _build/
 #C++
 *.o
 
-#for SimpleGazeTracker_OpenCV testing
+#for SimpleGazeTracker_OpenCV
 
 FreeSans.ttf
 simplegazetracker
-makefile.orig
+autom4te.cache/
 
 

@@ -110,15 +110,20 @@ int getApplicationDirectoryPath(std::string* path)
 */
 
 int getParameterDirectoryPath(std::string* path)
+/*@date 2012/09/27
+- Parameter directory is changed to %APPDATA%\SimpleGazeTracker in Windows
+  and ~/.SimpleGazeTracker in MacOS X / Linux.
+*/
 {
 #ifdef _WIN32
-	path->assign(std::getenv("USERPROFILE"));
-	//path->assign(std::getenv("APPDATA"));
+	//path->assign(std::getenv("USERPROFILE"));
+	path->assign(std::getenv("APPDATA"));
+	path->append("SimpleGazeTracker");
 #else
 	path->assign(std::getenv("HOME"));
-#endif
 	path->append(PATH_SEPARATOR);
-	path->append("SimpleGazeTracker");
+	path->append(".SimpleGazeTracker");
+#endif
 	return 0;
 }
 
@@ -126,12 +131,15 @@ int getLogFilePath(std::string* path)
 {
 	path->assign(g_DataPath);
 	path->append(PATH_SEPARATOR);
-	path->append("Tracker.log");
+	path->append("SimpleGazeTracker.log");
 	return 0;
 }
 
 int checkDirectory(std::string path)
 {
+/*@date 2012/09/27
+- Bugfix: invalid directory name.
+*/
 #ifdef _WIN32
 	if(!PathIsDirectory(path.c_str())){
 		CreateDirectory(path.c_str(),NULL);
@@ -145,7 +153,7 @@ int checkDirectory(std::string path)
 
 	if(res<0)
 	{
-		if(mkdir(g_ParamPath.c_str(),mode) != 0)
+		if(mkdir(path.c_str(),mode) != 0)
 		{
 			return E_FAIL;
 		}
