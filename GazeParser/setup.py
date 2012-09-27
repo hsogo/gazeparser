@@ -34,5 +34,6 @@ paths, calculating saccade trajectory curvature and so on.
       license='GNU GPL',
       install_requires=[],
       packages=['GazeParser','GazeParser.app'],
-      package_data={'GazeParser':['LICENSE.txt','*.cfg'],'GazeParser.app':['img/*.png']}
+      package_data={'GazeParser':['LICENSE.txt','*.cfg'],'GazeParser.app':['img/*.png']},
+      scripts=['GazeParser_post_install.py']
       )
