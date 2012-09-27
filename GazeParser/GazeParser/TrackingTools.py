@@ -561,6 +561,7 @@ class BaseController(object):
             raise ValueError, 'Calibration parameters are not set.'
         
         self.messageText=self.getCurrentMenuItem()
+        self.showCalTarget = False
         self.showCameraImage = False
         self.showCalImage = False
         while True:
@@ -675,7 +676,7 @@ class BaseController(object):
                         data += newData
         
         draw = ImageDraw.Draw(self.PILimgCAL)
-        draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=128)
+        draw.rectangle(((0,0),self.PILimgCAL.size),fill=128)
         if self.showCalDisplay == True:
             self.showCalImage = True
         else:
@@ -864,6 +865,12 @@ class BaseController(object):
         else:
             return True
     
+    def removeCalibrationResults(self):
+        """
+        Delete current calibration results.
+        """
+        self.calibrationResults = None
+    
     def getSpatialError(self, position=None, responseKey='space', message=None):
         """
         Verify measurement error at a given position on the screen.
@@ -1014,32 +1021,37 @@ class ControllerVisionEggBackend(BaseController):
         self.backend = 'VisionEgg'
         BaseController.__init__(self,configFile)
     
-    def setCalibrationScreen(self, screen):
+    def setCalibrationScreen(self, screen, font_name=None):
         """
         Set calibration screen.
         
         :param VisionEgg.Core.Screen screen: instance of VisionEgg.Core.Screen 
             to display calibration screen.
+        :param str font_name: font name.
         """
         self.screen = screen
         (self.screenWidth, self.screenHeight) = screen.size
         self.screenCenter = (screen.size[0]/2, screen.size[1]/2)
         self.caltarget = self.VETarget2D(size=(10,10),on=False,color=(0,0,0))
-        self.PILimgCAL = Image.new('L',(self.screenWidth,self.screenHeight))
+        self.PILimgCAL = Image.new('L',(self.screenWidth-self.screenWidth%4,self.screenHeight-self.screenHeight%4))
         self.texture = self.VETexture(self.PILimg)
         self.calTexture = self.VETexture(self.PILimgCAL)
         self.img = self.VETextureStimulus(texture=self.texture,
-                                          size=(self.previewWidth,self.previewHeight),
+                                          size=self.PILimg.size,
                                           position=(self.screenWidth/2,self.screenHeight/2),anchor='center',
                                           on=False,
                                           texture_mag_filter=self.VEGL_NEAREST)
         self.imgCal = self.VETextureStimulus(texture=self.calTexture,
-                                             size=(self.screenWidth,self.screenHeight),
+                                             size=self.PILimgCAL.size,
                                              position=(self.screenWidth/2,self.screenHeight/2),anchor='center',
                                              on=False,
                                              texture_mag_filter=self.VEGL_NEAREST)
-        self.msgtext = self.VEText(position=(self.screenWidth/2,self.screenHeight/2-self.previewHeight/2-12),
-                                           anchor='center',font_size=24,text=self.getCurrentMenuItem())
+        if font_name==None:
+            self.msgtext = self.VEText(position=(self.screenWidth/2,self.screenHeight/2-self.previewHeight/2-12),
+                                               anchor='center',font_size=24,text=self.getCurrentMenuItem())
+        else:
+            self.msgtext = self.VEText(position=(self.screenWidth/2,self.screenHeight/2-self.previewHeight/2-12),
+                                               anchor='center',font_size=24,text=self.getCurrentMenuItem(),font_name=font_name)
         self.viewport = self.VEViewport(screen=screen, stimuli=[self.img,self.imgCal,self.caltarget,self.msgtext])
         self.calResultScreenOrigin = (0, 0)
         
@@ -1141,21 +1153,22 @@ class ControllerPsychoPyBackend(BaseController):
         BaseController.__init__(self,configFile)
         self.getKeys = getKeys #for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
     
-    def setCalibrationScreen(self, win):
+    def setCalibrationScreen(self, win, font=''):
         """
         Set calibration screen.
         
         :param psychopy.visual.window win: instance of psychopy.visual.window to display
             calibration screen.
+        :param str font: font name.
         """
         self.win = win
         (self.screenWidth, self.screenHeight) = win.size
         self.screenCenter = (0,0)
         self.caltarget = self.PPRect(self.win,width=10,height=10,units='pix')
-        self.PILimgCAL = Image.new('L',(self.screenWidth,self.screenHeight))
+        self.PILimgCAL = Image.new('L',(self.screenWidth-self.screenWidth%4,self.screenHeight-self.screenHeight%4))
         self.img = self.PPSimpleImageStim(self.win, self.PILimg)
         self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL)
-        self.msgtext = self.PPTextStim(self.win, pos=(0,-self.previewHeight/2-12), units='pix', text=self.getCurrentMenuItem())
+        self.msgtext = self.PPTextStim(self.win, pos=(0,-self.previewHeight/2-12), units='pix', text=self.getCurrentMenuItem(), font=font)
         self.calResultScreenOrigin = (self.screenWidth/2, self.screenHeight/2)
     
     def updateScreen(self):
@@ -1540,13 +1553,13 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         print 'Dummy sendCommand: '+ command
     
-    def setCalibrationScreen(self, screen):
+    def setCalibrationScreen(self, screen, font_name=None):
         """
         Set calibration screen.
         """
-        ControllerVisionEggBackend.setCalibrationScreen(self,screen)
+        ControllerVisionEggBackend.setCalibrationScreen(self, screen, font_name=font_name)
         draw = ImageDraw.Draw(self.PILimgCAL)
-        draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=0)
+        draw.rectangle(((0,0),self.PILimgCAL.size),fill=0)
         draw.text((64,64),'Calibration/Validation Results',fill=255)
         self.drawCalibrationResults()
     
@@ -1682,16 +1695,16 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         print 'Dummy sendCommand: '+ command
     
-    def setCalibrationScreen(self, win):
+    def setCalibrationScreen(self, win, font):
         """
         Set calibration screen.
         """
-        ControllerPsychoPyBackend.setCalibrationScreen(self,win)
+        ControllerPsychoPyBackend.setCalibrationScreen(self, win, font)
         if self.win.units != 'pix':
             print 'warning: getEyePosition() of dummy controller will not work correctly when default units of the window is not \'pix\'.'
         self.myMouse = self.mouse(win=self.win)
         draw = ImageDraw.Draw(self.PILimgCAL)
-        draw.rectangle(((0,0),(self.screenWidth,self.screenHeight)),fill=0)
+        draw.rectangle(((0,0),self.PILimgCAL.size),fill=0)
         draw.text((64,64),'Calibration/Validation Results',fill=255)
         self.drawCalibrationResults()
     
