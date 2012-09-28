@@ -83,6 +83,7 @@ int g_CurrentMenuPosition = 0;  /*!< Holds current menu position.*/
 int g_CustomMenuNum = 0; /*!< Holds how many custom menu items are defined.*/
 
 double g_EyeData[MAXDATA][4]; /*!< Holds the center of purkinje image relative to the center of pupil. Only two columns are used when recording mode is monocular.*/
+double g_PupilSizeData[MAXDATA][4]; /*!< Holds pupil size*/
 double g_TickData[MAXDATA]; /*!< Holids tickcount when data was obtained. */
 double g_CalPointData[MAXCALDATA][2]; /*!< Holds where the calibration item is presented when calibration data is sampled.*/
 double g_ParamX[6]; /*!< Holds calibration parameters for X coordinate. Only three elements are used when recording mode is monocular.*/
@@ -98,8 +99,9 @@ double g_CalGoodness[4]; /*!< Holds goodness of calibration results, defined as 
 double g_CalMaxError[2]; /*!< Holds maximum calibration error. Only one element is used when recording mode is monocular.*/
 double g_CalMeanError[2]; /*!< Holds mean calibration error. Only one element is used when recording mode is monocular.*/
 
-int g_RecordingMode = RECORDING_BINOCULAR; /*! Holds recording mode. @note This value is modified only when application is being initialized (i.e. in initParameters()).*/
-int g_isShowDetectionErrorMsg = 0; /*Holds DetectionError message visibility.*/
+int g_RecordingMode = RECORDING_BINOCULAR; /*!< Holds recording mode. @note This value is modified only when application is being initialized (i.e. in initParameters()).*/
+int g_isShowDetectionErrorMsg = 0; /*!< Holds DetectionError message visibility.*/
+int g_isOutputPupilSize = 1; /*!< Holds whether pupil size is output to datafile.*/
 
 int g_DataCounter = 0;
 bool g_isRecording = false;
@@ -168,6 +170,7 @@ Following parameters are read from a configuration file named "CONFIG".
 -PORT_RECV  (g_PortRecv)
 -PORT_SEND  (g_PortSend)
 -DELAY_CORRECTION  (g_DelayCorrection)
+-OUTPUT_PUPILSIZE (g_isOuputPupilArea)
 
 @return int
 @retval S_OK Camera is successfully initialized.
@@ -227,6 +230,8 @@ int initParameters( void )
 		else if(strcmp(buff,"PORT_SEND")==0) g_PortSend = param;
 		else if(strcmp(buff,"PORT_RECV")==0) g_PortRecv = param;
 		else if(strcmp(buff,"DELAY_CORRECTION")==0) g_DelayCorrection = param;
+		else if(strcmp(buff,"OUTPUT_PUPILSIZE")==0) g_isOutputPupilSize = param;
+		else return E_FAIL; //unknown option
 	}
 
 	if(g_ROIWidth==0) g_ROIWidth = g_CameraWidth;
@@ -259,12 +264,14 @@ Following parameters are wrote to the configuration file.
 -PORT_RECV  (g_PortRecv)
 -PORT_SEND  (g_PortSend)
 -DELAY_CORRECTION  (g_DelayCorrection)
+-OUTPUT_PUPILSIZE  (g_isOutputPupilSize)
 
 @return No value is returned.
 
 @date 2012/04/06 CAMERA_WIDTH, CAMERA_HEIGHT, PREVIEW_WIDTH and PREVIEW_HEIGHT are supported.
 @date 2012/07/17 ROI_WIDTH, ROI_Height, SHOW_DETECTIONERROR_MSG are supported.
 @date 2012/07/26 DELAY_CORRECTION, PORT_SEND and PORT_RECV are supported.
+@date 2012/09/28 OUTPUT_PUPILSIZE is supported.
 */
 void saveParameters( void )
 {
@@ -311,6 +318,7 @@ void saveParameters( void )
 	fs << "PORT_SEND=" <<  g_PortSend << std::endl;
 	fs << "PORT_RECV=" <<  g_PortRecv << std::endl;
 	fs << "DELAY_CORRECTION=" << g_DelayCorrection << std::endl;
+	fs << "OUTPUT_PUPILSIZE=" << g_isOutputPupilSize << std::endl;
 
 	fs.close();
 }
@@ -448,6 +456,8 @@ This function is called either when recording is stopped or g_DataCounter reache
 
 @date 2012/07/30
 - EOG-SimpleGazeTracker concurrent recording mode is appended
+@date 2012/09/28
+- Support for pupil size output
 */
 void flushGazeData(void)
 {
@@ -461,20 +471,28 @@ void flushGazeData(void)
 
 			if(g_EyeData[i][0]<E_PUPIL_PURKINJE_DETECTION_FAIL){
 				if(g_EyeData[i][0] == E_MULTIPLE_PUPIL_CANDIDATES)
-					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL\n");
+					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL");
 				else if(g_EyeData[i][0] == E_NO_PUPIL_CANDIDATE)
-					fprintf(g_DataFP,"NOPUPIL,NOPUPIL\n");
+					fprintf(g_DataFP,"NOPUPIL,NOPUPIL");
 				else if(g_EyeData[i][0] == E_NO_PURKINJE_CANDIDATE)
-					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE\n");
+					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE");
 				else if(g_EyeData[i][0] == E_MULTIPLE_PURKINJE_CANDIDATES)
-					fprintf(g_DataFP,"MULTIPURKINJE,MULTIPURKINJE\n");
+					fprintf(g_DataFP,"MULTIPURKINJE,MULTIPURKINJE");
 				else if(g_EyeData[i][0] == E_NO_FINE_PUPIL_CANDIDATE)
-					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
+					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL");
 				else
-					fprintf(g_DataFP,"FAIL,FAIL\n");
+					fprintf(g_DataFP,"FAIL,FAIL");
+				
+				if(g_isOutputPupilSize)
+					fprintf(g_DataFP,",FAIL\n");
+				else
+					fprintf(g_DataFP,"\n");
 			}else{
 				getGazePositionMono(g_EyeData[i], xy);
-				fprintf(g_DataFP,"%.1f,%.1f\n" ,xy[MONO_X],xy[MONO_Y]);
+				if(g_isOutputPupilSize)
+					fprintf(g_DataFP,"%.1f,%.1f,%.1f\n" ,xy[MONO_X],xy[MONO_Y],g_PupilSizeData[i][MONO_P]);
+				else
+					fprintf(g_DataFP,"%.1f,%.1f\n" ,xy[MONO_X],xy[MONO_Y]);
 			}
 		}
 	}else{ //binocular
@@ -515,7 +533,25 @@ void flushGazeData(void)
 				else
 					fprintf(g_DataFP,"FAIL,FAIL\n");
 			}else{
-				fprintf(g_DataFP,"%.1f,%.1f\n" ,xy[BIN_RX],xy[BIN_RY]);
+				fprintf(g_DataFP,"%.1f,%.1f" ,xy[BIN_RX],xy[BIN_RY]);
+			}
+			
+			//pupil
+			if(g_isOutputPupilSize){
+				//left
+				if(g_EyeData[i][BIN_LX]<E_PUPIL_PURKINJE_DETECTION_FAIL)
+					fprintf(g_DataFP,"FAIL,");
+				else
+					fprintf(g_DataFP,"%.1f,",g_PupilSizeData[i][BIN_LP]);
+				
+				//right
+				if(g_EyeData[i][BIN_RX]<E_PUPIL_PURKINJE_DETECTION_FAIL)
+					fprintf(g_DataFP,"FAIL\n");
+				else
+					fprintf(g_DataFP,"%.1f\n",g_PupilSizeData[i][BIN_RP]);				
+				
+			}else{
+				fprintf(g_DataFP,"\n");
 			}
 		}
 
@@ -538,6 +574,9 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 @param[in] TimeImageAquired Timestamp
 
 @return No value is returned.
+
+@date 2012/09/28
+- Support for recording pupil size
 */
 void getGazeMono( double detectionResults[8], double TimeImageAquired )
 {
@@ -565,12 +604,20 @@ void getGazeMono( double detectionResults[8], double TimeImageAquired )
 			g_EyeData[g_DataCounter][MONO_Y] = detectionResults[MONO_PUPIL_X];
 			g_CurrentEyeData[MONO_X] = detectionResults[MONO_PUPIL_X];
 			g_CurrentEyeData[MONO_Y] = detectionResults[MONO_PUPIL_X];
+			if(g_isOutputPupilSize)
+			{
+				g_PupilSizeData[g_DataCounter][MONO_P] = detectionResults[MONO_PUPILSIZE];
+			}
 		}
 		else
 		{
 			g_EyeData[g_DataCounter][MONO_X] = detectionResults[MONO_PUPIL_X]-detectionResults[MONO_PURKINJE_X];
 			g_EyeData[g_DataCounter][MONO_Y] = detectionResults[MONO_PUPIL_Y]-detectionResults[MONO_PURKINJE_Y];
 			getGazePositionMono(g_EyeData[g_DataCounter], g_CurrentEyeData);
+			if(g_isOutputPupilSize)
+			{
+				g_PupilSizeData[g_DataCounter][MONO_P] = detectionResults[MONO_PUPILSIZE];
+			}
 		}
 		g_DataCounter++;
 		//check overflow
@@ -603,6 +650,9 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 @param[in] TimeImageAquired Timestamp
 
 @return No value is returned.
+
+@date 2012/09/28
+- Support for recording pupil size
 */
 void getGazeBin( double detectionResults[8], double TimeImageAquired )
 {
@@ -639,6 +689,11 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 			g_EyeData[g_DataCounter][BIN_LY] = detectionResults[BIN_PUPIL_LX];
 			g_CurrentEyeData[BIN_LX] = detectionResults[BIN_PUPIL_LX];
 			g_CurrentEyeData[BIN_LY] = detectionResults[BIN_PUPIL_LX];
+			if(g_isOutputPupilSize)
+			{
+				g_PupilSizeData[g_DataCounter][BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
+				g_PupilSizeData[g_DataCounter][BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
+			}
 		}
 		//right eye
 		if(detectionResults[BIN_PUPIL_RX] <= E_FIRST_ERROR_CODE) //A value smaller than E_FIRST_ERROR_CODE is treated as an error.
@@ -647,6 +702,11 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 			g_EyeData[g_DataCounter][BIN_RY] = detectionResults[BIN_PUPIL_RX];
 			g_CurrentEyeData[BIN_RX] = detectionResults[BIN_PUPIL_RX];
 			g_CurrentEyeData[BIN_RY] = detectionResults[BIN_PUPIL_RX];
+			if(g_isOutputPupilSize)
+			{
+				g_PupilSizeData[g_DataCounter][BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
+				g_PupilSizeData[g_DataCounter][BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
+			}
 		}
 		g_DataCounter++;
 		//check overflow
@@ -1039,7 +1099,7 @@ int main(int argc, char** argv)
 		else if(getCameraImage( )==S_OK)
 		{ //retrieve camera image and process it.
 			int res;
-			double detectionResults[8], TimeImageAquired;
+			double detectionResults[MAX_DETECTION_RESULTS], TimeImageAquired;
 			TimeImageAquired = getCurrentTime() - g_RecStartTime;
 
 #ifdef __DEBUG_WITH_GPC3100
@@ -1108,6 +1168,7 @@ This function should be called before starting calibration, validation, measurem
 
 @return No value is returned.
 @date 2012/07/24 calibration data clearance is separated to clearCalibrationData()
+@date 2012/09/28 Support for g_PupilSizeData
 */
 void clearData(void)
 {
@@ -1119,6 +1180,9 @@ void clearData(void)
 		g_EyeData[i][1] = 0;
 		g_EyeData[i][2] = 0;
 		g_EyeData[i][3] = 0;
+		
+		g_PupilSizeData[i][0] = 0;
+		g_PupilSizeData[i][1] = 0;
 	}
 
 	g_DataCounter = 0;
@@ -1288,6 +1352,9 @@ This function is called from sockProcess() when sockProcess() received "startRec
 
 @param[in] message Message text to be inserted to the data file.
 @return No value is returned.
+@date 2012/09/28
+-output data format.
+-Tracker version is output when datafile is opened.
 */
 void startRecording(const char* message)
 {
@@ -1304,7 +1371,6 @@ void startRecording(const char* message)
 			time(&t);
 			ltm = localtime(&t);
 			fprintf(g_DataFP,"#START_REC,%d,%d,%d,%d,%d,%d\n",ltm->tm_year+1900,ltm->tm_mon+1,ltm->tm_mday,ltm->tm_hour,ltm->tm_min,ltm->tm_sec);
-			fprintf(g_DataFP,"#TRACKER_VERSION,%s\n",VERSION);
 			if(message[0]!='\0')
 			{
 				fprintf(g_DataFP,"#MESSAGE,0,%s\n",message);
@@ -1395,6 +1461,8 @@ As a result, contents of existing file is lost.
 @param[in] filename Name of the data file.
 @return No value is returned.
 @todo avoid overwriting (?)
+@date 2012/09/28 output header
+
 */
 void openDataFile(char* filename)
 {
@@ -1417,6 +1485,19 @@ void openDataFile(char* filename)
 	{
 		g_LogFS << "Open Data File (" << str << ")" << std::endl;
 	}
+
+	fprintf(g_DataFP,"#SimpleGazeTrackerDataFile\n#TRACKER_VERSION,%s\n",VERSION);
+	if(g_isOutputPupilSize)
+		if(g_RecordingMode==RECORDING_MONOCULAR)
+			fprintf(g_DataFP,"#DATAFORMAT,T,X,Y,P\n");
+		else //binocular
+			fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY,LP,RP\n");
+	else
+		if(g_RecordingMode==RECORDING_MONOCULAR)
+			fprintf(g_DataFP,"#DATAFORMAT,T,X,Y\n");
+		else //binocular
+			fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY\n");
+
 }
 
 /*!

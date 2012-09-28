@@ -55,11 +55,13 @@
 #define E_MULTIPLE_PURKINJE_CANDIDATES  -10004
 #define E_NO_FINE_PUPIL_CANDIDATE       -10005
 #define S_PUPIL_PURKINJE                     0
+#define E_NO_PUPILSIZE                       0
 
 //Recording Mode
 #define RECORDING_MONOCULAR 0
 #define RECORDING_BINOCULAR 1
 
+//for g_Eyedata
 #define MONO_X 0
 #define MONO_Y 1
 #define MONO_1 0
@@ -72,10 +74,17 @@
 #define BIN_X 0
 #define BIN_Y 1
 
+//for g_PupilData
+#define MONO_P 0
+#define BIN_LP 0
+#define BIN_RP 1
+
+//for detectionResults
 #define MONO_PUPIL_X    0
 #define MONO_PUPIL_Y    1
 #define MONO_PURKINJE_X 2
 #define MONO_PURKINJE_Y 3
+#define MONO_PUPILSIZE  4
 #define BIN_PUPIL_LX    0
 #define BIN_PUPIL_LY    1
 #define BIN_PURKINJE_LX 2
@@ -84,6 +93,9 @@
 #define BIN_PUPIL_RY    5
 #define BIN_PURKINJE_RX 6
 #define BIN_PURKINJE_RY 7
+#define BIN_PUPILSIZE_L 8
+#define BIN_PUPILSIZE_R 9
+#define MAX_DETECTION_RESULTS 10
 
 #define MENU_THRESH_PUPIL 0
 #define MENU_THRESH_PURKINJE 1
@@ -96,8 +108,8 @@
 #define MENU_MAX_ITEMS 12
 #define MENU_STRING_MAX 24
 
-extern int detectPupilPurkinjeMono( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[8] );
-extern int detectPupilPurkinjeBin( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[8] );
+extern int detectPupilPurkinjeMono( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS] );
+extern int detectPupilPurkinjeBin( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS] );
 extern void estimateParametersMono(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
 extern void estimateParametersBin(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
 extern void getGazePositionMono(double* im, double* xy);
