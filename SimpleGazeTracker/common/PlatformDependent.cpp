@@ -118,6 +118,7 @@ int getParameterDirectoryPath(std::string* path)
 #ifdef _WIN32
 	//path->assign(std::getenv("USERPROFILE"));
 	path->assign(std::getenv("APPDATA"));
+	path->append(PATH_SEPARATOR);
 	path->append("SimpleGazeTracker");
 #else
 	path->assign(std::getenv("HOME"));
