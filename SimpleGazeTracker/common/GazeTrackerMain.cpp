@@ -83,7 +83,7 @@ int g_CurrentMenuPosition = 0;  /*!< Holds current menu position.*/
 int g_CustomMenuNum = 0; /*!< Holds how many custom menu items are defined.*/
 
 double g_EyeData[MAXDATA][4]; /*!< Holds the center of purkinje image relative to the center of pupil. Only two columns are used when recording mode is monocular.*/
-double g_PupilSizeData[MAXDATA][4]; /*!< Holds pupil size*/
+double g_PupilSizeData[MAXDATA][2]; /*!< Holds pupil size*/
 double g_TickData[MAXDATA]; /*!< Holids tickcount when data was obtained. */
 double g_CalPointData[MAXCALDATA][2]; /*!< Holds where the calibration item is presented when calibration data is sampled.*/
 double g_ParamX[6]; /*!< Holds calibration parameters for X coordinate. Only three elements are used when recording mode is monocular.*/
@@ -521,17 +521,17 @@ void flushGazeData(void)
 			//right eye
 			if(g_EyeData[i][BIN_RX]<E_PUPIL_PURKINJE_DETECTION_FAIL){
 				if(g_EyeData[i][BIN_RX] == E_MULTIPLE_PUPIL_CANDIDATES)
-					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL\n");
+					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL");
 				else if(g_EyeData[i][BIN_RX] == E_NO_PUPIL_CANDIDATE)
-					fprintf(g_DataFP,"NOPUPIL,NOPUPIL\n");
+					fprintf(g_DataFP,"NOPUPIL,NOPUPIL");
 				else if(g_EyeData[i][BIN_RX] == E_NO_PURKINJE_CANDIDATE)
-					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE\n");
+					fprintf(g_DataFP,"NOPURKINJE,NOPURKINJE");
 				else if(g_EyeData[i][BIN_LX] == E_MULTIPLE_PURKINJE_CANDIDATES)
-					fprintf(g_DataFP,"MULTIPURKINJE,MULTIPURKINJE,");
+					fprintf(g_DataFP,"MULTIPURKINJE,MULTIPURKINJE");
 				else if(g_EyeData[i][BIN_RX] == E_NO_FINE_PUPIL_CANDIDATE)
-					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL\n");
+					fprintf(g_DataFP,"NOFINEPUPIL,NOFINEPUPIL");
 				else
-					fprintf(g_DataFP,"FAIL,FAIL\n");
+					fprintf(g_DataFP,"FAIL,FAIL");
 			}else{
 				fprintf(g_DataFP,"%.1f,%.1f" ,xy[BIN_RX],xy[BIN_RY]);
 			}
@@ -540,15 +540,15 @@ void flushGazeData(void)
 			if(g_isOutputPupilSize){
 				//left
 				if(g_EyeData[i][BIN_LX]<E_PUPIL_PURKINJE_DETECTION_FAIL)
-					fprintf(g_DataFP,"FAIL,");
+					fprintf(g_DataFP,",FAIL");
 				else
-					fprintf(g_DataFP,"%.1f,",g_PupilSizeData[i][BIN_LP]);
+					fprintf(g_DataFP,",%.1f",g_PupilSizeData[i][BIN_LP]);
 				
 				//right
 				if(g_EyeData[i][BIN_RX]<E_PUPIL_PURKINJE_DETECTION_FAIL)
-					fprintf(g_DataFP,"FAIL\n");
+					fprintf(g_DataFP,",FAIL\n");
 				else
-					fprintf(g_DataFP,"%.1f\n",g_PupilSizeData[i][BIN_RP]);				
+					fprintf(g_DataFP,",%.1f\n",g_PupilSizeData[i][BIN_RP]);				
 				
 			}else{
 				fprintf(g_DataFP,"\n");
@@ -682,6 +682,11 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 		g_EyeData[g_DataCounter][BIN_RX] = detectionResults[BIN_PUPIL_RX]-detectionResults[BIN_PURKINJE_RX];
 		g_EyeData[g_DataCounter][BIN_RY] = detectionResults[BIN_PUPIL_RY]-detectionResults[BIN_PURKINJE_RY];
 		getGazePositionBin(g_EyeData[g_DataCounter], g_CurrentEyeData);
+		if(g_isOutputPupilSize)
+		{
+			g_PupilSizeData[g_DataCounter][BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
+			g_PupilSizeData[g_DataCounter][BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
+		}
 		//left eye
 		if(detectionResults[BIN_PUPIL_LX] <= E_FIRST_ERROR_CODE) //A value smaller than E_FIRST_ERROR_CODE is treated as an error.
 		{
@@ -689,11 +694,6 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 			g_EyeData[g_DataCounter][BIN_LY] = detectionResults[BIN_PUPIL_LX];
 			g_CurrentEyeData[BIN_LX] = detectionResults[BIN_PUPIL_LX];
 			g_CurrentEyeData[BIN_LY] = detectionResults[BIN_PUPIL_LX];
-			if(g_isOutputPupilSize)
-			{
-				g_PupilSizeData[g_DataCounter][BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
-				g_PupilSizeData[g_DataCounter][BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
-			}
 		}
 		//right eye
 		if(detectionResults[BIN_PUPIL_RX] <= E_FIRST_ERROR_CODE) //A value smaller than E_FIRST_ERROR_CODE is treated as an error.
@@ -702,11 +702,6 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 			g_EyeData[g_DataCounter][BIN_RY] = detectionResults[BIN_PUPIL_RX];
 			g_CurrentEyeData[BIN_RX] = detectionResults[BIN_PUPIL_RX];
 			g_CurrentEyeData[BIN_RY] = detectionResults[BIN_PUPIL_RX];
-			if(g_isOutputPupilSize)
-			{
-				g_PupilSizeData[g_DataCounter][BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
-				g_PupilSizeData[g_DataCounter][BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
-			}
 		}
 		g_DataCounter++;
 		//check overflow
@@ -1229,11 +1224,10 @@ void endCalibration(void)
 
 	if(g_RecordingMode==RECORDING_MONOCULAR){
 		estimateParametersMono( g_DataCounter, g_EyeData, g_CalPointData );
-		setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
 	}else{
 		estimateParametersBin( g_DataCounter, g_EyeData, g_CalPointData );
-		setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
 	}
+	setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
 
 	g_isCalibrating=false;
 	g_isCalibrated = true;

@@ -871,8 +871,8 @@ void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double 
 
 		MaxError[BIN_R] = maxerror[BIN_R];
 		MeanError[BIN_R] = sumerror[BIN_R]/dataCounter;
-		Goodness[BIN_RX] = 100 * (fabs(g_ParamX[0])+fabs(g_ParamX[1])) / (2*g_CameraWidth);
-		Goodness[BIN_RY] = 100 * (fabs(g_ParamY[0])+fabs(g_ParamY[1])) / (2*g_CameraHeight);
+		Goodness[BIN_RX] = 100 * (fabs(g_ParamX[3])+fabs(g_ParamX[4])) / (2*g_CameraWidth);
+		Goodness[BIN_RY] = 100 * (fabs(g_ParamY[3])+fabs(g_ParamY[4])) / (2*g_CameraHeight);
 	}
 
 }

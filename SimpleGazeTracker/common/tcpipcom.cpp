@@ -417,8 +417,8 @@ int sockProcess(void)
 							len = snprintf(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f#",goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
 						}else{
 							len = snprintf(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f#",
-								goodness[BIN_LX],goodness[BIN_LY],meanError[BIN_L],maxError[BIN_LX],
-								goodness[BIN_RX],goodness[BIN_RY],meanError[BIN_R],maxError[BIN_RX]);
+								goodness[BIN_LX],goodness[BIN_LY],meanError[BIN_L],maxError[BIN_L],
+								goodness[BIN_RX],goodness[BIN_RY],meanError[BIN_R],maxError[BIN_R]);
 						}
 
 						SDLNet_TCP_Send(g_SockSend,posstr,len);
