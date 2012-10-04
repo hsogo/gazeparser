@@ -609,18 +609,33 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
         print 'Use default configuration.'
         config = GazeParser.Configuration.Config()
     
-    recordedEye = config.RECORDED_EYE
+    #default indices
+    idxT = 0
+    if config.RECORDED_EYE == 'B':
+        idxLX = 1
+        idxLY = 2
+        idxRX = 3
+        idxRY = 4
+        idxLP = None
+        idxRP = None
+    else:
+        idxX = 1
+        idxY = 2
+        idxP = None
     
     fid = open(inputfileFullpath,"r")
     
     Data = []
     
     T = []
-    HV = []
-    LHV = []
-    RHV = []
     M = []
     B = []
+    LHV = []
+    RHV = []
+    LP = []
+    RP = []
+    HV = []
+    P = []
     
     flgInBlock = False
     isCheckedEffectiveDigit = False
@@ -636,30 +651,42 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
             elif itemList[0] == '#STOP_REC':
                 Tlist = rectifyTimeStamp(numpy.array(T))
                 MsgList = buildMsgList(M)
-                if recordedEye=='B':
+                if config.RECORDED_EYE=='B':
                     Llist = applyFilter(Tlist, numpy.array(LHV), config, decimals=effectiveDigit)
                     Rlist = applyFilter(Tlist, numpy.array(RHV), config, decimals=effectiveDigit)
                     (SacList,FixList,BlinkList) = buildEventListBinocular(Tlist,Llist,Rlist,config)
+                    if not (idxLP==None and idxRP==None):
+                        Plist = numpy.array([LP,RP]).transpose()
+                    else:
+                        Plist = None
                 else: #monocular
-                    if recordedEye == 'L':
+                    if config.RECORDED_EYE == 'L':
                         Llist = applyFilter(Tlist, numpy.array(HV), config, decimals=effectiveDigit)
                         (SacList,FixList,BlinkList) = buildEventListMonocular(Tlist,Llist,config)
                         Rlist = None
-                    elif recordedEye == 'R':
+                    elif config.RECORDED_EYE == 'R':
                         Rlist = applyFilter(Tlist, numpy.array(HV), config, decimals=effectiveDigit)
                         (SacList,FixList,BlinkList) = buildEventListMonocular(Tlist,Rlist,config)
                         Llist = None
+                    if idxP != None:
+                        Plist = numpy.array(P).transpose()
+                    else:
+                        Plist = None
                 
-                G = GazeParser.GazeData(T,Llist,Rlist,SacList,FixList,MsgList,BlinkList,recordedEye,config=config)
+                G = GazeParser.GazeData(T,Llist,Rlist,SacList,FixList,MsgList,BlinkList,Plist,config.RECORDED_EYE,config=config)
                 Data.append(G)
             
+                #prepare for new block
                 flgInBlock = False
                 T = []
-                HV = []
-                LHV = []
-                RHV = []
                 M = []
                 B = []
+                LHV = []
+                RHV = []
+                LP = []
+                RP = []
+                HV = []
+                P = []
             
             elif itemList[0] == '#MESSAGE':
                 try:
@@ -669,49 +696,51 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
             
             if not flgInBlock:
                 if useFileParameters:
-                    if itemList[0] == '#SCREEN_WIDTH':
-                        config.SCREEN_WIDTH = int(itemList[1])
-                        print 'SCREEN_WIDTH: %d' % config.SCREEN_WIDTH
+                    #SimpleGazeTracker options
+                    if itemList[0] == '#DATAFORMAT':
+                        idxT = idxX = idxY = idxP = None
+                        idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = None
+                        tmp = []
+                        for i in range(len(itemList)-1):
+                            cmd = 'idx'+itemList[i+1] + '=' + str(i)
+                            exec cmd
+                            tmp.append(cmd)
+                        print 'DATAFORMAT: %s' % (','.join(tmp))
                     
-                    elif itemList[0] == '#SCREEN_HEIGHT':
-                        config.SCREEN_HEIGHT = int(itemList[1])
-                        print 'SCREEN_HEIGHT: %d' % config.SCREEN_HEIGHT
-                    
-                    elif itemList[0] == '#VIEWING_DISTANCE':
-                        config.VIEWING_DISTANCE = float(itemList[1])
-                        print 'VIEWING_DISTANCE: %f' % config.VIEWING_DISTANCE
-                    
-                    elif itemList[0] == '#DOTS_PER_CENTIMETER_H':
-                        config.DOTS_PER_CENTIMETER_H = float(itemList[1])
-                        print 'DOTS_PER_CENTIMETER_H: %f' % config.DOTS_PER_CENTIMETER_H
-                    
-                    elif itemList[0] == '#DOTS_PER_CENTIMETER_V':
-                        config.DOTS_PER_CENTIMETER_V = float(itemList[1])
-                        print 'DOTS_PER_CENTIMETER_V: %f' % config.DOTS_PER_CENTIMETER_V
-                    
-                    elif itemList[0] == '#SCREEN_ORIGIN': 
-                        config.SCREEN_ORIGIN = itemList[1]
-                        print 'SCREEN_ORIGIN: %s' % config.SCREEN_ORIGIN
-                    
-                    elif itemList[0] == '#TRACKER_ORIGIN': 
-                        config.TRACKER_ORIGIN = itemList[1]
-                        print 'TRACKER_ORIGIN: %s' % config.TRACKER_ORIGIN
+                    #GazeParser options
+                    optName = itemList[0][1:]
+                    if optName in GazeParser.Configuration.GazeParserDefaults:
+                        if type(GazeParser.Configuration.GazeParserDefaults[optName]) == float:
+                            setattr(config, optName, float(itemList[1]))
+                            print '%s = %f' % (optName, getattr(config,optName))
+                        elif type(GazeParser.Configuration.GazeParserDefaults[optName]) == int:
+                            setattr(config, optName, int(itemList[1]))
+                            print '%s = %d' % (optName, getattr(config,optName))
+                        else: #str
+                            setattr(config, optName, itemList[1])
+                            print '%s = %s' % (optName, getattr(config,optName))
             
         else: #gaze data
             if not isCheckedEffectiveDigit:
-                periodPosition = itemList[1].find('.')
+                if config.RECORDED_EYE == 'B':
+                    periodPosition = itemList[idxLX].find('.')
+                else:
+                    periodPosition = itemList[idxX].find('.')
                 if periodPosition == -1:
                     effectiveDigit = 0
                 else:
                     effectiveDigit = len(itemList[1])-periodPosition-1
                 isCheckedEffectiveDigit = True
-            T.append(float(itemList[0]))
-            if recordedEye == 'B':
+            T.append(float(itemList[idxT]))
+            if config.RECORDED_EYE == 'B':
                 try:
-                    xL = float(itemList[1])
-                    yL = float(itemList[2])
-                    xR = float(itemList[3])
-                    yR = float(itemList[4])
+                    xL = float(itemList[idxLX])
+                    yL = float(itemList[idxLY])
+                    xR = float(itemList[idxRX])
+                    yR = float(itemList[idxRY])
+                    if not (idxLP==None and idxRP==None):
+                        lP = float(itemList[idxLP])
+                        rP = float(itemList[idxRP])
                 except:
                     if itemList[1]=='NOPUPIL': #NOPUPIL may be blink. #todo: should other meassages be also treated as a blink?
                         B.append([len(T)-1,T[-1]])
@@ -719,20 +748,32 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                     yL = numpy.NaN
                     xR = numpy.NaN
                     yR = numpy.NaN
+                    if not (idxLP==None and idxRP==None):
+                        lP = numpy.NaN
+                        rP = numpy.NaN
                 finally:
                     LHV.append([xL,yL])
                     RHV.append([xR,yR])
+                    if not (idxLP==None and idxRP==None):
+                        LP.append(lP)
+                        RP.append(rP)
             else: #Monocular
                 try:
-                    x = float(itemList[1])
-                    y = float(itemList[2])
+                    x = float(itemList[idxX])
+                    y = float(itemList[idxY])
+                    if not idxP==None:
+                        p = float(itemList[idxP])
                 except:
                     if itemList[1]=='NOPUPIL': #NOPUPIL may be blink. #todo: should other meassages be also treated as a blink?
                         B.append([len(T)-1,T[-1]])
                     x = numpy.NaN
                     y = numpy.NaN
+                    if not idxP==None:
+                        p = numpy.NaN
                 finally:
                     HV.append([x,y])
+                    if idxP != None:
+                        P.append(p)
     
     print 'saving...'
     if os.path.exists(additionalDataFileName):

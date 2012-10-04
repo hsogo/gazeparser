@@ -338,7 +338,7 @@ class GazeData(object):
     Holds saccades, fixations, blinks, messages, timestamps and gaze 
     trajectory in a single recording.
     """
-    def __init__(self,Tlist,Llist,Rlist,SacList,FixList,MsgList,BlinkList,recordedEye,config=None):
+    def __init__(self,Tlist,Llist,Rlist,SacList,FixList,MsgList,BlinkList,PupilList,recordedEye,config=None):
         """
         Constructor GazeData.
         """
@@ -361,6 +361,7 @@ class GazeData(object):
         self._Msg = numpy.array(MsgList)
         self._Blink = numpy.array(BlinkList)
         self._recordedEye = recordedEye
+        self._Pupil = PupilList
         
         self._EventList = self._getEventListByTime(self.T[0],self.T[-1])[0]
         for s in self._Sac:
@@ -933,6 +934,8 @@ class GazeData(object):
     """List of :class:`~BlinkData` objects."""
     
     recordedEye = property(lambda self: self._recordedEye)
+    
+    Pupil = property(lambda self: self._Pupil)
     
     EventList = property(lambda self: self._EventList)
     """List of all events (saccades, fixations, blinks and messages) in chronological order."""
