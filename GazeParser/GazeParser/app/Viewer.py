@@ -305,14 +305,14 @@ class mainWindow(Tkinter.Frame):
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=4.0,color=col)
-                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),color='w',bbox=dict(boxstyle="round", fc="0.2"))
+                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),color='w',bbox=dict(boxstyle="round", fc="0.2",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
                         else:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
-                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),bbox=dict(boxstyle="round", fc="0.8"))
+                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),bbox=dict(boxstyle="round", fc="0.8",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
                     else:
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
-                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),bbox=dict(boxstyle="round", fc="0.8"))
+                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),bbox=dict(boxstyle="round", fc="0.8",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
                 if self.hasRData:
                     ftraj = self.D[self.tr].getFixTraj(f,'R')
                     col = (0.6,0,0)
@@ -364,12 +364,12 @@ class mainWindow(Tkinter.Frame):
             for f in range(self.D[self.tr].nFix):
                 if self.selectiontype.get()=='Emphasize':
                     if f in self.selectionlist['Fix']:
-                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),color='w',bbox=dict(boxstyle="round", fc="0.2"))
+                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),color='w',bbox=dict(boxstyle="round", fc="0.2",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
                     else:
-                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),bbox=dict(boxstyle="round", fc="0.8"))
+                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),bbox=dict(boxstyle="round", fc="0.8",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
                 else:
                     if f in self.selectionlist['Fix']:
-                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),bbox=dict(boxstyle="round", fc="0.8"))
+                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),bbox=dict(boxstyle="round", fc="0.8",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
             
             for s in range(self.D[self.tr].nSac):
                 if self.selectiontype.get()=='Emphasize':
@@ -391,7 +391,7 @@ class mainWindow(Tkinter.Frame):
                 else:
                     msgtext = str(m) + ':' + mObj.text
                 self.ax.plot([mObj.time,mObj.time],[-10000,10000],'g-',linewidth=3.0)
-                self.ax.text(mObj.time,0,msgtext,bbox=dict(boxstyle="round", fc=(0.8,1.0,0.9)))
+                self.ax.text(mObj.time,0,msgtext,bbox=dict(boxstyle="round", fc=(0.8,1.0,0.9),clip_on=True,clip_box=self.ax.bbox),clip_on=True)
             
             #self.ax.axis(self.plotAreaTXY)
         self.ax.axis(self.currentPlotArea)
