@@ -9,10 +9,13 @@ Thanks to following page for embedded plot.
 
 """
 
+import ConfigParser
+import shutil
 import Tkinter
 import tkFileDialog
 import tkMessageBox
-import Image, ImageTk
+import Image
+import ImageTk
 import GazeParser
 import GazeParser.Converter
 import os
@@ -25,6 +28,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
+        self.readApplicationConfig()
+        
         self.ftypes = [('GazeParser Datafile','*.db')]
         self.D = None
         self.C = None
@@ -32,10 +37,16 @@ class mainWindow(Tkinter.Frame):
         self.plotAreaXY = [0,1024,0,768]
         self.plotAreaTXY = [0,3000,0,1024]
         self.dataFileName = 'Please open data file.'
-        self.plotStyle ='XY'
-        self.currentPlotArea = self.plotAreaXY
-        self.relativeRangeX = 1.0
-        self.relativeRangeY = 1.0
+        if self.confCanvasDefaultView == 'TXY':
+            self.plotStyle ='TXY'
+            self.currentPlotArea = self.plotAreaTXY
+        elif self.confCanvasDefaultView == 'XY':
+            self.plotStyle ='XY'
+            self.currentPlotArea = self.plotAreaXY
+        else:
+            raise ValueError, 'Default view must be XY or TXY.'
+        #self.relativeRangeX = 1.0
+        #self.relativeRangeY = 1.0
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         
         Tkinter.Frame.__init__(self,master)
@@ -51,6 +62,7 @@ class mainWindow(Tkinter.Frame):
         self.menu_file.add_command(label='Export',under=0,command=self._exportfile)
         self.menu_file.add_command(label='Exit',under=0,command=self._exit)
         self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
+        self.menu_view.add_command(label='Toggle Fixation Number',under=0,command=self._toggleFixNum)
         self.menu_view.add_command(label='Modify Plot Range',under=0,command=self._modifyPlotRange)
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
@@ -73,8 +85,13 @@ class mainWindow(Tkinter.Frame):
         self.viewFrame = Tkinter.Frame(master)
         self.fig = matplotlib.figure.Figure()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.viewFrame)
-        self.canvas._tkcanvas.config(height=600, width=800, background="#c0c0c0", borderwidth=0, highlightthickness=0)
-        self.ax = self.fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        self.canvas._tkcanvas.config(height=self.confCanvasHeight,
+                                     width=self.confCanvasWidth,
+                                     background='#C0C0C0', borderwidth=0, highlightthickness=0)
+        self.ax = self.fig.add_axes([80.0/self.confCanvasWidth, #80px
+                                     60.0/self.confCanvasHeight, #60px
+                                     1.0-2*80.0/self.confCanvasWidth,
+                                     1.0-2*60.0/self.confCanvasHeight])
         self.ax.axis(self.currentPlotArea)
         self.canvas._tkcanvas.pack(side=Tkinter.TOP, fill=Tkinter.BOTH, expand=True)
         
@@ -100,6 +117,38 @@ class mainWindow(Tkinter.Frame):
         self.master.bind('<Control-KeyPress-v>', self._toggleView)
         self.master.bind('<Left>', self._prevTrial)
         self.master.bind('<Right>', self._nextTrial)
+    
+    def readApplicationConfig(self):
+        appConfigDir = os.path.join(GazeParser.configDir, 'app')
+        if not os.path.isdir(appConfigDir):
+            os.mkdir(appConfigDir)
+        
+        viewerConfigFile = os.path.join(appConfigDir, 'viewer.cfg')
+        if not os.path.isfile(viewerConfigFile):
+            shutil.copyfile(os.path.join(os.path.dirname(__file__),'viewer.cfg'),viewerConfigFile)
+        
+        self.appConf = ConfigParser.SafeConfigParser()
+        self.appConf.read(viewerConfigFile)
+        
+        self.confCanvasWidth = int(self.appConf.get('Appearance','CANVAS_WIDTH'))
+        self.confCanvasHeight = int(self.appConf.get('Appearance','CANVAS_HEIGHT'))
+        self.confCanvasDefaultView = self.appConf.get('Appearance','CANVAS_DEFAULT_VIEW')
+        self.confShowFixNum = eval(self.appConf.get('Appearance','CANVAS_SHOW_FIXNUMBER'))
+        self.confColorLS = self.appConf.get('Appearance','COLOR_TRAJECTORY_L_SAC')
+        self.confColorRS = self.appConf.get('Appearance','COLOR_TRAJECTORY_R_SAC')
+        self.confColorLF = self.appConf.get('Appearance','COLOR_TRAJECTORY_L_FIX')
+        self.confColorRF = self.appConf.get('Appearance','COLOR_TRAJECTORY_R_FIX')
+        self.confColorLX = self.appConf.get('Appearance','COLOR_TRAJECTORY_L_X')
+        self.confColorLY = self.appConf.get('Appearance','COLOR_TRAJECTORY_L_Y')
+        self.confColorRX = self.appConf.get('Appearance','COLOR_TRAJECTORY_R_X')
+        self.confColorRY = self.appConf.get('Appearance','COLOR_TRAJECTORY_R_Y')
+        self.confColorFixF = self.appConf.get('Appearance','COLOR_FIXATION_FC')
+        self.confColorFixB = self.appConf.get('Appearance','COLOR_FIXATION_BG')
+        self.confColorFixFE = self.appConf.get('Appearance','COLOR_FIXATION_FC_E')
+        self.confColorFixBE = self.appConf.get('Appearance','COLOR_FIXATION_BG_E')
+        self.confColorMsgCur = self.appConf.get('Appearance','COLOR_MESSAGE_CURSOR')
+        self.confColorMsgF = self.appConf.get('Appearance','COLOR_MESSAGE_FC')
+        self.confColorMsgB = self.appConf.get('Appearance','COLOR_MESSAGE_BG')
         
     def _toggleView(self, event=None):
         if self.plotStyle == 'XY':
@@ -111,6 +160,14 @@ class mainWindow(Tkinter.Frame):
             
         self._plotData()
         
+    def _toggleFixNum(self, event=None):
+        if self.confShowFixNum:
+            self.confShowFixNum = False
+        else:
+            self.confShowFixNum = True
+        
+        self._plotData()
+    
     def _openfile(self, event=None):
         self.dataFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes,initialdir=GazeParser.homeDir)
         if self.dataFileName=='':
@@ -298,24 +355,37 @@ class mainWindow(Tkinter.Frame):
         self.ax.clear()
         
         if self.plotStyle == 'XY':
+            #plot fixations
             for f in range(self.D[self.tr].nFix):
                 if self.hasLData:
                     ftraj = self.D[self.tr].getFixTraj(f,'L')
-                    col = (1,0,0)
+                    col = self.confColorLF
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=4.0,color=col)
-                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),color='w',bbox=dict(boxstyle="round", fc="0.2",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
+                            if self.confShowFixNum:
+                                self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
+                                             color=self.confColorFixFE,
+                                             bbox=dict(boxstyle="round", fc=self.confColorFixBE, clip_on=True, clip_box=self.ax.bbox),
+                                             clip_on=True)
                         else:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
-                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),bbox=dict(boxstyle="round", fc="0.8",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
+                            if self.confShowFixNum:
+                                self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
+                                             color=self.confColorFixF,
+                                             bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
+                                             clip_on=True)
                     else:
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
-                            self.ax.text(self.D[self.tr].Fix[f].center[0],self.D[self.tr].Fix[f].center[1],str(f),bbox=dict(boxstyle="round", fc="0.8",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
+                            if self.confShowFixNum:
+                                self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
+                                             color=self.confColorFixF,
+                                             bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
+                                             clip_on=True)
                 if self.hasRData:
                     ftraj = self.D[self.tr].getFixTraj(f,'R')
-                    col = (0.6,0,0)
+                    col = self.confColorRF
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=4.0,color=col)
@@ -325,10 +395,11 @@ class mainWindow(Tkinter.Frame):
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
                 
+            #plot saccades
             for s in range(self.D[self.tr].nSac):
                 if self.hasLData:
                     straj = self.D[self.tr].getSacTraj(s,'L')
-                    col = (0,0,1)
+                    col = self.confColorLS
                     if self.selectiontype.get()=='Emphasize':
                         if s in self.selectionlist['Sac']:
                             self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=4.0,color=col)
@@ -339,7 +410,7 @@ class mainWindow(Tkinter.Frame):
                             self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=1.0,color=col)
                 if self.hasRData:
                     straj = self.D[self.tr].getSacTraj(s,'R')
-                    col = (0,0,0.6)
+                    col = self.confColorRS
                     if self.selectiontype.get()=='Emphasize':
                         if s in self.selectionlist['Sac']:
                             self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=4.0,color=col)
@@ -348,41 +419,57 @@ class mainWindow(Tkinter.Frame):
                     else:
                         if s in self.selectionlist['Sac']:
                             self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=1.0,color=col)
-                
-            #self.ax.axis(self.plotAreaXY)
             
         else: #XY-T
             tStart = self.D[self.tr].T[0]
             t = self.D[self.tr].T-tStart
             if self.hasLData:
-                self.ax.plot(t,self.D[self.tr].L[:,0],'.-',color=(1,0,1))
-                self.ax.plot(t,self.D[self.tr].L[:,1],'.-',color=(0,0,1))
+                self.ax.plot(t,self.D[self.tr].L[:,0],'.-',color=self.confColorLX)
+                self.ax.plot(t,self.D[self.tr].L[:,1],'.-',color=self.confColorLY)
             if self.hasRData:
-                self.ax.plot(t,self.D[self.tr].R[:,0],'.-',color=(1,0,0.5))
-                self.ax.plot(t,self.D[self.tr].R[:,1],'.-',color=(0,0,0.5))
+                self.ax.plot(t,self.D[self.tr].R[:,0],'.-',color=self.confColorRX)
+                self.ax.plot(t,self.D[self.tr].R[:,1],'.-',color=self.confColorRY)
             
-            for f in range(self.D[self.tr].nFix):
-                if self.selectiontype.get()=='Emphasize':
-                    if f in self.selectionlist['Fix']:
-                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),color='w',bbox=dict(boxstyle="round", fc="0.2",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
+            if self.confShowFixNum:
+                for f in range(self.D[self.tr].nFix):
+                    if self.selectiontype.get()=='Emphasize':
+                        if f in self.selectionlist['Fix']:
+                            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0],str(f),
+                                         color=self.confColorFixFE,
+                                         bbox=dict(boxstyle="round", fc=self.confColorFixBE, clip_on=True, clip_box=self.ax.bbox),
+                                         clip_on=True)
+                        else:
+                            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0],str(f),
+                                         color=self.confColorFixF,
+                                         bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
+                                         clip_on=True)
                     else:
-                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),bbox=dict(boxstyle="round", fc="0.8",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
-                else:
-                    if f in self.selectionlist['Fix']:
-                        self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),bbox=dict(boxstyle="round", fc="0.8",clip_on=True,clip_box=self.ax.bbox),clip_on=True)
+                        if f in self.selectionlist['Fix']:
+                            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0], str(f),
+                                         color=self.confColorFixF,
+                                         bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
+                                         clip_on=True)
             
             for s in range(self.D[self.tr].nSac):
                 if self.selectiontype.get()=='Emphasize':
                     if s in self.selectionlist['Sac']:
-                        self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000], self.D[self.tr].Sac[s].duration,20000,ec=(0.0,0.0,0.6),hatch='/',fc=(0.3,0.3,1.0),alpha=0.8))
+                        self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000],
+                                                                       self.D[self.tr].Sac[s].duration, 20000,
+                                                                       ec=(0.0,0.0,0.6), hatch='/', fc=(0.3,0.3,1.0), alpha=0.8))
                     else:
-                        self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000], self.D[self.tr].Sac[s].duration,20000,ec=(0.0,0.0,0.6),hatch='/',fc=(0.6,0.6,0.9),alpha=0.3))
+                        self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000],
+                                                                       self.D[self.tr].Sac[s].duration, 20000,
+                                                                       ec=(0.0,0.0,0.6), hatch='/', fc=(0.6,0.6,0.9), alpha=0.3))
                 else:
                     if s in self.selectionlist['Sac']:
-                        self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000], self.D[self.tr].Sac[s].duration,20000,ec=(0.0,0.0,0.6),hatch='/',fc=(0.6,0.6,0.9),alpha=0.3))
+                        self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000],
+                                                                       self.D[self.tr].Sac[s].duration, 20000,
+                                                                       ec=(0.0,0.0,0.6), hatch='/', fc=(0.6,0.6,0.9), alpha=0.3))
                 
             for b in range(self.D[self.tr].nBlink):
-                self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Blink[b].startTime-tStart,-10000], self.D[self.tr].Blink[b].duration,20000,ec=(0.2,0.2,0.2),hatch='\\',fc=(0.8,0.8,0.8),alpha=0.3))
+                self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Blink[b].startTime-tStart,-10000],
+                                                               self.D[self.tr].Blink[b].duration, 20000,
+                                                               ec=(0.2,0.2,0.2), hatch='\\', fc=(0.8,0.8,0.8), alpha=0.3))
             
             for m in range(self.D[self.tr].nMsg):
                 mObj = self.D[self.tr].Msg[m]
@@ -390,10 +477,11 @@ class mainWindow(Tkinter.Frame):
                     msgtext = str(m) + ':' + mObj.text[:7] + '...'
                 else:
                     msgtext = str(m) + ':' + mObj.text
-                self.ax.plot([mObj.time,mObj.time],[-10000,10000],'g-',linewidth=3.0)
-                self.ax.text(mObj.time,0,msgtext,bbox=dict(boxstyle="round", fc=(0.8,1.0,0.9),clip_on=True,clip_box=self.ax.bbox),clip_on=True)
+                self.ax.plot([mObj.time,mObj.time], [-10000,10000], '-', color=self.confColorMsgCur, linewidth=3.0)
+                self.ax.text(mObj.time, 0, msgtext, color=self.confColorMsgF,
+                             bbox=dict(boxstyle="round", fc=self.confColorMsgB, clip_on=True, clip_box=self.ax.bbox),
+                             clip_on=True)
             
-            #self.ax.axis(self.plotAreaTXY)
         self.ax.axis(self.currentPlotArea)
         
         self.ax.set_title('%s: Trial%d' % (os.path.basename(self.dataFileName), self.tr))
