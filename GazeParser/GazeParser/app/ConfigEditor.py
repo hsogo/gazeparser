@@ -14,7 +14,6 @@ import tkMessageBox
 import GazeParser
 from GazeParser.Configuration import GazeParserDefaults, GazeParserOptions, Config
 
-
 class ConfigEditor(Tkinter.Frame):
     def __init__(self, master = None, configObject=None):
         Tkinter.Frame.__init__(self, master)
@@ -43,7 +42,6 @@ class ConfigEditor(Tkinter.Frame):
         if configObject != None:
             for key in GazeParserOptions:
                 self.StringVarDict[key].set(getattr(configObject,key))
-        
         
     def _openfile(self):
         if os.path.exists(GazeParser.configDir):

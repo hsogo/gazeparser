@@ -19,6 +19,7 @@ import ImageTk
 import GazeParser
 import GazeParser.Converter
 import os
+import re
 import numpy
 import matplotlib,matplotlib.figure
 import matplotlib.patches
@@ -26,11 +27,18 @@ import GazeParser.app.ConfigEditor
 import GazeParser.app.Converters
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
+def parsegeometry(geometry):
+    m = re.match("(\d+)x(\d+)([-+]\d+)([-+]\d+)", geometry)
+    if not m:
+        raise ValueError("failed to parse geometry string")
+    return map(int, m.groups())
+
+
 class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
         self.readApplicationConfig()
         
-        self.ftypes = [('GazeParser Datafile','*.db')]
+        self.ftypes = [('SimpleGazeTracker CSV file','*.csv'),('GazeParser Datafile','*.db')]
         self.D = None
         self.C = None
         self.tr = 0
@@ -75,11 +83,6 @@ class mainWindow(Tkinter.Frame):
         
         self.selectiontype = Tkinter.StringVar()
         self.selectiontype.set('Emphasize')
-        
-        #script_path = os.path.abspath(os.path.dirname(__file__))
-        #self.img_zoomin = ImageTk.PhotoImage(Image.open(os.path.join(script_path,'img','zoomin.png')))
-        #self.img_zoomout= ImageTk.PhotoImage(Image.open(os.path.join(script_path,'img','zoomout.png')))
-        #self.img_cood = ImageTk.PhotoImage(Image.open(os.path.join(script_path,'img','cood.png')))
         
         # viewFrame
         self.viewFrame = Tkinter.Frame(master)
@@ -172,6 +175,22 @@ class mainWindow(Tkinter.Frame):
         self.dataFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes,initialdir=GazeParser.homeDir)
         if self.dataFileName=='':
             return
+        
+        #if extension is .csv, try converting
+        if os.path.splitext(self.dataFileName)[1].lower() == '.csv':
+            dbFileName = os.path.splitext(self.dataFileName)[0]+'.db'
+            doOverwrite = tkMessageBox.askyesno('Overwrite?',dbFileName+' already exists. Overwrite?')
+            if not doOverwrite:
+                tkMessageBox.showinfo('Info','Conversion canceled.')
+                return
+            ret = GazeParser.Converter.TrackerToGazeParser(self.dataFileName, overwrite=True)
+            if ret == 'SUCCESS':
+                tkMessageBox.showinfo('Info','Conversion succeeded.\nOpen converted data file.')
+                self.dataFileName = dbFileName
+            else:
+                tkMessageBox.showinfo('Conversion error','Failed to convert %s to GazeParser .db file' % (self.dataFileName))
+                return
+        
         [self.D,self.C] = GazeParser.load(self.dataFileName)
         self.block = 0
         self.tr = 0
@@ -206,6 +225,7 @@ class mainWindow(Tkinter.Frame):
         self._updateMsgBox()
         
     def _exportfile(self,event=None):
+        geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
         flgSac = Tkinter.BooleanVar()
         flgFix = Tkinter.BooleanVar()
@@ -229,7 +249,9 @@ class mainWindow(Tkinter.Frame):
         dlg.grab_set()
         dlg.transient(self)
         dlg.resizable(0, 0)
-        dlg.wait_window(dlg)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
         
         if flgSac.get() or flgFix.get() or flgBlk.get() or flgMsg.get():
             exportFileName = tkFileDialog.asksaveasfilename(initialdir=GazeParser.homeDir)
@@ -279,7 +301,6 @@ class mainWindow(Tkinter.Frame):
             fp.close()
             
             tkMessageBox.showinfo('Info','Done.')
-        
     
     def _exit(self,event=None):
         self.master.destroy()
@@ -323,6 +344,7 @@ class mainWindow(Tkinter.Frame):
         self._updateMsgBox()
         
     def _modifyPlotRange(self):
+        geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
         strings = [Tkinter.StringVar() for i in range(4)]
         labels = ['Abcissa Min','Abcissa Max','Ordinate Min','Ordinate Max']
@@ -336,7 +358,9 @@ class mainWindow(Tkinter.Frame):
         dlg.grab_set()
         dlg.transient(self)
         dlg.resizable(0, 0)
-        dlg.wait_window(dlg)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
         
         tmpPlotArea = [0,0,0,0]
         try:
@@ -352,6 +376,9 @@ class mainWindow(Tkinter.Frame):
             tkMessageBox.showinfo('Error','Values must be integer')
     
     def _plotData(self):
+        if self.D == None:
+            return
+        
         self.ax.clear()
         
         if self.plotStyle == 'XY':
@@ -523,24 +550,65 @@ class mainWindow(Tkinter.Frame):
         
     
     def _configEditor(self):
-        w = Tkinter.Toplevel(self)
-        GazeParser.app.ConfigEditor.ConfigEditor(master=w)
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        GazeParser.app.ConfigEditor.ConfigEditor(master=dlg)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+        
     
     def _convertGT(self):
-        w = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.Converter(master=w)
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        GazeParser.app.Converters.Converter(master=dlg)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _convertEL(self):
-        w = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.EyelinkConverter(master=w)
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        GazeParser.app.Converters.EyelinkConverter(master=dlg)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _convertTSV(self):
-        w = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.TobiiConverter(master=w)
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        GazeParser.app.Converters.TobiiConverter(master=dlg)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _interactive(self):
-        w = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.InteractiveConfig(master=w)
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        GazeParser.app.Converters.InteractiveConfig(master=dlg)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
 
 if __name__ == '__main__':
