@@ -25,8 +25,8 @@ class SaccadeData(object):
         self._startTime = t[0]
         self._endTime = t[1]
         self._duration = d[0]
-        self._start = (d[1],d[2])
-        self._end = (d[3],d[4])
+        self._start = numpy.array((d[1],d[2]))
+        self._end = numpy.array((d[3],d[4]))
         self._amplitude = d[5]
         self._length = numpy.sqrt((d[3]-d[1])**2 + (d[4]-d[2])**2)
         self._direction = numpy.arctan2(d[4]-d[2],d[3]-d[1])
@@ -138,7 +138,7 @@ class FixationData(object):
         self._startTime = t[0]
         self._endTime = t[1]
         self._duration = d[0]
-        self._center = (d[1],d[2])
+        self._center = numpy.array((d[1],d[2]))
         self._parent = None
         
         idx = numpy.where(Tlist==t[0])[0]
