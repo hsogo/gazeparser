@@ -1,3 +1,13 @@
+2012-10-15  Hiroyuki Sogo
+
+  release: 0.5.3
+  (note) version 0.5.2 was skipped.
+  
+  * configuration directory is changed to $HOME/.SimpleGazeTracker
+    (in Windows, %APPDATA%/SimpleGazeTracer)
+  * Pupil size (area of ellipse fitted to the pupil) is recoreded.
+  * several bugs in binocular recording mode is fixed.
+
 2012-07-31  Hiroyuki Sogo
 
   release: 0.5.1

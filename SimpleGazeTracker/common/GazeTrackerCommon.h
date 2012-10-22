@@ -9,11 +9,15 @@
 @date 2012/07/02
 - delete obsolete definitions
 - define new error code: E_MULTIPLE_PURKINJE_CANDIDATES
+@date 2012/09/28
+- Support pupil size recording
+@date 2012/10/15
+- change version number
 */
 
 
 
-#define VERSION "0.5.1"
+#define VERSION "0.5.3"
 
 #ifdef _WIN32
 #include <windows.h>
