@@ -39,6 +39,7 @@ class mainWindow(Tkinter.Frame):
         self.readApplicationConfig()
         
         self.ftypes = [('SimpleGazeTracker CSV file','*.csv'),('GazeParser Datafile','*.db')]
+        self.initialDataDir = GazeParser.homeDir
         self.D = None
         self.C = None
         self.tr = 0
@@ -120,6 +121,7 @@ class mainWindow(Tkinter.Frame):
         self.master.bind('<Control-KeyPress-v>', self._toggleView)
         self.master.bind('<Left>', self._prevTrial)
         self.master.bind('<Right>', self._nextTrial)
+        self.msglistbox.bind('<Double-Button-1>', self._jumpToTime)
     
     def readApplicationConfig(self):
         appConfigDir = os.path.join(GazeParser.configDir, 'app')
@@ -172,17 +174,20 @@ class mainWindow(Tkinter.Frame):
         self._plotData()
     
     def _openfile(self, event=None):
-        self.dataFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes,initialdir=GazeParser.homeDir)
+        self.dataFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes,initialdir=self.initialDataDir)
         if self.dataFileName=='':
             return
+        self.initialDataDir = os.path.split(self.dataFileName)[0]
         
         #if extension is .csv, try converting
         if os.path.splitext(self.dataFileName)[1].lower() == '.csv':
             dbFileName = os.path.splitext(self.dataFileName)[0]+'.db'
-            doOverwrite = tkMessageBox.askyesno('Overwrite?',dbFileName+' already exists. Overwrite?')
-            if not doOverwrite:
-                tkMessageBox.showinfo('Info','Conversion canceled.')
-                return
+            print dbFileName
+            if os.path.isfile(dbFileName):
+                doOverwrite = tkMessageBox.askyesno('Overwrite?',dbFileName+' already exists. Overwrite?')
+                if not doOverwrite:
+                    tkMessageBox.showinfo('Info','Conversion canceled.')
+                    return
             ret = GazeParser.Converter.TrackerToGazeParser(self.dataFileName, overwrite=True)
             if ret == 'SUCCESS':
                 tkMessageBox.showinfo('Info','Conversion succeeded.\nOpen converted data file.')
@@ -342,7 +347,33 @@ class mainWindow(Tkinter.Frame):
         self.selectiontype.set('Emphasize')
         self._plotData()
         self._updateMsgBox()
-        
+    
+    def _jumpToTime(self, event=None):
+        if self.plotStyle == 'XY':
+            i= self.msglistbox.index(Tkinter.ACTIVE)
+            if isinstance(self.D[self.tr].EventList[i], GazeParser.Core.SaccadeData):
+                pos = (self.D[self.tr].EventList[i].start + self.D[self.tr].EventList[i].end)/2.0
+            elif isinstance(self.D[self.tr].EventList[i], GazeParser.Core.FixationData):
+                pos = self.D[self.tr].EventList[i].center
+            else:
+                return
+            
+            xlim = self.ax.get_xlim()
+            ylim = self.ax.get_ylim()
+            halfXrange = (xlim[1]-xlim[0])/2.0
+            halfYrange = (ylim[1]-ylim[0])/2.0
+            self.ax.set_xlim((pos[0]-halfXrange,pos[0]+halfXrange))
+            self.ax.set_ylim((pos[1]-halfYrange,pos[1]+halfYrange))
+            self.fig.canvas.draw()
+            
+        else:
+            text=self.msglistbox.get(Tkinter.ACTIVE)
+            time = float(text.split(':')[0]) #time
+            xlim = self.ax.get_xlim()
+            halfXrange = (xlim[1]-xlim[0])/2.0
+            self.ax.set_xlim((time-halfXrange,time+halfXrange))
+            self.fig.canvas.draw()
+    
     def _modifyPlotRange(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
@@ -523,10 +554,13 @@ class mainWindow(Tkinter.Frame):
         for e in self.D[self.tr].EventList:
             if isinstance(e,GazeParser.SaccadeData):
                 self.msglistbox.insert(Tkinter.END,str(e.startTime)+':Sac')
+                #self.msglistbox.itemconfig(Tkinter.END, bg=self.confColorLS)
             elif isinstance(e,GazeParser.FixationData):
                 self.msglistbox.insert(Tkinter.END,str(e.startTime)+':Fix')
+                #self.msglistbox.itemconfig(Tkinter.END, bg=self.confColorLF)
             elif isinstance(e,GazeParser.MessageData):
                 self.msglistbox.insert(Tkinter.END,str(e.time)+':'+e.text)
+                self.msglistbox.itemconfig(Tkinter.END, bg=self.confColorMsgB, fg=self.confColorMsgF)
             elif isinstance(e,GazeParser.BlinkData):
                 self.msglistbox.insert(Tkinter.END,str(e.startTime)+':Blk')
     
