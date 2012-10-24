@@ -1242,17 +1242,19 @@ This function is called from sockProcess() when sockProcess() received "getCalSa
 
 @param[in] x position of the target.
 @param[in] y position of the target.
+@param[in] samples number of samples
 @return No value is returned.
-@todo currently g_CalSamplesAtCurrentPoint is initialized to 10. This value should be customizable.
+
+@date 2012/10/24 'samples' parameter is added.
 */
-void getCalSample(double x, double y)
+void getCalSample(double x, double y, int samples)
 {
 	g_CalPointList[g_NumCalPoint][0] = x;
 	g_CalPointList[g_NumCalPoint][1] = y;
 	g_CurrentCalPoint[0] = x;
 	g_CurrentCalPoint[1] = y;
 	g_NumCalPoint++;
-    g_CalSamplesAtCurrentPoint = 10;
+    g_CalSamplesAtCurrentPoint = samples;
 }
 
 /*!
@@ -1308,13 +1310,15 @@ This function is called from sockProcess() when sockProcess() received "getValSa
 
 @param[in] x position of the target.
 @param[in] y position of the target.
+@param[in] samples number of samples
 @return No value is returned.
-@todo number of samples should be customizable.
 @sa getCalSample
+
+@date 2012/10/24 'samples' parameter is added.
 */
-void getValSample(double x, double y)
+void getValSample(double x, double y, int samples)
 {
-	getCalSample(x, y);
+	getCalSample(x, y, samples);
 }
 
 

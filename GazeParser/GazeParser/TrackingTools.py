@@ -26,7 +26,11 @@ ControllerDefaults = {
 'PREVIEW_WIDTH': 640,
 'PREVIEW_HEIGHT': 480,
 'VALIDATION_SHIFT':20,
-'SHOW_CALDISPLAY':True
+'SHOW_CALDISPLAY':True,
+'NUM_SAMPLES_PER_TRGPOS':10
+'CALTARGET_MOTION_DURATION':1.0,
+'CALTARGET_DURATION_PER_POS':2.0,
+'CAL_GETSAMPLE_DEALAY':0.4
 }
 
 
@@ -61,6 +65,12 @@ class BaseController(object):
         self.imageHeight = int(cfgp.get('Controller','IMAGE_HEIGHT'))
         self.previewWidth = int(cfgp.get('Controller','PREVIEW_WIDTH'))
         self.previewHeight = int(cfgp.get('Controller','PREVIEW_HEIGHT'))
+        self.nSamplesPerTrgPos = int(cfgp.get('Controller','NUM_SAMPLES_PER_TRGPOS'))
+        self.calTargetMotionDur = float(cfgp.get('Controller','CALTARGET_MOTION_DURATION'))
+        self.calTargetDurPerPos = float(cfgp.get('Controller','CALTARGET_DURATION_PER_POS'))
+        self.calGetSampleDelay = float(cfgp.get('Controller','CAL_GETSAMPLE_DEALAY'))
+        if self.calTargetMotionDur + self.calGetSampleDelay >= self.calTargetDurPerPos:
+            raise ValueError, 'Sum of CALTARGET_MOTION_DURATION and CAL_GETSAMPLE_DEALAY must be smaller than CALTARGET_DURATION_PER_POS.'
         
         self.validationShift = float(cfgp.get('Controller','VALIDATION_SHIFT'))
         self.showCalDisplay = bool(cfgp.get('Controller','SHOW_CALDISPLAY'))
@@ -748,25 +758,24 @@ class BaseController(object):
         startTime = self.clock()
         while isCalibrating:
             keys = self.getKeys() # necessary to prevent freezing
-            ct = self.clock()-startTime
-            t1 = ct%2.0
-            t2 = int((ct-t1)/2.0)
-            if t2 >= len(self.calTargetPos)-1:
+            currentTime = self.clock()-startTime
+            t = currentTime % self.calTargetDurPerPos
+            prevTargetPosition = int((currentTime-t)/self.calTargetDurPerPos)
+            currentTargetPosition = prevTargetPosition+1
+            if currentTargetPosition >= len(self.calTargetPos):
                 isCalibrating = False
                 break
-            if t1<1.0:
-                x = t1*self.calTargetPos[self.indexList[t2+1]][0] + (1-t1)*self.calTargetPos[self.indexList[t2]][0]
-                y = t1*self.calTargetPos[self.indexList[t2+1]][1] + (1-t1)*self.calTargetPos[self.indexList[t2]][1]
+            if t<self.calTargetMotionDur:
+                x = t*self.calTargetPos[self.indexList[currentTargetPosition]][0] + (self.calTargetMotionDur-t)*self.calTargetPos[self.indexList[prevTargetPosition]][0]
+                y = t*self.calTargetPos[self.indexList[currentTargetPosition]][1] + (self.calTargetMotionDur-t)*self.calTargetPos[self.indexList[prevTargetPosition]][1]
                 self.calTargetPosition = (x,y)
-            elif 1.4<t1<1.8:
-                self.calTargetPosition = self.calTargetPos[self.indexList[t2+1]]
-                if not calCheckList[t2]:
-                    self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[self.indexList[t2+1]][0])
-                                     +','+str(self.calTargetPos[self.indexList[t2+1]][1])+chr(0))
-                    calCheckList[t2] = True
             else:
-                self.calTargetPosition = self.calTargetPos[self.indexList[t2+1]]
-            self.updateCalibrationTargetStimulusCallBack(t1,t2+1,self.calTargetPos[self.indexList[t2+1]],self.calTargetPosition)
+                self.calTargetPosition = self.calTargetPos[self.indexList[currentTargetPosition]]
+            if not calCheckList[prevTargetPosition] and t>self.calTargetMotionDur+self.calGetSampleDelay:
+                self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[self.indexList[currentTargetPosition]][0])
+                                 +','+str(self.calTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.nSamplesPerTrgPos)+chr(0))
+                calCheckList[prevTargetPosition] = True
+            self.updateCalibrationTargetStimulusCallBack(t,currentTargetPosition,self.calTargetPos[self.indexList[currentTargetPosition]],self.calTargetPosition)
             self.updateScreen()
         
         self.showCalTarget = False
@@ -818,25 +827,24 @@ class BaseController(object):
         startTime = self.clock()
         while isCalibrating:
             keys = self.getKeys() # necessary to prevent freezing
-            ct = self.clock()-startTime
-            t1 = ct%2.0
-            t2 = int((ct-t1)/2.0)
-            if t2 >= len(self.valTargetPos)-1:
+            currentTime = self.clock()-startTime
+            t = currentTime % self.calTargetDurPerPos
+            prevTargetPosition = int((currentTime-t)/self.calTargetDurPerPos)
+            currentTargetPosition = prevTargetPosition+1
+            if currentTargetPosition >= len(self.valTargetPos):
                 isCalibrating = False
                 break
-            if t1<1.0:
-                x = t1*self.valTargetPos[self.indexList[t2+1]][0] + (1-t1)*self.valTargetPos[self.indexList[t2]][0]
-                y = t1*self.valTargetPos[self.indexList[t2+1]][1] + (1-t1)*self.valTargetPos[self.indexList[t2]][1]
+            if t<self.calTargetMotionDur:
+                x = t*self.valTargetPos[self.indexList[currentTargetPosition]][0] + (self.calTargetMotionDur-t)*self.valTargetPos[self.indexList[prevTargetPosition]][0]
+                y = t*self.valTargetPos[self.indexList[currentTargetPosition]][1] + (self.calTargetMotionDur-t)*self.valTargetPos[self.indexList[prevTargetPosition]][1]
                 self.calTargetPosition = (x,y)
-            elif 1.4<t1<1.8:
-                self.calTargetPosition = self.valTargetPos[self.indexList[t2+1]]
-                if not calCheckList[t2]:
-                    self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[self.indexList[t2+1]][0])
-                                     +','+str(self.valTargetPos[self.indexList[t2+1]][1])+chr(0))
-                    calCheckList[t2] = True
             else:
-                self.calTargetPosition = self.valTargetPos[self.indexList[t2+1]]
-            self.updateCalibrationTargetStimulusCallBack(t1,t2+1,self.valTargetPos[self.indexList[t2+1]],self.calTargetPosition)
+                self.calTargetPosition = self.valTargetPos[self.indexList[currentTargetPosition]]
+            if not calCheckList[prevTargetPosition] and t>self.calTargetMotionDur+self.calGetSampleDelay:
+                self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[self.indexList[currentTargetPosition]][0])
+                                 +','+str(self.valTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.nSamplesPerTrgPos)+chr(0))
+                calCheckList[prevTargetPosition] = True
+            self.updateCalibrationTargetStimulusCallBack(t,currentTargetPosition,self.valTargetPos[self.indexList[currentTargetPosition]],self.calTargetPosition)
             self.updateScreen()
         
         self.showCalTarget = False
@@ -1695,7 +1703,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         print 'Dummy sendCommand: '+ command
     
-    def setCalibrationScreen(self, win, font):
+    def setCalibrationScreen(self, win, font=''):
         """
         Set calibration screen.
         """

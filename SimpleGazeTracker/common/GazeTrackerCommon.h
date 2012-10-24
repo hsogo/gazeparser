@@ -155,11 +155,11 @@ extern std::string g_ParamPath;
 extern std::fstream g_LogFS;
 
 extern void startCalibration(int x1, int y1, int x2, int y2);
-extern void getCalSample(double x, double y);
+extern void getCalSample(double x, double y, int samples);
 extern void endCalibration(void);
 
 extern void startValidation(int x1, int y1, int x2, int y2);
-extern void getValSample(double x, double y);
+extern void getValSample(double x, double y, int samples);
 extern void endValidation(void);
 extern void getCalibrationResults( double Goodness[4], double MaxError[2], double MeanError[2] );
 extern void getCalibrationResultsDetail( char* errorstr, int size, int* len);

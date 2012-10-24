@@ -142,6 +142,8 @@ This function parses commands sent from the Client PC and call appropriate funct
 @return int
 @retval S_OK
 @retval E_FAIL
+
+@date 2012/10/24 support 'samples' parameter of getCalSample and getValSample.
 */
 int sockProcess(void)
 {
@@ -273,11 +275,16 @@ int sockProcess(void)
 						char* param = buff+nextp+13;
 						char* p;
 						double x,y;
+						int samples
 
 						x = strtod(param, &p);
 						p++;
 						y = strtod(p, &p);
-						getCalSample(x,y);
+						p++;
+						samples = strtoi(p, &p, 10);
+						if(samples<=0) samples=1;
+						if(samples>100) samples=100;
+						getCalSample(x,y,samples);
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
@@ -317,11 +324,16 @@ int sockProcess(void)
 						char* param = buff+nextp+13;
 						char* p;
 						double x,y;
+						int samples;
 
 						x = strtod(param, &p);
 						p++;
 						y = strtod(p, &p);
-						getValSample(x,y);
+						p++;
+						samples = strtoi(p, &p, 10);
+						if(samples<=0) samples=1;
+						if(samples>100) samples=100;
+						getValSample(x,y,samples);
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
