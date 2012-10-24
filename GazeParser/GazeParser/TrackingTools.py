@@ -27,7 +27,7 @@ ControllerDefaults = {
 'PREVIEW_HEIGHT': 480,
 'VALIDATION_SHIFT':20,
 'SHOW_CALDISPLAY':True,
-'NUM_SAMPLES_PER_TRGPOS':10
+'NUM_SAMPLES_PER_TRGPOS':10,
 'CALTARGET_MOTION_DURATION':1.0,
 'CALTARGET_DURATION_PER_POS':2.0,
 'CAL_GETSAMPLE_DEALAY':0.4
@@ -766,8 +766,10 @@ class BaseController(object):
                 isCalibrating = False
                 break
             if t<self.calTargetMotionDur:
-                x = t*self.calTargetPos[self.indexList[currentTargetPosition]][0] + (self.calTargetMotionDur-t)*self.calTargetPos[self.indexList[prevTargetPosition]][0]
-                y = t*self.calTargetPos[self.indexList[currentTargetPosition]][1] + (self.calTargetMotionDur-t)*self.calTargetPos[self.indexList[prevTargetPosition]][1]
+                p1 = t/self.calTargetMotionDur
+                p2 = 1.0-t/self.calTargetMotionDur
+                x = p1*self.calTargetPos[self.indexList[currentTargetPosition]][0] + p2*self.calTargetPos[self.indexList[prevTargetPosition]][0]
+                y = p1*self.calTargetPos[self.indexList[currentTargetPosition]][1] + p2*self.calTargetPos[self.indexList[prevTargetPosition]][1]
                 self.calTargetPosition = (x,y)
             else:
                 self.calTargetPosition = self.calTargetPos[self.indexList[currentTargetPosition]]
@@ -835,8 +837,10 @@ class BaseController(object):
                 isCalibrating = False
                 break
             if t<self.calTargetMotionDur:
-                x = t*self.valTargetPos[self.indexList[currentTargetPosition]][0] + (self.calTargetMotionDur-t)*self.valTargetPos[self.indexList[prevTargetPosition]][0]
-                y = t*self.valTargetPos[self.indexList[currentTargetPosition]][1] + (self.calTargetMotionDur-t)*self.valTargetPos[self.indexList[prevTargetPosition]][1]
+                p1 = t/self.calTargetMotionDur
+                p2 = 1.0-t/self.calTargetMotionDur
+                x = p1*self.valTargetPos[self.indexList[currentTargetPosition]][0] + p2*self.valTargetPos[self.indexList[prevTargetPosition]][0]
+                y = p1*self.valTargetPos[self.indexList[currentTargetPosition]][1] + p2*self.valTargetPos[self.indexList[prevTargetPosition]][1]
                 self.calTargetPosition = (x,y)
             else:
                 self.calTargetPosition = self.valTargetPos[self.indexList[currentTargetPosition]]
