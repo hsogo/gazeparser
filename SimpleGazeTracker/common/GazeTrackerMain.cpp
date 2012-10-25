@@ -577,6 +577,7 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 
 @date 2012/09/28
 - Support for recording pupil size
+@date 2012/10/25 output warning when g_DataCounter > MAXCAldata during calibration/validation
 */
 void getGazeMono( double detectionResults[8], double TimeImageAquired )
 {
@@ -593,6 +594,10 @@ void getGazeMono( double detectionResults[8], double TimeImageAquired )
 			g_EyeData[g_DataCounter][MONO_X] = detectionResults[MONO_PUPIL_X]-detectionResults[MONO_PURKINJE_X];
 			g_EyeData[g_DataCounter][MONO_Y] = detectionResults[MONO_PUPIL_Y]-detectionResults[MONO_PURKINJE_Y];
 			g_DataCounter++;
+			if(g_DataCounter>=MAXCALDATA){
+				g_LogFS << "Warning: number of calibration data exceeded its maximum (" << MAXCALDATA << ")" << std::endl;
+				g_DataCounter = 0;
+			}
 			g_CalSamplesAtCurrentPoint--;
 		}
 
@@ -653,6 +658,7 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 
 @date 2012/09/28
 - Support for recording pupil size
+@date 2012/10/25 output warning when g_DataCounter > MAXCAldata during calibration/validation
 */
 void getGazeBin( double detectionResults[8], double TimeImageAquired )
 {
@@ -672,6 +678,10 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 			g_EyeData[g_DataCounter][BIN_RX] = detectionResults[BIN_PUPIL_RX]-detectionResults[BIN_PURKINJE_RX];
 			g_EyeData[g_DataCounter][BIN_RY] = detectionResults[BIN_PUPIL_RY]-detectionResults[BIN_PURKINJE_RY];
 			g_DataCounter++;
+			if(g_DataCounter>=MAXCALDATA){
+				g_LogFS << "Warning: number of calibration data exceeded its maximum (" << MAXCALDATA << ")" << std::endl;
+				g_DataCounter = 0;
+			}
 			g_CalSamplesAtCurrentPoint--;
 		}
 
@@ -1246,6 +1256,7 @@ This function is called from sockProcess() when sockProcess() received "getCalSa
 @return No value is returned.
 
 @date 2012/10/24 'samples' parameter is added.
+@date 2012/10/25 output warning when g_NumCalPoint>=MAXCALPOINT
 */
 void getCalSample(double x, double y, int samples)
 {
@@ -1254,6 +1265,10 @@ void getCalSample(double x, double y, int samples)
 	g_CurrentCalPoint[0] = x;
 	g_CurrentCalPoint[1] = y;
 	g_NumCalPoint++;
+	if(g_NumCalPoint>=MAXCALPOINT){
+		g_LogFS << "Warning: number of calibration point exceeded its maximum (" << MAXCALPOINT << ")" << std::endl;
+		g_NumCalPoint = 0;
+	}
     g_CalSamplesAtCurrentPoint = samples;
 }
 

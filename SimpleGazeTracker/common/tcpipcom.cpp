@@ -144,6 +144,7 @@ This function parses commands sent from the Client PC and call appropriate funct
 @retval E_FAIL
 
 @date 2012/10/24 support 'samples' parameter of getCalSample and getValSample.
+@date 2012/10/25 MAXCALSAMPLEPERPOINT is used to limit number of samples in getCalSample and getValSample.
 */
 int sockProcess(void)
 {
@@ -275,15 +276,15 @@ int sockProcess(void)
 						char* param = buff+nextp+13;
 						char* p;
 						double x,y;
-						int samples
+						int samples;
 
 						x = strtod(param, &p);
 						p++;
 						y = strtod(p, &p);
 						p++;
-						samples = strtoi(p, &p, 10);
+						samples = strtol(p, &p, 10);
 						if(samples<=0) samples=1;
-						if(samples>100) samples=100;
+						if(samples>=MAXCALSAMPLEPERPOINT) samples = MAXCALSAMPLEPERPOINT;
 						getCalSample(x,y,samples);
 
 						while(buff[nextp]!=0) nextp++;
@@ -330,9 +331,9 @@ int sockProcess(void)
 						p++;
 						y = strtod(p, &p);
 						p++;
-						samples = strtoi(p, &p, 10);
+						samples = strtol(p, &p, 10);
 						if(samples<=0) samples=1;
-						if(samples>100) samples=100;
+						if(samples>=MAXCALSAMPLEPERPOINT) samples=MAXCALSAMPLEPERPOINT;
 						getValSample(x,y,samples);
 
 						while(buff[nextp]!=0) nextp++;
