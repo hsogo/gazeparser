@@ -144,7 +144,9 @@ This function parses commands sent from the Client PC and call appropriate funct
 @retval E_FAIL
 
 @date 2012/10/24 support 'samples' parameter of getCalSample and getValSample.
-@date 2012/10/25 MAXCALSAMPLEPERPOINT is used to limit number of samples in getCalSample and getValSample.
+@date 2012/10/25
+- MAXCALSAMPLEPERPOINT is used to limit number of samples in getCalSample and getValSample.
+- Terminator of sending data is changed to '\0'.
 */
 int sockProcess(void)
 {
@@ -236,15 +238,19 @@ int sockProcess(void)
 								g_SendImageBuffer[index] = (unsigned)(g_pCameraTextureBuffer[
 								        g_CameraWidth*(y+(g_CameraHeight-g_ROIHeight)/2)+
 								                      (x+(g_CameraWidth-g_ROIWidth)/2)] & 0x000000ff);
-								if(g_SendImageBuffer[index]==255){
-									g_SendImageBuffer[index] = 254;
+								if(g_SendImageBuffer[index]==0){
+									g_SendImageBuffer[index] = 1;
 								}else if(g_SendImageBuffer[index] < g_Threshold){
-									g_SendImageBuffer[index] = 0;
+									g_SendImageBuffer[index] = 1;
 								}
 							}
 						}
-						
-						g_SendImageBuffer[index] = 255;
+						if(index+1 != g_ROIWidth*g_ROIHeight)
+						{
+							g_LogFS << "Error: Image size is not matched." << std::endl;
+							index = g_ROIWidth*g_ROIHeight;
+						}
+						g_SendImageBuffer[index+1] = 0;
 						SDLNet_TCP_Send(g_SockSend, (char*)g_SendImageBuffer, g_ROIWidth*g_ROIHeight+1);
 
 						while(buff[nextp]!=0) nextp++;
@@ -409,11 +415,12 @@ int sockProcess(void)
 						int len;
 						getEyePosition(pos);
 						if(g_RecordingMode==RECORDING_MONOCULAR){
-							len = snprintf(posstr,sizeof(posstr),"%.0f,%.0f#",pos[0],pos[1]);
+							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f",pos[0],pos[1]);
 						}else{
-							len = snprintf(posstr,sizeof(posstr),"%.0f,%.0f,%.0f,%.0f#",pos[0],pos[1],pos[2],pos[3]);
+							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f,%.0f",pos[0],pos[1],pos[2],pos[3]);
 						}
-						SDLNet_TCP_Send(g_SockSend,posstr,len);
+						posstr[len+1]='\0';
+						SDLNet_TCP_Send(g_SockSend,posstr,len+1);
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
@@ -427,14 +434,15 @@ int sockProcess(void)
 						getCalibrationResults(goodness,maxError,meanError);
 
 						if(g_RecordingMode==RECORDING_MONOCULAR){
-							len = snprintf(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f#",goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
+							len = snprintf(posstr,sizeof(posstr)-1,"%.2f,%.2f,%.2f,%.2f",goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
 						}else{
-							len = snprintf(posstr,sizeof(posstr),"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f#",
+							len = snprintf(posstr,sizeof(posstr)-1,"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
 								goodness[BIN_LX],goodness[BIN_LY],meanError[BIN_L],maxError[BIN_L],
 								goodness[BIN_RX],goodness[BIN_RY],meanError[BIN_R],maxError[BIN_R]);
 						}
+						posstr[len+1] = '\0';
 
-						SDLNet_TCP_Send(g_SockSend,posstr,len);
+						SDLNet_TCP_Send(g_SockSend,posstr,len+1);
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
@@ -444,7 +452,8 @@ int sockProcess(void)
 						int len;
 						char errorstr[8192];
 
-						getCalibrationResultsDetail(errorstr,sizeof(errorstr),&len);
+						getCalibrationResultsDetail(errorstr,sizeof(errorstr)-1,&len);
+						//'\0' is already appended at getCalibrationResultsDetail
 
 						SDLNet_TCP_Send(g_SockSend,errorstr,len);
 
@@ -458,9 +467,10 @@ int sockProcess(void)
 						char menustr[64];
 
 						getCurrentMenuString(tmpstr,sizeof(tmpstr));
-						len = snprintf(menustr,sizeof(menustr),"%s#",tmpstr);
+						len = snprintf(menustr,sizeof(menustr),"%s",tmpstr);
+						menustr[len+1] = '\0';
 
-						SDLNet_TCP_Send(g_SockSend,menustr,len);
+						SDLNet_TCP_Send(g_SockSend,menustr,len+1);
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;

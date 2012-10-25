@@ -378,8 +378,8 @@ class BaseController(object):
                 except:
                     isInLoop = False
                 if newData:
-                    if '#' in newData:
-                        delimiterIndex = newData.index('#')
+                    if '\0' in newData:
+                        delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
                             print 'getEyePosition:', newData
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -435,8 +435,8 @@ class BaseController(object):
                     #print 'recv error in getCalibrationResults'
                     isInLoop = False
                 if newData:
-                    if '#' in newData:
-                        delimiterIndex = newData.index('#')
+                    if '\0' in newData:
+                        delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
                             print 'getCurrentMenuItem:', newData
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -484,8 +484,8 @@ class BaseController(object):
                     #print 'recv error in getCalibrationResults'
                     isInLoop = False
                 if newData:
-                    if '#' in newData:
-                        delimiterIndex = newData.index('#')
+                    if '\0' in newData:
+                        delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
                             print 'getCalibrationResults', newData
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -535,7 +535,7 @@ class BaseController(object):
                 if newData:
                     for idx in range(len(newData)):
                         d = ord(newData[idx])
-                        if d == 255:
+                        if d == 0:
                             hasGotImage = True
                         else:
                             data.append(d)
@@ -676,8 +676,8 @@ class BaseController(object):
                     #print 'recv error in getCalibrationResults'
                     isInLoop = False
                 if newData:
-                    if '#' in newData:
-                        delimiterIndex = newData.index('#')
+                    if '\0' in newData:
+                        delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
                             print 'getCalibrationResultsDetail', newData
                             self.prevBuffer = newData[(delimiterIndex+1):]

@@ -1684,6 +1684,7 @@ This function is called from sockProcess() when sockProcess() received "getCalRe
 @param[out] len Length of the string written to errorstr buffer.
 
 @return No value is returned.
+@2012/10/25 terminator is changed to \0.
 */
 void getCalibrationResultsDetail( char* errorstr, int size, int* len)
 {
@@ -1707,7 +1708,8 @@ void getCalibrationResultsDetail( char* errorstr, int size, int* len)
 	}
 
 	*len = size-s;
-	errorstr[*len-1] = '#';
+	//Overwrite last comma by '\0'
+	errorstr[*len-1] = '\0';
 }
 
 
