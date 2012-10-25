@@ -19,6 +19,7 @@ import sys
 import ConfigParser
 
 import numpy
+import GazeParser
 
 ControllerDefaults = {
 'IMAGE_WIDTH': 320,
@@ -56,7 +57,9 @@ class BaseController(object):
         """
         cfgp = ConfigParser.SafeConfigParser()
         if configFile == None: #use default settings
-            ConfigFile = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'TrackingTools.cfg')
+            ConfigFile = os.path.join(GazeParser.configDir, 'TrackingTools.cfg')
+            if not os.path.isfile(ConfigFile):
+                ConfigFile = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'TrackingTools.cfg')
         else:
             ConfigFile = configFile
         cfgp.read(ConfigFile)
