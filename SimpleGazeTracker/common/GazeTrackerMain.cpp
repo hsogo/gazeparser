@@ -91,6 +91,7 @@ double g_ParamY[6]; /*!< Holds calibration parameters for Y coordinate. Only thr
 double g_CalibrationArea[4]; /*!< Holds calibration area. These values are used when calibration results are rendered.*/
 
 double g_CurrentEyeData[4]; /*!< Holds latest data. Only two elements are used when recording mode is monocular.*/
+double g_CurrentPupilSize[2]; /*!< Holds latest data. Only one element is used when recording mode is monocular.*/
 double g_CurrentCalPoint[2]; /*!< Holds current position of the calibration target. */
 int g_NumCalPoint; /*!< Sum of the number of sampled calibration data.*/
 int g_CalSamplesAtCurrentPoint; /*!< Number of calibdation data to be sampled at the current target position.*/
@@ -578,6 +579,7 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 @date 2012/09/28
 - Support for recording pupil size
 @date 2012/10/25 output warning when g_DataCounter > MAXCAldata during calibration/validation
+@date 2012/10/26 record current pupil size.
 */
 void getGazeMono( double detectionResults[8], double TimeImageAquired )
 {
@@ -612,6 +614,7 @@ void getGazeMono( double detectionResults[8], double TimeImageAquired )
 			if(g_isOutputPupilSize)
 			{
 				g_PupilSizeData[g_DataCounter][MONO_P] = detectionResults[MONO_PUPILSIZE];
+				g_CurrentPupilSize[MONO_P] = detectionResults[MONO_PUPILSIZE];
 			}
 		}
 		else
@@ -622,6 +625,7 @@ void getGazeMono( double detectionResults[8], double TimeImageAquired )
 			if(g_isOutputPupilSize)
 			{
 				g_PupilSizeData[g_DataCounter][MONO_P] = detectionResults[MONO_PUPILSIZE];
+				g_CurrentPupilSize[MONO_P] = detectionResults[MONO_PUPILSIZE];
 			}
 		}
 		g_DataCounter++;
@@ -659,6 +663,7 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 @date 2012/09/28
 - Support for recording pupil size
 @date 2012/10/25 output warning when g_DataCounter > MAXCAldata during calibration/validation
+@date 2012/10/26 record current pupil size.
 */
 void getGazeBin( double detectionResults[8], double TimeImageAquired )
 {
@@ -692,10 +697,13 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 		g_EyeData[g_DataCounter][BIN_RX] = detectionResults[BIN_PUPIL_RX]-detectionResults[BIN_PURKINJE_RX];
 		g_EyeData[g_DataCounter][BIN_RY] = detectionResults[BIN_PUPIL_RY]-detectionResults[BIN_PURKINJE_RY];
 		getGazePositionBin(g_EyeData[g_DataCounter], g_CurrentEyeData);
+		//pupil
 		if(g_isOutputPupilSize)
 		{
 			g_PupilSizeData[g_DataCounter][BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
 			g_PupilSizeData[g_DataCounter][BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
+			g_CurrentPupilSize[BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
+			g_CurrentPupilSize[BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
 		}
 		//left eye
 		if(detectionResults[BIN_PUPIL_LX] <= E_FIRST_ERROR_CODE) //A value smaller than E_FIRST_ERROR_CODE is treated as an error.
@@ -1629,17 +1637,22 @@ This function is called from sockProcess() when sockProcess() received "getEyePo
 
 @param[out] pos.
 @return No value is returned.
+
+@date 2012/10/26 pupil size is returned.
 */
 void getEyePosition(double* pos)
 {
 	if(g_RecordingMode==RECORDING_MONOCULAR){
 		pos[0] = g_CurrentEyeData[MONO_X];
 		pos[1] = g_CurrentEyeData[MONO_Y];
+		pos[2] = g_CurrentPupilSize[MONO_P];
 	}else{
 		pos[0] = g_CurrentEyeData[BIN_LX];
 		pos[1] = g_CurrentEyeData[BIN_LY];
 		pos[2] = g_CurrentEyeData[BIN_RX];
 		pos[3] = g_CurrentEyeData[BIN_RY];
+		pos[4] = g_CurrentPupilSize[BIN_LP];
+		pos[5] = g_CurrentPupilSize[BIN_RP];
 	}
 }
 

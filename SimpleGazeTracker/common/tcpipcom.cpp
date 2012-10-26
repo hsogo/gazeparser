@@ -410,14 +410,14 @@ int sockProcess(void)
 					}
 					else if(strcmp(buff+nextp,"getEyePosition")==0)
 					{
-						double pos[4];
-						char posstr[64];
+						double pos[6];
+						char posstr[96];
 						int len;
 						getEyePosition(pos);
 						if(g_RecordingMode==RECORDING_MONOCULAR){
-							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f",pos[0],pos[1]);
+							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f",pos[0],pos[1],pos[2]);
 						}else{
-							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f,%.0f",pos[0],pos[1],pos[2],pos[3]);
+							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
 						}
 						posstr[len+1]='\0';
 						SDLNet_TCP_Send(g_SockSend,posstr,len+1);
