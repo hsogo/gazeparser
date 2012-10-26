@@ -366,16 +366,23 @@ class BaseController(object):
         time.sleep(wait)
     
     
-    def getEyePosition(self,timeout=0.02):
+    def getEyePosition(self,timeout=0.02,getPupil=False):
         """
         Send a command to get current gaze position.
         
         :param float timeout:
             If the Tracker Host PC does not respond within this duration, tuple of Nones
             are returned. Unit is second. Default value is 0.02
-        :return: a tuple representing holizontal(X) and vertical(Y) gaze position
-            in screen corrdinate. When recording mode is monocular, return value is
-            (X,Y).  When binocular, return value is (Left X, Left Y, Right X, Right Y).
+        :param bool getPupil:
+            If true, pupil size is returned with gaze position.
+        :return:
+            When recording mode is monocular, return value is a tuple of 2 or 3 elements.
+            The first two elements represents holizontal(X) and vertical(Y) gaze position
+            in screen corrdinate. If getPupil is true, area of pupil is returned as the 
+            third element of the tuple.
+            When recording mode is binocular and getPupil is False, return value is
+            (Left X, Left Y, Right X, Right Y). If getPupil is True, return value is
+            (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
         """
         self.sendSock.send('getEyePosition'+chr(0))
         hasGotEye = False
@@ -407,20 +414,31 @@ class BaseController(object):
         if hasGotEye:
             retval = [int(x) for x in data.split(',')]
             if self.isMonocularRecording:
-                if len(retval) != 2:
-                    return [None,None]
-                else:
-                    return retval
+                #if recording mode is monocular, length of retval must be 3.
+                if len(retval) == 3:
+                    if getPupil:
+                        return retval
+                    else:
+                        return retval[:2]
             else:
-                if len(retval) != 4:
-                    return [None,None,None,None]
-                else:
-                    return retval
+                #if recording mode is monocular, length of retval must be 6.
+                if len(retval) == 6:
+                    if getPupil:
+                        return retval
+                    else:
+                        return retval[:4]
         
+        #timeout or wrong data length
         if self.isMonocularRecording:
-            return [None,None]
+            if getPupil:
+                return [None,None,None]
+            else
+                return [None,None]
         else:
-            return [None,None,None,None]
+            if getPupil:
+                return [None,None,None,None,None,None]
+            else:
+                return [None,None,None,None]
         
     def getCurrentMenuItem(self,timeout=0.2):
         """
@@ -1272,21 +1290,34 @@ class ControllerPsychoPyBackend(BaseController):
         BaseController.setCalibrationTargetPositions(self,pixArea,pixCalposlist)
     
     #Override
-    def getEyePosition(self, timeout=0.02, units='pix'):
+    def getEyePosition(self, timeout=0.02, units='pix', getPupil=False):
         """
         Send a command to get current gaze position.
         
         :param float timeout:
             If the Tracker Host PC does not respond within this duration, tuple of Nones
             are returned. Unit is second. Default value is 0.02
-        :return: a tuple representing holizontal(X) and vertical(Y) gaze position
-            in screen corrdinate. When recording mode is monocular, return value is
-            (X,Y).  When binocular, return value is (Left X, Left Y, Right X, Right Y).
         :param str units: units of returned value.  'norm', 'height', 'deg', 'cm' and
             'pix' are accepted.  Default value is 'pix'.
+        :param bool getPupil:
+            If true, pupil size is returned with gaze position.
+        :return:
+            When recording mode is monocular, return value is a tuple of 2 or 3 elements.
+            The first two elements represents holizontal(X) and vertical(Y) gaze position
+            in screen corrdinate. If getPupil is true, area of pupil is returned as the 
+            third element of the tuple.
+            When recording mode is binocular and getPupil is False, return value is
+            (Left X, Left Y, Right X, Right Y). If getPupil is True, return value is
+            (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
         """
-        e = BaseController.getEyePosition(self, timeout)
-        return self.convertFromPix(e, units)
+        e = BaseController.getEyePosition(self, timeout, getPupil=getPupil)
+        if getPupil:
+            return self.convertFromPix(e, units)
+        else:
+            if self.isMonocularRecording:
+                return self.convertFromPix(e[:2], units) + e[2:]
+            else:
+                return self.convertFromPix(e[:4], units) + e[4:]
     
     #Override
     def getSpatialError(self, position=None, responseKey='space', message=None, units='pix'):
