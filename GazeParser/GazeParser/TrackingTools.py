@@ -279,8 +279,11 @@ class BaseController(object):
         :param str message: Message text to be inserted.
         
         .. note::
-            Non-ascii code is not supprted as a message.
+            If an unicode string is passed as a message, 
+            it is converted to UTF-8 before sending.
         """
+        if isinstance(message,unicode):
+            message = message.encode('utf-8')
         self.sendSock.send('insertMessage'+chr(0)+message+chr(0))
     
     def sendSettings(self, configDict):
@@ -306,7 +309,13 @@ class BaseController(object):
         :param float wait:
             Duration of waiting for processing on the Tracker Host PC.
             Unit is second. Default value is 0.1
+        
+        .. note::
+            If an unicode string is passed as a message, 
+            it is converted to UTF-8 before sending.
         """
+        if isinstance(message,unicode):
+            message = message.encode('utf-8')
         self.sendSock.send('startRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
     
@@ -320,7 +329,13 @@ class BaseController(object):
         :param float wait:
             Duration of waiting for processing on the Tracker Host PC.
             Unit is second. Default value is 0.1
+        
+        .. note::
+            If an unicode string is passed as a message, 
+            it is converted to UTF-8 before sending.
         """
+        if isinstance(message,unicode):
+            message = message.encode('utf-8')
         self.sendSock.send('stopRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
     
