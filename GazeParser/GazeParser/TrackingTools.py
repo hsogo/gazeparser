@@ -432,7 +432,7 @@ class BaseController(object):
         if self.isMonocularRecording:
             if getPupil:
                 return [None,None,None]
-            else
+            else:
                 return [None,None]
         else:
             if getPupil:
