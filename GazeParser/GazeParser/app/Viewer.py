@@ -21,7 +21,9 @@ import GazeParser.Converter
 import os
 import re
 import numpy
-import matplotlib,matplotlib.figure
+import matplotlib
+import matplotlib.figure
+import matplotlib.font_manager
 import matplotlib.patches
 import GazeParser.app.ConfigEditor
 import GazeParser.app.Converters
@@ -33,12 +35,13 @@ def parsegeometry(geometry):
         raise ValueError("failed to parse geometry string")
     return map(int, m.groups())
 
+MAX_RECENT = 5
 
 class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
         self.readApplicationConfig()
         
-        self.ftypes = [('SimpleGazeTracker CSV file','*.csv'),('GazeParser Datafile','*.db')]
+        self.ftypes = [('GazeParser/SimpleGazeTracker Datafile','*.db;*.csv')]
         self.initialDataDir = GazeParser.homeDir
         self.D = None
         self.C = None
@@ -54,8 +57,6 @@ class mainWindow(Tkinter.Frame):
             self.currentPlotArea = self.plotAreaXY
         else:
             raise ValueError, 'Default view must be XY or TXY.'
-        #self.relativeRangeX = 1.0
-        #self.relativeRangeY = 1.0
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         
         Tkinter.Frame.__init__(self,master)
@@ -64,10 +65,17 @@ class mainWindow(Tkinter.Frame):
         self.menu_file = Tkinter.Menu(tearoff=False)
         self.menu_view = Tkinter.Menu(tearoff=False)
         self.menu_convert = Tkinter.Menu(tearoff=False)
+        self.menu_recent = Tkinter.Menu(tearoff=False)
         self.menu_bar.add_cascade(label='File',menu=self.menu_file,underline=0)
         self.menu_bar.add_cascade(label='View',menu=self.menu_view,underline=0)
         self.menu_bar.add_cascade(label='Convert',menu=self.menu_convert,underline=0)
         self.menu_file.add_command(label='Open',under=0,command=self._openfile)
+        self.menu_file.add_cascade(label='Recent Dir',menu=self.menu_recent,underline=0)
+        if self.confRecentDir == []:
+            self.menu_recent.add_command(label='None',state=Tkinter.DISABLED)
+        else:
+            for i in range(len(self.confRecentDir)):
+                eval('self.menu_recent.add_command(label=self.confRecentDir[i],under=0,command=self._openRecent%02d)'%(i+1))
         self.menu_file.add_command(label='Export',under=0,command=self._exportfile)
         self.menu_file.add_command(label='Exit',under=0,command=self._exit)
         self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
@@ -122,6 +130,11 @@ class mainWindow(Tkinter.Frame):
         self.master.bind('<Left>', self._prevTrial)
         self.master.bind('<Right>', self._nextTrial)
         self.msglistbox.bind('<Double-Button-1>', self._jumpToTime)
+        
+        if self.confFontPlot != '':
+            self.fontPlotText = matplotlib.font_manager.FontProperties(fname=self.confFontPlot)
+        else:
+            self.fontPlotText = matplotlib.font_manager.FontProperties()
     
     def readApplicationConfig(self):
         appConfigDir = os.path.join(GazeParser.configDir, 'app')
@@ -154,6 +167,12 @@ class mainWindow(Tkinter.Frame):
         self.confColorMsgCur = self.appConf.get('Appearance','COLOR_MESSAGE_CURSOR')
         self.confColorMsgF = self.appConf.get('Appearance','COLOR_MESSAGE_FC')
         self.confColorMsgB = self.appConf.get('Appearance','COLOR_MESSAGE_BG')
+        self.confFontPlot = self.appConf.get('Appearance','CANVAS_FONT_FILE')
+        self.confRecentDir = []
+        for i in range(5):
+            d = self.appConf.get('Recent','RECENT_DIR%02d' % (i+1))
+            if d != '':
+                self.confRecentDir.append(d)
         
     def _toggleView(self, event=None):
         if self.plotStyle == 'XY':
@@ -178,6 +197,16 @@ class mainWindow(Tkinter.Frame):
         if self.dataFileName=='':
             return
         self.initialDataDir = os.path.split(self.dataFileName)[0]
+        #record recent dir
+        if self.initialDataDir in self.confRecentDir:
+            self.confRecentDir.remove(self.initialDataDir)
+        self.confRecentDir.insert(0,self.initialDataDir)
+        if len(self.confRecentDir)>MAX_RECENT:
+            self.confRecentDir = self.confRecentDir[:MAX_RECENT]
+        #update menu recent_dir
+        self.menu_recent.delete(0,MAX_RECENT)
+        for i in range(len(self.confRecentDir)):
+            eval('self.menu_recent.add_command(label=self.confRecentDir[i],under=0,command=self._openRecent%02d)'%(i+1))
         
         #if extension is .csv, try converting
         if os.path.splitext(self.dataFileName)[1].lower() == '.csv':
@@ -228,7 +257,29 @@ class mainWindow(Tkinter.Frame):
             self.menu_view.entryconfigure('Next Trial', state = 'disabled')
         self._plotData()
         self._updateMsgBox()
+    
+    def _openRecent01(self):
+        self.initialDataDir = self.confRecentDir[0]
+        self._openfile()
         
+    def _openRecent02(self):
+        self.initialDataDir = self.confRecentDir[1]
+        self._openfile()
+        
+    def _openRecent03(self):
+        self.initialDataDir = self.confRecentDir[2]
+        self._openfile()
+        
+    def _openRecent04(self):
+        self.initialDataDir = self.confRecentDir[3]
+        self._openfile()
+        
+    def _openRecent05(self):
+        self.initialDataDir = self.confRecentDir[4]
+        self._openfile()
+        
+    
+    
     def _exportfile(self,event=None):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
@@ -425,14 +476,14 @@ class mainWindow(Tkinter.Frame):
                                 self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
                                              color=self.confColorFixFE,
                                              bbox=dict(boxstyle="round", fc=self.confColorFixBE, clip_on=True, clip_box=self.ax.bbox),
-                                             clip_on=True)
+                                             fontproperties = self.fontPlotText, clip_on=True)
                         else:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
                             if self.confShowFixNum:
                                 self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
                                              color=self.confColorFixF,
                                              bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
-                                             clip_on=True)
+                                             fontproperties = self.fontPlotText, clip_on=True)
                     else:
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
@@ -440,7 +491,7 @@ class mainWindow(Tkinter.Frame):
                                 self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
                                              color=self.confColorFixF,
                                              bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
-                                             clip_on=True)
+                                             fontproperties = self.fontPlotText, clip_on=True)
                 if self.hasRData:
                     ftraj = self.D[self.tr].getFixTraj(f,'R')
                     col = self.confColorRF
@@ -495,18 +546,18 @@ class mainWindow(Tkinter.Frame):
                             self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0],str(f),
                                          color=self.confColorFixFE,
                                          bbox=dict(boxstyle="round", fc=self.confColorFixBE, clip_on=True, clip_box=self.ax.bbox),
-                                         clip_on=True)
+                                         fontproperties = self.fontPlotText, clip_on=True)
                         else:
                             self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0],str(f),
                                          color=self.confColorFixF,
                                          bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
-                                         clip_on=True)
+                                         fontproperties = self.fontPlotText, clip_on=True)
                     else:
                         if f in self.selectionlist['Fix']:
                             self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0], str(f),
                                          color=self.confColorFixF,
                                          bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
-                                         clip_on=True)
+                                         fontproperties = self.fontPlotText, clip_on=True)
             
             for s in range(self.D[self.tr].nSac):
                 if self.selectiontype.get()=='Emphasize':
@@ -538,7 +589,7 @@ class mainWindow(Tkinter.Frame):
                 self.ax.plot([mObj.time,mObj.time], [-10000,10000], '-', color=self.confColorMsgCur, linewidth=3.0)
                 self.ax.text(mObj.time, 0, msgtext, color=self.confColorMsgF,
                              bbox=dict(boxstyle="round", fc=self.confColorMsgB, clip_on=True, clip_box=self.ax.bbox),
-                             clip_on=True)
+                             fontproperties = self.fontPlotText, clip_on=True)
             
         self.ax.axis(self.currentPlotArea)
         
