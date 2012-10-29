@@ -9,6 +9,7 @@ import GazeParser
 import GazeParser.Configuration
 import os
 import re
+import codecs
 from scipy.interpolate import interp1d
 from scipy.stats import nanmean
 from scipy.signal import butter, lfilter, lfilter_zi, filtfilt
@@ -623,7 +624,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
         idxY = 2
         idxP = None
     
-    fid = open(inputfileFullpath,"r")
+    fid = codecs.open(inputfileFullpath,'r','utf-8')
     
     Data = []
     
@@ -777,7 +778,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
     
     print 'saving...'
     if os.path.exists(additionalDataFileName):
-        adfp = open(additionalDataFileName)
+        adfp = codecs.open(additionalDataFileName,'r','utf-8')
         ad = []
         for line in adfp:
             data = line.split('\t')
