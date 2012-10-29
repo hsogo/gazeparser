@@ -20,6 +20,7 @@ import ConfigParser
 
 import numpy
 import GazeParser
+import GazeParser.Configuration
 
 ControllerDefaults = {
 'IMAGE_WIDTH': 320,
@@ -293,8 +294,11 @@ class BaseController(object):
         :param dict config: a dictionary object which holds recording settings.
         """
         configlist = []
-        for key in configDict.keys():
-            configlist.append('#'+key+','+str(configDict[key]))
+        #for key in configDict.keys():
+        #    configlist.append('#'+key+','+str(configDict[key]))
+        for key in GazeParser.Configuration.GazeParserOptions:
+            if key in configdict:
+                configlist.append('#'+key+','+str(configDict[key]))
         
         message = '/'.join(configlist)
         self.sendSock.send('insertSettings'+chr(0)+message+chr(0))
