@@ -77,7 +77,8 @@ class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
         self.readApplicationConfig()
         
-        self.ftypes = [('GazeParser/SimpleGazeTracker Datafile','*.db;*.csv')]
+        #self.ftypes = [('GazeParser/SimpleGazeTracker Datafile','*.db;*.csv')]
+        self.ftypes = [('GazeParser Datafile','*.db'),('SimpleGazeTracker CSV file','*.csv')]
         self.initialDataDir = GazeParser.homeDir
         self.D = None
         self.C = None
@@ -191,7 +192,17 @@ class mainWindow(Tkinter.Frame):
         try:
             self.confVersion = self.appConf.get('Version','VIEWER_VERSION')
         except:
-            tkMessageBox.showerror('Error','No VIEWER_VERSION option in configuration file (%s).\n' % (self.viewerConfigFile))
+            ans = tkMessageBox.askyesno('Error','No VIEWER_VERSION option in configuration file (%s). Backup current file and then initialize configuration file?\n' % (self.viewerConfigFile))
+            if ans:
+                shutil.copyfile(self.viewerConfigFile,self.viewerConfigFile+'.bak')
+                shutil.copyfile(initialConfigFile,self.viewerConfigFile)
+                self.appConf = ConfigParser.SafeConfigParser()
+                self.appConf.optionxform = str
+                self.appConf.read(self.viewerConfigFile)
+                self.confVersion = self.appConf.get('Version','VIEWER_VERSION')
+            else:
+                tkMessageBox.showinfo('info','Please correct configuration file manually.')
+                sys.exit()
         
         doMerge = False
         if self.confVersion != GazeParser.__version__:
@@ -234,6 +245,13 @@ class mainWindow(Tkinter.Frame):
                 self.confRecentDir.append(d)
     
     def _writeApplicationConfig(self):
+        #set recent directories
+        for i in range(5):
+            if i<len(self.confRecentDir):
+                setattr(self, 'confRecentDir%02d' % (i+1), self.confRecentDir[i])
+            else:
+                setattr(self, 'confRecentDir%02d' % (i+1), '')
+        
         with open(self.viewerConfigFile, 'w') as fp:
             for section,params in ViewerOptions:
                 fp.write('[%s]\n' % section)
@@ -293,6 +311,11 @@ class mainWindow(Tkinter.Frame):
                 return
         
         [self.D,self.C] = GazeParser.load(self.dataFileName)
+        if len(self.D)==0:
+            tkMessageBox.showerror('Error','File contains no data. (%s)'%(self.dataFileName))
+            self.D = None
+            self.C = None
+            return
         self.block = 0
         self.tr = 0
         if self.D[self.tr].config.SCREEN_ORIGIN.lower() == 'topleft':
