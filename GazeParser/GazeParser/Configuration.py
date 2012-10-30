@@ -60,6 +60,7 @@ class Config(object):
             Default value is None.
         """
         cfgp = ConfigParser.SafeConfigParser()
+        cfgp.optionxform = str
         if (ConfigFile == None):
             ConfigFile = os.path.join(GazeParser.configDir, 'GazeParser.cfg')
             if not os.path.isfile(ConfigFile):
@@ -77,19 +78,18 @@ class Config(object):
         options = cfgp.options('GazeParser')
         self._optionDict = {}
         for option in options:
-            name = option.upper()
-            if (name not in GazeParserDefaults.keys()):
-                raise ValueError, (name + ' is not GazeParser option.')
+            if (option not in GazeParserDefaults.keys()):
+                raise ValueError, (option + ' is not GazeParser option.')
             value = cfgp.get('GazeParser', option)
-            if isinstance(GazeParserDefaults[name], int):
-                setattr(self, name, int(value))
-                self._optionDict[name] = int(value)
-            elif isinstance(GazeParserDefaults[name], float):
-                setattr(self, name, float(value))
-                self._optionDict[name] = float(value)
+            if isinstance(GazeParserDefaults[option], int):
+                setattr(self, option, int(value))
+                self._optionDict[option] = int(value)
+            elif isinstance(GazeParserDefaults[option], float):
+                setattr(self, option, float(value))
+                self._optionDict[option] = float(value)
             else:
-                setattr(self, name, value)
-                self._optionDict[name] = value
+                setattr(self, option, value)
+                self._optionDict[option] = value
         
         
     def save(self, ConfigFile = None):
