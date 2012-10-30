@@ -19,7 +19,9 @@ import ImageTk
 import GazeParser
 import GazeParser.Converter
 import os
+import sys
 import re
+import functools
 import numpy
 import matplotlib
 import matplotlib.figure
@@ -36,6 +38,40 @@ def parsegeometry(geometry):
     return map(int, m.groups())
 
 MAX_RECENT = 5
+
+ViewerOptions = [
+    ['Version',
+     [['VIEWER_VERSION','confVersion',str]]],
+    ['Appearance',
+     [['CANVAS_WIDTH','confCanvasWidth',int],
+      ['CANVAS_HEIGHT','confCanvasHeight',int],
+      ['CANVAS_DEFAULT_VIEW','confCanvasDefaultView',str],
+      ['CANVAS_SHOW_FIXNUMBER','confShowFixNum',bool],
+      ['CANVAS_FONT_FILE','confFontPlot',str],
+      ['COLOR_TRAJECTORY_L_SAC','confColorLS',str],
+      ['COLOR_TRAJECTORY_R_SAC','confColorRS',str],
+      ['COLOR_TRAJECTORY_L_FIX','confColorLF',str],
+      ['COLOR_TRAJECTORY_R_FIX','confColorRF',str],
+      ['COLOR_TRAJECTORY_L_X','confColorLX',str],
+      ['COLOR_TRAJECTORY_L_Y','confColorLY',str],
+      ['COLOR_TRAJECTORY_R_X','confColorRX',str],
+      ['COLOR_TRAJECTORY_R_Y','confColorRY',str],
+      ['COLOR_FIXATION_FC','confColorFixF',str],
+      ['COLOR_FIXATION_BG','confColorFixB',str],
+      ['COLOR_FIXATION_FC_E','confColorFixFE',str],
+      ['COLOR_FIXATION_BG_E','confColorFixBE',str],
+      ['COLOR_MESSAGE_CURSOR','confColorMsgCur',str],
+      ['COLOR_MESSAGE_FC','confColorMsgF',str],
+      ['COLOR_MESSAGE_BG','confColorMsgB',str]]],
+    ['Recent',
+     [['RECENT_DIR01','confRecentDir01',str],
+      ['RECENT_DIR02','confRecentDir02',str],
+      ['RECENT_DIR03','confRecentDir03',str],
+      ['RECENT_DIR04','confRecentDir04',str],
+      ['RECENT_DIR05','confRecentDir05',str]]]
+]
+
+
 
 class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
@@ -61,6 +97,7 @@ class mainWindow(Tkinter.Frame):
         
         Tkinter.Frame.__init__(self,master)
         self.master.title('GazeParser Viewer')
+        self.master.protocol('WM_DELETE_WINDOW', self._exit)
         self.menu_bar = Tkinter.Menu(tearoff=False)
         self.menu_file = Tkinter.Menu(tearoff=False)
         self.menu_view = Tkinter.Menu(tearoff=False)
@@ -75,7 +112,7 @@ class mainWindow(Tkinter.Frame):
             self.menu_recent.add_command(label='None',state=Tkinter.DISABLED)
         else:
             for i in range(len(self.confRecentDir)):
-                eval('self.menu_recent.add_command(label=self.confRecentDir[i],under=0,command=self._openRecent%02d)'%(i+1))
+                self.menu_recent.add_command(label=self.confRecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
         self.menu_file.add_command(label='Export',under=0,command=self._exportfile)
         self.menu_file.add_command(label='Exit',under=0,command=self._exit)
         self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
@@ -136,44 +173,74 @@ class mainWindow(Tkinter.Frame):
         else:
             self.fontPlotText = matplotlib.font_manager.FontProperties()
     
+    
     def readApplicationConfig(self):
+        initialConfigFile = os.path.join(os.path.dirname(__file__),'viewer.cfg')
         appConfigDir = os.path.join(GazeParser.configDir, 'app')
         if not os.path.isdir(appConfigDir):
             os.mkdir(appConfigDir)
         
-        viewerConfigFile = os.path.join(appConfigDir, 'viewer.cfg')
-        if not os.path.isfile(viewerConfigFile):
-            shutil.copyfile(os.path.join(os.path.dirname(__file__),'viewer.cfg'),viewerConfigFile)
+        self.viewerConfigFile = os.path.join(appConfigDir, 'viewer.cfg')
+        if not os.path.isfile(self.viewerConfigFile):
+            shutil.copyfile(initialConfigFile,self.viewerConfigFile)
         
         self.appConf = ConfigParser.SafeConfigParser()
-        self.appConf.read(viewerConfigFile)
+        self.appConf.optionxform = str
+        self.appConf.read(self.viewerConfigFile)
         
-        self.confCanvasWidth = int(self.appConf.get('Appearance','CANVAS_WIDTH'))
-        self.confCanvasHeight = int(self.appConf.get('Appearance','CANVAS_HEIGHT'))
-        self.confCanvasDefaultView = self.appConf.get('Appearance','CANVAS_DEFAULT_VIEW')
-        self.confShowFixNum = eval(self.appConf.get('Appearance','CANVAS_SHOW_FIXNUMBER'))
-        self.confColorLS = self.appConf.get('Appearance','COLOR_TRAJECTORY_L_SAC')
-        self.confColorRS = self.appConf.get('Appearance','COLOR_TRAJECTORY_R_SAC')
-        self.confColorLF = self.appConf.get('Appearance','COLOR_TRAJECTORY_L_FIX')
-        self.confColorRF = self.appConf.get('Appearance','COLOR_TRAJECTORY_R_FIX')
-        self.confColorLX = self.appConf.get('Appearance','COLOR_TRAJECTORY_L_X')
-        self.confColorLY = self.appConf.get('Appearance','COLOR_TRAJECTORY_L_Y')
-        self.confColorRX = self.appConf.get('Appearance','COLOR_TRAJECTORY_R_X')
-        self.confColorRY = self.appConf.get('Appearance','COLOR_TRAJECTORY_R_Y')
-        self.confColorFixF = self.appConf.get('Appearance','COLOR_FIXATION_FC')
-        self.confColorFixB = self.appConf.get('Appearance','COLOR_FIXATION_BG')
-        self.confColorFixFE = self.appConf.get('Appearance','COLOR_FIXATION_FC_E')
-        self.confColorFixBE = self.appConf.get('Appearance','COLOR_FIXATION_BG_E')
-        self.confColorMsgCur = self.appConf.get('Appearance','COLOR_MESSAGE_CURSOR')
-        self.confColorMsgF = self.appConf.get('Appearance','COLOR_MESSAGE_FC')
-        self.confColorMsgB = self.appConf.get('Appearance','COLOR_MESSAGE_BG')
-        self.confFontPlot = self.appConf.get('Appearance','CANVAS_FONT_FILE')
+        try:
+            self.confVersion = self.appConf.get('Version','VIEWER_VERSION')
+        except:
+            tkMessageBox.showerror('Error','No VIEWER_VERSION option in configuration file (%s).\n' % (self.viewerConfigFile))
+        
+        doMerge = False
+        if self.confVersion != GazeParser.__version__:
+            ans = tkMessageBox.askyesno('Warning','VIEWER_VERSION of configuration file (%s) disagree with GazeParser version (%s). Backup current configuration file and build new configuration file?'%(self.confVersion, GazeParser.__version__))
+            if ans:
+                shutil.copyfile(self.viewerConfigFile,self.viewerConfigFile+'.bak')
+                doMerge = True
+            else:
+                tkMessageBox.showinfo('info','Please update configuration file manually.')
+                sys.exit()
+        
+        if doMerge:
+            appNewConf = ConfigParser.SafeConfigParser()
+            appNewConf.optionxform = str
+            appNewConf.read(initialConfigFile)
+            newOpts = []
+            for section,params in ViewerOptions:
+                for optName, attrName, optType in params:
+                    if section=='Version' and optName=='VIEWER_VERSION':
+                        setattr(self,attrName,optType(appNewConf.get(section,optName)))
+                        newOpts.append(' * '+optName)
+                    elif self.appConf.has_option(section,optName):
+                        setattr(self,attrName,optType(self.appConf.get(section,optName)))
+                    else:
+                        setattr(self,attrName,optType(appNewConf.get(section,optName)))
+                        newOpts.append(' * '+optName)
+            #new version number
+            tkMessageBox.showinfo('info','Added:\n'+'\n'.join(newOpts))
+        
+        else:
+            for section,params in ViewerOptions:
+                for optName, attrName, optType in params:
+                    setattr(self,attrName,optType(self.appConf.get(section,optName)))
+        
+        #set recent directories
         self.confRecentDir = []
         for i in range(5):
-            d = self.appConf.get('Recent','RECENT_DIR%02d' % (i+1))
+            d = getattr(self,'confRecentDir%02d' % (i+1))
             if d != '':
                 self.confRecentDir.append(d)
-        
+    
+    def _writeApplicationConfig(self):
+        with open(self.viewerConfigFile, 'w') as fp:
+            for section,params in ViewerOptions:
+                fp.write('[%s]\n' % section)
+                for optName, attrName, optType in params:
+                    fp.write('%s = %s\n' % (optName, getattr(self,attrName)))
+                fp.write('\n')
+    
     def _toggleView(self, event=None):
         if self.plotStyle == 'XY':
             self.plotStyle = 'TXY'
@@ -206,7 +273,7 @@ class mainWindow(Tkinter.Frame):
         #update menu recent_dir
         self.menu_recent.delete(0,MAX_RECENT)
         for i in range(len(self.confRecentDir)):
-            eval('self.menu_recent.add_command(label=self.confRecentDir[i],under=0,command=self._openRecent%02d)'%(i+1))
+            self.menu_recent.add_command(label=self.confRecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
         
         #if extension is .csv, try converting
         if os.path.splitext(self.dataFileName)[1].lower() == '.csv':
@@ -258,27 +325,9 @@ class mainWindow(Tkinter.Frame):
         self._plotData()
         self._updateMsgBox()
     
-    def _openRecent01(self):
-        self.initialDataDir = self.confRecentDir[0]
+    def _openRecent(self, d):
+        self.initialDataDir = self.confRecentDir[d]
         self._openfile()
-        
-    def _openRecent02(self):
-        self.initialDataDir = self.confRecentDir[1]
-        self._openfile()
-        
-    def _openRecent03(self):
-        self.initialDataDir = self.confRecentDir[2]
-        self._openfile()
-        
-    def _openRecent04(self):
-        self.initialDataDir = self.confRecentDir[3]
-        self._openfile()
-        
-    def _openRecent05(self):
-        self.initialDataDir = self.confRecentDir[4]
-        self._openfile()
-        
-    
     
     def _exportfile(self,event=None):
         geoMaster = parsegeometry(self.master.winfo_geometry())
@@ -359,6 +408,7 @@ class mainWindow(Tkinter.Frame):
             tkMessageBox.showinfo('Info','Done.')
     
     def _exit(self,event=None):
+        self._writeApplicationConfig()
         self.master.destroy()
         
     def _prevTrial(self, event=None):
