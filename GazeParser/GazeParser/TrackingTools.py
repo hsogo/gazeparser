@@ -17,6 +17,7 @@ import random
 import os
 import sys
 import ConfigParser
+import shutil
 
 import numpy
 import GazeParser
@@ -35,7 +36,6 @@ ControllerDefaults = {
 'CAL_GETSAMPLE_DEALAY':0.4
 }
 
-
 class BaseController(object):
     """
     Base class for SimpleGazeTracker controllers. Following methods must be overridden.
@@ -53,14 +53,14 @@ class BaseController(object):
         Initialize controller.
         
         :param str configFile: name of the configuration file.
-            If None, TrackingTools.cfg in the application directory is used.
+            If None, TrackingTools.cfg in the GazeParser configuration directory is used.
             Default value is None.
         """
         cfgp = ConfigParser.SafeConfigParser()
         if configFile == None: #use default settings
             ConfigFile = os.path.join(GazeParser.configDir, 'TrackingTools.cfg')
-            if not os.path.isfile(ConfigFile):
-                ConfigFile = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'TrackingTools.cfg')
+            if not os.path.isfile(ConfigFile): #TrackingTools.cfg is not found
+                shutils.shutil.copyfile(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'TrackingTools.cfg'), ConfigFile)
         else:
             ConfigFile = configFile
         cfgp.read(ConfigFile)
@@ -1010,10 +1010,24 @@ class BaseController(object):
         In default, this method do nothing.  If you want to update calibration
         target during calibration, override this method.
         
+        Following parameters defined in the configuration file determine 
+        target motion and acquisition of calibration samples.
+        
+        * CALTARGET_MOTION_DURATION
+        * CALTARGET_DURATION_PER_POS
+        * CAL_GETSAMPLE_DEALAY
+        
+        These parameters can be overwrited by using
+        :func:`~GazeParser.TrackingTools.BaseController.setCalibrationTargetMotionParameters`
+        and 
+        :func:`~GazeParser.TrackingTools.BaseController.setCalibrationSampleAcquisitionParameters`.
+        
         :param float t: time spent for current target position. The range of t is 
-            0.0<=t<2.0.  When 0.0<=t<1.0, the calibration target is moving to the 
-            current position.  When 1.0<=t<2.0, the calibration target stays on 
-            the current position.  Calibration data is sampled when 1.4<t<1.8.
+            0<=t<CALTARGET_DURATION_PER_POS.  When 0<=t<CALTARGET_MOTION_DURATION,
+            the calibration target is moving to the current position.  When
+            CALTARGET_MOTION_DURATION<=t<CALTARGET_DURATION_PER_POS, the calibration
+            target stays on the current position.  Acquisition of calibration samples
+            starts when (CALTARGET_MOTION_DURATION+CAL_GETSAMPLE_DEALAY)<t.
         :param index: This value represents the order of current target position.
             This value is 0 before calibration is initiated by space key press.
             If the target is moving to or stays on 5th position, this value is 5.
@@ -1021,9 +1035,14 @@ class BaseController(object):
             stays on the position indicated by this parameter.
         :param currentPosition: A tuple of two values that represents current 
             calibration target position.  This parameter is equal to targetPosition
-            when 1.0<=t<2.0.
+            when CALTARGET_MOTION_DURATION<=t<CALTARGET_DURATION_PER_POS.
         
         This is an example of using this method.
+        Suppose that parameters are defined as following.
+        
+        * CALTARGET_MOTION_DURATION = 2.0
+        * CALTARGET_DURATION_PER_POS = 1.0
+        
         ::
         
             tracker = GazeParser.TrackingTools.getController(backend='VisionEgg')
@@ -1040,6 +1059,64 @@ class BaseController(object):
             type(tracker).updateCalibrationTargetStimulusCallBack = callback
         """
         return
+    
+    def setCalibrationTargetMotionParameters(self, durationPerPos, motionDuration):
+        """
+        Set parameters for calibration/validation target motion.
+        If durationPerPos=2.5 and motionDuration=1.0, the calibration target moves 
+        to the next position over 1.0 second and stays for 1.5 (= 2.5-1.0) seconds 
+        at that position.
+        
+        :param float durationPerPos:
+            Duration in which target moves to and stays at a calibration position.
+            Unit is second. Default value is defined by CALTARGET_DURATION_PER_POS
+            parameter of GazeParser.TrackingTools configuration file.
+            By default, CALTARGET_DURATION_PER_POS=2.0.
+        :param float motionDuration:
+            Duration in which target moves to a calibration position.
+            This duration must be shorter than durationPerPos.
+            Unit is second. Default value is defined by CALTARGET_MOTION_DURATION
+            parameter of GazeParser.TrackingTools configuration file.
+            By default, CALTARGET_MOTION_DURATION=1.0.
+        
+        .. note::
+            If no configuration file is specified when Controller object is created,
+            a file named 'TrackingTools.cfg ' in the GazeParser configuration 
+            directory is used as the configuration file.
+        
+        """
+        if durationPerPos <= motionDuration:
+            raise ValueError: 'durationPerPos must be longer than motionDuration.'
+        self.calTargetDurPerPos = durationPerPos
+        self.calTargetMotionDur = motionDuration
+    
+    def setCalibrationSampleAcquisitionParameters(self, nSamplesPerPos, getSampleDelay)
+        """
+        Set parameters for calibration sample acquisition.
+        
+        :param int nSamplesPerPos:
+            Number of samples collected at each calibration position.
+            This value must be must be greater than 0. Default value is defined by 
+            NUM_SAMPLES_PER_TRGPOS parameter of GazeParser.TrackingTools configuration
+            file. By default, NUM_SAMPLES_PER_TRGPOS=10.
+        :param float getSampleDelay:
+            Delay of starting sample acquisition from target arrived at calibration 
+            position. This value must not be negative. Default value is defined by 
+            CAL_GETSAMPLE_DEALAY parameter of GazeParser.TrackingTools configuration
+            file. By default, CAL_GETSAMPLE_DEALAY=0.4.
+        
+        .. note::
+            If no configuration file is specified when Controller object is created,
+            a file named 'TrackingTools.cfg ' in the GazeParser configuration directory
+            is used as the configuration file.
+        """
+        if nSamplesPerPos <= 0:
+            raise ValueError: 'nSamplesPerPos must be greater than 0.'
+        if getSampleDelay < 0:
+            raise ValueError: 'getSampleDelay must not be negative.'
+        self.nSamplesPerTrgPos = nSamplesPerPos
+        self.calGetSampleDelay = getSampleDelay
+    
 
 class ControllerVisionEggBackend(BaseController):
     """
