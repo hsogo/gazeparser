@@ -1,3 +1,13 @@
+2012-11-01  Hiroyuki Sogo
+
+  release: 0.6.0
+  
+  * "getEyePosition" command returns current pupil size.
+  * Terminator of data sent from SimpleGazeTracker is changed to \0 in all commands.
+  * A new parameter is added to "getCalSample" and "getValSample" commands to customize number of calibration samples per target position.
+  * Warning messages are logged when number of calibration samples exceeds MAXCALDATA (=7200)
+  * Warning messages are logged when number of calibration positions exceeds MAXCALPOINT (=60)
+
 2012-10-15  Hiroyuki Sogo
 
   release: 0.5.3
