@@ -60,7 +60,7 @@ class BaseController(object):
         if configFile == None: #use default settings
             ConfigFile = os.path.join(GazeParser.configDir, 'TrackingTools.cfg')
             if not os.path.isfile(ConfigFile): #TrackingTools.cfg is not found
-                shutils.shutil.copyfile(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'TrackingTools.cfg'), ConfigFile)
+                shutil.copyfile(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'TrackingTools.cfg'), ConfigFile)
         else:
             ConfigFile = configFile
         cfgp.read(ConfigFile)
@@ -297,7 +297,7 @@ class BaseController(object):
         #for key in configDict.keys():
         #    configlist.append('#'+key+','+str(configDict[key]))
         for key in GazeParser.Configuration.GazeParserOptions:
-            if key in configdict:
+            if key in configDict:
                 configlist.append('#'+key+','+str(configDict[key]))
         
         message = '/'.join(configlist)
