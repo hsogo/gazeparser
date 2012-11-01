@@ -1114,11 +1114,11 @@ class BaseController(object):
             a file named 'TrackingTools.cfg ' in the GazeParser configuration directory
             is used as the configuration file.
         """
-        if nSamplesPerPos <= 0:
-            raise ValueError, 'nSamplesPerPos must be greater than 0.'
+        if numSamplesPerPos <= 0:
+            raise ValueError, 'numSamplesPerPos must be greater than 0.'
         if getSampleDelay < 0:
             raise ValueError, 'getSampleDelay must not be negative.'
-        self.nSamplesPerTrgPos = nSamplesPerPos
+        self.nSamplesPerTrgPos = numSamplesPerPos
         self.calGetSampleDelay = getSampleDelay
     
 
