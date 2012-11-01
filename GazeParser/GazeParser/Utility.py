@@ -83,10 +83,16 @@ def join(newFileName, fileList):
 def createConfigDir(overwrite=False):
     """
     Create ConfigDir, where GazeParser user configuration files are located.
+    If process is running as root (uid=0), this method do nothing.
     
     :param bool overwrite: If ture, existing configuration files are overwritten.
         Default value is False.
     """
+    if sys.platform != 'win32':
+        if os.getuid() == 0: #running as root
+            print 'Warning: GazeParser.Utility.createConfigDir do nothing because process is runnging as root (uid=0).'
+            return
+    
     AppDir = os.path.abspath(os.path.dirname(__file__))
     
     if sys.platform == 'win32':
