@@ -1060,7 +1060,7 @@ class BaseController(object):
         """
         return
     
-    def setCalibrationTargetMotionParameters(self, durationPerPos, motionDuration):
+    def setCalTargetMotionParams(self, durationPerPos, motionDuration):
         """
         Set parameters for calibration/validation target motion.
         If durationPerPos=2.5 and motionDuration=1.0, the calibration target moves 
@@ -1085,25 +1085,29 @@ class BaseController(object):
             directory is used as the configuration file.
         
         """
+        if durationPerPos <= 0:
+            raise ValueError, 'durationPerPos must be greater than 0.'
+        if motionDuration < 0:
+            raise ValueError, 'motionDuration must be greater than or equal to 0.'
         if durationPerPos <= motionDuration:
-            raise ValueError: 'durationPerPos must be longer than motionDuration.'
+            raise ValueError, 'durationPerPos must be longer than motionDuration.'
         self.calTargetDurPerPos = durationPerPos
         self.calTargetMotionDur = motionDuration
     
-    def setCalibrationSampleAcquisitionParameters(self, nSamplesPerPos, getSampleDelay)
+    def setCalSampleAcquisitionParams(self, numSamplesPerPos, getSampleDelay):
         """
         Set parameters for calibration sample acquisition.
         
-        :param int nSamplesPerPos:
+        :param int numSamplesPerPos:
             Number of samples collected at each calibration position.
             This value must be must be greater than 0. Default value is defined by 
             NUM_SAMPLES_PER_TRGPOS parameter of GazeParser.TrackingTools configuration
             file. By default, NUM_SAMPLES_PER_TRGPOS=10.
         :param float getSampleDelay:
             Delay of starting sample acquisition from target arrived at calibration 
-            position. This value must not be negative. Default value is defined by 
-            CAL_GETSAMPLE_DEALAY parameter of GazeParser.TrackingTools configuration
-            file. By default, CAL_GETSAMPLE_DEALAY=0.4.
+            position. Unit is second. This value must not be negative.  Default value
+            is defined by CAL_GETSAMPLE_DEALAY parameter of GazeParser.TrackingTools 
+            configuration file. By default, CAL_GETSAMPLE_DEALAY=0.4.
         
         .. note::
             If no configuration file is specified when Controller object is created,
@@ -1111,9 +1115,9 @@ class BaseController(object):
             is used as the configuration file.
         """
         if nSamplesPerPos <= 0:
-            raise ValueError: 'nSamplesPerPos must be greater than 0.'
+            raise ValueError, 'nSamplesPerPos must be greater than 0.'
         if getSampleDelay < 0:
-            raise ValueError: 'getSampleDelay must not be negative.'
+            raise ValueError, 'getSampleDelay must not be negative.'
         self.nSamplesPerTrgPos = nSamplesPerPos
         self.calGetSampleDelay = getSampleDelay
     
