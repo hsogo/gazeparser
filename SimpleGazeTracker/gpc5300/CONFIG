@@ -1,8 +1,8 @@
 #If you want to recover original settings, delete this file and start eye tracker program.
 BINOCULAR=0
 THRESHOLD=17
-MAXPOINTS=243
-MINPOINTS=72
+MAXPOINTS=600
+MINPOINTS=20
 PURKINJE_THRESHOLD=236
 PURKINJE_SEARCHAREA=29
 PURKINJE_EXCLUDEAREA=8
