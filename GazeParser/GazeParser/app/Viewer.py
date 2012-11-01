@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Part of GazeParser library.
 Copyright (C) 2012 Hiroyuki Sogo.
