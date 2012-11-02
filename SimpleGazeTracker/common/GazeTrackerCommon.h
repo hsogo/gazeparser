@@ -166,7 +166,7 @@ extern void getCalibrationResults( double Goodness[4], double MaxError[2], doubl
 extern void getCalibrationResultsDetail( char* errorstr, int size, int* len);
 extern void getCurrentMenuString(char *p, int maxlen);
 
-extern void toggleCalResult(void);
+extern void toggleCalResult(int param);
 
 extern void startRecording(const char* message);
 extern void stopRecording(const char* message);

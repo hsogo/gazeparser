@@ -147,6 +147,9 @@ This function parses commands sent from the Client PC and call appropriate funct
 @date 2012/10/25
 - MAXCALSAMPLEPERPOINT is used to limit number of samples in getCalSample and getValSample.
 - Terminator of sending data is changed to '\0'.
+@date 2012/11/02 
+- "toggleCalResult" command receives a parameter which specifies on/off of calibration results.
+- TCP/IP connection is closed when SDLNet_SocketReady() failed.
 */
 int sockProcess(void)
 {
@@ -356,8 +359,16 @@ int sockProcess(void)
 					}
 					else if(strcmp(buff+nextp,"toggleCalResult")==0)
 					{
-						toggleCalResult();
+						char* param = buff+nextp+16;
+						char* p;
+					    int val;
 
+						val = strtol(param, &p, 10);
+						
+						toggleCalResult(val);
+						
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
 					}
@@ -531,11 +542,18 @@ int sockProcess(void)
 			}
 			else
 			{
-				g_LogFS << "connection may be closed by peer" << std::endl;
+				g_LogFS << "SDLNet_TCP_Recv() failed. connection may be closed by peer" << std::endl;
 				connectionClosed();
 				SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
 				sockClose();
 			}
+		}
+		else
+		{
+				g_LogFS << "SDLNet_SocketReady() failed. connection may be closed by peer" << std::endl;
+				connectionClosed();
+				SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
+				sockClose();
 		}
 	}
 

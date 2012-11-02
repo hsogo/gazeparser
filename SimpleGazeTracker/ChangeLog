@@ -1,3 +1,7 @@
+
+  * TCP/IP connection is closed when SDLNet_SocketReady() failed.
+  * "toggleCalResult" command receives a parameter which specifies on/off of calibration results.
+
 2012-11-01  Hiroyuki Sogo
 
   release: 0.6.0

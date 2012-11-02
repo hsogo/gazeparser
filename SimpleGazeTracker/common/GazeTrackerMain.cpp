@@ -1349,17 +1349,22 @@ void getValSample(double x, double y, int samples)
 toggleCalRelsut: toggle camera preview and calibration result dislpay.
 This function is called from sockProcess() when sockProcess() received "toggleCalResult" command.
 
-@param[in] x position of the target.
-@param[in] y position of the target.
+@param[in] specify on/off calibration results (0=off, non_zero=on)
 @return No value is returned.
 @todo number of samples should be customizable.
+
+@date 2012/11/02 specify on/off calibration results by 'on' parameter.
 */
 
-void toggleCalResult(void)
+void toggleCalResult(int param)
 {
-	if(g_isCalibrated)
+	if(g_isCalibrated and param != 0)
 	{
-		g_isShowingCalResult = !g_isShowingCalResult;
+		g_isShowingCalResult = true;
+	}
+	else
+	{
+		g_isShowingCalResult = false;
 	}
 }
 

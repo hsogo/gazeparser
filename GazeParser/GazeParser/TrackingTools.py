@@ -614,6 +614,7 @@ class BaseController(object):
         self.showCalTarget = False
         self.showCameraImage = False
         self.showCalImage = False
+        self.sendCommand('toggleCalResult'+chr(0)+'0'+chr(0))
         while True:
             keys = self.getKeys()
             for key in keys:
@@ -642,11 +643,15 @@ class BaseController(object):
                     else:
                         self.showCameraImae = False
                 elif key == 'x':
-                    self.sendCommand('toggleCalResult'+chr(0))
                     if self.showCalDisplay:
                         self.showCalImage = not self.showCalImage
+                        if self.showCalImage:
+                            self.sendCommand('toggleCalResult'+chr(0)+'1'+chr(0))
+                        else:
+                            self.sendCommand('toggleCalResult'+chr(0)+'0'+chr(0))
                     else:
                         self.showCalImage = False
+                        self.sendCommand('toggleCalResult'+chr(0)+'0'+chr(0))
                 elif key == 'c':
                     self.sendCommand('startCal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
                                      +str(self.calArea[2])+','+str(self.calArea[3])+chr(0))
