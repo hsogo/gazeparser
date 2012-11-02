@@ -16,13 +16,6 @@ class FileWindow(wx.Frame):
         
         vbox = wx.BoxSizer(wx.VERTICAL)
         
-        filenameBox = wx.BoxSizer(wx.HORIZONTAL)
-        filenameBox.Add(wx.StaticText(panel,wx.ID_ANY,'Datafile name',size=(160,30)),0)
-        self.filenameEdit = wx.TextCtrl(panel,wx.ID_ANY)
-        filenameBox.Add(self.filenameEdit,1)
-        filenameBox.Add(wx.StaticText(panel,wx.ID_ANY,'.csv'),0)
-        vbox.Add(filenameBox, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        
         addressBox = wx.BoxSizer(wx.HORIZONTAL)
         addressBox.Add(wx.StaticText(panel,wx.ID_ANY,'SimpleGazeTracker address',size=(160,30)),0)
         self.addressEdit = wx.TextCtrl(panel,wx.ID_ANY)
@@ -56,12 +49,11 @@ class FileWindow(wx.Frame):
         
     def quitfunc(self, event):
         global FileWindowValues
-        filename = self.filenameEdit.GetValue()
         address = self.addressEdit.GetValue()
         imgsize = self.imgsizeEdit.GetValue()
         isdummy = self.isdummyCheck.GetValue()
         
-        FileWindowValues = {'filename':filename,'address':address,'imgsize':imgsize,'isdummy':isdummy}
+        FileWindowValues = {'address':address,'imgsize':imgsize,'isdummy':isdummy}
         self.Close(True)
 
 FileWindowValues = {}
@@ -70,7 +62,6 @@ fw = FileWindow(None,wx.ID_ANY,"Sample04_PsychoPy")
 application.MainLoop()
 
 
-dataFileName = FileWindowValues['filename']
 xy = FileWindowValues['imgsize'].split(',')
 cameraX = int(xy[0])
 cameraY = int(xy[1])
@@ -94,32 +85,6 @@ tracker.setCalibrationTargetPositions(calarea, calTargetPos)
 
 msg = psychopy.visual.TextStim(win)
 
-#Default motion
-msg.setText('durationPerPos=2.0, motionDuration=1.0\n\n(default)')
-msg.draw()
-win.flip()
-psychopy.event.waitKeys()
-
-tracker.calibrationLoop()
-
-#Jumping
-tracker.setCalTargetMotionParams(durationPerPos=1.0, motionDuration=0.0)
-msg.setText('durationPerPos=1.0, motionDuration=0.0')
-msg.draw()
-win.flip()
-psychopy.event.waitKeys()
-
-tracker.calibrationLoop()
-
-#Slow
-tracker.setCalTargetMotionParams(durationPerPos=3.0, motionDuration=2.5)
-msg.setText('durationPerPos=3.0, motionDuration=2.5')
-msg.draw()
-win.flip()
-psychopy.event.waitKeys()
-
-tracker.calibrationLoop()
-
 #Jumping + getting samples immediately after jumping
 #Note: this setting is for demonstration. It is not recommended for actual use.
 tracker.setCalTargetMotionParams(durationPerPos=1.0, motionDuration=0.0)
@@ -130,3 +95,4 @@ win.flip()
 psychopy.event.waitKeys()
 
 tracker.calibrationLoop()
+

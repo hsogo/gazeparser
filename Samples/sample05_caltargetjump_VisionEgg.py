@@ -14,15 +14,11 @@ class FileWindow(Tkinter.Frame):
     def __init__(self,master=None):
         Tkinter.Frame.__init__(self,master)
         self.option_add('*font', 'Helvetica 12')
-        self.FileNameEntry = Tkinter.StringVar()
         self.IPAdressEntry = Tkinter.StringVar()
         self.IPAdressEntry.set('192.168.1.1')
         self.cameraSize = Tkinter.StringVar()
         self.cameraSize.set('320,240')
         self.isDummy = Tkinter.BooleanVar()
-        Tkinter.Label(self,text=u'Datafile name').grid(row=0,column=0,padx=5,pady=5)
-        Tkinter.Entry(self,textvariable=self.FileNameEntry).grid(row=0,column=1,padx=5,pady=5)
-        Tkinter.Label(self,text=u'.csv').grid(row=0,column=2,padx=5,pady=5)
         Tkinter.Label(self,text=u'SimpleGazeTracker address').grid(row=1,column=0,padx=5,pady=5)
         Tkinter.Entry(self,textvariable=self.IPAdressEntry).grid(row=1,column=1,padx=5,pady=5)
         Tkinter.Label(self,text=u'Capture image size').grid(row=2,column=0,padx=5,pady=5)
@@ -34,7 +30,6 @@ class FileWindow(Tkinter.Frame):
 wf = FileWindow()
 wf.mainloop()
 
-dataFileName = wf.FileNameEntry.get()
 xy = wf.cameraSize.get().split(',')
 cameraX = int(xy[0])
 cameraY = int(xy[1])
@@ -68,47 +63,6 @@ tracker.setCalibrationTargetPositions(calarea, tuple(calTargetPos))
 
 msg = VisionEgg.WrappedText.WrappedText(position=(SX/4,SY/2),size=(SX/2,SY/2))
 msgviewport = VisionEgg.Core.Viewport(screen=screen, stimuli=[msg])
-
-#Default motion
-msg.parameters.text = 'durationPerPos=2.0, motionDuration=1.0\n\n(default)'
-screen.clear()
-msgviewport.draw()
-VisionEgg.Core.swap_buffers()
-isWaiting = True
-while isWaiting:
-    for e in pygame.event.get():
-        if e.type==pygame.locals.KEYDOWN:
-            isWaiting = False
-
-tracker.calibrationLoop()
-
-#Jumping
-tracker.setCalTargetMotionParams(durationPerPos=1.0, motionDuration=0.0)
-msg.parameters.text = 'durationPerPos=1.0, motionDuration=0.0'
-screen.clear()
-msgviewport.draw()
-VisionEgg.Core.swap_buffers()
-isWaiting = True
-while isWaiting:
-    for e in pygame.event.get():
-        if e.type==pygame.locals.KEYDOWN:
-            isWaiting = False
-
-tracker.calibrationLoop()
-
-#Slow
-tracker.setCalTargetMotionParams(durationPerPos=3.0, motionDuration=2.5)
-msg.parameters.text = 'durationPerPos=3.0, motionDuration=2.5'
-screen.clear()
-msgviewport.draw()
-VisionEgg.Core.swap_buffers()
-isWaiting = True
-while isWaiting:
-    for e in pygame.event.get():
-        if e.type==pygame.locals.KEYDOWN:
-            isWaiting = False
-
-tracker.calibrationLoop()
 
 #Jumping + getting samples immediately after jumping
 #Note: this setting is for demonstration. It is not recommended for actual use.
