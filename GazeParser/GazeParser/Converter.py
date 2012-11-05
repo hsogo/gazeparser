@@ -28,10 +28,12 @@ def EyelinkToGazeParser(EDFfile,eye,overwrite=False,config=None):
     :param Boolean overwrite:
         If this parameter is true, output file is overwritten.
         The default value is False.
-    :param GazeParser.Configuration config:
-        Specify conversion configurations.  If config is not an instance
-        of GazeParser.Configuration, default configuration is used. The 
-        default value is None.
+    :param GazeParser.Configuration,str config:
+        An instance of GazeParser.Configuration that Specifies
+        conversion configurations.  If value is a string, it is 
+        interpreted as a filename of GazeParser.configuration file.
+        If value is none, default configuration is used.
+        The default value is None.
     """
     (workDir, srcFilename) = os.path.split(os.path.abspath(EDFfile))
     filenameRoot,ext = os.path.splitext(srcFilename)
@@ -45,8 +47,15 @@ def EyelinkToGazeParser(EDFfile,eye,overwrite=False,config=None):
         return 'CANNOT_OPEN_OUTPUT_FILE'
     
     if not isinstance(config, GazeParser.Configuration.Config):
-        print 'Use default configuration.'
-        config = GazeParser.Configuration.Config()
+        if isinstance(config, str) or isinstance(config, unicode):
+            print 'Load configuration file: %s' % config
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif config==None:
+            print 'Use default configuration.'
+            config = GazeParser.Configuration.Config()
+        else:
+            raise ValueError, 'config must be GazeParser.Configuration.Config, str, unicode or None.'
+
     
     if eye=='L':
         flgL = True
@@ -584,9 +593,11 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
     :param Boolean overwrite:
         If this parameter is true, output file is overwritten.
         The default value is False.
-    :param GazeParser.Configuration config:
-        Specify conversion configurations.  If config is not an instance
-        of GazeParser.Configuration, default configuration is used.
+    :param GazeParser.Configuration,str config:
+        An instance of GazeParser.Configuration that Specifies
+        conversion configurations.  If value is a string, it is 
+        interpreted as a filename of GazeParser.configuration file.
+        If value is none, default configuration is used.
         The default value is None.
     :param Boolean useFileParameters:
         If this parameter is true, conversion configurations are 
@@ -607,8 +618,14 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
         return 'CANNOT_OPEN_OUTPUT_FILE'
     
     if not isinstance(config, GazeParser.Configuration.Config):
-        print 'Use default configuration.'
-        config = GazeParser.Configuration.Config()
+        if isinstance(config, str) or isinstance(config, unicode):
+            print 'Load configuration file: %s' % config
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif config==None:
+            print 'Use default configuration.'
+            config = GazeParser.Configuration.Config()
+        else:
+            raise ValueError, 'config must be GazeParser.Configuration.Config, str, unicode or None.'
     
     #default indices
     idxT = 0
@@ -810,10 +827,12 @@ def TobiiToGazeParser(inputfile,overwrite=False,config=None):
     :param Boolean overwrite:
         If this parameter is true, output file is overwritten.
         The default value is False.
-    :param GazeParser.Configuration config:
-        Specify conversion configurations.  If config is not an instance
-        of GazeParser.Configuration, default configuration is used. The 
-        default value is None.
+    :param GazeParser.Configuration,str config:
+        An instance of GazeParser.Configuration that Specifies
+        conversion configurations.  If value is a string, it is 
+        interpreted as a filename of GazeParser.configuration file.
+        If value is none, default configuration is used.
+        The default value is None.
     """
     (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
     filenameRoot,ext = os.path.splitext(srcFilename)
@@ -827,8 +846,15 @@ def TobiiToGazeParser(inputfile,overwrite=False,config=None):
         return 'CANNOT_OPEN_OUTPUT_FILE'
     
     if not isinstance(config, GazeParser.Configuration.Config):
-        print 'Use default configuration.'
-        config = GazeParser.Configuration.Config()
+        if isinstance(config, str) or isinstance(config, unicode):
+            print 'Load configuration file: %s' % config
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif config==None:
+            print 'Use default configuration.'
+            config = GazeParser.Configuration.Config()
+        else:
+            raise ValueError, 'config must be GazeParser.Configuration.Config, str, unicode or None.'
+
     
     fid = open(inputfileFullpath,"r")
     
