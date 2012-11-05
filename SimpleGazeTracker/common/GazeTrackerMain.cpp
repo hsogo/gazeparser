@@ -180,6 +180,9 @@ Following parameters are read from a configuration file named "CONFIG".
 @date 2012/04/06 CAMERA_WIDTH, CAMERA_HEIGHT, PREVIEW_WIDTH and PREVIEW_HEIGHT are supported.
 @date 2012/07/17 ROI_WIDTH, ROI_HEIGHT and SHOW_DETECTIONERROR_MSG are supported.
 @date 2012/07/26 DELAY_CORRECTION, PORT_SEND and PORT_RECV are supported.
+@date 2012/11/05
+- Section header [SimpleGazeTrackerCommon] is supported.
+- spaces and tabs around '=' are removed.
  */
 int initParameters( void )
 {
@@ -188,6 +191,7 @@ int initParameters( void )
 	char buff[1024];
 	char *p,*pp;
 	int param;
+	bool isInSection = true; //default is True to support old config file
 
 	getDataDirectoryPath(&g_DataPath);
 	//getApplicationDirectoryPath(&g_AppDirPath);
@@ -208,11 +212,35 @@ int initParameters( void )
 
 	while(fs.getline(buff,sizeof(buff)))
 	{
-		if(buff[0]=='#') continue;
+		if(buff[0]=='#') continue; //comments
+		
+		//in Section "[SimpleGazeTrackerCommon]"
+		if(buff[0]=='['){
+			if(strcmp(buff,"[SimpleGazeTrackerCommon]")==0){
+				isInSection = true;
+			}
+			else
+			{
+				isInSection = false;
+			}
+			continue;
+		}
+		
+		if(!isInSection) continue; //not in section
+		
+		//Check options.
+		//If "=" is not included, this line is not option.
 		if((p=strchr(buff,'='))==NULL) continue;
-
-		param = strtol(p+1,&pp,10);
+		
+		//remove space/tab
 		*p = '\0';
+		while(*(p-1)==0x09 || *(p-1)==0x20) 
+		{
+			p--;
+			*p= '\0';
+		}
+		while(*(p+1)==0x09 || *(p+1)==0x20) p++;
+		param = strtol(p+1,&pp,10);
 
 		if(strcmp(buff,"THRESHOLD")==0) g_Threshold = param;
 		else if(strcmp(buff,"MAXPOINTS")==0) g_MaxPoints = param;
@@ -232,7 +260,10 @@ int initParameters( void )
 		else if(strcmp(buff,"PORT_RECV")==0) g_PortRecv = param;
 		else if(strcmp(buff,"DELAY_CORRECTION")==0) g_DelayCorrection = param;
 		else if(strcmp(buff,"OUTPUT_PUPILSIZE")==0) g_isOutputPupilSize = param;
-		else return E_FAIL; //unknown option
+		else{
+			printf("Unknown option (\"%s\")\n",buff);
+			return E_FAIL; //unknown option
+		}
 	}
 
 	if(g_ROIWidth==0) g_ROIWidth = g_CameraWidth;
@@ -273,6 +304,7 @@ Following parameters are wrote to the configuration file.
 @date 2012/07/17 ROI_WIDTH, ROI_Height, SHOW_DETECTIONERROR_MSG are supported.
 @date 2012/07/26 DELAY_CORRECTION, PORT_SEND and PORT_RECV are supported.
 @date 2012/09/28 OUTPUT_PUPILSIZE is supported.
+@date 2012/11/05 section name [SimpleGazeTrackerCommon] is output.
 */
 void saveParameters( void )
 {
@@ -289,6 +321,7 @@ void saveParameters( void )
 	}
 
 	fs << "#If you want to recover original settings, delete this file and start eye tracker program." << std::endl;
+	fs << "[SimpleGazeTrackerCommon]" << std::endl;
 	fs << "THRESHOLD=" << g_Threshold << std::endl;
 	fs << "MAXPOINTS=" << g_MaxPoints << std::endl;
 	fs << "MINPOINTS=" << g_MinPoints << std::endl;

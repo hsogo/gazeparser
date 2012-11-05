@@ -53,6 +53,9 @@ Read parameters from the configuration file, start camera and set callback funct
 - Both width and height are checked (640x480 or 320x240).
 @date 2012/07/30
 - Configuration file name in the log file is corrected.
+@date 2012/11/05
+- Section header [SimpleGazeTrackerOptiTrack] is supported.
+- spaces and tabs around '=' are removed.
 */
 int initCamera( const char* ParamPath )
 {
@@ -61,6 +64,7 @@ int initCamera( const char* ParamPath )
 	char buff[512];
 	char *p,*pp;
 	int param;
+	bool isInSection = true; //default is True to support old config file
 
 	str = ParamPath;
 	str.append(PATH_SEPARATOR);
@@ -75,10 +79,32 @@ int initCamera( const char* ParamPath )
 		while(fs.getline(buff,sizeof(buff)-1))
 		{
 			if(buff[0]=='#') continue;
-			if((p=strchr(buff,'='))==NULL) continue;
 
+			//in Section "[SimpleGazeTrackerOptiTrack]"
+			if(buff[0]=='['){
+				if(strcmp(buff,"[SimpleGazeTrackerOptiTrack]")==0){
+					isInSection = true;
+				}
+				else
+				{
+					isInSection = false;
+				}
+				continue;
+			}
+
+			//Check options.
+			//If "=" is not included, this line is not option.
+			if((p=strchr(buff,'='))==NULL) continue;
+		
+			//remove space/tab
+			*p = '\0';
+			while(*(p-1)==0x09 || *(p-1)==0x20) 
+			{
+				p--;
+				*p= '\0';
+			}
+			while(*(p+1)==0x09 || *(p+1)==0x20) p++;
 			param = strtol(p+1,&pp,10);
-			*p = NULL;
 
 			if(strcmp(buff,"FRAME_RATE")==0) g_FrameRate = param;
 			else if(strcmp(buff,"EXPOSURE")==0) g_Exposure = param;
@@ -218,6 +244,7 @@ void saveCameraParameters(const char* ParamPath)
 	}
 
 	fs << "#If you want to recover original settings, delete this file and start eye tracker program." << std::endl;
+	fs << "[SimpleGazeTrackerOptiTrack]" << std::endl;
 	fs << "FRAME_RATE=" << g_FrameRate << std::endl;
 	fs << "EXPOSURE=" << g_Exposure << std::endl;
 	fs << "INTENSITY=" << g_Intensity << std::endl;

@@ -106,6 +106,10 @@ Read parameters from the configuration file, start camera and set callback funct
 @retval E_FAIL Initialization is failed.
 @note This function is necessary when you customize this file for your camera.
 @todo check whether number of custom menus are too many.
+
+@date 2012/11/05
+- Section header [SimpleGazeTrackerOpenCV] is supported.
+- spaces and tabs around '=' are removed.
  */
 int initCamera( const char* ParamPath )
 {
@@ -114,6 +118,7 @@ int initCamera( const char* ParamPath )
 	char *p,*pp;
 	char buff[1024];
 	double param;
+	bool isInSection = true; //default is True to support old config file
 	
 	int cameraID = 0;
 
@@ -130,10 +135,35 @@ int initCamera( const char* ParamPath )
 		while(fs.getline(buff,sizeof(buff)-1))
 		{
 			if(buff[0]=='#') continue;
+
+			//in Section "[SimpleGazeTrackerOpenCV]"
+			if(buff[0]=='['){
+				if(strcmp(buff,"[SimpleGazeTrackerOpenCV]")==0){
+					isInSection = true;
+				}
+				else
+				{
+					isInSection = false;
+				}
+				continue;
+			}
+		
+			if(!isInSection) continue; //not in section
+		
+
+			//Check options.
+			//If "=" is not included, this line is not option.
 			if((p=strchr(buff,'='))==NULL) continue;
 
-			param = strtod(p+1,&pp); //paramete is not int but double
+			//remove space/tab
 			*p = '\0';
+			while(*(p-1)==0x09 || *(p-1)==0x20)
+			{
+				p--;
+				*p= '\0';
+			}
+			while(*(p+1)==0x09 || *(p+1)==0x20) p++;
+			param = strtod(p+1,&pp); //paramete is not int but double
 
 			if(strcmp(buff,"SLEEP_DURATION")==0)
 			{
