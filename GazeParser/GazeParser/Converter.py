@@ -431,39 +431,43 @@ def buildEventListMonocular(T,HV,config):
     saccadeCandidates = saccadeCandidates[idx,:]
     
     #find fixations
-    #at first, check whether data starts with fixation or saccade.
-    if saccadeCandidates[0,0] > 0:
-        dur = T[saccadeCandidates[0,0]-1]-T[0]
-        fixationCandidates = [[0,saccadeCandidates[0,0]-1,dur]]
-    else:
-        fixationCandidates = []
+    if len(saccadeCandidates) > 0:
+        #check whether data starts with fixation or saccade.
+        if saccadeCandidates[0,0] > 0:
+            dur = T[saccadeCandidates[0,0]-1]-T[0]
+            fixationCandidates = [[0,saccadeCandidates[0,0]-1,dur]]
+        else:
+            fixationCandidates = []
+        
+        #
+        for index in range(saccadeCandidates.shape[0]-1):
+            dur = T[saccadeCandidates[index+1,0]-1]-T[saccadeCandidates[index,1]-1]
+            fixationCandidates.append([saccadeCandidates[index,1],saccadeCandidates[index+1,0],dur])
+        
+        #check last fixation
+        if saccadeCandidates[-1,1] != len(T)-1:
+            dur = T[-1] - T[saccadeCandidates[-1,1]]
+            fixationCandidates.append([saccadeCandidates[-1,1],len(T)-1,dur])
+        fixationCandidates = numpy.array(fixationCandidates)
+        
+        #marge small inter-saccadic fixation to saccade.
+        tooShortFixation = numpy.where(fixationCandidates[:,2] <= config.FIXATION_MINIMUM_DURATION)[0]
+        for index in tooShortFixation:
+            prevSaccadeIndex = numpy.where(saccadeCandidates[:,1]==fixationCandidates[index,0])[0]
+            if len(prevSaccadeIndex)!=1:
+                continue
+            nextSaccadeIndex = prevSaccadeIndex+1
+            if nextSaccadeIndex >= saccadeCandidates.shape[0]: #there is no following saccade.
+                continue
+            saccadeCandidates[prevSaccadeIndex,1] = saccadeCandidates[nextSaccadeIndex,1]
+            #saccadeCandidates[prevSaccadeIndex,4] = saccadeCandidates[nextSaccadeIndex,4]
+            saccadeCandidates[prevSaccadeIndex,2] = T[int(saccadeCandidates[nextSaccadeIndex,1])]-T[int(saccadeCandidates[prevSaccadeIndex,0])]
+            saccadeCandidates = numpy.delete(saccadeCandidates,nextSaccadeIndex,0)
+        
+        fixationCandidates = fixationCandidates[fixationCandidates[:,2] > config.FIXATION_MINIMUM_DURATION, :]
     
-    #
-    for index in range(saccadeCandidates.shape[0]-1):
-        dur = T[saccadeCandidates[index+1,0]-1]-T[saccadeCandidates[index,1]-1]
-        fixationCandidates.append([saccadeCandidates[index,1],saccadeCandidates[index+1,0],dur])
-    
-    #check last fixation
-    if saccadeCandidates[-1,1] != len(T)-1:
-        dur = T[-1] - T[saccadeCandidates[-1,1]]
-        fixationCandidates.append([saccadeCandidates[-1,1],len(T)-1,dur])
-    fixationCandidates = numpy.array(fixationCandidates)
-    
-    #marge small inter-saccadic fixation to saccade.
-    tooShortFixation = numpy.where(fixationCandidates[:,2] <= config.FIXATION_MINIMUM_DURATION)[0]
-    for index in tooShortFixation:
-        prevSaccadeIndex = numpy.where(saccadeCandidates[:,1]==fixationCandidates[index,0])[0]
-        if len(prevSaccadeIndex)!=1:
-            continue
-        nextSaccadeIndex = prevSaccadeIndex+1
-        if nextSaccadeIndex >= saccadeCandidates.shape[0]: #there is no following saccade.
-            continue
-        saccadeCandidates[prevSaccadeIndex,1] = saccadeCandidates[nextSaccadeIndex,1]
-        #saccadeCandidates[prevSaccadeIndex,4] = saccadeCandidates[nextSaccadeIndex,4]
-        saccadeCandidates[prevSaccadeIndex,2] = T[int(saccadeCandidates[nextSaccadeIndex,1])]-T[int(saccadeCandidates[prevSaccadeIndex,0])]
-        saccadeCandidates = numpy.delete(saccadeCandidates,nextSaccadeIndex,0)
-    
-    fixationCandidates = fixationCandidates[fixationCandidates[:,2] > config.FIXATION_MINIMUM_DURATION, :]
+    else: #no saccade candidate is found.
+        fixationCandidates = numpy.array([[0,len(T)-1,T[-1]-T[0]]])
     
     #find blinks
     # TODO: check break of fixation and saccades by blink.
