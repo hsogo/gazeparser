@@ -67,7 +67,7 @@ class Converter(Tkinter.Frame):
         
     
     def _convertFiles(self):
-        fnames = tkFileDialog.askopenfilenames(filetypes=[('GazeTracker CSV file','*.csv')],initialdir=GazeParser.homeDir)
+        fnames = tkFileDialog.askopenfilenames(filetypes=[('SimpleGazeTracker CSV file','*.csv')],initialdir=GazeParser.homeDir)
         
         if fnames=='':
             tkMessageBox.showinfo('info', 'No files')

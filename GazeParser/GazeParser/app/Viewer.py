@@ -123,7 +123,7 @@ class mainWindow(Tkinter.Frame):
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
         self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
-        self.menu_convert.add_command(label='Convert GazeTracker CSV',under=0,command=self._convertGT)
+        self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=0,command=self._convertGT)
         self.menu_convert.add_command(label='Convert Eyelink EDF',under=0,command=self._convertEL)
         self.menu_convert.add_command(label='Convert Tobii TSV',under=0,command=self._convertTSV)
         self.menu_convert.add_command(label='Interactive config',under=0,command=self._interactive)
