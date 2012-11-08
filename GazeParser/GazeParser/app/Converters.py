@@ -29,42 +29,53 @@ class Converter(Tkinter.Frame):
         Tkinter.Frame.__init__(self, master, srctype=None)
         self.master.title('GazeParser Data Converter')
         
-        self.useParameters = Tkinter.StringVar()
+        self.useParameters = Tkinter.BooleanVar()
         self.useParameters.set(True)
         
-        self.mainFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
+        self.paramFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.config = GazeParser.Configuration.Config()
         
         self.stringVarDict = {}
+        self.paramEntryDict = {}
         r = 0
         for key in GazeParser.Configuration.GazeParserOptions:
             self.stringVarDict[key] = Tkinter.StringVar()
             self.stringVarDict[key].set(getattr(self.config, key))
-            Tkinter.Label(self.mainFrame, text=key).grid(row=r, column=0, sticky=Tkinter.W)
-            Tkinter.Entry(self.mainFrame, textvariable=self.stringVarDict[key]).grid(row=r, column=1)
+            Tkinter.Label(self.paramFrame, text=key).grid(row=r, column=0, sticky=Tkinter.W)
+            self.paramEntryDict[key] = Tkinter.Entry(self.paramFrame, textvariable=self.stringVarDict[key])
+            self.paramEntryDict[key].grid(row=r, column=1)
             r+=1
-        Tkinter.Button(self.mainFrame, text='Load Configuration File', command=self._loadConfig).grid(row=r, column=0,columnspan=2, padx=10, ipady=2)
-        self.mainFrame.pack(side=Tkinter.LEFT,fill=Tkinter.BOTH)
         self.sideFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
+        
         self.choiceFrame = Tkinter.Frame(self.sideFrame, bd=2, relief=Tkinter.GROOVE)
-        self.usefileRadiobutton = Tkinter.Radiobutton(self.choiceFrame, text='Use parameters embedded in the data file if available', variable=self.useParameters, value=True)
-        self.overwriteRadiobutton = Tkinter.Radiobutton(self.choiceFrame, text='Use following parameters', variable=self.useParameters, value=False)
+        self.usefileRadiobutton = Tkinter.Radiobutton(self.choiceFrame, text='Use parameters embedded in the data file', variable=self.useParameters, value=True, command=self._onClickChoiceFrame)
+        self.overwriteRadiobutton = Tkinter.Radiobutton(self.choiceFrame, text='Use parameters shown in this dialog', variable=self.useParameters, value=False, command=self._onClickChoiceFrame)
         self.usefileRadiobutton.grid(row=0,column=0,sticky=Tkinter.W)
-        self.overwriteRadiobutton.grid(row=1,column=0,sticky=Tkinter.W)
+        Tkinter.Label(self.choiceFrame, text='(If parameters are not embedded in the\ndatafile, default configuration is used.)').grid(row=1,column=0,sticky=Tkinter.E)
+        self.overwriteRadiobutton.grid(row=2,column=0,sticky=Tkinter.W)
         self.choiceFrame.pack(anchor=Tkinter.W,fill=Tkinter.X)
-        #self.choiceFrame.grid(row=0,column=0,columnspan=2, sticky=Tkinter.W+Tkinter.E)
+        
         self.filterFrame = Tkinter.Frame(self.sideFrame, bd=2, relief=Tkinter.GROOVE)
-        self.stringVarDict['FILTER_TYPE'].set('butter_filtfilt')
-        Tkinter.Radiobutton(self.filterFrame,text='No Filter',variable=self.stringVarDict['FILTER_TYPE'],value='identity').grid(row=0,column=0, sticky=Tkinter.W)
-        Tkinter.Radiobutton(self.filterFrame,text='Moving Average',variable=self.stringVarDict['FILTER_TYPE'],value='ma').grid(row=1,column=0, sticky=Tkinter.W)
-        Tkinter.Radiobutton(self.filterFrame,text='Butterworth',variable=self.stringVarDict['FILTER_TYPE'],value='butter').grid(row=2,column=0, sticky=Tkinter.W)
-        Tkinter.Radiobutton(self.filterFrame,text='Forward-Backword Butterworth',variable=self.stringVarDict['FILTER_TYPE'],value='butter_filtfilt').grid(row=3,column=0, sticky=Tkinter.W)
+        self.stringVarDict['FILTER_TYPE'].set('identity')
+        self.filterIdentityRB = Tkinter.Radiobutton(self.filterFrame,text='No Filter',variable=self.stringVarDict['FILTER_TYPE'],value='identity', command=self._onClickFilterFrame)
+        self.filterMARB = Tkinter.Radiobutton(self.filterFrame,text='Moving Average',variable=self.stringVarDict['FILTER_TYPE'],value='ma', command=self._onClickFilterFrame)
+        self.filterButterRB = Tkinter.Radiobutton(self.filterFrame,text='Butterworth',variable=self.stringVarDict['FILTER_TYPE'],value='butter', command=self._onClickFilterFrame)
+        self.filterFiltFiltRB = Tkinter.Radiobutton(self.filterFrame,text='Forward-Backword Butterworth',variable=self.stringVarDict['FILTER_TYPE'],value='butter_filtfilt', command=self._onClickFilterFrame)
+        self.filterIdentityRB.grid(row=0,column=0, sticky=Tkinter.W)
+        self.filterMARB.grid(row=1,column=0, sticky=Tkinter.W)
+        self.filterButterRB.grid(row=2,column=0, sticky=Tkinter.W)
+        self.filterFiltFiltRB.grid(row=3,column=0, sticky=Tkinter.W)
         self.filterFrame.pack(fill=Tkinter.BOTH)
         self.checkOverwrite = Tkinter.IntVar()
-        Tkinter.Button(self.sideFrame,text='Convert Files',command=self._convertFiles).pack(fill=Tkinter.X, padx=10, ipady=2)
+        self.loadConfigButton = Tkinter.Button(self.sideFrame, text='Load Configuration File', command=self._loadConfig)
+        self.loadConfigButton.pack(fill=Tkinter.X, padx=10, pady=2)
+        Tkinter.Button(self.sideFrame,text='Convert Files',command=self._convertFiles).pack(fill=Tkinter.X, padx=10, pady=2)
         Tkinter.Checkbutton(self.sideFrame,text='Overwrite',variable=self.checkOverwrite).pack()
-        self.sideFrame.pack(side=Tkinter.LEFT,anchor=Tkinter.W,fill=Tkinter.BOTH)
         
+        self.sideFrame.pack(side=Tkinter.LEFT,anchor=Tkinter.W,fill=Tkinter.BOTH)
+        self.paramFrame.pack(side=Tkinter.LEFT,fill=Tkinter.BOTH)
+        
+        self._onClickChoiceFrame()
     
     def _convertFiles(self):
         fnames = tkFileDialog.askopenfilenames(filetypes=[('SimpleGazeTracker CSV file','*.csv')],initialdir=GazeParser.homeDir)
@@ -134,6 +145,41 @@ class Converter(Tkinter.Frame):
             else:
                 setattr(self.config, key, value)
     
+    def _onClickChoiceFrame(self):
+        if self.useParameters.get():
+            state = 'disabled'
+        else:
+            state = 'normal'
+            
+        for key in self.paramEntryDict.keys():
+            self.paramEntryDict[key].configure(state=state)
+        self.loadConfigButton.configure(state=state)
+        
+        self.filterIdentityRB.configure(state=state)
+        self.filterMARB.configure(state=state)
+        self.filterButterRB.configure(state=state)
+        self.filterFiltFiltRB.configure(state=state)
+        
+        if not self.useParameters.get():
+            self._onClickFilterFrame()
+
+    
+    def _onClickFilterFrame(self):
+        filter = self.stringVarDict['FILTER_TYPE'].get()
+        if filter == 'ma':
+            self.paramEntryDict['FILTER_SIZE'].configure(state='normal')
+            self.paramEntryDict['FILTER_ORDER'].configure(state='disabled')
+            self.paramEntryDict['FILTER_WN'].configure(state='disabled')
+        elif filter == 'butter' or filter == 'butter_filtfilt':
+            self.paramEntryDict['FILTER_SIZE'].configure(state='disabled')
+            self.paramEntryDict['FILTER_ORDER'].configure(state='normal')
+            self.paramEntryDict['FILTER_WN'].configure(state='normal')
+        else:
+            self.paramEntryDict['FILTER_SIZE'].configure(state='disabled')
+            self.paramEntryDict['FILTER_ORDER'].configure(state='disabled')
+            self.paramEntryDict['FILTER_WN'].configure(state='disabled')
+        
+    
 
 class EyelinkConverter(Tkinter.Frame):
     def __init__(self, master=None):
@@ -154,6 +200,7 @@ class EyelinkConverter(Tkinter.Frame):
             r+=1
         Tkinter.Button(self.mainFrame, text='Load Configuration File', command=self._loadConfig).grid(row=r, column=0,columnspan=2, sticky=Tkinter.W+Tkinter.E, padx=10, ipady=2)
         self.mainFrame.pack()
+        
         
         self.goFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.checkOverwrite = Tkinter.IntVar()
@@ -585,7 +632,7 @@ def splitFilenames(filenames):
     return newFilenames
 
 if (__name__ == '__main__'):
-    def ok():
+    def ok(event=None):
         c = choice.get()
         dw = Tkinter.Toplevel()
         if c==0:
@@ -608,7 +655,10 @@ if (__name__ == '__main__'):
     Tkinter.Radiobutton(mw, text='Eyelink Converter', variable=choice, value=1).pack()
     Tkinter.Radiobutton(mw, text='Tobii Converter', variable=choice, value=2).pack()
     Tkinter.Radiobutton(mw, text='Interactive Configuration', variable=choice, value=3).pack()
-    Tkinter.Button(mw, text='OK', command=ok).pack()
+    okbutton = Tkinter.Button(mw, text='OK', command=ok)
+    okbutton.pack()
+    okbutton.focus_set()
+    okbutton.bind("<Return>", ok)
     mw.pack()
     mw.mainloop()
 
