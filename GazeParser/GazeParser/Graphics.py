@@ -58,27 +58,34 @@ def drawScatterPlot(data):
         pyplot.text(xy[idx,0],xy[idx,1],str(idx+1))
     pyplot.scatter(xy[:,0],xy[:,1],s=dur,c=dur,alpha=0.7)
 
-def quickPlot(data,eye=None,period=(None,None),style='XY'):
+def quickPlot(data,eye=None,period=(None,None),style='XY',xlim=None,ylim=None):
     """
     Plot gaze trajectory easily.
     
     :param data:
-        If GazeParser.Core.SaccadeData or GazeParser.Core.FixationData instance is passed,
-        Trajectory of the saccade or fixation is plotted.  If GazeParser.Core.GazeData 
-        object is passed, whole gaze trajectory in the trial is plotted.
+        If GazeParser.Core.SaccadeData or GazeParser.Core.FixationData instance
+        is passed, Trajectory of the saccade or fixation is plotted.
+        If GazeParser.Core.GazeData object is passed, whole gaze trajectory in 
+        the trial is plotted.
     :param str eye:
-        'L', 'R' or 'B' for left eye, right eye and both eyes.  If None, recorded eye is 
-        used.  Default value is None.
+        'L', 'R' or 'B' for left eye, right eye and both eyes.  If None,
+        recorded eye is used.  Default value is None.
     :param tuple period:
         Specify the period for data plotting *when the data is an instance of 
-        GazeParser.Core.GazeData*. The first element of the tuple specifies the start time 
-        of the period. If None is given as the first element, the data is plotted 
-        from the begenning. The second element is the end time of the period. I None is 
-        given as the second element, the data is plotted to the end.
-        The unit of these values are millisecond.
+        GazeParser.Core.GazeData*. The first element of the tuple specifies the 
+        start time of the period. If None is given as the first element, the
+        data is plotted from the begenning. The second element is the end time 
+        of the period. I None is given as the second element, the data is 
+        plotted to the end. The unit of these values are millisecond.
         Default value is (None, None).
     :param str style:
         'XY' or 'XYT' is accepted.  Default value is 'XY'.
+    :param tuple xlim:
+        If this value is not None, the value is passed tomatplotlib.pyplot.xlim().
+        Default value is None.
+    :param tuple ylim:
+        If this value is not None, the value is passed to matplotlib.pyplot.ylim().
+        Default value is None.
     """
     if isinstance(data,GazeParser.Core.SaccadeData) or isinstance(data,GazeParser.Core.FixationData):
         traj = data.getTraj(eye)
@@ -125,8 +132,6 @@ def quickPlot(data,eye=None,period=(None,None),style='XY'):
         else:
             ei = numpy.where(data._T<=period[1])[0][-1]
         
-        print si,ei
-        
         if style=='XY':
             if eye=='L':
                 pyplot.plot(data._L[si:ei,0],data._L[si:ei,1],'.-')
@@ -165,4 +170,9 @@ def quickPlot(data,eye=None,period=(None,None),style='XY'):
                 raise ValueError, 'eye must be \'L\', \'R\', or \'B\'.'
         else:
             raise ValueError, 'style must be XY or XYT.'
-
+    
+    if not xlim==None:
+        pyplot.xlim(xlim)
+    if not ylim==None:
+        pyplot.ylim(ylim)
+    
