@@ -73,6 +73,37 @@ ViewerOptions = [
 ]
 
 
+class plotRangeWindow(Tkinter.Frame):
+    def __init__(self,mainWindow,master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.currentPlotArea = mainWindow.currentPlotArea
+        self.ax = mainWindow.ax
+        self.fig = mainWindow.fig
+        
+        self.strings = [Tkinter.StringVar() for i in range(4)]
+        labels = ['Abcissa Min','Abcissa Max','Ordinate Min','Ordinate Max']
+        Tkinter.Label(self, text='Current View: ').grid(row=0,column=0,columnspan=2)
+        for i in range(4):
+            self.strings[i].set(str(self.currentPlotArea[i]))
+            Tkinter.Label(self, text=labels[i]).grid(row=i+1,column=0)
+            Tkinter.Entry(self, textvariable=self.strings[i]).grid(row=i+1,column=1)
+        Tkinter.Button(self, text='update', command=self._updatePlot).grid(row=5,column=0,columnspan=2)
+        self.pack()
+        
+    def _updatePlot(self,event=None):
+        tmpPlotArea = [0,0,0,0]
+        try:
+            for i in range(4):
+                tmpPlotArea[i] = float(self.strings[i].get())
+            
+            for i in range(4):
+                self.currentPlotArea[i] = tmpPlotArea[i]
+            
+            self.ax.axis(self.currentPlotArea)
+            self.fig.canvas.draw()
+        except:
+            tkMessageBox.showinfo('Error','Illeagal values')
+
 
 class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
@@ -431,6 +462,9 @@ class mainWindow(Tkinter.Frame):
             
             tkMessageBox.showinfo('Info','Done.')
     
+    def _configColor(self,event=None):
+        pass
+    
     def _exit(self,event=None):
         self._writeApplicationConfig()
         self.master.destroy()
@@ -502,14 +536,7 @@ class mainWindow(Tkinter.Frame):
     def _modifyPlotRange(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        strings = [Tkinter.StringVar() for i in range(4)]
-        labels = ['Abcissa Min','Abcissa Max','Ordinate Min','Ordinate Max']
-        Tkinter.Label(dlg, text='Current View: ').grid(row=0,column=0,columnspan=2)
-        for i in range(4):
-            strings[i].set(str(self.currentPlotArea[i]))
-            Tkinter.Label(dlg, text=labels[i]).grid(row=i+1,column=0)
-            Tkinter.Entry(dlg, textvariable=strings[i]).grid(row=i+1,column=1)
-        Tkinter.Button(dlg, text='Ok', command=dlg.destroy).grid(row=5,column=0,columnspan=2)
+        plotRangeWindow(master=dlg,mainWindow=self)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -518,18 +545,6 @@ class mainWindow(Tkinter.Frame):
         geo = parsegeometry(dlg.winfo_geometry())
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
         
-        tmpPlotArea = [0,0,0,0]
-        try:
-            for i in range(4):
-                tmpPlotArea[i] = int(strings[i].get())
-            
-            for i in range(4):
-                self.currentPlotArea[i] = tmpPlotArea[i]
-            
-            self.ax.axis(self.currentPlotArea)
-            self.fig.canvas.draw()
-        except:
-            tkMessageBox.showinfo('Error','Values must be integer')
     
     def _plotData(self):
         if self.D == None:
