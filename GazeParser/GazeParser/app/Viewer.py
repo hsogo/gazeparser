@@ -15,6 +15,7 @@ import shutil
 import Tkinter
 import tkFileDialog
 import tkMessageBox
+import tkColorChooser
 import Image
 import ImageTk
 import GazeParser
@@ -40,38 +41,166 @@ def parsegeometry(geometry):
 
 MAX_RECENT = 5
 
-ViewerOptions = [
-    ['Version',
-     [['VIEWER_VERSION','confVersion',str]]],
-    ['Appearance',
-     [['CANVAS_WIDTH','confCanvasWidth',int],
-      ['CANVAS_HEIGHT','confCanvasHeight',int],
-      ['CANVAS_DEFAULT_VIEW','confCanvasDefaultView',str],
-      ['CANVAS_SHOW_FIXNUMBER','confShowFixNum',bool],
-      ['CANVAS_FONT_FILE','confFontPlot',str],
-      ['COLOR_TRAJECTORY_L_SAC','confColorLS',str],
-      ['COLOR_TRAJECTORY_R_SAC','confColorRS',str],
-      ['COLOR_TRAJECTORY_L_FIX','confColorLF',str],
-      ['COLOR_TRAJECTORY_R_FIX','confColorRF',str],
-      ['COLOR_TRAJECTORY_L_X','confColorLX',str],
-      ['COLOR_TRAJECTORY_L_Y','confColorLY',str],
-      ['COLOR_TRAJECTORY_R_X','confColorRX',str],
-      ['COLOR_TRAJECTORY_R_Y','confColorRY',str],
-      ['COLOR_FIXATION_FC','confColorFixF',str],
-      ['COLOR_FIXATION_BG','confColorFixB',str],
-      ['COLOR_FIXATION_FC_E','confColorFixFE',str],
-      ['COLOR_FIXATION_BG_E','confColorFixBE',str],
-      ['COLOR_MESSAGE_CURSOR','confColorMsgCur',str],
-      ['COLOR_MESSAGE_FC','confColorMsgF',str],
-      ['COLOR_MESSAGE_BG','confColorMsgB',str]]],
-    ['Recent',
-     [['RECENT_DIR01','confRecentDir01',str],
-      ['RECENT_DIR02','confRecentDir02',str],
-      ['RECENT_DIR03','confRecentDir03',str],
-      ['RECENT_DIR04','confRecentDir04',str],
-      ['RECENT_DIR05','confRecentDir05',str]]]
-]
+class ViewerOptions(object):
+    options = [
+        ['Version',
+         [['VIEWER_VERSION',str]]],
+        ['Appearance',
+         [['CANVAS_WIDTH',int],
+          ['CANVAS_HEIGHT',int],
+          ['CANVAS_DEFAULT_VIEW',str],
+          ['CANVAS_SHOW_FIXNUMBER',bool],
+          ['CANVAS_FONT_FILE',str],
+          ['COLOR_TRAJECTORY_L_SAC',str],
+          ['COLOR_TRAJECTORY_R_SAC',str],
+          ['COLOR_TRAJECTORY_L_FIX',str],
+          ['COLOR_TRAJECTORY_R_FIX',str],
+          ['COLOR_TRAJECTORY_L_X',str],
+          ['COLOR_TRAJECTORY_L_Y',str],
+          ['COLOR_TRAJECTORY_R_X',str],
+          ['COLOR_TRAJECTORY_R_Y',str],
+          ['COLOR_FIXATION_FC',str],
+          ['COLOR_FIXATION_BG',str],
+          ['COLOR_FIXATION_FC_E',str],
+          ['COLOR_FIXATION_BG_E',str],
+          ['COLOR_MESSAGE_CURSOR',str],
+          ['COLOR_MESSAGE_FC',str],
+          ['COLOR_MESSAGE_BG',str]]],
+        ['Recent',
+         [['RECENT_DIR01',str],
+          ['RECENT_DIR02',str],
+          ['RECENT_DIR03',str],
+          ['RECENT_DIR04',str],
+          ['RECENT_DIR05',str]]]
+    ]
+    
+    def __init__(self):
+        initialConfigFile = os.path.join(os.path.dirname(__file__),'viewer.cfg')
+        appConfigDir = os.path.join(GazeParser.configDir, 'app')
+        if not os.path.isdir(appConfigDir):
+            os.mkdir(appConfigDir)
+        
+        self.viewerConfigFile = os.path.join(appConfigDir, 'viewer.cfg')
+        if not os.path.isfile(self.viewerConfigFile):
+            shutil.copyfile(initialConfigFile,self.viewerConfigFile)
+        
+        appConf = ConfigParser.SafeConfigParser()
+        appConf.optionxform = str
+        appConf.read(self.viewerConfigFile)
+        
+        try:
+            self.VIEWER_VERSION = appConf.get('Version','VIEWER_VERSION')
+        except:
+            ans = tkMessageBox.askyesno('Error','No VIEWER_VERSION option in configuration file (%s). Backup current file and then initialize configuration file?\n' % (self.viewerConfigFile))
+            if ans:
+                shutil.copyfile(self.viewerConfigFile,self.viewerConfigFile+'.bak')
+                shutil.copyfile(initialConfigFile,self.viewerConfigFile)
+                appConf = ConfigParser.SafeConfigParser()
+                appConf.optionxform = str
+                appConf.read(self.viewerConfigFile)
+                self.VIEWER_VERSION = appConf.get('Version','VIEWER_VERSION')
+            else:
+                tkMessageBox.showinfo('info','Please correct configuration file manually.')
+                sys.exit()
+        
+        doMerge = False
+        if self.VIEWER_VERSION != GazeParser.__version__:
+            ans = tkMessageBox.askyesno('Warning','VIEWER_VERSION of configuration file (%s) disagree with GazeParser version (%s). Backup current configuration file and build new configuration file?'%(self.VIEWER_VERSION, GazeParser.__version__))
+            if ans:
+                shutil.copyfile(self.viewerConfigFile,self.viewerConfigFile+'.bak')
+                doMerge = True
+            else:
+                tkMessageBox.showinfo('info','Please update configuration file manually.')
+                sys.exit()
+        
+        if doMerge:
+            appNewConf = ConfigParser.SafeConfigParser()
+            appNewConf.optionxform = str
+            appNewConf.read(initialConfigFile)
+            newOpts = []
+            for section,params in self.options:
+                for optName, optType in params:
+                    if section=='Version' and optName=='VIEWER_VERSION':
+                        setattr(self,optName,optType(appNewConf.get(section,optName)))
+                        newOpts.append(' * '+optName)
+                    elif appConf.has_option(section,optName):
+                        setattr(self,optName,optType(appConf.get(section,optName)))
+                    else:
+                        setattr(self,optName,optType(appNewConf.get(section,optName)))
+                        newOpts.append(' * '+optName)
+            #new version number
+            tkMessageBox.showinfo('info','Added:\n'+'\n'.join(newOpts))
+        
+        else:
+            for section,params in self.options:
+                for optName, optType in params:
+                    setattr(self,optName,optType(appConf.get(section,optName)))
+        
+        #set recent directories
+        self.RecentDir = []
+        for i in range(5):
+            d = getattr(self,'RECENT_DIR%02d' % (i+1))
+            if d != '':
+                self.RecentDir.append(d)
+        
+    
+    def _write(self):
+        #set recent directories
+        for i in range(5):
+            if i<len(self.RecentDir):
+                setattr(self, 'RECENT_DIR%02d' % (i+1), self.RecentDir[i])
+            else:
+                setattr(self, 'RECENT_DIR%02d' % (i+1), '')
+        
+        with open(self.viewerConfigFile, 'w') as fp:
+            for section,params in self.options:
+                fp.write('[%s]\n' % section)
+                for optName, optType in params:
+                    fp.write('%s = %s\n' % (optName, getattr(self,optName)))
+                fp.write('\n')
+    
 
+class configColorWindow(Tkinter.Frame):
+    def __init__(self,mainWindow,master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.mainWindow = mainWindow
+        r = 0
+        self.newColorDict = {}
+        self.origColorDict = {}
+        self.buttonDict = {}
+        for section in mainWindow.conf.options:
+            if section[0] == 'Appearance':
+                for item in section[1]:
+                    if item[0][0:5] != 'COLOR':
+                        continue
+                    name = item[0]
+                    self.origColorDict[name] = getattr(mainWindow.conf,name)
+                    self.newColorDict[name] = getattr(mainWindow.conf,name)
+                    Tkinter.Label(self, text=name).grid(row=r,column=0)
+                    self.buttonDict[name] = Tkinter.Button(self, text=self.newColorDict[name],command=functools.partial(self._chooseColor,name=name),bg=self.newColorDict[name])
+                    self.buttonDict[name].grid(row=r,column=1,sticky=Tkinter.W + Tkinter.E)
+                    r+=1
+        Tkinter.Button(self, text='Update plot', command=self._updatePlot).grid(row=r,column=0)
+        Tkinter.Button(self, text='Reset', command=self._resetColor).grid(row=r,column=1)
+        self.pack()
+    
+    def _chooseColor(self,name):
+        ret = tkColorChooser.askcolor()
+        if ret[1] != None:
+            self.newColorDict[name] = ret[1].upper()
+            self.buttonDict[name].config(text=self.newColorDict[name], bg=self.newColorDict[name])
+    
+    def _updatePlot(self,event=None):
+        for name in self.newColorDict.keys():
+            setattr(self.mainWindow.conf,name,self.newColorDict[name])
+        self.mainWindow._plotData()
+    
+    def _resetColor(self,event=None):
+        for name in self.origColorDict.keys():
+            setattr(self.mainWindow.conf,name,self.origColorDict[name])
+            self.newColorDict[name] = self.origColorDict[name]
+            self.buttonDict[name].config(text=self.origColorDict[name], bg=self.origColorDict[name])
+    
 
 class plotRangeWindow(Tkinter.Frame):
     def __init__(self,mainWindow,master=None):
@@ -87,7 +216,7 @@ class plotRangeWindow(Tkinter.Frame):
             self.strings[i].set(str(self.currentPlotArea[i]))
             Tkinter.Label(self, text=labels[i]).grid(row=i+1,column=0)
             Tkinter.Entry(self, textvariable=self.strings[i]).grid(row=i+1,column=1)
-        Tkinter.Button(self, text='update', command=self._updatePlot).grid(row=5,column=0,columnspan=2)
+        Tkinter.Button(self, text='Update plot', command=self._updatePlot).grid(row=5,column=0,columnspan=2)
         self.pack()
         
     def _updatePlot(self,event=None):
@@ -107,7 +236,7 @@ class plotRangeWindow(Tkinter.Frame):
 
 class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
-        self.readApplicationConfig()
+        self.conf = ViewerOptions()
         
         #self.ftypes = [('GazeParser/SimpleGazeTracker Datafile','*.db;*.csv')]
         self.ftypes = [('GazeParser Datafile','*.db'),('SimpleGazeTracker CSV file','*.csv')]
@@ -118,7 +247,7 @@ class mainWindow(Tkinter.Frame):
         self.plotAreaXY = [0,1024,0,768]
         self.plotAreaTXY = [0,3000,0,1024]
         self.dataFileName = 'Please open data file.'
-        if self.confCanvasDefaultView == 'TXY':
+        if self.conf.CANVAS_DEFAULT_VIEW == 'TXY':
             self.plotStyle ='TXY'
             self.currentPlotArea = self.plotAreaTXY
         elif self.confCanvasDefaultView == 'XY':
@@ -136,16 +265,19 @@ class mainWindow(Tkinter.Frame):
         self.menu_view = Tkinter.Menu(tearoff=False)
         self.menu_convert = Tkinter.Menu(tearoff=False)
         self.menu_recent = Tkinter.Menu(tearoff=False)
+        self.menu_config = Tkinter.Menu(tearoff=False)
         self.menu_bar.add_cascade(label='File',menu=self.menu_file,underline=0)
         self.menu_bar.add_cascade(label='View',menu=self.menu_view,underline=0)
         self.menu_bar.add_cascade(label='Convert',menu=self.menu_convert,underline=0)
+        self.menu_bar.add_cascade(label='Config',menu=self.menu_config,underline=0)
+        
         self.menu_file.add_command(label='Open',under=0,command=self._openfile)
         self.menu_file.add_cascade(label='Recent Dir',menu=self.menu_recent,underline=0)
-        if self.confRecentDir == []:
+        if self.conf.RecentDir == []:
             self.menu_recent.add_command(label='None',state=Tkinter.DISABLED)
         else:
-            for i in range(len(self.confRecentDir)):
-                self.menu_recent.add_command(label=self.confRecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
+            for i in range(len(self.conf.RecentDir)):
+                self.menu_recent.add_command(label=self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
         self.menu_file.add_command(label='Export',under=0,command=self._exportfile)
         self.menu_file.add_command(label='Exit',under=0,command=self._exit)
         self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
@@ -158,6 +290,9 @@ class mainWindow(Tkinter.Frame):
         self.menu_convert.add_command(label='Convert Eyelink EDF',under=0,command=self._convertEL)
         self.menu_convert.add_command(label='Convert Tobii TSV',under=0,command=self._convertTSV)
         self.menu_convert.add_command(label='Interactive config',under=0,command=self._interactive)
+        
+        self.menu_config.add_command(label='config color', under=0, command=self._configColor)
+        
         self.master.configure(menu = self.menu_bar)
         
         self.selectiontype = Tkinter.StringVar()
@@ -167,13 +302,13 @@ class mainWindow(Tkinter.Frame):
         self.viewFrame = Tkinter.Frame(master)
         self.fig = matplotlib.figure.Figure()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.viewFrame)
-        self.canvas._tkcanvas.config(height=self.confCanvasHeight,
-                                     width=self.confCanvasWidth,
+        self.canvas._tkcanvas.config(height=self.conf.CANVAS_HEIGHT,
+                                     width=self.conf.CANVAS_WIDTH,
                                      background='#C0C0C0', borderwidth=0, highlightthickness=0)
-        self.ax = self.fig.add_axes([80.0/self.confCanvasWidth, #80px
-                                     60.0/self.confCanvasHeight, #60px
-                                     1.0-2*80.0/self.confCanvasWidth,
-                                     1.0-2*60.0/self.confCanvasHeight])
+        self.ax = self.fig.add_axes([80.0/self.conf.CANVAS_WIDTH, #80px
+                                     60.0/self.conf.CANVAS_HEIGHT, #60px
+                                     1.0-2*80.0/self.conf.CANVAS_WIDTH,
+                                     1.0-2*60.0/self.conf.CANVAS_HEIGHT])
         self.ax.axis(self.currentPlotArea)
         self.canvas._tkcanvas.pack(side=Tkinter.TOP, fill=Tkinter.BOTH, expand=True)
         
@@ -201,95 +336,10 @@ class mainWindow(Tkinter.Frame):
         self.master.bind('<Right>', self._nextTrial)
         self.msglistbox.bind('<Double-Button-1>', self._jumpToTime)
         
-        if self.confFontPlot != '':
-            self.fontPlotText = matplotlib.font_manager.FontProperties(fname=self.confFontPlot)
+        if self.conf.CANVAS_FONT_FILE != '':
+            self.fontPlotText = matplotlib.font_manager.FontProperties(fname=self.conf.CANVAS_FONT_FILE)
         else:
             self.fontPlotText = matplotlib.font_manager.FontProperties()
-    
-    
-    def readApplicationConfig(self):
-        initialConfigFile = os.path.join(os.path.dirname(__file__),'viewer.cfg')
-        appConfigDir = os.path.join(GazeParser.configDir, 'app')
-        if not os.path.isdir(appConfigDir):
-            os.mkdir(appConfigDir)
-        
-        self.viewerConfigFile = os.path.join(appConfigDir, 'viewer.cfg')
-        if not os.path.isfile(self.viewerConfigFile):
-            shutil.copyfile(initialConfigFile,self.viewerConfigFile)
-        
-        self.appConf = ConfigParser.SafeConfigParser()
-        self.appConf.optionxform = str
-        self.appConf.read(self.viewerConfigFile)
-        
-        try:
-            self.confVersion = self.appConf.get('Version','VIEWER_VERSION')
-        except:
-            ans = tkMessageBox.askyesno('Error','No VIEWER_VERSION option in configuration file (%s). Backup current file and then initialize configuration file?\n' % (self.viewerConfigFile))
-            if ans:
-                shutil.copyfile(self.viewerConfigFile,self.viewerConfigFile+'.bak')
-                shutil.copyfile(initialConfigFile,self.viewerConfigFile)
-                self.appConf = ConfigParser.SafeConfigParser()
-                self.appConf.optionxform = str
-                self.appConf.read(self.viewerConfigFile)
-                self.confVersion = self.appConf.get('Version','VIEWER_VERSION')
-            else:
-                tkMessageBox.showinfo('info','Please correct configuration file manually.')
-                sys.exit()
-        
-        doMerge = False
-        if self.confVersion != GazeParser.__version__:
-            ans = tkMessageBox.askyesno('Warning','VIEWER_VERSION of configuration file (%s) disagree with GazeParser version (%s). Backup current configuration file and build new configuration file?'%(self.confVersion, GazeParser.__version__))
-            if ans:
-                shutil.copyfile(self.viewerConfigFile,self.viewerConfigFile+'.bak')
-                doMerge = True
-            else:
-                tkMessageBox.showinfo('info','Please update configuration file manually.')
-                sys.exit()
-        
-        if doMerge:
-            appNewConf = ConfigParser.SafeConfigParser()
-            appNewConf.optionxform = str
-            appNewConf.read(initialConfigFile)
-            newOpts = []
-            for section,params in ViewerOptions:
-                for optName, attrName, optType in params:
-                    if section=='Version' and optName=='VIEWER_VERSION':
-                        setattr(self,attrName,optType(appNewConf.get(section,optName)))
-                        newOpts.append(' * '+optName)
-                    elif self.appConf.has_option(section,optName):
-                        setattr(self,attrName,optType(self.appConf.get(section,optName)))
-                    else:
-                        setattr(self,attrName,optType(appNewConf.get(section,optName)))
-                        newOpts.append(' * '+optName)
-            #new version number
-            tkMessageBox.showinfo('info','Added:\n'+'\n'.join(newOpts))
-        
-        else:
-            for section,params in ViewerOptions:
-                for optName, attrName, optType in params:
-                    setattr(self,attrName,optType(self.appConf.get(section,optName)))
-        
-        #set recent directories
-        self.confRecentDir = []
-        for i in range(5):
-            d = getattr(self,'confRecentDir%02d' % (i+1))
-            if d != '':
-                self.confRecentDir.append(d)
-    
-    def _writeApplicationConfig(self):
-        #set recent directories
-        for i in range(5):
-            if i<len(self.confRecentDir):
-                setattr(self, 'confRecentDir%02d' % (i+1), self.confRecentDir[i])
-            else:
-                setattr(self, 'confRecentDir%02d' % (i+1), '')
-        
-        with open(self.viewerConfigFile, 'w') as fp:
-            for section,params in ViewerOptions:
-                fp.write('[%s]\n' % section)
-                for optName, attrName, optType in params:
-                    fp.write('%s = %s\n' % (optName, getattr(self,attrName)))
-                fp.write('\n')
     
     def _toggleView(self, event=None):
         if self.plotStyle == 'XY':
@@ -302,10 +352,10 @@ class mainWindow(Tkinter.Frame):
         self._plotData()
         
     def _toggleFixNum(self, event=None):
-        if self.confShowFixNum:
-            self.confShowFixNum = False
+        if self.conf.CANVAS_SHOW_FIXNUMBER:
+            self.conf.CANVAS_SHOW_FIXNUMBER = False
         else:
-            self.confShowFixNum = True
+            self.conf.CANVAS_SHOW_FIXNUMBER = True
         
         self._plotData()
     
@@ -315,15 +365,15 @@ class mainWindow(Tkinter.Frame):
             return
         self.initialDataDir = os.path.split(self.dataFileName)[0]
         #record recent dir
-        if self.initialDataDir in self.confRecentDir:
-            self.confRecentDir.remove(self.initialDataDir)
-        self.confRecentDir.insert(0,self.initialDataDir)
-        if len(self.confRecentDir)>MAX_RECENT:
-            self.confRecentDir = self.confRecentDir[:MAX_RECENT]
+        if self.initialDataDir in self.conf.RecentDir:
+            self.conf.RecentDir.remove(self.initialDataDir)
+        self.conf.RecentDir.insert(0,self.initialDataDir)
+        if len(self.conf.RecentDir)>MAX_RECENT:
+            self.conf.RecentDir = self.conf.RecentDir[:MAX_RECENT]
         #update menu recent_dir
         self.menu_recent.delete(0,MAX_RECENT)
-        for i in range(len(self.confRecentDir)):
-            self.menu_recent.add_command(label=self.confRecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
+        for i in range(len(self.conf.RecentDir)):
+            self.menu_recent.add_command(label=self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
         
         #if extension is .csv, try converting
         if os.path.splitext(self.dataFileName)[1].lower() == '.csv':
@@ -381,7 +431,7 @@ class mainWindow(Tkinter.Frame):
         self._updateMsgBox()
     
     def _openRecent(self, d):
-        self.initialDataDir = self.confRecentDir[d]
+        self.initialDataDir = self.conf.RecentDir[d]
         self._openfile()
     
     def _exportfile(self,event=None):
@@ -463,10 +513,19 @@ class mainWindow(Tkinter.Frame):
             tkMessageBox.showinfo('Info','Done.')
     
     def _configColor(self,event=None):
-        pass
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        configColorWindow(master=dlg,mainWindow=self)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _exit(self,event=None):
-        self._writeApplicationConfig()
+        self.conf._write()
         self.master.destroy()
         
     def _prevTrial(self, event=None):
@@ -557,33 +616,33 @@ class mainWindow(Tkinter.Frame):
             for f in range(self.D[self.tr].nFix):
                 if self.hasLData:
                     ftraj = self.D[self.tr].getFixTraj(f,'L')
-                    col = self.confColorLF
+                    col = self.conf.COLOR_TRAJECTORY_L_FIX
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=4.0,color=col)
-                            if self.confShowFixNum:
+                            if self.conf.CANVAS_SHOW_FIXNUMBER:
                                 self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
-                                             color=self.confColorFixFE,
-                                             bbox=dict(boxstyle="round", fc=self.confColorFixBE, clip_on=True, clip_box=self.ax.bbox),
+                                             color=self.conf.COLOR_FIXATION_FC_E,
+                                             bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG_E, clip_on=True, clip_box=self.ax.bbox),
                                              fontproperties = self.fontPlotText, clip_on=True)
                         else:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
-                            if self.confShowFixNum:
+                            if self.conf.CANVAS_SHOW_FIXNUMBER:
                                 self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
-                                             color=self.confColorFixF,
-                                             bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
+                                             color=self.conf.COLOR_FIXATION_FC,
+                                             bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
                                              fontproperties = self.fontPlotText, clip_on=True)
                     else:
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
-                            if self.confShowFixNum:
+                            if self.conf.CANVAS_SHOW_FIXNUMBER:
                                 self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
-                                             color=self.confColorFixF,
-                                             bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
+                                             color=self.conf.COLOR_FIXATION_FC,
+                                             bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
                                              fontproperties = self.fontPlotText, clip_on=True)
                 if self.hasRData:
                     ftraj = self.D[self.tr].getFixTraj(f,'R')
-                    col = self.confColorRF
+                    col = self.conf.COLOR_TRAJECTORY_R_FIX
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
                             self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=4.0,color=col)
@@ -597,7 +656,7 @@ class mainWindow(Tkinter.Frame):
             for s in range(self.D[self.tr].nSac):
                 if self.hasLData:
                     straj = self.D[self.tr].getSacTraj(s,'L')
-                    col = self.confColorLS
+                    col = self.conf.COLOR_TRAJECTORY_L_SAC
                     if self.selectiontype.get()=='Emphasize':
                         if s in self.selectionlist['Sac']:
                             self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=4.0,color=col)
@@ -608,7 +667,7 @@ class mainWindow(Tkinter.Frame):
                             self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=1.0,color=col)
                 if self.hasRData:
                     straj = self.D[self.tr].getSacTraj(s,'R')
-                    col = self.confColorRS
+                    col = self.conf.COLOR_TRAJECTORY_R_SAC
                     if self.selectiontype.get()=='Emphasize':
                         if s in self.selectionlist['Sac']:
                             self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=4.0,color=col)
@@ -622,30 +681,30 @@ class mainWindow(Tkinter.Frame):
             tStart = self.D[self.tr].T[0]
             t = self.D[self.tr].T-tStart
             if self.hasLData:
-                self.ax.plot(t,self.D[self.tr].L[:,0],'.-',color=self.confColorLX)
-                self.ax.plot(t,self.D[self.tr].L[:,1],'.-',color=self.confColorLY)
+                self.ax.plot(t,self.D[self.tr].L[:,0],'.-',color=self.conf.COLOR_TRAJECTORY_L_X)
+                self.ax.plot(t,self.D[self.tr].L[:,1],'.-',color=self.conf.COLOR_TRAJECTORY_L_Y)
             if self.hasRData:
-                self.ax.plot(t,self.D[self.tr].R[:,0],'.-',color=self.confColorRX)
-                self.ax.plot(t,self.D[self.tr].R[:,1],'.-',color=self.confColorRY)
+                self.ax.plot(t,self.D[self.tr].R[:,0],'.-',color=self.conf.COLOR_TRAJECTORY_R_X)
+                self.ax.plot(t,self.D[self.tr].R[:,1],'.-',color=self.conf.COLOR_TRAJECTORY_R_Y)
             
-            if self.confShowFixNum:
+            if self.conf.CANVAS_SHOW_FIXNUMBER:
                 for f in range(self.D[self.tr].nFix):
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
                             self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0],str(f),
-                                         color=self.confColorFixFE,
-                                         bbox=dict(boxstyle="round", fc=self.confColorFixBE, clip_on=True, clip_box=self.ax.bbox),
+                                         color=self.conf.COLOR_FIXATION_FC_E,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG_E, clip_on=True, clip_box=self.ax.bbox),
                                          fontproperties = self.fontPlotText, clip_on=True)
                         else:
                             self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0],str(f),
-                                         color=self.confColorFixF,
-                                         bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
                                          fontproperties = self.fontPlotText, clip_on=True)
                     else:
                         if f in self.selectionlist['Fix']:
                             self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0], str(f),
-                                         color=self.confColorFixF,
-                                         bbox=dict(boxstyle="round", fc=self.confColorFixB, clip_on=True, clip_box=self.ax.bbox),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
                                          fontproperties = self.fontPlotText, clip_on=True)
             
             for s in range(self.D[self.tr].nSac):
@@ -675,9 +734,9 @@ class mainWindow(Tkinter.Frame):
                     msgtext = str(m) + ':' + mObj.text[:7] + '...'
                 else:
                     msgtext = str(m) + ':' + mObj.text
-                self.ax.plot([mObj.time,mObj.time], [-10000,10000], '-', color=self.confColorMsgCur, linewidth=3.0)
-                self.ax.text(mObj.time, 0, msgtext, color=self.confColorMsgF,
-                             bbox=dict(boxstyle="round", fc=self.confColorMsgB, clip_on=True, clip_box=self.ax.bbox),
+                self.ax.plot([mObj.time,mObj.time], [-10000,10000], '-', color=self.conf.COLOR_MESSAGE_CURSOR, linewidth=3.0)
+                self.ax.text(mObj.time, 0, msgtext, color=self.conf.COLOR_MESSAGE_FC,
+                             bbox=dict(boxstyle="round", fc=self.conf.COLOR_MESSAGE_BG, clip_on=True, clip_box=self.ax.bbox),
                              fontproperties = self.fontPlotText, clip_on=True)
             
         self.ax.axis(self.currentPlotArea)
@@ -694,13 +753,13 @@ class mainWindow(Tkinter.Frame):
         for e in self.D[self.tr].EventList:
             if isinstance(e,GazeParser.SaccadeData):
                 self.msglistbox.insert(Tkinter.END,str(e.startTime)+':Sac')
-                #self.msglistbox.itemconfig(Tkinter.END, bg=self.confColorLS)
+                #self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_TRAJECTORY_L_SAC)
             elif isinstance(e,GazeParser.FixationData):
                 self.msglistbox.insert(Tkinter.END,str(e.startTime)+':Fix')
-                #self.msglistbox.itemconfig(Tkinter.END, bg=self.confColorLF)
+                #self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_TRAJECTORY_L_FIX)
             elif isinstance(e,GazeParser.MessageData):
                 self.msglistbox.insert(Tkinter.END,str(e.time)+':'+e.text)
-                self.msglistbox.itemconfig(Tkinter.END, bg=self.confColorMsgB, fg=self.confColorMsgF)
+                self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_MESSAGE_BG, fg=self.conf.COLOR_MESSAGE_FC)
             elif isinstance(e,GazeParser.BlinkData):
                 self.msglistbox.insert(Tkinter.END,str(e.startTime)+':Blk')
     
