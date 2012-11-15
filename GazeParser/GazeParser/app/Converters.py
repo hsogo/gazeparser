@@ -33,14 +33,14 @@ class Converter(Tkinter.Frame):
         self.useParameters.set(True)
         
         self.paramFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
-        self.config = GazeParser.Configuration.Config()
+        self.configuration = GazeParser.Configuration.Config()
         
         self.stringVarDict = {}
         self.paramEntryDict = {}
         r = 0
         for key in GazeParser.Configuration.GazeParserOptions:
             self.stringVarDict[key] = Tkinter.StringVar()
-            self.stringVarDict[key].set(getattr(self.config, key))
+            self.stringVarDict[key].set(getattr(self.configuration, key))
             Tkinter.Label(self.paramFrame, text=key).grid(row=r, column=0, sticky=Tkinter.W)
             self.paramEntryDict[key] = Tkinter.Entry(self.paramFrame, textvariable=self.stringVarDict[key])
             self.paramEntryDict[key].grid(row=r, column=1)
@@ -100,7 +100,7 @@ class Converter(Tkinter.Frame):
         errorlist = []
         for f in fnames:
             try:
-                res = GazeParser.Converter.TrackerToGazeParser(f,overwrite=overwrite,config=self.config,useFileParameters=usefileparameters)
+                res = GazeParser.Converter.TrackerToGazeParser(f,overwrite=overwrite,config=self.configuration,useFileParameters=usefileparameters)
             except:
                 info = sys.exc_info()
                 tbinfo = traceback.format_tb(info[2])
@@ -128,22 +128,22 @@ class Converter(Tkinter.Frame):
             initialdir = GazeParser.homeDir
         self.configFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes, initialdir=initialdir)
         try:
-            self.config = GazeParser.Configuration.Config(self.configFileName)
+            self.configuration = GazeParser.Configuration.Config(self.configFileName)
         except:
             tkMessageBox.showerror('GazeParser.Configuration.GUI','Cannot read %s.\nThis file may not be a GazeParser ConfigFile' % self.configFileName)
         
         for key in GazeParser.Configuration.GazeParserOptions:
-            self.stringVarDict[key].set(getattr(self.config,key))
+            self.stringVarDict[key].set(getattr(self.configuration,key))
         
     def _updateParameters(self):
         for key in GazeParser.Configuration.GazeParserOptions:
             value = self.stringVarDict[key].get()
             if isinstance(GazeParser.Configuration.GazeParserDefaults[key], int):
-                setattr(self.config, key, int(value))
+                setattr(self.configuration, key, int(value))
             elif isinstance(GazeParser.Configuration.GazeParserDefaults[key], float):
-                setattr(self.config, key, float(value))
+                setattr(self.configuration, key, float(value))
             else:
-                setattr(self.config, key, value)
+                setattr(self.configuration, key, value)
     
     def _onClickChoiceFrame(self):
         if self.useParameters.get():
@@ -187,14 +187,14 @@ class EyelinkConverter(Tkinter.Frame):
         self.master.title('GazeParser Data Converter (Eyelink)')
         
         self.mainFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
-        self.config = GazeParser.Configuration.Config()
+        self.configuration = GazeParser.Configuration.Config()
         
         self.stringVarDict = {}
         r = 0
         
         for key in GazeParser.Configuration.GazeParserOptions:
             self.stringVarDict[key] = Tkinter.StringVar()
-            self.stringVarDict[key].set(getattr(self.config, key))
+            self.stringVarDict[key].set(getattr(self.configuration, key))
             Tkinter.Label(self.mainFrame, text=key).grid(row=r, column=0, sticky=Tkinter.W)
             Tkinter.Entry(self.mainFrame, textvariable=self.stringVarDict[key]).grid(row=r, column=1)
             r+=1
@@ -229,7 +229,7 @@ class EyelinkConverter(Tkinter.Frame):
         errorlist = []
         for f in fnames:
             try:
-                res = GazeParser.Converter.EyelinkToGazeParser(f,'B',overwrite=overwrite,config=self.config)
+                res = GazeParser.Converter.EyelinkToGazeParser(f,'B',overwrite=overwrite,config=self.configuration)
             except:
                 info = sys.exc_info()
                 tbinfo = traceback.format_tb(info[2])
@@ -252,20 +252,20 @@ class EyelinkConverter(Tkinter.Frame):
     def _loadConfig(self):
         self.ftypes = [('GazeParser ConfigFile', '*.cfg')]
         self.configFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes, initialdir=GazeParser.configDir)
-        self.config = GazeParser.Configuration.Config(self.configFileName)
+        self.configuration = GazeParser.Configuration.Config(self.configFileName)
         
         for key in GazeParser.Configuration.GazeParserOptions:
-            self.stringVarDict[key].set(getattr(self.config,key))
+            self.stringVarDict[key].set(getattr(self.configuration,key))
         
     def _updateParameters(self):
         for key in GazeParser.Configuration.GazeParserOptions:
             value = self.stringVarDict[key].get()
             if isinstance(GazeParser.Configuration.GazeParserDefaults[key], int):
-                setattr(self.config, key, int(value))
+                setattr(self.configuration, key, int(value))
             elif isinstance(GazeParser.Configuration.GazeParserDefaults[key], float):
-                setattr(self.config, key, float(value))
+                setattr(self.configuration, key, float(value))
             else:
-                setattr(self.config, key, value)
+                setattr(self.configuration, key, value)
     
 class TobiiConverter(Tkinter.Frame):
     def __init__(self, master=None):
@@ -273,14 +273,14 @@ class TobiiConverter(Tkinter.Frame):
         self.master.title('GazeParser Data Converter (Tobii)')
         
         self.mainFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
-        self.config = GazeParser.Configuration.Config()
+        self.configuration = GazeParser.Configuration.Config()
         
         self.stringVarDict = {}
         r = 0
         
         for key in GazeParser.Configuration.GazeParserOptions:
             self.stringVarDict[key] = Tkinter.StringVar()
-            self.stringVarDict[key].set(getattr(self.config, key))
+            self.stringVarDict[key].set(getattr(self.configuration, key))
             Tkinter.Label(self.mainFrame, text=key).grid(row=r, column=0, sticky=Tkinter.W)
             Tkinter.Entry(self.mainFrame, textvariable=self.stringVarDict[key]).grid(row=r, column=1)
             r+=1
@@ -314,7 +314,7 @@ class TobiiConverter(Tkinter.Frame):
         errorlist = []
         for f in fnames:
             try:
-                res = GazeParser.Converter.TobiiToGazeParser(f,overwrite=overwrite,config=self.config)
+                res = GazeParser.Converter.TobiiToGazeParser(f,overwrite=overwrite,config=self.configuration)
             except:
                 info = sys.exc_info()
                 tbinfo = traceback.format_tb(info[2])
@@ -337,34 +337,35 @@ class TobiiConverter(Tkinter.Frame):
     def _loadConfig(self):
         self.ftypes = [('GazeParser ConfigFile', '*.cfg')]
         self.configFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes, initialdir=GazeParser.configDir)
-        self.config = GazeParser.Configuration.Config(self.configFileName)
+        self.configuration = GazeParser.Configuration.Config(self.configFileName)
         
         for key in GazeParser.Configuration.GazeParserOptions:
-            self.stringVarDict[key].set(getattr(self.config,key))
+            self.stringVarDict[key].set(getattr(self.configuration,key))
         
     def _updateParameters(self):
         for key in GazeParser.Configuration.GazeParserOptions:
             value = self.stringVarDict[key].get()
             if isinstance(GazeParser.Configuration.GazeParserDefaults[key], int):
-                setattr(self.config, key, int(value))
+                setattr(self.configuration, key, int(value))
             elif isinstance(GazeParser.Configuration.GazeParserDefaults[key], float):
-                setattr(self.config, key, float(value))
+                setattr(self.configuration, key, float(value))
             else:
-                setattr(self.config, key, value)
+                setattr(self.configuration, key, value)
     
 
 
 class InteractiveConfig(Tkinter.Frame):
-    """
-    .. todo:: Support new converter.
-    
-    .. warning:: Currently this tool doesn't work.
-    """
-    def __init__(self, master = None):
+    def __init__(self, master=None, data=None, additional=None):
         self.ftypes = [('GazeParser Datafile','*.db')]
         self.configtypes = [('GazeParser Configuration File','*.cfg')]
-        self.D = None
-        self.C = None
+        if data==None:
+            self.dataFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes,initialdir=GazeParser.homeDir)
+            if self.dataFileName=='':
+                return
+            [self.D,self.C] = GazeParser.load(self.dataFileName)
+        else:
+            self.D = data
+            self.C = additional
         self.tr = 0
         self.currentPlotArea = [0,3000,0,1024]
         self.relativeRangeX = 1.0
@@ -372,8 +373,9 @@ class InteractiveConfig(Tkinter.Frame):
         self.dataFileName = 'Please open data file.'
         self.newFixList = None
         self.newSacList = None
-        
-        self.config = None
+        self.newL = None
+        self.newR = None
+        self.newConfig = None
         
         Tkinter.Frame.__init__(self,master)
         self.master.title('GazeParser Adjust-Parameters')
@@ -382,7 +384,8 @@ class InteractiveConfig(Tkinter.Frame):
         self.menu_view = Tkinter.Menu(tearoff=False)
         menu_bar.add_cascade(label='File',menu=menu_file,underline=0)
         menu_bar.add_cascade(label='View',menu=self.menu_view,underline=0)
-        menu_file.add_command(label='Open',under=0,command=self._openfile)
+        if self.D==None:
+            menu_file.add_command(label='Open',under=0,command=self._openfile)
         menu_file.add_command(label='Export Config',under=0,command=self._exportConfig)
         menu_file.add_command(label='Exit',under=0,command=self._exit)
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
@@ -406,27 +409,27 @@ class InteractiveConfig(Tkinter.Frame):
         toolbar.pack(side=Tkinter.TOP)
         self.viewFrame.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
         
-        paramStr = ''
+        self.newParamStringsDict = {}
+        self.paramFrame = Tkinter.Frame(self.mainFrame, bd=3, relief='groove') #subFrame
+        r=0
+        Tkinter.Label(self.paramFrame, text='Original').grid(row=r,column=1)
+        Tkinter.Label(self.paramFrame, text='New').grid(row=r,column=2)
         for key in GazeParser.Configuration.GazeParserOptions:
-            paramStr += '%s =\n' % (key,)
-        self.paramFrame1 = Tkinter.Frame(self.mainFrame, bd=3, relief='groove') #subFrame1
-        self.param1Text = Tkinter.StringVar()
-        self.param1Text.set('Original Configuration\n\n'+paramStr)
-        param1Label = Tkinter.Label(self.paramFrame1,textvariable=self.param1Text,justify=Tkinter.LEFT)
-        param1Label.pack(side=Tkinter.TOP)
-        self.paramFrame1.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
-        
-        self.paramFrame2 = Tkinter.Frame(self.mainFrame, bd=3, relief='groove') #subFrame2
-        self.param2Text = Tkinter.StringVar()
-        self.param2Text.set('New Configuration\n\n'+paramStr)
-        param2Label = Tkinter.Label(self.paramFrame2,textvariable=self.param2Text,justify=Tkinter.LEFT)
-        param2Label.pack(side=Tkinter.TOP)
-        Tkinter.Button(self.paramFrame2, text='Edit', command=self._editParameters).pack(side=Tkinter.TOP)
-        self.paramFrame2.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
-        
+            r += 1
+            Tkinter.Label(self.paramFrame, text=key).grid(row=r,column=0,sticky=Tkinter.W,)
+            self.newParamStringsDict[key] = Tkinter.StringVar()
+            self.newParamStringsDict[key].set(getattr(self.D[self.tr].config,key))
+            Tkinter.Label(self.paramFrame, text=str(getattr(self.D[self.tr].config,key))).grid(row=r,column=1,sticky=Tkinter.W,)
+            Tkinter.Entry(self.paramFrame, textvariable=self.newParamStringsDict[key]).grid(row=r,column=2)
+        r+=1
+        Tkinter.Button(self.paramFrame, text='Update', command=self._updateParameters).grid(row=r,column=0,columnspan=3)
+        self.paramFrame.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
         self.mainFrame.pack(side=Tkinter.TOP,fill=Tkinter.BOTH,expand=True)
         
-        
+        if self.D!=None:
+            self._plotData()
+    
+    """
     def _openfile(self, event=None):
         self.dataFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes,initialdir=GazeParser.homeDir)
         if self.dataFileName=='':
@@ -436,6 +439,8 @@ class InteractiveConfig(Tkinter.Frame):
         self.tr = 0
         self.newSacList = None
         self.newSacList = None
+        self.newL = None
+        self.newR = None
         configStr = 'Original Configuration\n\n'
         for key in GazeParser.Configuration.GazeParserOptions:
             configStr += '%s = %s\n' % (key, getattr(self.D[self.tr].config, key))
@@ -444,7 +449,8 @@ class InteractiveConfig(Tkinter.Frame):
         self.currentPlotArea[3] = max(self.D[self.tr].config.SCREEN_WIDTH, self.D[self.tr].config.SCREEN_HEIGHT)
         
         self._plotData()
-        
+    """
+    
     def _exit(self,event=None):
         self.master.destroy()
         
@@ -486,6 +492,12 @@ class InteractiveConfig(Tkinter.Frame):
         
         tStart = self.D[self.tr].T[0]
         t = self.D[self.tr].T-tStart
+        if self.newL != None:
+            self.ax.plot(t,self.newL[:,0],':',color=(1,0,1))
+            self.ax.plot(t,self.newL[:,1],':',color=(0,0,1))
+        if self.newR != None:
+            self.ax.plot(t,self.newR[:,0],'.-',color=(1,0,0.5))
+            self.ax.plot(t,self.newR[:,1],'.-',color=(0,0,0.5))
         if self.D[self.tr].config.RECORDED_EYE != 'R':
             self.ax.plot(t,self.D[self.tr].L[:,0],'.-',color=(1,0,1))
             self.ax.plot(t,self.D[self.tr].L[:,1],'.-',color=(0,0,1))
@@ -493,19 +505,17 @@ class InteractiveConfig(Tkinter.Frame):
             self.ax.plot(t,self.D[self.tr].R[:,0],'.-',color=(1,0,0.5))
             self.ax.plot(t,self.D[self.tr].R[:,1],'.-',color=(0,0,0.5))
         
-        
         for f in range(self.D[self.tr].nFix):
-            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),color=(0.0,0.0,0.0),bbox=dict(boxstyle="round", fc="0.8"))
+            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),color=(0.0,0.0,0.0),
+                         bbox=dict(boxstyle="round", fc="0.8", clip_on=True, clip_box=self.ax.bbox), clip_on=True)
         
         for s in range(self.D[self.tr].nSac):
             self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000], self.D[self.tr].Sac[s].duration,20000,ec=(0.0,0.0,0.6),hatch='/',fc=(0.6,0.6,0.9),alpha=0.3))
         
-        #for b in range(self.D[self.tr].nBlink):
-        #    self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Blink[b].startTime-tStart,-10000], self.D[self.tr].Blink[b].duration,20000,ec='none',fc=(0.8,0.8,0.8)))
-        
         if self.newSacList != None and self.newFixList != None:
             for f in range(len(self.newFixList)):
-                self.ax.text(self.newFixList[f].startTime-tStart,self.newFixList[f].center[0]-50,str(f),color=(0.5,0.0,0.0),bbox=dict(boxstyle="round", fc=(1.0,0.8,0.8)))
+                self.ax.text(self.newFixList[f].startTime-tStart,self.newFixList[f].center[0]-50,str(f),color=(0.5,0.0,0.0),
+                             bbox=dict(boxstyle="round", fc=(1.0,0.8,0.8), clip_on=True, clip_box=self.ax.bbox), clip_on=True)
             
             for s in range(len(self.newSacList)):
                 self.ax.add_patch(matplotlib.patches.Rectangle([self.newSacList[s].startTime-tStart,-10000], self.newSacList[s].duration,20000,ec=(0.6,0.0,0.0),hatch='/',fc=(0.9,0.6,0.6),alpha=0.3))
@@ -516,66 +526,49 @@ class InteractiveConfig(Tkinter.Frame):
         
         self.fig.canvas.draw()
     
-    def _editParameters(self):
+    def _updateParameters(self):
         if self.D == None:
             tkMessageBox.showerror('Error','No data!')
             return
             
-        if self.config==None:
-            self.config = copy.deepcopy(self.D[self.tr].config)
+        if self.newConfig==None:
+            self.newConfig = copy.deepcopy(self.D[self.tr].config)
         
         self.StringVarDict = {}
-        dlg = Tkinter.Toplevel(self)
-        r = 0
-        for key in GazeParser.Configuration.GazeParserOptions:
-            self.StringVarDict[key] = Tkinter.StringVar()
-            self.StringVarDict[key].set(getattr(self.config,key))
-            Tkinter.Label(dlg, text=key).grid(row=r, column=0, sticky=Tkinter.W)
-            Tkinter.Entry(dlg, textvariable=self.StringVarDict[key]).grid(row=r, column=1)
-            r+=1
-        dlg.focus_set()
-        dlg.grab_set()
-        dlg.transient(self)
-        dlg.resizable(0, 0)
-        dlg.wait_window(dlg)
         
         try:
             for key in GazeParser.Configuration.GazeParserOptions:
-                value = self.StringVarDict[key].get()
+                value = self.newParamStringsDict[key].get()
                 if isinstance(GazeParser.Configuration.GazeParserDefaults[key], int):
-                    setattr(self.config, key, int(value))
+                    setattr(self.newConfig, key, int(value))
                 elif isinstance(GazeParser.Configuration.GazeParserDefaults[key], float):
-                    setattr(self.config, key, float(value))
+                    setattr(self.newConfig, key, float(value))
                 else:
-                    setattr(self.config, key, value)
+                    setattr(self.newConfig, key, value)
         except:
             tkMessageBox.showerror('Error','Illeagal value in '+key)
             configStr = 'New Configuration\n\n'
             for key in GazeParser.Configuration.GazeParserOptions:
-                configStr += '%s = %s\n' % (key, getattr(self.config, key))
+                configStr += '%s = %s\n' % (key, getattr(self.newConfig, key))
             self.param2Text.set(configStr)
             return
         
-        configStr = 'New Configuration\n\n'
-        for key in GazeParser.Configuration.GazeParserOptions:
-            configStr += '%s = %s\n' % (key, getattr(self.config, key))
-        self.param2Text.set(configStr)
-        
+        offset = 10
         try:
             #from GazeParser.Converter.TrackerToGazeParser
-            if self.config.RECORDED_EYE=='B':
-                Llist = applyFilter(self.D[self.tr].T,self.D[self.tr].L, self.config, decimals=8)
-                Rlist = applyFilter(self.D[self.tr].T,self.D[self.tr].R, self.config, decimals=8)
-                (SacList,FixList,BlinkList) = buildEventListBinocular(self.D[self.tr].T,Llist,Rlist,self.config)
+            if self.newConfig.RECORDED_EYE=='B':
+                self.newL = applyFilter(self.D[self.tr].T,self.D[self.tr].L, self.newConfig, decimals=8) + offset
+                self.newR = applyFilter(self.D[self.tr].T,self.D[self.tr].R, self.newConfig, decimals=8) + offset
+                (SacList,FixList,BlinkList) = buildEventListBinocular(self.D[self.tr].T,self.newL,self.newR,self.newConfig)
             else: #monocular
-                if self.config.RECORDED_EYE == 'L':
-                    Llist = applyFilter(self.D[self.tr].T,self.D[self.tr].L, self.config, decimals=8)
-                    (SacList,FixList,BlinkList) = buildEventListMonocular(self.D[self.tr].T,Llist,self.config)
-                    Rlist = None
-                elif self.config.RECORDED_EYE == 'R':
-                    Rlist = applyFilter(self.D[self.tr].T,self.D[self.tr].R, self.config, decimals=8)
-                    (SacList,FixList,BlinkList) = buildEventListMonocular(self.D[self.tr].T,Rlist,self.config)
-                    Llist = None
+                if self.newConfig.RECORDED_EYE == 'L':
+                    self.newL = applyFilter(self.D[self.tr].T,self.D[self.tr].L, self.newConfig, decimals=8) + offset
+                    (SacList,FixList,BlinkList) = buildEventListMonocular(self.D[self.tr].T,self.newL,self.newConfig)
+                    self.newR = None
+                elif self.newConfig.RECORDED_EYE == 'R':
+                    self.newR = applyFilter(self.D[self.tr].T,self.D[self.tr].R, self.newConfig, decimals=8) + offset
+                    (SacList,FixList,BlinkList) = buildEventListMonocular(self.D[self.tr].T,self.newR,self.newConfig)
+                    self.newR = None
             self.newSacList = SacList
             self.newFixList = FixList
         
@@ -593,7 +586,7 @@ class InteractiveConfig(Tkinter.Frame):
             self._plotData()
     
     def _exportConfig(self):
-        if self.config == None:
+        if self.newConfig == None:
             tkMessageBox.showerror('Error','New configuration is empty')
             return
         
@@ -603,8 +596,8 @@ class InteractiveConfig(Tkinter.Frame):
             fdir = GazeParser.configDir
         
         try:
-            fname = tkFileDialog.asksaveasfilename(filetypes=self.configtypes, initialdir=fdir)
-            self.config.save(fname)
+            fname = tkFileDialog.asksaveasfilename(filetypes=self.newConfigtypes, initialdir=fdir)
+            self.newConfig.save(fname)
         except:
             tkMessageBox.showerror('Error','Could not write configuration to ' + fname)
     

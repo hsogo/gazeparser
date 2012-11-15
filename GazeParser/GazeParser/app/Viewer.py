@@ -832,9 +832,12 @@ class mainWindow(Tkinter.Frame):
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _interactive(self):
+        if self.D == None:
+            tkMessageBox.showinfo('info','Data must be loaded before\nusing interactive configuration.')
+            return
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.InteractiveConfig(master=dlg)
+        GazeParser.app.Converters.InteractiveConfig(master=dlg, data=self.D, additional=self.C)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
