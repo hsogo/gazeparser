@@ -24,6 +24,7 @@ import os
 import sys
 import re
 import functools
+import traceback
 import numpy
 import matplotlib
 import matplotlib.figure
@@ -32,6 +33,22 @@ import matplotlib.patches
 import GazeParser.app.ConfigEditor
 import GazeParser.app.Converters
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from GazeParser.Converter import buildEventListBinocular, buildEventListMonocular, applyFilter
+
+MAX_RECENT = 5
+
+def getComplementaryColorStr(col):
+    """
+    get complementary color (e.g. '#00FF88' -> '#FF0077'
+    """
+    return '#'+hex(16777215-int(col[1:],base=16))[2:].upper()
+
+def getTextColor(backgroundColor,thresh=0.3):
+    minc =  min(int(backgroundColor[1:3],base=16),int(backgroundColor[3:5],base=16),int(backgroundColor[5:7],base=16))
+    if minc/255.0 < 0.3:
+        return '#FFFFFF'
+    else:
+        return '#000000'
 
 def parsegeometry(geometry):
     m = re.match("(\d+)x(\d+)([-+]\d+)([-+]\d+)", geometry)
@@ -39,7 +56,6 @@ def parsegeometry(geometry):
         raise ValueError("failed to parse geometry string")
     return map(int, m.groups())
 
-MAX_RECENT = 5
 
 class ViewerOptions(object):
     options = [
@@ -63,6 +79,9 @@ class ViewerOptions(object):
           ['COLOR_FIXATION_BG',str],
           ['COLOR_FIXATION_FC_E',str],
           ['COLOR_FIXATION_BG_E',str],
+          ['COLOR_SACCADE_HATCH',str],
+          ['COLOR_SACCADE_HATCH_E',str],
+          ['COLOR_BLINK_HATCH',str],
           ['COLOR_MESSAGE_CURSOR',str],
           ['COLOR_MESSAGE_FC',str],
           ['COLOR_MESSAGE_BG',str]]],
@@ -161,7 +180,7 @@ class ViewerOptions(object):
     
 
 class configColorWindow(Tkinter.Frame):
-    def __init__(self,mainWindow,master=None):
+    def __init__(self, mainWindow, master=None):
         Tkinter.Frame.__init__(self,master)
         self.mainWindow = mainWindow
         r = 0
@@ -177,7 +196,9 @@ class configColorWindow(Tkinter.Frame):
                     self.origColorDict[name] = getattr(mainWindow.conf,name)
                     self.newColorDict[name] = getattr(mainWindow.conf,name)
                     Tkinter.Label(self, text=name).grid(row=r,column=0)
-                    self.buttonDict[name] = Tkinter.Button(self, text=self.newColorDict[name],command=functools.partial(self._chooseColor,name=name),bg=self.newColorDict[name])
+                    self.buttonDict[name] = Tkinter.Button(self, text=self.newColorDict[name],
+                                                           command=functools.partial(self._chooseColor,name=name),
+                                                           bg=self.newColorDict[name], fg=getTextColor(self.newColorDict[name]))
                     self.buttonDict[name].grid(row=r,column=1,sticky=Tkinter.W + Tkinter.E)
                     r+=1
         Tkinter.Button(self, text='Update plot', command=self._updatePlot).grid(row=r,column=0)
@@ -188,7 +209,7 @@ class configColorWindow(Tkinter.Frame):
         ret = tkColorChooser.askcolor()
         if ret[1] != None:
             self.newColorDict[name] = ret[1].upper()
-            self.buttonDict[name].config(text=self.newColorDict[name], bg=self.newColorDict[name])
+            self.buttonDict[name].config(text=self.newColorDict[name], bg=self.newColorDict[name], fg=getTextColor(self.newColorDict[name]))
     
     def _updatePlot(self,event=None):
         for name in self.newColorDict.keys():
@@ -200,10 +221,9 @@ class configColorWindow(Tkinter.Frame):
             setattr(self.mainWindow.conf,name,self.origColorDict[name])
             self.newColorDict[name] = self.origColorDict[name]
             self.buttonDict[name].config(text=self.origColorDict[name], bg=self.origColorDict[name])
-    
 
 class plotRangeWindow(Tkinter.Frame):
-    def __init__(self,mainWindow,master=None):
+    def __init__(self, mainWindow, master=None):
         Tkinter.Frame.__init__(self,master)
         self.currentPlotArea = mainWindow.currentPlotArea
         self.ax = mainWindow.ax
@@ -219,7 +239,7 @@ class plotRangeWindow(Tkinter.Frame):
         Tkinter.Button(self, text='Update plot', command=self._updatePlot).grid(row=5,column=0,columnspan=2)
         self.pack()
         
-    def _updatePlot(self,event=None):
+    def _updatePlot(self, event=None):
         tmpPlotArea = [0,0,0,0]
         try:
             for i in range(4):
@@ -233,6 +253,232 @@ class plotRangeWindow(Tkinter.Frame):
         except:
             tkMessageBox.showinfo('Error','Illeagal values')
 
+
+class InteractiveConfig(Tkinter.Frame):
+    def __init__(self, data, additional, conf, master=None):
+        self.configtypes = [('GazeParser Configuration File','*.cfg')]
+        if data==None:
+            tkMessageBox.showerror('Error','No data')
+            return
+        
+        self.D = data
+        self.C = additional
+        self.conf = conf
+        self.tr = 0
+        self.currentPlotArea = [0,3000,0,1024]
+        self.relativeRangeX = 1.0
+        self.relativeRangeY = 1.0
+        self.dataFileName = 'Please open data file.'
+        self.newFixList = None
+        self.newSacList = None
+        self.newL = None
+        self.newR = None
+        self.newConfig = None
+        
+        Tkinter.Frame.__init__(self,master)
+        self.master.title('Interactive configuration')
+        menu_bar = Tkinter.Menu(tearoff=False)
+        menu_file = Tkinter.Menu(tearoff=False)
+        self.menu_view = Tkinter.Menu(tearoff=False)
+        menu_bar.add_cascade(label='File',menu=menu_file,underline=0)
+        menu_bar.add_cascade(label='View',menu=self.menu_view,underline=0)
+        menu_file.add_command(label='Export Config',under=0,command=self._exportConfig)
+        menu_file.add_command(label='Close',under=0,command=self._close)
+        self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
+        self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
+        self.master.configure(menu = menu_bar)
+        
+        ########
+        # mainFrame (includes viewFrame, xRangeBarFrame)
+        # viewFrame
+        self.mainFrame = Tkinter.Frame(master, bd=3, relief='groove')
+        self.viewFrame = Tkinter.Frame(self.mainFrame)
+        self.fig = matplotlib.figure.Figure()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.viewFrame)
+        self.canvas._tkcanvas.config(background="#c0c0c0", borderwidth=0, highlightthickness=0)
+        self.ax = self.fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        self.ax.axis(self.currentPlotArea)
+        self.tkcanvas = self.canvas.get_tk_widget()
+        self.tkcanvas.pack(side=Tkinter.TOP, fill=Tkinter.BOTH, expand=True)
+        
+        toolbar=NavigationToolbar2TkAgg(self.canvas, self.viewFrame)
+        toolbar.pack(side=Tkinter.TOP)
+        self.viewFrame.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
+        
+        self.newParamStringsDict = {}
+        self.paramFrame = Tkinter.Frame(self.mainFrame, bd=3, relief='groove') #subFrame
+        r=0
+        Tkinter.Label(self.paramFrame, text='Original').grid(row=r,column=1)
+        Tkinter.Label(self.paramFrame, text='New').grid(row=r,column=2)
+        for key in GazeParser.Configuration.GazeParserOptions:
+            r += 1
+            Tkinter.Label(self.paramFrame, text=key).grid(row=r,column=0,sticky=Tkinter.W,)
+            self.newParamStringsDict[key] = Tkinter.StringVar()
+            self.newParamStringsDict[key].set(getattr(self.D[self.tr].config,key))
+            Tkinter.Label(self.paramFrame, text=str(getattr(self.D[self.tr].config,key))).grid(row=r,column=1,sticky=Tkinter.W,)
+            Tkinter.Entry(self.paramFrame, textvariable=self.newParamStringsDict[key]).grid(row=r,column=2)
+        r+=1
+        Tkinter.Button(self.paramFrame, text='Update', command=self._updateParameters).grid(row=r,column=0,columnspan=3)
+        self.paramFrame.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
+        self.mainFrame.pack(side=Tkinter.TOP,fill=Tkinter.BOTH,expand=True)
+        
+        if self.D!=None:
+            self._plotData()
+    
+    def _close(self,event=None):
+        self.master.destroy()
+        
+    def _prevTrial(self, event=None):
+        if self.D==None:
+            tkMessageBox.showerror('Error','No Data')
+            return
+        if self.tr>0:
+            self.tr -= 1
+            if self.tr==0:
+                self.menu_view.entryconfigure('Prev Trial', state = 'disabled')
+            else:
+                self.menu_view.entryconfigure('Prev Trial', state = 'normal')
+            if self.tr==len(self.D)-1:
+                self.menu_view.entryconfigure('Next Trial', state = 'disabled')
+            else:
+                self.menu_view.entryconfigure('Next Trial', state = 'normal')
+        self._editParameters()
+        
+    def _nextTrial(self, event=None):
+        if self.D==None:
+            tkMessageBox.showerror('Error','No Data')
+            return
+        if self.tr<len(self.D)-1:
+            self.tr += 1
+            if self.tr==0:
+                self.menu_view.entryconfigure('Prev Trial', state = 'disabled')
+            else:
+                self.menu_view.entryconfigure('Prev Trial', state = 'normal')
+            if self.tr==len(self.D)-1:
+                self.menu_view.entryconfigure('Next Trial', state = 'disabled')
+            else:
+                self.menu_view.entryconfigure('Next Trial', state = 'normal')
+        self.updateAdjustResults1()
+        self.updateAdjustResults2()
+        
+    def _plotData(self):
+        self.ax.clear()
+        
+        tStart = self.D[self.tr].T[0]
+        t = self.D[self.tr].T-tStart
+        if self.newL != None:
+            self.ax.plot(t,self.newL[:,0],':',color=self.conf.COLOR_TRAJECTORY_L_X)
+            self.ax.plot(t,self.newL[:,1],':',color=self.conf.COLOR_TRAJECTORY_L_Y)
+        if self.newR != None:
+            self.ax.plot(t,self.newR[:,0],'.-',color=self.conf.COLOR_TRAJECTORY_R_X)
+            self.ax.plot(t,self.newR[:,1],'.-',color=self.conf.COLOR_TRAJECTORY_R_Y)
+        if self.D[self.tr].config.RECORDED_EYE != 'R':
+            self.ax.plot(t,self.D[self.tr].L[:,0],'.-',color=self.conf.COLOR_TRAJECTORY_L_X)
+            self.ax.plot(t,self.D[self.tr].L[:,1],'.-',color=self.conf.COLOR_TRAJECTORY_L_Y)
+        if self.D[self.tr].config.RECORDED_EYE != 'L':
+            self.ax.plot(t,self.D[self.tr].R[:,0],'.-',color=self.conf.COLOR_TRAJECTORY_R_X)
+            self.ax.plot(t,self.D[self.tr].R[:,1],'.-',color=self.conf.COLOR_TRAJECTORY_R_Y)
+        
+        for f in range(self.D[self.tr].nFix):
+            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart,self.D[self.tr].Fix[f].center[0],str(f),color=self.conf.COLOR_FIXATION_FC,
+                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox), clip_on=True)
+        
+        for s in range(self.D[self.tr].nSac):
+            self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000], self.D[self.tr].Sac[s].duration, 20000,
+                              hatch='/', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
+        
+        if self.newSacList != None and self.newFixList != None:
+            for f in range(len(self.newFixList)):
+                #note: color is reversed
+                self.ax.text(self.newFixList[f].startTime-tStart,self.newFixList[f].center[0]-50,str(f),color=self.conf.COLOR_FIXATION_BG,
+                             bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_FC, clip_on=True, clip_box=self.ax.bbox), clip_on=True)
+            
+            hatchColor = getComplementaryColorStr(self.conf.COLOR_SACCADE_HATCH)
+            for s in range(len(self.newSacList)):
+                self.ax.add_patch(matplotlib.patches.Rectangle([self.newSacList[s].startTime-tStart,-10000], self.newSacList[s].duration, 20000,
+                                  hatch='\\', fc=hatchColor, alpha=0.3))
+        
+        self.ax.axis(self.currentPlotArea)
+        
+        self.ax.set_title('%s: Trial%d' % (os.path.basename(self.dataFileName), self.tr))
+        
+        self.fig.canvas.draw()
+    
+    def _updateParameters(self):
+        if self.D == None:
+            tkMessageBox.showerror('Error','No data!')
+            return
+            
+        if self.newConfig==None:
+            #self.newConfig = copy.deepcopy(self.D[self.tr].config)
+            self.newConfig = self.D[self.tr].config
+        
+        self.StringVarDict = {}
+        
+        try:
+            for key in GazeParser.Configuration.GazeParserOptions:
+                value = self.newParamStringsDict[key].get()
+                if isinstance(GazeParser.Configuration.GazeParserDefaults[key], int):
+                    setattr(self.newConfig, key, int(value))
+                elif isinstance(GazeParser.Configuration.GazeParserDefaults[key], float):
+                    setattr(self.newConfig, key, float(value))
+                else:
+                    setattr(self.newConfig, key, value)
+        except:
+            tkMessageBox.showerror('Error','Illeagal value in '+key)
+            configStr = 'New Configuration\n\n'
+            for key in GazeParser.Configuration.GazeParserOptions:
+                configStr += '%s = %s\n' % (key, getattr(self.newConfig, key))
+            self.param2Text.set(configStr)
+            return
+        
+        offset = 10
+        try:
+            #from GazeParser.Converter.TrackerToGazeParser
+            if self.newConfig.RECORDED_EYE=='B':
+                self.newL = applyFilter(self.D[self.tr].T,self.D[self.tr].L, self.newConfig, decimals=8) + offset
+                self.newR = applyFilter(self.D[self.tr].T,self.D[self.tr].R, self.newConfig, decimals=8) + offset
+                (SacList,FixList,BlinkList) = buildEventListBinocular(self.D[self.tr].T,self.newL,self.newR,self.newConfig)
+            else: #monocular
+                if self.newConfig.RECORDED_EYE == 'L':
+                    self.newL = applyFilter(self.D[self.tr].T,self.D[self.tr].L, self.newConfig, decimals=8) + offset
+                    (SacList,FixList,BlinkList) = buildEventListMonocular(self.D[self.tr].T,self.newL,self.newConfig)
+                    self.newR = None
+                elif self.newConfig.RECORDED_EYE == 'R':
+                    self.newR = applyFilter(self.D[self.tr].T,self.D[self.tr].R, self.newConfig, decimals=8) + offset
+                    (SacList,FixList,BlinkList) = buildEventListMonocular(self.D[self.tr].T,self.newR,self.newConfig)
+                    self.newR = None
+            self.newSacList = SacList
+            self.newFixList = FixList
+        
+        except:
+            info = sys.exc_info()
+            tbinfo = traceback.format_tb(info[2])
+            errormsg = ''
+            for tbi in tbinfo:
+                errormsg += tbi
+            errormsg += '  %s' % str(info[1])
+            tkMessageBox.showerror('Error', errormsg)
+            self.newSacList = None
+            self.newFixList = None
+        else:
+            self._plotData()
+    
+    def _exportConfig(self):
+        if self.newConfig == None:
+            tkMessageBox.showerror('Error','New configuration is empty')
+            return
+        
+        try:
+            fdir = os.path.split(self.dataFileName)[0]
+        except:
+            fdir = GazeParser.configDir
+        
+        try:
+            fname = tkFileDialog.asksaveasfilename(filetypes=self.newConfigtypes, initialdir=fdir)
+            self.newConfig.save(fname)
+        except:
+            tkMessageBox.showerror('Error','Could not write configuration to ' + fname)
 
 class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
@@ -285,11 +531,12 @@ class mainWindow(Tkinter.Frame):
         self.menu_view.add_command(label='Modify Plot Range',under=0,command=self._modifyPlotRange)
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
-        self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
         self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=0,command=self._convertGT)
         self.menu_convert.add_command(label='Convert Eyelink EDF',under=0,command=self._convertEL)
         self.menu_convert.add_command(label='Convert Tobii TSV',under=0,command=self._convertTSV)
-        self.menu_convert.add_command(label='Interactive config',under=0,command=self._interactive)
+        self.menu_convert.add_separator()
+        self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
+        self.menu_convert.add_command(label='Interactive configuration',under=0,command=self._interactive)
         
         self.menu_config.add_command(label='config color', under=0, command=self._configColor)
         
@@ -712,21 +959,21 @@ class mainWindow(Tkinter.Frame):
                     if s in self.selectionlist['Sac']:
                         self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000],
                                                                        self.D[self.tr].Sac[s].duration, 20000,
-                                                                       ec=(0.0,0.0,0.6), hatch='/', fc=(0.3,0.3,1.0), alpha=0.8))
+                                                                       hatch='/', fc=self.conf.COLOR_SACCADE_HATCH_E, alpha=0.8))
                     else:
                         self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000],
                                                                        self.D[self.tr].Sac[s].duration, 20000,
-                                                                       ec=(0.0,0.0,0.6), hatch='/', fc=(0.6,0.6,0.9), alpha=0.3))
+                                                                       hatch='/', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
                 else:
                     if s in self.selectionlist['Sac']:
                         self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart,-10000],
                                                                        self.D[self.tr].Sac[s].duration, 20000,
-                                                                       ec=(0.0,0.0,0.6), hatch='/', fc=(0.6,0.6,0.9), alpha=0.3))
+                                                                       hatch='/', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
                 
             for b in range(self.D[self.tr].nBlink):
                 self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Blink[b].startTime-tStart,-10000],
                                                                self.D[self.tr].Blink[b].duration, 20000,
-                                                               ec=(0.2,0.2,0.2), hatch='\\', fc=(0.8,0.8,0.8), alpha=0.3))
+                                                               hatch='\\', fc=self.conf.COLOR_BLINK_HATCH, alpha=0.3))
             
             for m in range(self.D[self.tr].nMsg):
                 mObj = self.D[self.tr].Msg[m]
@@ -837,7 +1084,7 @@ class mainWindow(Tkinter.Frame):
             return
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.InteractiveConfig(master=dlg, data=self.D, additional=self.C)
+        InteractiveConfig(master=dlg, data=self.D, additional=self.C, conf=self.conf)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
