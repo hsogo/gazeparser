@@ -70,26 +70,29 @@ class Config(object):
                     print 'Default parameters were set.'
                     self.ConfigFile = None
         self.ConfigFile = ConfigFile
-        #cfgp.add_section('GazeParser')
-        #for option in GazeParserDefaults.keys():
-        #    cfgp.set('GazeParser', option, str(GazeParserDefaults[option]))
         
         cfgp.read(ConfigFile)
-        options = cfgp.options('GazeParser')
         self._optionDict = {}
-        for option in options:
-            if (option not in GazeParserDefaults.keys()):
-                raise ValueError, (option + ' is not GazeParser option.')
-            value = cfgp.get('GazeParser', option)
-            if isinstance(GazeParserDefaults[option], int):
-                setattr(self, option, int(value))
-                self._optionDict[option] = int(value)
-            elif isinstance(GazeParserDefaults[option], float):
-                setattr(self, option, float(value))
-                self._optionDict[option] = float(value)
-            else:
-                setattr(self, option, value)
-                self._optionDict[option] = value
+        for option in GazeParserDefaults:
+            try:
+                value = cfgp.get('GazeParser', option)
+                if isinstance(GazeParserDefaults[option], int):
+                    if value == 'True':
+                        value = True
+                    elif value == 'False':
+                        value = True
+                    setattr(self, option, int(value))
+                    self._optionDict[option] = int(value)
+                elif isinstance(GazeParserDefaults[option], float):
+                    setattr(self, option, float(value))
+                    self._optionDict[option] = float(value)
+                else:
+                    setattr(self, option, value)
+                    self._optionDict[option] = value
+            except:
+                print 'Warning: %s is not properly defined in GazeParser configuration file. Default value is used.' % (key)
+                setattr(self, option, GazeParserDefaults[option])
+                self._optionDict[option] = GazeParserDefaults[option]
         
         
     def save(self, ConfigFile = None):

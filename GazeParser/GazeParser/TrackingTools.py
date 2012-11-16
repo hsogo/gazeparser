@@ -33,7 +33,8 @@ ControllerDefaults = {
 'NUM_SAMPLES_PER_TRGPOS':10,
 'CALTARGET_MOTION_DURATION':1.0,
 'CALTARGET_DURATION_PER_POS':2.0,
-'CAL_GETSAMPLE_DEALAY':0.4
+'CAL_GETSAMPLE_DEALAY':0.4,
+'TRACKER_IP_ADDRESS':'192.168.1.1'
 }
 
 class BaseController(object):
@@ -57,6 +58,8 @@ class BaseController(object):
             Default value is None.
         """
         cfgp = ConfigParser.SafeConfigParser()
+        cfgp.optionxform = str
+        
         if configFile == None: #use default settings
             ConfigFile = os.path.join(GazeParser.configDir, 'TrackingTools.cfg')
             if not os.path.isfile(ConfigFile): #TrackingTools.cfg is not found
@@ -65,25 +68,48 @@ class BaseController(object):
             ConfigFile = configFile
         cfgp.read(ConfigFile)
         
-        self.imageWidth = int(cfgp.get('Controller','IMAGE_WIDTH'))
-        self.imageHeight = int(cfgp.get('Controller','IMAGE_HEIGHT'))
-        self.previewWidth = int(cfgp.get('Controller','PREVIEW_WIDTH'))
-        self.previewHeight = int(cfgp.get('Controller','PREVIEW_HEIGHT'))
-        self.nSamplesPerTrgPos = int(cfgp.get('Controller','NUM_SAMPLES_PER_TRGPOS'))
-        self.calTargetMotionDur = float(cfgp.get('Controller','CALTARGET_MOTION_DURATION'))
-        self.calTargetDurPerPos = float(cfgp.get('Controller','CALTARGET_DURATION_PER_POS'))
-        self.calGetSampleDelay = float(cfgp.get('Controller','CAL_GETSAMPLE_DEALAY'))
-        if self.calTargetMotionDur + self.calGetSampleDelay >= self.calTargetDurPerPos:
+        for key in ControllerDefaults.keys():
+            try:
+                value = cfgp.get('Controller',key)
+                if isinstance(ControllerDefaults[key],int):
+                    if value == 'True':
+                        setattr(self, key, True)
+                    elif value == 'False':
+                        setattr(self, key, False)
+                    else:
+                        setattr(self, key, int(value))
+                elif isinstance(ControllerDefaults[key],float):
+                    setattr(self, key, float(value))
+                else:
+                    setattr(self, key, value)
+                
+            except:
+                print 'Warning: %s is not properly defined in TrackingTools.cfg. Default value is used.' % (key)
+                setattr(self,key,ControllerDefaults[key])
+        
+        """
+        self.IMAGE_WIDTH = int(cfgp.get('Controller','IMAGE_WIDTH'))
+        self.IMAGE_HEIGHT = int(cfgp.get('Controller','IMAGE_HEIGHT'))
+        self.PREVIEW_WIDTH = int(cfgp.get('Controller','PREVIEW_WIDTH'))
+        self.PREVIEW_HEIGHT = int(cfgp.get('Controller','PREVIEW_HEIGHT'))
+        self.NUM_SAMPLES_PER_TRGPOS = int(cfgp.get('Controller','NUM_SAMPLES_PER_TRGPOS'))
+        self.CALTARGET_MOTION_DURATION = float(cfgp.get('Controller','CALTARGET_MOTION_DURATION'))
+        self.CALTARGET_DURATION_PER_POS = float(cfgp.get('Controller','CALTARGET_DURATION_PER_POS'))
+        self.CAL_GETSAMPLE_DEALAY = float(cfgp.get('Controller','CAL_GETSAMPLE_DEALAY'))
+        if self.CALTARGET_MOTION_DURATION + self.CAL_GETSAMPLE_DEALAY >= self.CALTARGET_DURATION_PER_POS:
             raise ValueError, 'Sum of CALTARGET_MOTION_DURATION and CAL_GETSAMPLE_DEALAY must be smaller than CALTARGET_DURATION_PER_POS.'
         
-        self.validationShift = float(cfgp.get('Controller','VALIDATION_SHIFT'))
-        self.showCalDisplay = bool(cfgp.get('Controller','SHOW_CALDISPLAY'))
+        self.VALIDATION_SHIFT = float(cfgp.get('Controller','VALIDATION_SHIFT'))
+        self.SHOW_CALDISPLAY = bool(cfgp.get('Controller','SHOW_CALDISPLAY'))
+        self.TRACKER_IP_ADDRESS = cfgp.get('Controller','TRACKER_IP_ADDRESS')
+        """
+        
         self.showCalImage = False
         self.showCameraImage = False
         self.showCalTarget = False
         self.calTargetPosition = (0,0)
         self.messageText = '----'
-        self.PILimg = Image.new('L',(self.imageWidth,self.imageHeight))
+        self.PILimg = Image.new('L',(self.IMAGE_WIDTH,self.IMAGE_HEIGHT))
         
         self.calArea = []
         self.calTargetPos = []
@@ -107,9 +133,9 @@ class BaseController(object):
         
         :param sequence size: sequence of two integers (width, height).
         """
-        self.imageWidth = size[0]
-        self.imageHeight = size[1]
-        self.PILimg = Image.new('L',(self.imageWidth,self.imageHeight))
+        self.IMAGE_WIDTH = size[0]
+        self.IMAGE_HEIGHT = size[1]
+        self.PILimg = Image.new('L',(self.IMAGE_WIDTH,self.IMAGE_HEIGHT))
     
     def setPreviewImageSize(self, size):
         """
@@ -118,8 +144,8 @@ class BaseController(object):
         
         :param sequence size: sequence of two integers (width, height).
         """
-        self.previewWidth = size[0]
-        self.previewHeight = size[1]
+        self.PREVIEW_WIDTH = size[0]
+        self.PREVIEW_HEIGHT = size[1]
     
     def setCalibrationTargetPositions(self, area, calposlist):
         """
@@ -201,15 +227,17 @@ class BaseController(object):
         :param float size: amount of shift.
         """
         
-        self.validationShift = size
+        self.VALIDATION_SHIFT = size
     
-    def connect(self, address, portSend=10000, portRecv=10001):
+    def connect(self, address='', portSend=10000, portRecv=10001):
         """
         Connect to the Tracker Host PC. Because most of methods communicate with 
         the Tracker Host PC, this method should be called immediately after controller
         object is created.
         
         :param str address: IP address of SimpeGazeTracker (e.g. '192.168.1.2').
+            If the value is '', TRACKER_IP_ADDRESS in the configuration file is
+            used.  Default value is ''.
         :param int portSend: TCP/IP port for sending command to Tracker.
             This value must be correspond to configuration of the Tracker.
             Default value is 10000.
@@ -217,6 +245,9 @@ class BaseController(object):
             This value must be correspond to configuration of the Tracker.
             Default value is 10001.
         """
+        if address==None:
+            address = self.TRACKER_IP_ADDRESS
+        
         print 'Request connection...'
         self.sendSock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.sendSock.connect((address,portSend))
@@ -577,10 +608,10 @@ class BaseController(object):
                         else:
                             data.append(d)
         
-        if len(data) == self.imageWidth*self.imageHeight:
+        if len(data) == self.IMAGE_WIDTH*self.IMAGE_HEIGHT:
             self.PILimg.putdata(data)
         else:
-            print 'getCameraImage: got ', len(data), ' expected ', self.imageWidth*self.imageHeight
+            print 'getCameraImage: got ', len(data), ' expected ', self.IMAGE_WIDTH*self.IMAGE_HEIGHT
     
     def sendCommand(self, command):
         """
@@ -631,19 +662,19 @@ class BaseController(object):
                 elif key == 'space':
                     self.sendCommand('key_SPACE'+chr(0))
                 elif key == 'a':
-                    if self.showCalDisplay:
-                        self.showCalDisplay = False
+                    if self.SHOW_CALDISPLAY:
+                        self.SHOW_CALDISPLAY = False
                         self.showCameraImage = False
                         self.showCalImage = False
                     else:
-                        self.showCalDisplay = True
+                        self.SHOW_CALDISPLAY = True
                 elif key == 'z':
-                    if self.showCalDisplay:
+                    if self.SHOW_CALDISPLAY:
                         self.showCameraImage = not self.showCameraImage
                     else:
                         self.showCameraImae = False
                 elif key == 'x':
-                    if self.showCalDisplay:
+                    if self.SHOW_CALDISPLAY:
                         self.showCalImage = not self.showCalImage
                         if self.showCalImage:
                             self.sendCommand('toggleCalResult'+chr(0)+'1'+chr(0))
@@ -732,7 +763,7 @@ class BaseController(object):
         
         draw = ImageDraw.Draw(self.PILimgCAL)
         draw.rectangle(((0,0),self.PILimgCAL.size),fill=128)
-        if self.showCalDisplay == True:
+        if self.SHOW_CALDISPLAY == True:
             self.showCalImage = True
         else:
             self.showCalImage = False
@@ -785,8 +816,8 @@ class BaseController(object):
         
         calCheckList = [False for i in range(len(self.calTargetPos))]
         self.showCalTarget = True
-        prevShowCalDisplay = self.showCalDisplay
-        self.showCalDisplay = False
+        prevSHOW_CALDISPLAY = self.SHOW_CALDISPLAY
+        self.SHOW_CALDISPLAY = False
         self.calTargetPosition = self.calTargetPos[0]
         
         isWaitingKey = True
@@ -804,29 +835,29 @@ class BaseController(object):
         while isCalibrating:
             keys = self.getKeys() # necessary to prevent freezing
             currentTime = self.clock()-startTime
-            t = currentTime % self.calTargetDurPerPos
-            prevTargetPosition = int((currentTime-t)/self.calTargetDurPerPos)
+            t = currentTime % self.CALTARGET_DURATION_PER_POS
+            prevTargetPosition = int((currentTime-t)/self.CALTARGET_DURATION_PER_POS)
             currentTargetPosition = prevTargetPosition+1
             if currentTargetPosition >= len(self.calTargetPos):
                 isCalibrating = False
                 break
-            if t<self.calTargetMotionDur:
-                p1 = t/self.calTargetMotionDur
-                p2 = 1.0-t/self.calTargetMotionDur
+            if t<self.CALTARGET_MOTION_DURATION:
+                p1 = t/self.CALTARGET_MOTION_DURATION
+                p2 = 1.0-t/self.CALTARGET_MOTION_DURATION
                 x = p1*self.calTargetPos[self.indexList[currentTargetPosition]][0] + p2*self.calTargetPos[self.indexList[prevTargetPosition]][0]
                 y = p1*self.calTargetPos[self.indexList[currentTargetPosition]][1] + p2*self.calTargetPos[self.indexList[prevTargetPosition]][1]
                 self.calTargetPosition = (x,y)
             else:
                 self.calTargetPosition = self.calTargetPos[self.indexList[currentTargetPosition]]
-            if not calCheckList[prevTargetPosition] and t>self.calTargetMotionDur+self.calGetSampleDelay:
+            if not calCheckList[prevTargetPosition] and t>self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DEALAY:
                 self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[self.indexList[currentTargetPosition]][0])
-                                 +','+str(self.calTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.nSamplesPerTrgPos)+chr(0))
+                                 +','+str(self.calTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
                 calCheckList[prevTargetPosition] = True
             self.updateCalibrationTargetStimulusCallBack(t,currentTargetPosition,self.calTargetPos[self.indexList[currentTargetPosition]],self.calTargetPosition)
             self.updateScreen()
         
         self.showCalTarget = False
-        self.showCalDisplay = prevShowCalDisplay
+        self.SHOW_CALDISPLAY = prevSHOW_CALDISPLAY
         self.sendCommand('endCal'+chr(0))
         
         self.calibrationResults = self.getCalibrationResults()
@@ -846,7 +877,7 @@ class BaseController(object):
         """
         self.valTargetPos = []
         for p in self.calTargetPos:
-            self.valTargetPos.append([p[0]+int((random.randint(0,1)-0.5)*2*self.validationShift),p[1]+int((random.randint(0,1)-0.5)*2*self.validationShift)])
+            self.valTargetPos.append([p[0]+int((random.randint(0,1)-0.5)*2*self.VALIDATION_SHIFT),p[1]+int((random.randint(0,1)-0.5)*2*self.VALIDATION_SHIFT)])
         
         self.indexList = range(1,len(self.valTargetPos))
         while True:
@@ -857,8 +888,8 @@ class BaseController(object):
         
         calCheckList = [False for i in range(len(self.valTargetPos))]
         self.showCalTarget = True
-        prevShowCalDisplay = self.showCalDisplay
-        self.showCalDisplay = False
+        prevSHOW_CALDISPLAY = self.SHOW_CALDISPLAY
+        self.SHOW_CALDISPLAY = False
         self.calTargetPosition = self.valTargetPos[0]
         
         isWaitingKey = True
@@ -875,29 +906,29 @@ class BaseController(object):
         while isCalibrating:
             keys = self.getKeys() # necessary to prevent freezing
             currentTime = self.clock()-startTime
-            t = currentTime % self.calTargetDurPerPos
-            prevTargetPosition = int((currentTime-t)/self.calTargetDurPerPos)
+            t = currentTime % self.CALTARGET_DURATION_PER_POS
+            prevTargetPosition = int((currentTime-t)/self.CALTARGET_DURATION_PER_POS)
             currentTargetPosition = prevTargetPosition+1
             if currentTargetPosition >= len(self.valTargetPos):
                 isCalibrating = False
                 break
-            if t<self.calTargetMotionDur:
-                p1 = t/self.calTargetMotionDur
-                p2 = 1.0-t/self.calTargetMotionDur
+            if t<self.CALTARGET_MOTION_DURATION:
+                p1 = t/self.CALTARGET_MOTION_DURATION
+                p2 = 1.0-t/self.CALTARGET_MOTION_DURATION
                 x = p1*self.valTargetPos[self.indexList[currentTargetPosition]][0] + p2*self.valTargetPos[self.indexList[prevTargetPosition]][0]
                 y = p1*self.valTargetPos[self.indexList[currentTargetPosition]][1] + p2*self.valTargetPos[self.indexList[prevTargetPosition]][1]
                 self.calTargetPosition = (x,y)
             else:
                 self.calTargetPosition = self.valTargetPos[self.indexList[currentTargetPosition]]
-            if not calCheckList[prevTargetPosition] and t>self.calTargetMotionDur+self.calGetSampleDelay:
+            if not calCheckList[prevTargetPosition] and t>self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DEALAY:
                 self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[self.indexList[currentTargetPosition]][0])
-                                 +','+str(self.valTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.nSamplesPerTrgPos)+chr(0))
+                                 +','+str(self.valTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
                 calCheckList[prevTargetPosition] = True
             self.updateCalibrationTargetStimulusCallBack(t,currentTargetPosition,self.valTargetPos[self.indexList[currentTargetPosition]],self.calTargetPosition)
             self.updateScreen()
         
         self.showCalTarget = False
-        self.showCalDisplay = prevShowCalDisplay
+        self.SHOW_CALDISPLAY = prevSHOW_CALDISPLAY
         self.sendCommand('endVal'+chr(0))
         
         self.calibrationResults = self.getCalibrationResults()
@@ -966,9 +997,9 @@ class BaseController(object):
         self.showCalImage = False
         self.showCalTarget = True
         if message == None:
-            self.showCalDisplay = False
+            self.SHOW_CALDISPLAY = False
         else:
-            self.showCalDisplay = True
+            self.SHOW_CALDISPLAY = True
             self.messageText = message
         
         self.startMeasurement()
@@ -1096,8 +1127,8 @@ class BaseController(object):
             raise ValueError, 'motionDuration must be greater than or equal to 0.'
         if durationPerPos <= motionDuration:
             raise ValueError, 'durationPerPos must be longer than motionDuration.'
-        self.calTargetDurPerPos = durationPerPos
-        self.calTargetMotionDur = motionDuration
+        self.CALTARGET_DURATION_PER_POS = durationPerPos
+        self.CALTARGET_MOTION_DURATION = motionDuration
     
     def setCalSampleAcquisitionParams(self, numSamplesPerPos, getSampleDelay):
         """
@@ -1123,8 +1154,8 @@ class BaseController(object):
             raise ValueError, 'numSamplesPerPos must be greater than 0.'
         if getSampleDelay < 0:
             raise ValueError, 'getSampleDelay must not be negative.'
-        self.nSamplesPerTrgPos = numSamplesPerPos
-        self.calGetSampleDelay = getSampleDelay
+        self.NUM_SAMPLES_PER_TRGPOS = numSamplesPerPos
+        self.CAL_GETSAMPLE_DEALAY = getSampleDelay
     
 
 class ControllerVisionEggBackend(BaseController):
@@ -1185,10 +1216,10 @@ class ControllerVisionEggBackend(BaseController):
                                              on=False,
                                              texture_mag_filter=self.VEGL_NEAREST)
         if font_name==None:
-            self.msgtext = self.VEText(position=(self.screenWidth/2,self.screenHeight/2-self.previewHeight/2-12),
+            self.msgtext = self.VEText(position=(self.screenWidth/2,self.screenHeight/2-self.PREVIEW_HEIGHT/2-12),
                                                anchor='center',font_size=24,text=self.getCurrentMenuItem())
         else:
-            self.msgtext = self.VEText(position=(self.screenWidth/2,self.screenHeight/2-self.previewHeight/2-12),
+            self.msgtext = self.VEText(position=(self.screenWidth/2,self.screenHeight/2-self.PREVIEW_HEIGHT/2-12),
                                                anchor='center',font_size=24,text=self.getCurrentMenuItem(),font_name=font_name)
         self.viewport = self.VEViewport(screen=screen, stimuli=[self.img,self.imgCal,self.caltarget,self.msgtext])
         self.calResultScreenOrigin = (0, 0)
@@ -1201,7 +1232,7 @@ class ControllerVisionEggBackend(BaseController):
         """
         self.img.parameters.on = self.showCameraImage
         self.imgCal.parameters.on = self.showCalImage
-        self.msgtext.parameters.on = self.showCalDisplay
+        self.msgtext.parameters.on = self.SHOW_CALDISPLAY
         if isinstance(self.caltarget, tuple):
             for s in self.caltarget:
                 s.parameters.on = self.showCalTarget
@@ -1306,7 +1337,7 @@ class ControllerPsychoPyBackend(BaseController):
         self.PILimgCAL = Image.new('L',(self.screenWidth-self.screenWidth%4,self.screenHeight-self.screenHeight%4))
         self.img = self.PPSimpleImageStim(self.win, self.PILimg)
         self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL)
-        self.msgtext = self.PPTextStim(self.win, pos=(0,-self.previewHeight/2-12), units='pix', text=self.getCurrentMenuItem(), font=font)
+        self.msgtext = self.PPTextStim(self.win, pos=(0,-self.PREVIEW_HEIGHT/2-12), units='pix', text=self.getCurrentMenuItem(), font=font)
         self.calResultScreenOrigin = (self.screenWidth/2, self.screenHeight/2)
     
     def updateScreen(self):
@@ -1328,7 +1359,7 @@ class ControllerPsychoPyBackend(BaseController):
             else:
                 self.caltarget.setPos(self.calTargetPosition,units='pix')
                 self.caltarget.draw()
-        if self.showCalDisplay:
+        if self.SHOW_CALDISPLAY:
             self.msgtext.draw()
         
         self.win.flip()
@@ -1687,7 +1718,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         *Usually, you don't need use this method.*
         """
         draw = ImageDraw.Draw(self.PILimg)
-        draw.rectangle(((0,0),(self.imageWidth,self.imageHeight)),fill=0)
+        draw.rectangle(((0,0),(self.IMAGE_WIDTH,self.IMAGE_HEIGHT)),fill=0)
         draw.text((64,64),'Camera Preview',fill=255)
         return None
     
@@ -1719,7 +1750,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         Emurates calibration procedure.
         """
         BaseController.doCalibration(self)
-        if self.showCalDisplay == True:
+        if self.SHOW_CALDISPLAY == True:
             self.showCalImage = True
         else:
             self.showCalImage = False
@@ -1730,7 +1761,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         Emurates validation procedure.
         """
         BaseController.doValidation(self)
-        if self.showCalDisplay == True:
+        if self.SHOW_CALDISPLAY == True:
             self.showCalImage = True
         else:
             self.showCalImage = False
@@ -1829,7 +1860,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         *Usually, you don't need use this method.*
         """
         draw = ImageDraw.Draw(self.PILimg)
-        draw.rectangle(((0,0),(self.imageWidth,self.imageHeight)),fill=0)
+        draw.rectangle(((0,0),(self.IMAGE_WIDTH,self.IMAGE_HEIGHT)),fill=0)
         draw.text((64,64),'Camera Preview',fill=255)
         return None
     
@@ -1864,7 +1895,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         Emurates calibration procedure.
         """
         BaseController.doCalibration(self)
-        if self.showCalDisplay == True:
+        if self.SHOW_CALDISPLAY == True:
             self.showCalImage = True
         else:
             self.showCalImage = False
@@ -1875,7 +1906,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         Emurates validation procedure.
         """
         BaseController.doValidation(self)
-        if self.showCalDisplay == True:
+        if self.SHOW_CALDISPLAY == True:
             self.showCalImage = True
         else:
             self.showCalImage = False
