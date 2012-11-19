@@ -1267,6 +1267,9 @@ class ControllerVisionEggBackend(BaseController):
         Get key events.
         
         *Usually, you don't need use this method.*
+        
+        .. note::
+            This method calls pygame.event.clear()
         """
         keys = [self.VEkey.name(e.key) for e in self.VEevent.get(self.VEKEYDOWN)]
         
@@ -1275,6 +1278,9 @@ class ControllerVisionEggBackend(BaseController):
             keys.append('left')
         if keyin[self.VEK_RIGHT] and (not 'right' in keys):
             keys.append('right')
+        
+        #clear event buffer
+        self.VEevent.clear()
         
         return keys
 
