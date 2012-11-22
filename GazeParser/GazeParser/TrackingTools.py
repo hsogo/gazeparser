@@ -48,6 +48,7 @@ class BaseController(object):
     - setCalibrationTargetStimulus(self, stim)
     - setCalibrationTargetPositions(self, area, calposlist)
     - self.getKeys(self)
+    - self.verifyFixation(self,maxTry, permissibleError, key, message)
     """
     def __init__(self, configFile=None):
         """
@@ -401,7 +402,7 @@ class BaseController(object):
         time.sleep(wait)
     
     
-    def getEyePosition(self,timeout=0.02,getPupil=False):
+    def getEyePosition(self, timeout=0.02, getPupil=False):
         """
         Send a command to get current gaze position.
         
@@ -635,7 +636,7 @@ class BaseController(object):
         ESC or Q Exit calibration
         ======== ================================================
         
-        :return: 'space' or 'q'
+        :return: 'escape' or 'q'
             depending on which key is pressed to terminate calibration loop.
         """
         if not (self.calTargetPosSet and self.calAreaSet):
@@ -659,8 +660,6 @@ class BaseController(object):
                     self.sendCommand('key_DOWN'+chr(0))
                     time.sleep(0.05)
                     self.messageText=self.getCurrentMenuItem()
-                elif key == 'space':
-                    self.sendCommand('key_SPACE'+chr(0))
                 elif key == 'a':
                     if self.SHOW_CALDISPLAY:
                         self.SHOW_CALDISPLAY = False
@@ -822,6 +821,9 @@ class BaseController(object):
         
         isWaitingKey = True
         while isWaitingKey:
+            if self.getMousePressed()[0]==1: #left mouse button
+                isWaitingKey = False
+                break
             keys = self.getKeys()
             for key in keys:
                 if key == 'space':
@@ -894,6 +896,9 @@ class BaseController(object):
         
         isWaitingKey = True
         while isWaitingKey:
+            if self.getMousePressed()[0]==1: #left mouse button
+                isWaitingKey = False
+                break
             keys = self.getKeys()
             for key in keys:
                 if key == 'space':
@@ -959,18 +964,24 @@ class BaseController(object):
         """
         self.calibrationResults = None
     
-    def getSpatialError(self, position=None, responseKey='space', message=None):
+    def getSpatialError(self, position=None, responseKey='space', message=None, responseMouseButton=None):
         """
         Verify measurement error at a given position on the screen.
         
         :param position:
-            A tuple of two numbers that represents target position in screen coordinate.
-            If None, the center of the screen is used.  Default value is None.
+            A tuple of two numbers that represents target position in screen
+            coordinate.  If None, the center of the screen is used.
+            Default value is None.
         :param responseKey:
-            When this key is pressed, eye position is measured and spatial error is 
+            When this key is pressed, eye position is measured and spatial error is
             evaluated.  Default value is 'space'.
         :param message:
             If a string is given, the string is presented on the screen.
+            Default value is None.
+        ;param responseMouseButton:
+            If this value is 0, left button of the mouse is also used to 
+            measure eye position.  If the value is 2, right button is used.
+            If None, mouse buttons are ignored.
             Default value is None.
         
         :return:
@@ -1006,6 +1017,11 @@ class BaseController(object):
         
         isWaitingKey = True
         while isWaitingKey:
+            if responseMouseButton != None:
+                if self.getMousePressed()[responseMouseButton]==1:
+                    isWaitingKey = False
+                    eyepos = self.getEyePosition()
+                    break
             keys = self.getKeys()
             for key in keys:
                 if key == responseKey:
@@ -1157,6 +1173,45 @@ class BaseController(object):
         self.NUM_SAMPLES_PER_TRGPOS = numSamplesPerPos
         self.CAL_GETSAMPLE_DEALAY = getSampleDelay
     
+    def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None):
+        """
+        
+        :param int maxTry:
+        :param float permissibleError:
+        :param key:
+        :param message:
+        """
+        if message==None:
+            msg = ['Please fixate on a square and press space key.',
+                   'Please fixate on a square and press space key again.',
+                   'Gaze position could not be detected. Please call experimenter.']
+        
+        numTry = 0
+        error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton)
+        if error[0]!=None and error[0] < permissibleError:
+            return error
+        
+        numTry += 1
+        while True:
+            error = self.getSpatialError(message=message[1], responseKey=key, responseMouseButton=mouseButton)
+            if error[0]!=None and error[0] < permissibleError:
+                return error
+            else:
+                time.sleep(0.5)
+                numTry += 1
+                if numTry == maxTry: #recalibration
+                    #spatial error is unnecessary, but this is an easy way to show message and wait keypress.
+                    error = self.getSpatialError(message=message[2], responseKey=key, responseMouseButton=mouseButton)
+                    self.removeCalibrationResults()
+                    while True:
+                        res = self.calibrationLoop()
+                        if res=='q':
+                            return 'q'
+                        if self.isCalibrationFinished():
+                            break
+                    time.sleep(0.5)
+                    numTry = 0
+
 
 class ControllerVisionEggBackend(BaseController):
     """
@@ -1173,7 +1228,7 @@ class ControllerVisionEggBackend(BaseController):
         from VisionEgg.Textures import Texture, TextureStimulus
         from VisionEgg.MoreStimuli import Target2D
         from VisionEgg.GL import GL_NEAREST
-        from pygame import key, event
+        from pygame import key, event, mouse
         from pygame.locals import KEYDOWN, K_LEFT, K_RIGHT
         self.VEswap_buffers = swap_buffers
         self.VEViewport = Viewport
@@ -1184,6 +1239,7 @@ class ControllerVisionEggBackend(BaseController):
         self.VEGL_NEAREST = GL_NEAREST
         self.VEKEYDOWN = KEYDOWN
         self.VEkey = key
+        self.VEmouse = mouse
         self.VEevent = event
         self.VEK_LEFT = K_LEFT
         self.VEK_RIGHT = K_RIGHT
@@ -1283,7 +1339,16 @@ class ControllerVisionEggBackend(BaseController):
         self.VEevent.clear()
         
         return keys
-
+        
+    def getMousePressed(self):
+        """
+        Get mouse button status.
+        
+        *Usually, you don't need use this method.*
+        
+        """
+        return self.VEmouse.get_pressed()
+    
     def setCalibrationTargetStimulus(self, stim):
         """
         Set calibration target.
@@ -1315,10 +1380,11 @@ class ControllerPsychoPyBackend(BaseController):
             configurations are used.
         """
         from psychopy.visual import TextStim, SimpleImageStim, Rect
-        from psychopy.event import getKeys
+        from psychopy.event import getKeys, Mouse
         from psychopy.misc import cm2pix,deg2pix,pix2cm,pix2deg
         self.PPSimpleImageStim = SimpleImageStim
         self.PPTextStim = TextStim
+        self.PPmouse = Mouse
         self.PPRect = Rect
         self.cm2pix = cm2pix
         self.deg2pix = deg2pix
@@ -1327,6 +1393,7 @@ class ControllerPsychoPyBackend(BaseController):
         self.backend = 'PsychoPy'
         BaseController.__init__(self,configFile)
         self.getKeys = getKeys #for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
+        self.PPmouse = Mouse
     
     def setCalibrationScreen(self, win, font=''):
         """
@@ -1345,6 +1412,7 @@ class ControllerPsychoPyBackend(BaseController):
         self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL)
         self.msgtext = self.PPTextStim(self.win, pos=(0,-self.PREVIEW_HEIGHT/2-12), units='pix', text=self.getCurrentMenuItem(), font=font)
         self.calResultScreenOrigin = (self.screenWidth/2, self.screenHeight/2)
+        self.mouse = self.PPmouse(win=self.win)
     
     def updateScreen(self):
         """
@@ -1447,7 +1515,7 @@ class ControllerPsychoPyBackend(BaseController):
                 return self.convertFromPix(e[:4], units) + e[4:]
     
     #Override
-    def getSpatialError(self, position=None, responseKey='space', message=None, units='pix'):
+    def getSpatialError(self, position=None, responseKey='space', message=None,  responseMouseButton=None, units='pix'):
         """
         Verify measurement error at a given position on the screen.
         
@@ -1484,7 +1552,7 @@ class ControllerPsychoPyBackend(BaseController):
             position = (0, 0)
             posInPix = (0, 0)
         
-        error = BaseController.getSpatialError(self, position=posInPix, responseKey=responseKey, message=message)
+        error = BaseController.getSpatialError(self, position=posInPix, responseKey=responseKey, message=message,  responseMouseButton=responseMouseButton)
         eyepos = self.convertFromPix(error[-1], units)
         
         # following part is copied from BaseController.getSpatialError
@@ -1619,6 +1687,15 @@ class ControllerPsychoPyBackend(BaseController):
         
         return retval
     
+    def getMousePressed(self):
+        """
+        Get mouse button status.
+        
+        *Usually, you don't need use this method.*
+        
+        """
+        return self.mouse.getPressed()
+        
     def setCalibrationTargetStimulus(self, stim):
         """
         Set calibration target.
@@ -1633,15 +1710,15 @@ class ControllerPsychoPyBackend(BaseController):
             self.caltarget = tuple(stim)
         else: #suppose VisionEgg.Core.Stimulus
             self.caltarget = stim
-
+    
 class DummyVisionEggBackend(ControllerVisionEggBackend):
     """
     Dummy controller for VisionEgg.
     """
     def __init__(self, configFile):
         ControllerVisionEggBackend.__init__(self, configFile)
-        from pygame import mouse
-        self.mouse = mouse
+        #from pygame import mouse
+        #self.mouse = mouse
     
     def connect(self, address, portSend=10000, portRecv=10001):
         """
@@ -1665,7 +1742,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         Dummy function for debugging. This method returns current mouse position.
         """
-        pos = self.mouse.get_pos()
+        pos = self.VEmouse.get_pos()
         return (pos[0], self.screenHeight-pos[1])
     
     def sendMessage(self, message):
@@ -1779,8 +1856,8 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     """
     def __init__(self, configFile):
         ControllerPsychoPyBackend.__init__(self, configFile)
-        from psychopy.event import Mouse
-        self.mouse = Mouse
+        #from psychopy.event import Mouse
+        #self.mouse = Mouse
     
     def connect(self, address, portSend=10000, portRecv=10001):
         """
@@ -1804,7 +1881,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         Dummy function for debugging. This method returns current mouse position.
         """
-        e = self.myMouse.getPos()
+        e = self.mouse.getPos()
         if self.win.units=='pix':
             return self.convertFromPix(e, units)
         else:
@@ -1890,7 +1967,6 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         ControllerPsychoPyBackend.setCalibrationScreen(self, win, font)
         if self.win.units != 'pix':
             print 'warning: getEyePosition() of dummy controller will not work correctly when default units of the window is not \'pix\'.'
-        self.myMouse = self.mouse(win=self.win)
         draw = ImageDraw.Draw(self.PILimgCAL)
         draw.rectangle(((0,0),self.PILimgCAL.size),fill=0)
         draw.text((64,64),'Calibration/Validation Results',fill=255)
