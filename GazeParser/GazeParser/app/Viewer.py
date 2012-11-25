@@ -33,6 +33,7 @@ import matplotlib.patches
 import GazeParser.app.ConfigEditor
 import GazeParser.app.Converters
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from GazeParser.Converter import buildEventListBinocular, buildEventListMonocular, applyFilter
 
 MAX_RECENT = 5
@@ -67,6 +68,11 @@ class ViewerOptions(object):
           ['CANVAS_DEFAULT_VIEW',str],
           ['CANVAS_SHOW_FIXNUMBER',bool],
           ['CANVAS_FONT_FILE',str],
+          ['CANVAS_XYAXES_UNIT',str],
+          ['CANVAS_GRID_ABSCISSA_XY',str],
+          ['CANVAS_GRID_ORDINATE_XY',str],
+          ['CANVAS_GRID_ABSCISSA_XYT',str],
+          ['CANVAS_GRID_ORDINATE_XYT',str],
           ['COLOR_TRAJECTORY_L_SAC',str],
           ['COLOR_TRAJECTORY_R_SAC',str],
           ['COLOR_TRAJECTORY_L_FIX',str],
@@ -231,7 +237,7 @@ class plotRangeWindow(Tkinter.Frame):
         
         self.strings = [Tkinter.StringVar() for i in range(4)]
         labels = ['Abcissa Min','Abcissa Max','Ordinate Min','Ordinate Max']
-        Tkinter.Label(self, text='Current View: ').grid(row=0,column=0,columnspan=2)
+        Tkinter.Label(self, text='Current View (unit=pix)').grid(row=0,column=0,columnspan=2)
         for i in range(4):
             self.strings[i].set(str(self.currentPlotArea[i]))
             Tkinter.Label(self, text=labels[i]).grid(row=i+1,column=0)
@@ -253,6 +259,104 @@ class plotRangeWindow(Tkinter.Frame):
         except:
             tkMessageBox.showinfo('Error','Illeagal values')
 
+class configGridWindow(Tkinter.Frame):
+    def __init__(self, mainWindow, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.mainWindow = mainWindow
+        self.choiceAbscissa = Tkinter.StringVar()
+        self.choiceOrdinate = Tkinter.StringVar()
+        self.strAbscissa = Tkinter.StringVar()
+        self.strOrdinate = Tkinter.StringVar()
+        
+        if self.mainWindow.plotStyle == 'XY':
+            xparams = self.mainWindow.conf.CANVAS_GRID_ABSCISSA_XY.split('#')
+            self.choiceAbscissa.set(xparams[0])
+            yparams = self.mainWindow.conf.CANVAS_GRID_ORDINATE_XY.split('#')
+            self.choiceOrdinate.set(yparams[0])
+        else:
+            xparams = self.mainWindow.conf.CANVAS_GRID_ABSCISSA_XYT.split('#')
+            self.choiceAbscissa.set(xparams[0])
+            yparams = self.mainWindow.conf.CANVAS_GRID_ORDINATE_XYT.split('#')
+            self.choiceOrdinate.set(yparams[0])
+        
+        if xparams[0] == 'INTERVAL' or xparams[0] == 'CUSTOM':
+            self.strAbscissa.set(xparams[1])
+        if yparams[0] == 'INTERVAL' or yparams[0] == 'CUSTOM':
+            self.strOrdinate.set(yparams[1])
+        
+        
+        xframe = Tkinter.LabelFrame(self, text='Abscissa')
+        Tkinter.Radiobutton(xframe, text='No grid', variable=self.choiceAbscissa, value='NOGRID', command=self._onClickRadiobuttons).grid(row=0,column=0)
+        Tkinter.Radiobutton(xframe, text='Show grid', variable=self.choiceAbscissa, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
+        Tkinter.Radiobutton(xframe, text='Interval ticks', variable=self.choiceAbscissa, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
+        Tkinter.Radiobutton(xframe, text='Custom ticks', variable=self.choiceAbscissa, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
+        self.abscissaEntry = Tkinter.Entry(xframe, textvariable=self.strAbscissa)
+        self.abscissaEntry.grid(row=1,column=0,columnspan=4,sticky=Tkinter.W+Tkinter.E)
+        xframe.pack()
+        
+        yframe = Tkinter.LabelFrame(self, text='Ordinate')
+        Tkinter.Radiobutton(yframe, text='No grid', variable=self.choiceOrdinate, value='NOGRID', command=self._onClickRadiobuttons).grid(row=0,column=0)
+        Tkinter.Radiobutton(yframe, text='Show grid', variable=self.choiceOrdinate, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
+        Tkinter.Radiobutton(yframe, text='Interval ticks', variable=self.choiceOrdinate, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
+        Tkinter.Radiobutton(yframe, text='Custom ticks', variable=self.choiceOrdinate, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
+        self.ordinateEntry = Tkinter.Entry(yframe, textvariable=self.strOrdinate)
+        self.ordinateEntry.grid(row=1,column=0,columnspan=4,sticky=Tkinter.W+Tkinter.E)
+        yframe.pack()
+        
+        Tkinter.Button(self, text='Update plot', command=self._updatePlot).pack()
+        
+        self._onClickRadiobuttons()
+        
+        self.pack()
+    
+    def _onClickRadiobuttons(self, event=None):
+        gridtype = self.choiceAbscissa.get()
+        if gridtype=='NOGRID' or gridtype=='CURRENT':
+            self.abscissaEntry.configure(state='disabled')
+        else:
+            self.abscissaEntry.configure(state='normal')
+        
+        gridtype = self.choiceOrdinate.get()
+        if gridtype=='NOGRID' or gridtype=='CURRENT':
+            self.ordinateEntry.configure(state='disabled')
+        else:
+            self.ordinateEntry.configure(state='normal')
+        
+    def _updatePlot(self, event=None):
+        gridtypeX = self.choiceAbscissa.get()
+        gridtypeY = self.choiceOrdinate.get()
+        if gridtypeX=='NOGRID':
+            xstr = 'NOGRID'
+        elif gridtypeX=='CURRENT':
+            xstr = 'CURRENT'
+        elif gridtypeX=='INTERVAL':
+            xstr = 'INTERVAL#'+self.abscissaEntry.get()
+        elif gridtypeX=='CUSTOM':
+            xstr = 'CUSTOM#'+self.abscissaEntry.get()
+        else:
+            raise ValueError, 'Unknown abscissa grid type (%s)' % (gridtypeX)
+        
+        
+        if gridtypeY=='NOGRID':
+            ystr = 'NOGRID'
+        elif gridtypeY=='CURRENT':
+            ystr = 'CURRENT'
+        elif gridtypeY=='INTERVAL':
+            ystr = 'INTERVAL#'+self.ordinateEntry.get()
+        elif gridtypeY=='CUSTOM':
+            ystr = 'CUSTOM#'+self.ordinateEntry.get()
+        else:
+            raise ValueError, 'Unknown ordinate grid type (%s)' % (gridtypeY)
+        
+        if self.mainWindow.plotStyle == 'XY':
+            self.mainWindow.conf.CANVAS_GRID_ABSCISSA_XY = xstr
+            self.mainWindow.conf.CANVAS_GRID_ORDINATE_XY = ystr
+        else:
+            self.mainWindow.conf.CANVAS_GRID_ABSCISSA_XYT = xstr
+            self.mainWindow.conf.CANVAS_GRID_ORDINATE_XYT = ystr
+        
+        self.mainWindow._updateGrid()
+        self.mainWindow.fig.canvas.draw()
 
 class InteractiveConfig(Tkinter.Frame):
     def __init__(self, data, additional, conf, master=None):
@@ -515,7 +619,6 @@ class mainWindow(Tkinter.Frame):
         self.menu_bar.add_cascade(label='File',menu=self.menu_file,underline=0)
         self.menu_bar.add_cascade(label='View',menu=self.menu_view,underline=0)
         self.menu_bar.add_cascade(label='Convert',menu=self.menu_convert,underline=0)
-        self.menu_bar.add_cascade(label='Config',menu=self.menu_config,underline=0)
         
         self.menu_file.add_command(label='Open',under=0,command=self._openfile)
         self.menu_file.add_cascade(label='Recent Dir',menu=self.menu_recent,underline=0)
@@ -526,19 +629,20 @@ class mainWindow(Tkinter.Frame):
                 self.menu_recent.add_command(label=self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
         self.menu_file.add_command(label='Export',under=0,command=self._exportfile)
         self.menu_file.add_command(label='Exit',under=0,command=self._exit)
-        self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
-        self.menu_view.add_command(label='Toggle Fixation Number',under=0,command=self._toggleFixNum)
-        self.menu_view.add_command(label='Modify Plot Range',under=0,command=self._modifyPlotRange)
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
+        self.menu_view.add_separator()
+        self.menu_view.add_command(label='Toggle Fixation Number',under=0,command=self._toggleFixNum)
+        self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
+        self.menu_view.add_separator()
+        self.menu_view.add_command(label='Set grid',under=0,command=self._configGrid)
+        self.menu_view.add_command(label='Config color', under=0, command=self._configColor)
         self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=0,command=self._convertGT)
         self.menu_convert.add_command(label='Convert Eyelink EDF',under=0,command=self._convertEL)
         self.menu_convert.add_command(label='Convert Tobii TSV',under=0,command=self._convertTSV)
         self.menu_convert.add_separator()
         self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
         self.menu_convert.add_command(label='Interactive configuration',under=0,command=self._interactive)
-        
-        self.menu_config.add_command(label='config color', under=0, command=self._configColor)
         
         self.master.configure(menu = self.menu_bar)
         
@@ -850,6 +954,75 @@ class mainWindow(Tkinter.Frame):
         dlg.update_idletasks()
         geo = parsegeometry(dlg.winfo_geometry())
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+    
+    def _configGrid(self):
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        configGridWindow(master=dlg,mainWindow=self)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+    
+    def _updateGrid(self):
+        if self.plotStyle == 'XY':
+            xattr = 'CANVAS_GRID_ABSCISSA_XY'
+            yattr = 'CANVAS_GRID_ORDINATE_XY'
+        else:
+            xattr = 'CANVAS_GRID_ABSCISSA_XYT'
+            yattr = 'CANVAS_GRID_ORDINATE_XYT'
+        
+        params = getattr(self.conf,xattr).split('#')
+        if params[0] == 'NOGRID':
+            self.ax.xaxis.grid(False)
+        elif params[0] == 'CURRENT':
+            self.ax.xaxis.grid(True)
+        elif params[0] == 'INTERVAL':
+            try:
+                interval = float(params[1])
+            except:
+                tkMessageBox.showerror('Error','"%s" is not a float number.', (params[1]))
+                return
+            self.ax.xaxis.grid(True)
+            self.ax.xaxis.set_major_locator(MultipleLocator(interval))
+        elif params[0]=='CUSTOM':
+            try:
+                format = eval(params[1])
+            except:
+                tkMessageBox.showerror('Error','"%s" is not a python statement.'% (params[1]))
+                return
+            
+            self.ax.xaxis.grid(True)
+            self.ax.xaxis.set_ticks(format)
+        else:
+            raise ValueError, 'Unknown abscissa grid type (%s)' % (params[0])
+        
+        params = getattr(self.conf,yattr).split('#')
+        if params[0] == 'NOGRID':
+            self.ax.yaxis.grid(False)
+        elif params[0] == 'CURRENT':
+            self.ax.yaxis.grid(True)
+        elif params[0] == 'INTERVAL':
+            try:
+                interval = float(params[1])
+            except:
+                tkMessageBox.showerror('Error','"%s" is not a float number.' % (params[1]))
+                return
+            self.ax.yaxis.grid(True)
+            self.ax.yaxis.set_major_locator(MultipleLocator(interval))
+        elif params[0]=='CUSTOM':
+            try:
+                format = eval(params[1])
+            except:
+                tkMessageBox.showerror('Error','"%s" is not a python statement.'%(params[1]))
+                return
+            self.ax.yaxis.grid(True)
+            self.ax.yaxis.set_ticks(format)
+        else:
+            raise ValueError, 'Unknown ordinate grid type (%s)' % (params[0])
         
     
     def _plotData(self):
@@ -858,98 +1031,113 @@ class mainWindow(Tkinter.Frame):
         
         self.ax.clear()
         
+        if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+             sf = (1.0, 1.0)
+        elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+             sf = self.D[self.tr]._pix2deg
+        
         if self.plotStyle == 'XY':
             #plot fixations
             for f in range(self.D[self.tr].nFix):
                 if self.hasLData:
-                    ftraj = self.D[self.tr].getFixTraj(f,'L')
+                    ftraj = sf*self.D[self.tr].getFixTraj(f,'L')
                     col = self.conf.COLOR_TRAJECTORY_L_FIX
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
-                            self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=4.0,color=col)
+                            self.ax.plot(ftraj[:,0], ftraj[:,1], '.-', linewidth=4.0,color=col)
                             if self.conf.CANVAS_SHOW_FIXNUMBER:
-                                self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
+                                self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
                                              color=self.conf.COLOR_FIXATION_FC_E,
                                              bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG_E, clip_on=True, clip_box=self.ax.bbox),
                                              fontproperties = self.fontPlotText, clip_on=True)
                         else:
-                            self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.plot(ftraj[:,0], ftraj[:,1],'.-',linewidth=1.0,color=col)
                             if self.conf.CANVAS_SHOW_FIXNUMBER:
-                                self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
+                                self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
                                              color=self.conf.COLOR_FIXATION_FC,
                                              bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
                                              fontproperties = self.fontPlotText, clip_on=True)
                     else:
                         if f in self.selectionlist['Fix']:
-                            self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.plot(ftraj[:,0], ftraj[:,1],'.-',linewidth=1.0,color=col)
                             if self.conf.CANVAS_SHOW_FIXNUMBER:
-                                self.ax.text(self.D[self.tr].Fix[f].center[0], self.D[self.tr].Fix[f].center[1], str(f),
+                                self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
                                              color=self.conf.COLOR_FIXATION_FC,
                                              bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
                                              fontproperties = self.fontPlotText, clip_on=True)
                 if self.hasRData:
-                    ftraj = self.D[self.tr].getFixTraj(f,'R')
+                    ftraj = sf*self.D[self.tr].getFixTraj(f,'R')
                     col = self.conf.COLOR_TRAJECTORY_R_FIX
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
-                            self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=4.0,color=col)
+                            self.ax.plot(ftraj[:,0], ftraj[:,1], '.-', linewidth=4.0, color=col)
                         else:
-                            self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.plot(ftraj[:,0], ftraj[:,1], '.-', linewidth=1.0, color=col)
                     else:
                         if f in self.selectionlist['Fix']:
-                            self.ax.plot(ftraj[:,0],ftraj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.plot(ftraj[:,0], ftraj[:,1], '.-', linewidth=1.0, color=col)
                 
             #plot saccades
             for s in range(self.D[self.tr].nSac):
                 if self.hasLData:
-                    straj = self.D[self.tr].getSacTraj(s,'L')
+                    straj = sf*self.D[self.tr].getSacTraj(s,'L')
                     col = self.conf.COLOR_TRAJECTORY_L_SAC
                     if self.selectiontype.get()=='Emphasize':
                         if s in self.selectionlist['Sac']:
-                            self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=4.0,color=col)
+                            self.ax.plot(straj[:,0], straj[:,1], '.-', linewidth=4.0, color=col)
                         else:
-                            self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.plot(straj[:,0], straj[:,1], '.-', linewidth=1.0, color=col)
                     else:
                         if s in self.selectionlist['Sac']:
-                            self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.plot(straj[:,0], straj[:,1], '.-', linewidth=1.0, color=col)
                 if self.hasRData:
-                    straj = self.D[self.tr].getSacTraj(s,'R')
+                    straj = sf*self.D[self.tr].getSacTraj(s,'R')
                     col = self.conf.COLOR_TRAJECTORY_R_SAC
                     if self.selectiontype.get()=='Emphasize':
                         if s in self.selectionlist['Sac']:
-                            self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=4.0,color=col)
+                            self.ax.plot(straj[:,0], straj[:,1], '.-', linewidth=4.0, color=col)
                         else:
-                            self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.plot(straj[:,0], straj[:,1], '.-', linewidth=1.0, color=col)
                     else:
                         if s in self.selectionlist['Sac']:
-                            self.ax.plot(straj[:,0],straj[:,1],'.-',linewidth=1.0,color=col)
+                            self.ax.plot(straj[:,0], straj[:,1], '.-', linewidth=1.0, color=col)
             
+            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+                self.ax.set_xlabel('Vertical gaze position (pix)')
+                self.ax.set_ylabel('Horizontal gaze position (pix)')
+            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+                self.ax.set_xlabel('Vertical gaze position (deg)')
+                self.ax.set_ylabel('Horizontal gaze position (deg)')
+            
+            self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
+                          sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
+        
         else: #XY-T
             tStart = self.D[self.tr].T[0]
             t = self.D[self.tr].T-tStart
             if self.hasLData:
-                self.ax.plot(t,self.D[self.tr].L[:,0],'.-',color=self.conf.COLOR_TRAJECTORY_L_X)
-                self.ax.plot(t,self.D[self.tr].L[:,1],'.-',color=self.conf.COLOR_TRAJECTORY_L_Y)
+                self.ax.plot(t, sf[0]*self.D[self.tr].L[:,0], '.-', color=self.conf.COLOR_TRAJECTORY_L_X)
+                self.ax.plot(t, sf[1]*self.D[self.tr].L[:,1], '.-', color=self.conf.COLOR_TRAJECTORY_L_Y)
             if self.hasRData:
-                self.ax.plot(t,self.D[self.tr].R[:,0],'.-',color=self.conf.COLOR_TRAJECTORY_R_X)
-                self.ax.plot(t,self.D[self.tr].R[:,1],'.-',color=self.conf.COLOR_TRAJECTORY_R_Y)
+                self.ax.plot(t, sf[0]*self.D[self.tr].R[:,0], '.-', color=self.conf.COLOR_TRAJECTORY_R_X)
+                self.ax.plot(t, sf[1]*self.D[self.tr].R[:,1], '.-', color=self.conf.COLOR_TRAJECTORY_R_Y)
             
             if self.conf.CANVAS_SHOW_FIXNUMBER:
                 for f in range(self.D[self.tr].nFix):
                     if self.selectiontype.get()=='Emphasize':
                         if f in self.selectionlist['Fix']:
-                            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0],str(f),
+                            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, sf[0]*self.D[self.tr].Fix[f].center[0], str(f),
                                          color=self.conf.COLOR_FIXATION_FC_E,
                                          bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG_E, clip_on=True, clip_box=self.ax.bbox),
                                          fontproperties = self.fontPlotText, clip_on=True)
                         else:
-                            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0],str(f),
+                            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, sf[0]*self.D[self.tr].Fix[f].center[0], str(f),
                                          color=self.conf.COLOR_FIXATION_FC,
                                          bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
                                          fontproperties = self.fontPlotText, clip_on=True)
                     else:
                         if f in self.selectionlist['Fix']:
-                            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, self.D[self.tr].Fix[f].center[0], str(f),
+                            self.ax.text(self.D[self.tr].Fix[f].startTime-tStart, sf[0]*self.D[self.tr].Fix[f].center[0], str(f),
                                          color=self.conf.COLOR_FIXATION_FC,
                                          bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
                                          fontproperties = self.fontPlotText, clip_on=True)
@@ -986,9 +1174,19 @@ class mainWindow(Tkinter.Frame):
                              bbox=dict(boxstyle="round", fc=self.conf.COLOR_MESSAGE_BG, clip_on=True, clip_box=self.ax.bbox),
                              fontproperties = self.fontPlotText, clip_on=True)
             
-        self.ax.axis(self.currentPlotArea)
+            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+                self.ax.set_xlabel('Time (ms)')
+                self.ax.set_ylabel('Gaze position (pix)')
+            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+                self.ax.set_xlabel('Time (ms)')
+                self.ax.set_ylabel('Gaze position (deg)')
+            
+            self.ax.axis((self.currentPlotArea[0],self.currentPlotArea[1],
+                          sf[0]*self.currentPlotArea[2],sf[0]*self.currentPlotArea[3]))
+        
         
         self.ax.set_title('%s: Trial%d' % (os.path.basename(self.dataFileName), self.tr))
+        self._updateGrid()
         self.fig.canvas.draw()
         
     def _updateMsgBox(self):

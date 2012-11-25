@@ -17,7 +17,7 @@
 
 
 
-#define VERSION "0.6.0"
+#define VERSION "0.6.1"
 
 #ifdef _WIN32
 #include <windows.h>
