@@ -100,7 +100,13 @@ class SaccadeData(object):
     
     def getTraj(self,eye=None):
         """
+        Get saccade trajectory.
+        If eye is 'L' or 'R', the returned value is a numpy.ndarray object.
+        If 'B', the returned value is a tuple of two numpy.ndarray objects.
+        The first and second element represent left and right eye's trajectory,
+        respectively.
         
+        :param str eye: 'L', 'R' or 'B'.  If none, recorded eye is used.
         """
         if eye==None:
             eye = self._parent._recordedEye
@@ -204,7 +210,13 @@ class FixationData(object):
     
     def getTraj(self,eye=None):
         """
+        Get fixation trajectory.
+        If eye is 'L' or 'R', the returned value is a numpy.ndarray object.
+        If 'B', the returned value is a tuple of two numpy.ndarray objects.
+        The first and second element represent left and right eye's trajectory,
+        respectively.
         
+        :param str eye: 'L', 'R' or 'B'.  If none, recorded eye is used.
         """
         if eye==None:
             eye = self._parent._recordedEye
