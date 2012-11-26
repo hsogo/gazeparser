@@ -58,7 +58,7 @@ def drawScatterPlot(data):
         pyplot.text(xy[idx,0],xy[idx,1],str(idx+1))
     pyplot.scatter(xy[:,0],xy[:,1],s=dur,c=dur,alpha=0.7)
 
-def quickPlot(data,eye=None,period=(None,None),style='XY',xlim=None,ylim=None):
+def quickPlot(data,eye=None, period=(None,None), style='XY', xlim=None, ylim=None, units='pix'):
     """
     Plot gaze trajectory easily.
     
@@ -86,35 +86,52 @@ def quickPlot(data,eye=None,period=(None,None),style='XY',xlim=None,ylim=None):
     :param tuple ylim:
         If this value is not None, the value is passed to matplotlib.pyplot.ylim().
         Default value is None.
+    :param units:
+        Specify unit of the gaze position ('pix' or 'deg', case-insensitive).
+        Default value is 'pix'.
     """
+    
     if isinstance(data,GazeParser.Core.SaccadeData) or isinstance(data,GazeParser.Core.FixationData):
+        if eye==None:
+            eye = data.parent._recordedEye
+        
+        if units.lower()=='pix':
+            sf = (1.0, 1.0)
+        elif units.lower()=='deg':
+            sf = data.parent._pix2deg
+        
         traj = data.getTraj(eye)
+        if eye != 'B': #monocular
+            traj = sf*traj
+        else: #binocular
+            traj = [sf*traj[0], sf*traj[1]]
+        
         if style=='XY':
-            if traj.shape[1]==2:
+            if eye != 'B': #monocular
                 pyplot.plot(traj[:,0],traj[:,1],'.-')
                 pyplot.text(traj[0,0],traj[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
                 pyplot.text(traj[-1,0],traj[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
-            else:
-                pyplot.plot(traj[:,0],traj[:,1],'.-',label='L')
-                pyplot.plot(traj[:,2],traj[:,3],'.-',label='R')
-                pyplot.text(traj[0,0],traj[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(traj[-1,0],traj[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(traj[0,2],traj[0,3],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(traj[-1,2],traj[-1,3],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+            else: #binocular
+                pyplot.plot(traj[0][:,0],traj[0][:,1],'.-',label='L')
+                pyplot.plot(traj[1][:,0],traj[1][:,1],'.-',label='R')
+                pyplot.text(traj[0][0,0],traj[0][0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                pyplot.text(traj[0][-1,0],traj[0][-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                pyplot.text(traj[0][0,0],traj[0][0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                pyplot.text(traj[1][-1,0],traj[1][-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
                 pyplot.legend()
         elif style=='XYT':
             si = data.startIndex
             ei = data.endIndex+1
             t = data.parent._T
-            if traj.shape[1]==2:
+            if eye != 'B': #monocular
                 pyplot.plot(t[si:ei],traj[:,0],'.-',label='X')
                 pyplot.plot(t[si:ei],traj[:,1],'.-',label='Y')
                 pyplot.legend()
-            else:
-                pyplot.plot(t[si:ei],traj[:,0],'.-',label='LX')
-                pyplot.plot(t[si:ei],traj[:,1],'.-',label='LY')
-                pyplot.plot(t[si:ei],traj[:,2],'.-',label='RX')
-                pyplot.plot(t[si:ei],traj[:,3],'.-',label='RY')
+            else: #binocular
+                pyplot.plot(t[si:ei],traj[0][:,0],'.-',label='LX')
+                pyplot.plot(t[si:ei],traj[0][:,1],'.-',label='LY')
+                pyplot.plot(t[si:ei],traj[1][:,0],'.-',label='RX')
+                pyplot.plot(t[si:ei],traj[1][:,1],'.-',label='RY')
                 pyplot.legend()
         else:
             raise ValueError, 'style must be XY or XYT.'
@@ -132,39 +149,52 @@ def quickPlot(data,eye=None,period=(None,None),style='XY',xlim=None,ylim=None):
         else:
             ei = numpy.where(data._T<=period[1])[0][-1]
         
+        if units.lower()=='pix':
+            sf = (1.0, 1.0)
+        elif units.lower()=='deg':
+            sf = data._pix2deg
+        
         if style=='XY':
             if eye=='L':
-                pyplot.plot(data._L[si:ei,0],data._L[si:ei,1],'.-')
-                pyplot.text(data._L[0,0],data._L[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(data._L[-1,0],data._L[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                L = sf*data._L
+                pyplot.plot(L[si:ei,0],L[si:ei,1],'.-')
+                pyplot.text(L[0,0],L[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                pyplot.text(L[-1,0],L[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
             elif eye=='R':
-                pyplot.plot(data._R[si:ei,0],data._R[si:ei,1],'.-')
-                pyplot.text(data._R[0,0],data._R[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(data._R[-1,0],data._R[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                R = sf*data._R
+                pyplot.plot(R[si:ei,0],R[si:ei,1],'.-')
+                pyplot.text(R[0,0],R[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                pyplot.text(R[-1,0],R[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
             elif eye=='B':
-                pyplot.plot(data._L[si:ei,0],data._L[si:ei,1],'.-',label='L')
-                pyplot.plot(data._R[si:ei,0],data._R[si:ei,1],'.-',label='R')
-                pyplot.text(data._L[0,0],data._L[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(data._L[-1,0],data._L[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(data._R[0,0],data._R[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(data._R[-1,0],data._R[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                L = sf*data._L
+                R = sf*data._R
+                pyplot.plot(L[si:ei,0],L[si:ei,1],'.-',label='L')
+                pyplot.plot(R[si:ei,0],R[si:ei,1],'.-',label='R')
+                pyplot.text(L[0,0],L[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                pyplot.text(L[-1,0],L[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                pyplot.text(R[0,0],R[0,1],'S',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
+                pyplot.text(R[-1,0],R[-1,1],'E',ha='center',va='center',bbox=dict(boxstyle="round", fc="0.8"))
                 pyplot.legend()
             else:
                 raise ValueError, 'eye must be \'L\', \'R\', or \'B\'.'
         elif style=='XYT':
             if eye=='L':
-                pyplot.plot(data._T[si:ei],data._L[si:ei,0],'.-',label='X')
-                pyplot.plot(data._T[si:ei],data._L[si:ei,1],'.-',label='Y')
+                L = sf*data._L
+                pyplot.plot(data._T[si:ei],L[si:ei,0],'.-',label='X')
+                pyplot.plot(data._T[si:ei],L[si:ei,1],'.-',label='Y')
                 pyplot.legend()
             elif eye=='R':
-                pyplot.plot(data._T[si:ei],data._R[si:ei,0],'.-',label='X')
-                pyplot.plot(data._T[si:ei],data._R[si:ei,1],'.-',label='Y')
+                R = sf*data._R
+                pyplot.plot(data._T[si:ei],R[si:ei,0],'.-',label='X')
+                pyplot.plot(data._T[si:ei],R[si:ei,1],'.-',label='Y')
                 pyplot.legend()
             elif eye=='B':
-                pyplot.plot(data._T[si:ei],data._L[si:ei,0],'.-',label='LX')
-                pyplot.plot(data._T[si:ei],data._L[si:ei,1],'.-',label='LY')
-                pyplot.plot(data._T[si:ei],data._R[si:ei,0],'.-',label='RX')
-                pyplot.plot(data._T[si:ei],data._R[si:ei,1],'.-',label='RY')
+                L = sf*data._L
+                R = sf*data._R
+                pyplot.plot(data._T[si:ei],L[si:ei,0],'.-',label='LX')
+                pyplot.plot(data._T[si:ei],L[si:ei,1],'.-',label='LY')
+                pyplot.plot(data._T[si:ei],R[si:ei,0],'.-',label='RX')
+                pyplot.plot(data._T[si:ei],R[si:ei,1],'.-',label='RY')
                 pyplot.legend()
             else:
                 raise ValueError, 'eye must be \'L\', \'R\', or \'B\'.'
