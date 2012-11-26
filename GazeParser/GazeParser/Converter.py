@@ -329,6 +329,7 @@ def buildEventListBinocular(T,LHV,RHV,config):
     blinkCandidates = parseBlinkCandidates(T, numpy.hstack((LHV,RHV)), config)
     
     #delete small saccade first, then check fixation
+    #check saccade duration
     idx = numpy.where(saccadeCandidatesL[:,2]>config.SACCADE_MINIMUM_DURATION)[0]
     saccadeCandidatesL = saccadeCandidatesL[idx,:]
     idx = numpy.where(saccadeCandidatesR[:,2]>config.SACCADE_MINIMUM_DURATION)[0]
@@ -348,10 +349,14 @@ def buildEventListBinocular(T,LHV,RHV,config):
                 saccadeCandidates.append([startIndex,endIndex,T[endIndex]-T[startIndex]])
     saccadeCandidates = numpy.array(saccadeCandidates)
     
-    #print saccadeCandidatesL
-    #print saccadeCandidatesR
-    #print saccadeCandidates
-    #print aaaaa
+    #amplitude
+    amplitudeCheckList = []
+    for idx in range(len(saccadeCandidates)):
+        ampL = numpy.linalg.norm((LHV[saccadeCandidates[idx,1],:]-LHV[saccadeCandidates[idx,0],:])*pix2deg)
+        ampR = numpy.linalg.norm((RHV[saccadeCandidates[idx,1],:]-RHV[saccadeCandidates[idx,0],:])*pix2deg)
+        if (ampL+ampR)/2.0 >= config.SACCADE_MINIMUM_AMPLITUDE:
+            amplitudeCheckList.append(idx)
+    saccadeCandidates = saccadeCandidates[amplitudeCheckList,:]
     
     #find fixations
     #at first, check whether data starts with fixation or saccade.
@@ -427,8 +432,16 @@ def buildEventListMonocular(T,HV,config):
     blinkCandidates = parseBlinkCandidates(T, HV, config)
     
     #delete small saccade first, then check fixation
+    #check saccade duration
     idx = numpy.where(saccadeCandidates[:,2]>config.SACCADE_MINIMUM_DURATION)[0]
     saccadeCandidates = saccadeCandidates[idx,:]
+    
+    #check saccade amplitude
+    amplitudeCheckList = []
+    for idx in range(len(saccadeCandidates)):
+        if numpy.linalg.norm((HV[saccadeCandidates[idx,1],:]-HV[saccadeCandidates[idx,0],:])*pix2deg) >= config.SACCADE_MINIMUM_AMPLITUDE:
+            amplitudeCheckList.append(idx)
+    saccadeCandidates = saccadeCandidates[amplitudeCheckList,:]
     
     #find fixations
     if len(saccadeCandidates) > 0:

@@ -15,11 +15,12 @@ GazeParserDefaults = {
 'SCREEN_WIDTH': 1024,
 'SCREEN_HEIGHT': 768,
 'VIEWING_DISTANCE': 57.295779513082323,
-'DOTS_PER_CENTIMETER_H': 24.260000000000002,
-'DOTS_PER_CENTIMETER_V': 24.260000000000002,
+'DOTS_PER_CENTIMETER_H': 24.26,
+'DOTS_PER_CENTIMETER_V': 24.26,
 'SACCADE_VELOCITY_THRESHOLD': 20.0,
 'SACCADE_ACCELERATION_THRESHOLD': 3800.0,
 'SACCADE_MINIMUM_DURATION': 12,
+'SACCADE_MINIMUM_AMPLITUDE':0.2,
 'FIXATION_MINIMUM_DURATION': 12,
 'FILTER_TYPE':'identity',
 'FILTER_WN':0.2,
@@ -39,6 +40,7 @@ GazeParserOptions = ['RECORDED_EYE',
                      'SACCADE_VELOCITY_THRESHOLD',
                      'SACCADE_ACCELERATION_THRESHOLD',
                      'SACCADE_MINIMUM_DURATION',
+                     'SACCADE_MINIMUM_AMPLITUDE',
                      'FIXATION_MINIMUM_DURATION',
                      'BLINK_MINIMUM_DURATION',
                      'FILTER_TYPE',
@@ -90,7 +92,7 @@ class Config(object):
                     setattr(self, option, value)
                     self._optionDict[option] = value
             except:
-                print 'Warning: %s is not properly defined in GazeParser configuration file. Default value is used.' % (key)
+                print 'Warning: %s is not properly defined in GazeParser configuration file. Default value is used.' % (option)
                 setattr(self, option, GazeParserDefaults[option])
                 self._optionDict[option] = GazeParserDefaults[option]
         
