@@ -229,6 +229,9 @@ class configColorWindow(Tkinter.Frame):
             self.buttonDict[name].config(text=self.origColorDict[name], bg=self.origColorDict[name])
 
 class plotRangeWindow(Tkinter.Frame):
+    """
+    .. deprecated:: 0.6.1
+    """
     def __init__(self, mainWindow, master=None):
         Tkinter.Frame.__init__(self,master)
         self.currentPlotArea = mainWindow.currentPlotArea
@@ -287,18 +290,18 @@ class configGridWindow(Tkinter.Frame):
         
         xframe = Tkinter.LabelFrame(self, text='Abscissa')
         Tkinter.Radiobutton(xframe, text='No grid', variable=self.choiceAbscissa, value='NOGRID', command=self._onClickRadiobuttons).grid(row=0,column=0)
-        Tkinter.Radiobutton(xframe, text='Show grid', variable=self.choiceAbscissa, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
-        Tkinter.Radiobutton(xframe, text='Interval ticks', variable=self.choiceAbscissa, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
-        Tkinter.Radiobutton(xframe, text='Custom ticks', variable=self.choiceAbscissa, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
+        Tkinter.Radiobutton(xframe, text='Show grid on current ticks', variable=self.choiceAbscissa, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
+        Tkinter.Radiobutton(xframe, text='Set interval ticks', variable=self.choiceAbscissa, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
+        Tkinter.Radiobutton(xframe, text='Set custom ticks', variable=self.choiceAbscissa, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
         self.abscissaEntry = Tkinter.Entry(xframe, textvariable=self.strAbscissa)
         self.abscissaEntry.grid(row=1,column=0,columnspan=4,sticky=Tkinter.W+Tkinter.E)
         xframe.pack()
         
         yframe = Tkinter.LabelFrame(self, text='Ordinate')
         Tkinter.Radiobutton(yframe, text='No grid', variable=self.choiceOrdinate, value='NOGRID', command=self._onClickRadiobuttons).grid(row=0,column=0)
-        Tkinter.Radiobutton(yframe, text='Show grid', variable=self.choiceOrdinate, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
-        Tkinter.Radiobutton(yframe, text='Interval ticks', variable=self.choiceOrdinate, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
-        Tkinter.Radiobutton(yframe, text='Custom ticks', variable=self.choiceOrdinate, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
+        Tkinter.Radiobutton(yframe, text='Show grid on current ticks', variable=self.choiceOrdinate, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
+        Tkinter.Radiobutton(yframe, text='Set interval ticks', variable=self.choiceOrdinate, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
+        Tkinter.Radiobutton(yframe, text='Set custom ticks', variable=self.choiceOrdinate, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
         self.ordinateEntry = Tkinter.Entry(yframe, textvariable=self.strOrdinate)
         self.ordinateEntry.grid(row=1,column=0,columnspan=4,sticky=Tkinter.W+Tkinter.E)
         yframe.pack()

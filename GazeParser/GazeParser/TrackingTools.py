@@ -978,7 +978,7 @@ class BaseController(object):
         :param message:
             If a string is given, the string is presented on the screen.
             Default value is None.
-        ;param responseMouseButton:
+        :param responseMouseButton:
             If this value is 0, left button of the mouse is also used to 
             measure eye position.  If the value is 2, right button is used.
             If None, mouse buttons are ignored.
@@ -1175,11 +1175,32 @@ class BaseController(object):
     
     def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None):
         """
+        Verify spatial error of measurement. If spatial error is larger than a
+        given amount, calibration loop is automatically called and velification
+        is performed again.
         
         :param int maxTry:
+            Specify how many times error is measured before prompting
+            readjustment.
         :param float permissibleError:
+            Permissible error. Unit of the value is deg.
         :param key:
+            Specify a key to get participant's response.
+            Default value is 'space'.
+        :param mouseButton:
+            Specify a mouse button to get participant's response.
+            If None, mouse button is ignored. Default value is None.
+            See also :func:`~GazeParser.TrackingTools.BaseController.getSpatialError`.
         :param message:
+            A sequence of three sentences. The first sentence is presented 
+            when this method is called. The second sentence is presented 
+            when error is larger than permissibleError. The third sentence
+            is presented when prompting readjustment.
+            Default value is a list of following sentences.
+            
+            - 'Please fixate on a square and press space key.'
+            - 'Please fixate on a square and press space key again.'
+            - 'Gaze position could not be detected. Please call experimenter.'
         """
         if message==None:
             msg = ['Please fixate on a square and press space key.',
@@ -1525,6 +1546,11 @@ class ControllerPsychoPyBackend(BaseController):
         :param responseKey:
             When this key is pressed, eye position is measured and spatial error is 
             evaluated.  Default value is 'space'.
+        :param responseMouseButton:
+            If this value is 0, left button of the mouse is also used to 
+            measure eye position.  If the value is 2, right button is used.
+            If None, mouse buttons are ignored.
+            Default value is None.
         :param message:
             If a string is given, the string is presented on the screen.
             Default value is None.
