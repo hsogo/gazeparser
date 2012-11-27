@@ -1,4 +1,5 @@
 #If you want to recover original settings, delete this file and start eye tracker program.
+[SimpleGazeTrackerCommon]
 BINOCULAR=0
 THRESHOLD=17
 MAXPOINTS=800
