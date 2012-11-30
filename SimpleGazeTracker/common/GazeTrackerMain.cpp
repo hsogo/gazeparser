@@ -961,7 +961,7 @@ int main(int argc, char** argv)
 	g_LogFS << "sockInit ... OK." << std::endl;
 	renderInitMessages(nInitMessage,"sockInit ... OK.");
 	nInitMessage += 1;
-
+	
 	if(FAILED(sockAccept())){
 		g_LogFS << "sockAccept failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"sockAccept failed. Exit.");
@@ -972,7 +972,7 @@ int main(int argc, char** argv)
 	g_LogFS << "sockAccept ... OK." << std::endl;
 	renderInitMessages(nInitMessage,"sockAccept ... OK.");
 	nInitMessage += 1;
-
+	
 	if(FAILED(initCamera(g_ParamPath.c_str()))){
 		g_LogFS << "initCamera failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"initCamera failed. Exit.");
@@ -1391,7 +1391,7 @@ This function is called from sockProcess() when sockProcess() received "toggleCa
 
 void toggleCalResult(int param)
 {
-	if(g_isCalibrated and param != 0)
+	if(g_isCalibrated && param != 0)
 	{
 		g_isShowingCalResult = true;
 	}
