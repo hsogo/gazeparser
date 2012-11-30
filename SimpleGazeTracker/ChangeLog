@@ -1,5 +1,9 @@
+2012-11-30  Hiroyuki Sogo
 
-  * TCP/IP connection is closed when SDLNet_SocketReady() failed.
+  release: 0.6.1
+  
+  * Configuration files with section header (e.g. [SimpleGazeTrackerCommon]) are supported to read SimpleGazeTracker configuration files using ConfigParser module. Old format (without section header) is also supported.
+  * Spaces and tabs are allowed before and after "=" in SimpleGazeTracker configuration files.
   * "toggleCalResult" command receives a parameter which specifies on/off of calibration results.
 
 2012-11-01  Hiroyuki Sogo
