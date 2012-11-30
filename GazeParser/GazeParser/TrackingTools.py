@@ -252,10 +252,10 @@ class BaseController(object):
         print 'Request connection...'
         self.sendSock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.sendSock.connect((address,portSend))
-        res = self.sendSock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-        print res
+        self.sendSock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         
         self.serverSock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.serverSock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.serverSock.bind(('',portRecv))
         self.serverSock.listen(1)
         self.serverSock.setblocking(0)
@@ -279,9 +279,10 @@ class BaseController(object):
                 self.readSockList[-(i+1)].close()
             
             self.readSockList = []
+            self.sendSock.close()
             self.serverSock.close()
         except:
-            pass
+            print 'Warning: server socket may not be correctly closed.'
         
     def openDataFile(self,filename):
         """
