@@ -1391,7 +1391,7 @@ This function is called from sockProcess() when sockProcess() received "toggleCa
 
 void toggleCalResult(int param)
 {
-	if(g_isCalibrated and param != 0)
+	if(g_isCalibrated && param != 0)
 	{
 		g_isShowingCalResult = true;
 	}
