@@ -25,7 +25,7 @@
 
 TCPsocket g_SockRecv; /*!< Socket for receiving */
 TCPsocket g_SockSend; /*!< Socket for sending */
-TCPsocket g_SockServ; /*!< Socket for service */
+TCPsocket g_SockServ; /*!< @deprecated Socket for service */
 
 SDLNet_SocketSet g_SocketSet;
 
@@ -59,8 +59,13 @@ sockClose: Close sockets.
 */
 int sockClose(void)
 {
-	SDLNet_TCP_Close(g_SockRecv); 
-	SDLNet_TCP_Close(g_SockSend);
+	if(g_SockRecv){
+		SDLNet_TCP_Close(g_SockRecv);
+		SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
+	}
+	if(g_SockSend){
+		SDLNet_TCP_Close(g_SockSend);
+	}
 	g_SockRecv = NULL;
 	g_SockSend = NULL;
 
@@ -70,6 +75,7 @@ int sockClose(void)
 /*!
 sockConnect: Connect socket to the client PC to send data.
 
+@@deprecated Use sockConnectIP instead.
 @param[in] host Client PC's address.
 @return int
 @retval S_OK
@@ -93,6 +99,14 @@ int sockConnect(const char* host)
     return S_OK;
 }
 
+/*!
+sockConnectIP: Connect socket to the client PC to send data.
+
+@param[in] host Client PC's IP address.
+@return int
+@retval S_OK
+@retval E_FAIL
+*/
 int sockConnectIP(IPaddress* ip)
 {
 	ip->port = htons(g_PortSend);
@@ -181,7 +195,10 @@ int sockProcess(void)
 			}
 		}
 	}
-
+	
+	if(!g_SockRecv || !g_SockSend)
+		return S_OK;
+	
 	int numReady;
 	numReady = SDLNet_CheckSockets(g_SocketSet,0);
 	if(numReady>0)
@@ -544,17 +561,17 @@ int sockProcess(void)
 			{
 				g_LogFS << "SDLNet_TCP_Recv() failed. connection may be closed by peer" << std::endl;
 				connectionClosed();
-				SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
 				sockClose();
 			}
 		}
+		/*
 		else
 		{
 				g_LogFS << "SDLNet_SocketReady() failed. connection may be closed by peer" << std::endl;
 				connectionClosed();
-				SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
 				sockClose();
 		}
+		*/
 	}
 
 	return S_OK;
