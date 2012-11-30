@@ -1204,9 +1204,9 @@ class BaseController(object):
             - 'Gaze position could not be detected. Please call experimenter.'
         """
         if message==None:
-            msg = ['Please fixate on a square and press space key.',
-                   'Please fixate on a square and press space key again.',
-                   'Gaze position could not be detected. Please call experimenter.']
+            message = ['Please fixate on a square and press space key.',
+                       'Please fixate on a square and press space key again.',
+                       'Gaze position could not be detected. Please call experimenter.']
         
         numTry = 0
         error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton)
@@ -1737,6 +1737,69 @@ class ControllerPsychoPyBackend(BaseController):
             self.caltarget = tuple(stim)
         else: #suppose VisionEgg.Core.Stimulus
             self.caltarget = stim
+    
+    #Override
+    def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None, units='pix'):
+        """
+        Verify spatial error of measurement. If spatial error is larger than a
+        given amount, calibration loop is automatically called and velification
+        is performed again.
+        
+        :param int maxTry:
+            Specify how many times error is measured before prompting
+            readjustment.
+        :param float permissibleError:
+            Permissible error. Unit of the value is deg.
+        :param key:
+            Specify a key to get participant's response.
+            Default value is 'space'.
+        :param mouseButton:
+            Specify a mouse button to get participant's response.
+            If None, mouse button is ignored. Default value is None.
+            See also :func:`~GazeParser.TrackingTools.BaseController.getSpatialError`.
+        :param message:
+            A sequence of three sentences. The first sentence is presented 
+            when this method is called. The second sentence is presented 
+            when error is larger than permissibleError. The third sentence
+            is presented when prompting readjustment.
+            Default value is a list of following sentences.
+            
+            - 'Please fixate on a square and press space key.'
+            - 'Please fixate on a square and press space key again.'
+            - 'Gaze position could not be detected. Please call experimenter.'
+        :param str units: units of 'area' and 'calposlist'.  'norm', 'height',
+            'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
+        """
+        if message==None:
+            message = ['Please fixate on a square and press space key.',
+                       'Please fixate on a square and press space key again.',
+                       'Gaze position could not be detected. Please call experimenter.']
+        
+        numTry = 0
+        error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton, units=units)
+        if error[0]!=None and error[0] < permissibleError:
+            return error
+        
+        numTry += 1
+        while True:
+            error = self.getSpatialError(message=message[1], responseKey=key, responseMouseButton=mouseButton, units=units)
+            if error[0]!=None and error[0] < permissibleError:
+                return error
+            else:
+                time.sleep(0.5)
+                numTry += 1
+                if numTry == maxTry: #recalibration
+                    #spatial error is unnecessary, but this is an easy way to show message and wait keypress.
+                    error = self.getSpatialError(message=message[2], responseKey=key, responseMouseButton=mouseButton, units=units)
+                    self.removeCalibrationResults()
+                    while True:
+                        res = self.calibrationLoop()
+                        if res=='q':
+                            return 'q'
+                        if self.isCalibrationFinished():
+                            break
+                    time.sleep(0.5)
+                    numTry = 0
     
 class DummyVisionEggBackend(ControllerVisionEggBackend):
     """
