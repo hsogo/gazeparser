@@ -1646,13 +1646,13 @@ class ControllerPsychoPyBackend(BaseController):
                 if pos[i] == None:
                     retval.append(None)
                 else:
-                    retval.append(self.cm2pix(pos[i]))
+                    retval.append(self.cm2pix(pos[i],self.win.monitor))
         elif units == 'deg':
             for i in range(len(pos)):
                 if pos[i] == None:
                     retval.append(None)
                 else:
-                    retval.append(self.deg2pix(pos[i]))
+                    retval.append(self.deg2pix(pos[i],self.win.monitor))
         elif units == 'pix':
             retval = list(pos)
         else:
