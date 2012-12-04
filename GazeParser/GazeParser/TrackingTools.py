@@ -88,23 +88,6 @@ class BaseController(object):
                 print 'Warning: %s is not properly defined in TrackingTools.cfg. Default value is used.' % (key)
                 setattr(self,key,ControllerDefaults[key])
         
-        """
-        self.IMAGE_WIDTH = int(cfgp.get('Controller','IMAGE_WIDTH'))
-        self.IMAGE_HEIGHT = int(cfgp.get('Controller','IMAGE_HEIGHT'))
-        self.PREVIEW_WIDTH = int(cfgp.get('Controller','PREVIEW_WIDTH'))
-        self.PREVIEW_HEIGHT = int(cfgp.get('Controller','PREVIEW_HEIGHT'))
-        self.NUM_SAMPLES_PER_TRGPOS = int(cfgp.get('Controller','NUM_SAMPLES_PER_TRGPOS'))
-        self.CALTARGET_MOTION_DURATION = float(cfgp.get('Controller','CALTARGET_MOTION_DURATION'))
-        self.CALTARGET_DURATION_PER_POS = float(cfgp.get('Controller','CALTARGET_DURATION_PER_POS'))
-        self.CAL_GETSAMPLE_DEALAY = float(cfgp.get('Controller','CAL_GETSAMPLE_DEALAY'))
-        if self.CALTARGET_MOTION_DURATION + self.CAL_GETSAMPLE_DEALAY >= self.CALTARGET_DURATION_PER_POS:
-            raise ValueError, 'Sum of CALTARGET_MOTION_DURATION and CAL_GETSAMPLE_DEALAY must be smaller than CALTARGET_DURATION_PER_POS.'
-        
-        self.VALIDATION_SHIFT = float(cfgp.get('Controller','VALIDATION_SHIFT'))
-        self.SHOW_CALDISPLAY = bool(cfgp.get('Controller','SHOW_CALDISPLAY'))
-        self.TRACKER_IP_ADDRESS = cfgp.get('Controller','TRACKER_IP_ADDRESS')
-        """
-        
         self.showCalImage = False
         self.showCameraImage = False
         self.showCalTarget = False
@@ -246,7 +229,7 @@ class BaseController(object):
             This value must be correspond to configuration of the Tracker.
             Default value is 10001.
         """
-        if address==None:
+        if address=='':
             address = self.TRACKER_IP_ADDRESS
         
         print 'Request connection...'
@@ -1811,11 +1794,14 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         #from pygame import mouse
         #self.mouse = mouse
     
-    def connect(self, address, portSend=10000, portRecv=10001):
+    def connect(self, address='', portSend=10000, portRecv=10001):
         """
         Dummy function for debugging. This method do nothing.
         """
-        print 'connect (dummy)'
+        if address=='':
+            print 'connect to default IP address=%s (dummy)' % (self.TRACKER_IP_ADDRESS)
+        else:
+            print 'connect to %s (dummy)' % (address)
     
     def openDataFile(self,filename):
         """
@@ -1950,12 +1936,15 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         #from psychopy.event import Mouse
         #self.mouse = Mouse
     
-    def connect(self, address, portSend=10000, portRecv=10001):
+    def connect(self, address='', portSend=10000, portRecv=10001):
         """
         Dummy function for debugging. This method do nothing.
         """
-        print 'connect (dummy)'
-    
+        if address=='':
+            print 'connect to default IP address=%s (dummy)' % (self.TRACKER_IP_ADDRESS)
+        else:
+            print 'connect to %s (dummy)' % (address)
+        
     def openDataFile(self,filename):
         """
         Dummy function for debugging. This method do nothing.
