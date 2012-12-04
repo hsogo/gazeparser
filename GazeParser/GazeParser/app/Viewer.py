@@ -372,15 +372,23 @@ class InteractiveConfig(Tkinter.Frame):
         self.C = additional
         self.conf = conf
         self.tr = 0
-        self.currentPlotArea = [0,3000,0,1024]
-        self.relativeRangeX = 1.0
-        self.relativeRangeY = 1.0
-        self.dataFileName = 'Please open data file.'
         self.newFixList = None
         self.newSacList = None
         self.newL = None
         self.newR = None
         self.newConfig = None
+        
+        if self.D[self.tr].config.SCREEN_ORIGIN.lower() == 'topleft':
+            ymin = 0
+            ymax = max(self.D[self.tr].config.SCREEN_WIDTH, self.D[self.tr].config.SCREEN_HEIGHT)
+        elif self.D[self.tr].config.SCREEN_ORIGIN.lower() == 'center':
+            ymin = -max(self.D[self.tr].config.SCREEN_WIDTH/2.0, self.D[self.tr].config.SCREEN_HEIGHT/2.0)
+            ymax = max(self.D[self.tr].config.SCREEN_WIDTH/2.0, self.D[self.tr].config.SCREEN_HEIGHT/2.0)
+        else: #assume 'bottomleft'
+            ymin = 0
+            ymax = max(self.D[self.tr].config.SCREEN_WIDTH, self.D[self.tr].config.SCREEN_HEIGHT)
+        
+        self.currentPlotArea = [0,3000,ymin,ymax]
         
         Tkinter.Frame.__init__(self,master)
         self.master.title('Interactive configuration')
@@ -507,8 +515,6 @@ class InteractiveConfig(Tkinter.Frame):
         
         self.ax.axis(self.currentPlotArea)
         
-        self.ax.set_title('%s: Trial%d' % (os.path.basename(self.dataFileName), self.tr))
-        
         self.fig.canvas.draw()
     
     def _updateParameters(self):
@@ -577,15 +583,10 @@ class InteractiveConfig(Tkinter.Frame):
             return
         
         try:
-            fdir = os.path.split(self.dataFileName)[0]
-        except:
-            fdir = GazeParser.configDir
-        
-        try:
-            fname = tkFileDialog.asksaveasfilename(filetypes=self.newConfigtypes, initialdir=fdir)
+            fname = tkFileDialog.asksaveasfilename(filetypes=self.configtypes, initialdir=GazeParser.configDir)
             self.newConfig.save(fname)
         except:
-            tkMessageBox.showerror('Error','Could not write configuration to ' + fname)
+            tkMessageBox.showerror('Error','Could not write configuration to \'' + fname + '\'')
 
 class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
@@ -754,14 +755,19 @@ class mainWindow(Tkinter.Frame):
             return
         self.block = 0
         self.tr = 0
+        self.plotAreaTXY[1] = 3000
         if self.D[self.tr].config.SCREEN_ORIGIN.lower() == 'topleft':
             self.plotAreaXY = [0, self.D[self.tr].config.SCREEN_WIDTH, self.D[self.tr].config.SCREEN_HEIGHT, 0]
+            self.plotAreaTXY[2] = 0
+            self.plotAreaTXY[3] = max(self.D[self.tr].config.SCREEN_WIDTH, self.D[self.tr].config.SCREEN_HEIGHT)
         elif self.D[self.tr].config.SCREEN_ORIGIN.lower() == 'center':
-            self.plotAreaXY = [-1*self.D[self.tr].config.SCREEN_WIDTH/2.0, self.D[self.tr].config.SCREEN_WIDTH/2.0, -1*self.D[self.tr].config.SCREEN_HEIGHT/2.0, self.D[self.tr].config.SCREEN_HEIGHT/2.0]
+            self.plotAreaXY = [-self.D[self.tr].config.SCREEN_WIDTH/2.0, self.D[self.tr].config.SCREEN_WIDTH/2.0, -self.D[self.tr].config.SCREEN_HEIGHT/2.0, self.D[self.tr].config.SCREEN_HEIGHT/2.0]
+            self.plotAreaTXY[2] = -max(self.D[self.tr].config.SCREEN_WIDTH/2.0, self.D[self.tr].config.SCREEN_HEIGHT/2.0)
+            self.plotAreaTXY[3] = max(self.D[self.tr].config.SCREEN_WIDTH/2.0, self.D[self.tr].config.SCREEN_HEIGHT/2.0)
         else: #assume 'bottomleft'
             self.plotAreaXY = [0, self.D[self.tr].config.SCREEN_WIDTH, 0, self.D[self.tr].config.SCREEN_HEIGHT]
-        self.plotAreaTXY[1] = 3000
-        self.plotAreaTXY[3] = max(self.D[self.tr].config.SCREEN_WIDTH, self.D[self.tr].config.SCREEN_HEIGHT)
+            self.plotAreaTXY[2] = 0
+            self.plotAreaTXY[3] = max(self.D[self.tr].config.SCREEN_WIDTH, self.D[self.tr].config.SCREEN_HEIGHT)
         if self.D[self.tr].L == None:
             self.hasLData = False
         else:
