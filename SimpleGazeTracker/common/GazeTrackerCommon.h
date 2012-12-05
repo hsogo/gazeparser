@@ -170,7 +170,7 @@ extern void toggleCalResult(int param);
 
 extern void startRecording(const char* message);
 extern void stopRecording(const char* message);
-extern void openDataFile(char* filename);
+extern void openDataFile(char* filename, int overwrite);
 extern void closeDataFile(void);
 extern void insertMessage(char* message);
 extern void insertSettings(char* settings);

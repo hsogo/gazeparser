@@ -1,3 +1,7 @@
+
+  release: 0.6.2
+  * "openDataFile" command receives a new parameter to overwrite/rename existing data file.
+
 2012-11-30  Hiroyuki Sogo
 
   release: 0.6.1

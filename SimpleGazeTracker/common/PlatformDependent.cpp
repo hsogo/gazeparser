@@ -26,6 +26,7 @@ LARGE_INTEGER g_CounterFreq;
 
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
@@ -168,12 +169,15 @@ int checkAndCreateDirectory(std::string path)
 int checkAndRenameFile(std::string path)
 {
 	std::string strTo(path);
+	std::stringstream ss;
 	int n = 0;
 #ifdef _WIN32
 	if(PathFileExists(strTo.c_str())){
-		while(True)
+		while(true)
 		{
-			strTo = path + n;
+			ss.str("");
+			ss << path << n;
+			strTo = ss.str();
 			if(!PathFileExists(strTo.c_str())){
 				if(MoveFile(path.c_str(),strTo.c_str())){
 					return S_OK;
@@ -190,12 +194,14 @@ int checkAndRenameFile(std::string path)
 
 	if(res==0)
 	{
-		while(True)
+		while(true)
 		{
-			strTo = path + n;
+			ss.str("");
+			ss << path << n;
+			strTo = ss.str();
 			res = stat(strTo.c_str(),&statbuff);
 			if(res<0){
-				if(rename(path.c_str(),strTo.c_str())){
+				if(rename(path.c_str(),strTo.c_str())==0){
 					return S_OK;
 				}
 			}
