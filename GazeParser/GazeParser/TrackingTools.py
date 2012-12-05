@@ -270,7 +270,7 @@ class BaseController(object):
         except:
             print 'Warning: server socket may not be correctly closed.'
         
-    def openDataFile(self,filename):
+    def openDataFile(self,filename, overwrite=True):
         """
         Send a command to open data file on the Tracker Host PC.
         The data file is created in the DATA directory at the 
@@ -279,11 +279,17 @@ class BaseController(object):
         Currently, relative or absolute paths are NOT supported.
         
         :param str filename: Name of data file.
+        :param bool overwrite: If true, SimpleGazeTracker overwrites
+            existing data file.  If false, SimpleGazeTracker renames
+            existing data file. Default value is True.
         
         .. note::
             Non-ascii code is not supprted as a file name.
         """
-        self.sendSock.send('openDataFile'+chr(0)+filename+chr(0))
+        if overwrite:
+            self.sendSock.send('openDataFile'+chr(0)+filename+chr(0)+'1'+chr(0))
+        else:
+            self.sendSock.send('openDataFile'+chr(0)+filename+chr(0)+'0'+chr(0))
     
     def closeDataFile(self):
         """

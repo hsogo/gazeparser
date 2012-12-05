@@ -412,10 +412,17 @@ int sockProcess(void)
 					else if(strcmp(buff+nextp,"openDataFile")==0)
 					{
 						char* param = buff+nextp+13;
-						openDataFile(param);
-
+						char* p;
+						int overwrite;
+						
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						
+						overwrite =strtol(buff+nextp,&p,10)
+						openDataFile(param, overwrite);
+						
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
 					}
