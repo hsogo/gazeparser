@@ -1185,6 +1185,11 @@ class BaseController(object):
             - 'Please fixate on a square and press space key.'
             - 'Please fixate on a square and press space key again.'
             - 'Gaze position could not be detected. Please call experimenter.'
+        :return:
+            If calibration is terminated by 'q' key, 'q' is returned.
+            Otherwise, spatial error is returned.
+            see :func:`~GazeParser.TrackingTools.BaseController.getSpatialError`
+            for detail of the spatial error.
         """
         if message==None:
             message = ['Please fixate on a square and press space key.',
@@ -1753,6 +1758,11 @@ class ControllerPsychoPyBackend(BaseController):
             - 'Gaze position could not be detected. Please call experimenter.'
         :param str units: units of 'area' and 'calposlist'.  'norm', 'height',
             'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
+        :return:
+            If calibration is terminated by 'q' key, 'q' is returned.
+            Otherwise, spatial error is returned.
+            see :func:`~GazeParser.TrackingTools.BaseController.getSpatialError`
+            for detail of the spatial error.
         """
         if message==None:
             message = ['Please fixate on a square and press space key.',
