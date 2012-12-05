@@ -258,12 +258,15 @@ class BaseController(object):
     
     def __del__(self):
         try:
-            for i in range(len(self.readSockList)):
-                self.readSockList[-(i+1)].close()
+            if hasattr(self,'readSockList'):
+                for i in range(len(self.readSockList)):
+                    self.readSockList[-(i+1)].close()
+                self.readSockList = []
             
-            self.readSockList = []
-            self.sendSock.close()
-            self.serverSock.close()
+            if hasattr(self,'sendSock'):
+                self.sendSock.close()
+            if hasattr(self,'serverSock'):
+                self.serverSock.close()
         except:
             print 'Warning: server socket may not be correctly closed.'
         
