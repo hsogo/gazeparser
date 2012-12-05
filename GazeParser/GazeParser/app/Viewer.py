@@ -429,8 +429,11 @@ class InteractiveConfig(Tkinter.Frame):
             r += 1
             Tkinter.Label(self.paramFrame, text=key).grid(row=r,column=0,sticky=Tkinter.W,)
             self.newParamStringsDict[key] = Tkinter.StringVar()
-            self.newParamStringsDict[key].set(getattr(self.D[self.tr].config,key))
-            Tkinter.Label(self.paramFrame, text=str(getattr(self.D[self.tr].config,key))).grid(row=r,column=1,sticky=Tkinter.W,)
+            if hasattr(self.D[self.tr].config,key):
+                self.newParamStringsDict[key].set(getattr(self.D[self.tr].config,key))
+                Tkinter.Label(self.paramFrame, text=str(getattr(self.D[self.tr].config,key))).grid(row=r,column=1,sticky=Tkinter.W,)
+            else:
+                Tkinter.Label(self.paramFrame, text='not available').grid(row=r,column=1,sticky=Tkinter.W,)
             Tkinter.Entry(self.paramFrame, textvariable=self.newParamStringsDict[key]).grid(row=r,column=2)
         r+=1
         Tkinter.Button(self.paramFrame, text='Update', command=self._updateParameters).grid(row=r,column=0,columnspan=3)
@@ -753,6 +756,7 @@ class mainWindow(Tkinter.Frame):
             self.D = None
             self.C = None
             return
+        
         self.block = 0
         self.tr = 0
         self.plotAreaTXY[1] = 3000
