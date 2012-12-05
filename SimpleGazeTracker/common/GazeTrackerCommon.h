@@ -206,6 +206,7 @@ int getDataDirectoryPath(std::string* path);
 //int getApplicationDirectoryPath(std::string* path);
 int getParameterDirectoryPath(std::string* path);
 int getLogFilePath(std::string* path);
-int checkDirectory(std::string path);
+int checkAndCreateDirectory(std::string path);
+int checkAndRenameFile(std::string path);
 int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath);
 

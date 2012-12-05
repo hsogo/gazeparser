@@ -136,11 +136,13 @@ int getLogFilePath(std::string* path)
 	return 0;
 }
 
-int checkDirectory(std::string path)
-{
-/*@date 2012/09/27
+int checkAndCreateDirectory(std::string path)
+/*
+@date 2012/09/27
 - Bugfix: invalid directory name.
+@date 2012/12/05 renamed to checkAndCreateDirectory.
 */
+{
 #ifdef _WIN32
 	if(!PathIsDirectory(path.c_str())){
 		CreateDirectory(path.c_str(),NULL);
@@ -157,6 +159,47 @@ int checkDirectory(std::string path)
 		if(mkdir(path.c_str(),mode) != 0)
 		{
 			return E_FAIL;
+		}
+	}
+#endif
+	return S_OK;
+}
+
+int checkAndRenameFile(std::string path)
+{
+	std::string strTo(path);
+	int n = 0;
+#ifdef _WIN32
+	if(PathFileExists(strTo.c_str())){
+		while(True)
+		{
+			strTo = path + n;
+			if(!PathFileExists(strTo.c_str())){
+				if(MoveFile(path.c_str(),strTo.c_str())){
+					return S_OK;
+				}
+			}
+			n++;
+		}
+	}
+#else
+	int res;
+	struct stat statbuff;
+	
+	res = stat(strTo.c_str(),&statbuff);
+
+	if(res==0)
+	{
+		while(True)
+		{
+			strTo = path + n;
+			res = stat(strTo.c_str(),&statbuff);
+			if(res<0){
+				if(rename(path.c_str(),strTo.c_str())){
+					return S_OK;
+				}
+			}
+			n++;
 		}
 	}
 #endif

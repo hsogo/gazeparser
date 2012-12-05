@@ -183,6 +183,7 @@ Following parameters are read from a configuration file named "CONFIG".
 @date 2012/11/05
 - Section header [SimpleGazeTrackerCommon] is supported.
 - spaces and tabs around '=' are removed.
+@date 2012/12/05 checkDirectory is renamed to checkAndCreateDirectory.
  */
 int initParameters( void )
 {
@@ -197,8 +198,8 @@ int initParameters( void )
 	//getApplicationDirectoryPath(&g_AppDirPath);
 	getParameterDirectoryPath(&g_ParamPath);
 
-	checkDirectory(g_DataPath);
-	checkDirectory(g_ParamPath);
+	checkAndCreateDirectory(g_DataPath);
+	checkAndCreateDirectory(g_ParamPath);
 	checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath);
 
 	fname.assign(g_ParamPath);
@@ -1525,7 +1526,7 @@ As a result, contents of existing file is lost.
 @date 2012/09/28 output header
 
 */
-void openDataFile(char* filename)
+void openDataFile(char* filename, int overwrite)
 {
 	std::string str(g_DataPath);
 	str.append(PATH_SEPARATOR);
@@ -1536,6 +1537,10 @@ void openDataFile(char* filename)
 		fflush(g_DataFP);
 		fclose(g_DataFP);
 		g_LogFS << "Close datafile to open new datafile" << std::endl;
+	}
+
+	if(overwrite!=0){
+		checkAndRenameFile(str);
 	}
 
 	g_DataFP = fopen(str.c_str(),"w");
@@ -1558,7 +1563,6 @@ void openDataFile(char* filename)
 			fprintf(g_DataFP,"#DATAFORMAT,T,X,Y\n");
 		else //binocular
 			fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY\n");
-
 }
 
 /*!
