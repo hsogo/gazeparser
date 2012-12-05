@@ -1414,6 +1414,7 @@ This function is called from sockProcess() when sockProcess() received "startRec
 @date 2012/09/28
 -output data format.
 -Tracker version is output when datafile is opened.
+@date 2012/12/05 output message to log file.
 */
 void startRecording(const char* message)
 {
@@ -1445,9 +1446,9 @@ void startRecording(const char* message)
 				fprintf(g_DataFP,"#CALPOINT,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1]);
 			}
 
-			g_LogFS << "StartRecording" << std::endl;
+			g_LogFS << "StartRecording " << message << std::endl;
 		}else{
-			g_LogFS << "StartRecording(no file)" << std::endl;
+			g_LogFS << "StartRecording(no file) " << message << std::endl;
 		}
 
 		clearData();
@@ -1474,6 +1475,7 @@ Call flushGazeData(), output #MESSAGE and then output #STOP_REC.
 @param[in] message Message text to be inserted to the data file.
 @return No value is returned.
 @date 2012/07/17 add warinig message.
+@date 2012/12/05 output message to log file.
 */
 void stopRecording(const char* message)
 {
@@ -1494,11 +1496,11 @@ void stopRecording(const char* message)
 			fprintf(g_DataFP,"#STOP_REC\n");
 			fflush(g_DataFP); //force writing.
 	
-			g_LogFS << "StopRecording" << std::endl;
+			g_LogFS << "StopRecording" << message << std::endl;
 		}
 		else
 		{
-			g_LogFS << "StopRecording (no file)" << std::endl;
+			g_LogFS << "StopRecording (no file) " << message << std::endl;
 		}
 	
 		g_isRecording = false;
