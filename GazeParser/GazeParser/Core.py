@@ -65,6 +65,9 @@ class SaccadeData(object):
     length = property(lambda self: self._length)
     """Saccade length in screen coordinate."""
     
+    direction = property(lambda self: self._direction)
+    """Saccade direction in radian."""
+    
     startIndex = property(lambda self: self._startIndex)
     """Saccade onset index in the timestamp list."""
     
