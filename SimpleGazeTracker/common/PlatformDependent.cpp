@@ -176,10 +176,11 @@ int checkAndRenameFile(std::string path)
 		while(true)
 		{
 			ss.str("");
-			ss << path << n;
+			ss << path << "." << n;
 			strTo = ss.str();
 			if(!PathFileExists(strTo.c_str())){
 				if(MoveFile(path.c_str(),strTo.c_str())){
+					g_LogFS << "Datafile is renamed." << std::endl;
 					return S_OK;
 				}
 			}
@@ -197,11 +198,12 @@ int checkAndRenameFile(std::string path)
 		while(true)
 		{
 			ss.str("");
-			ss << path << n;
+			ss << path << "." << n;
 			strTo = ss.str();
 			res = stat(strTo.c_str(),&statbuff);
 			if(res<0){
 				if(rename(path.c_str(),strTo.c_str())==0){
+					g_LogFS << path << "Datafile is renamed." << strTo << std::endl;
 					return S_OK;
 				}
 			}
