@@ -420,7 +420,7 @@ int sockProcess(void)
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
 						
-						overwrite =strtol(buff+nextp,&p,10)
+						overwrite =strtol(buff+nextp,&p,10);
 						openDataFile(param, overwrite);
 						
 						while(buff[nextp]!=0) nextp++;

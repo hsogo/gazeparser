@@ -1539,7 +1539,7 @@ void openDataFile(char* filename, int overwrite)
 		g_LogFS << "Close datafile to open new datafile" << std::endl;
 	}
 
-	if(overwrite!=0){
+	if(overwrite==0){
 		checkAndRenameFile(str);
 	}
 
