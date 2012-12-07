@@ -403,10 +403,11 @@ class GazeData(object):
         Get gaze trajectory during a fixation.
         
         :param integer index:
-            Index of fixation.  Give n-1 to get gaze trajectory during n-th fixation.
+            Index of fixation.  Give n-1 to get gaze trajectory during 
+            n-th fixation.
         :param str eye:
-            Output both-eye ('B'), left-eye ('L'), right-eye ('R') data or None (recorded eye).
-            Default value is None.
+            Output both-eye ('B'), left-eye ('L'), right-eye ('R') data or 
+            None (recorded eye). Default value is None.
         """
         if not (0 <= index < self.nFix):
             raise ValueError, 'Index is out of range.'
@@ -426,7 +427,8 @@ class GazeData(object):
         Get duration of fixations in milliseconds.
         
         :param integer index:
-            Index of fixation.  Give n-1 to get gaze trajectory during n-th fixation.
+            Index of fixation.  Give n-1 to get gaze trajectory during
+            n-th fixation.
         :param str eye:
             Output both-eye ('B'), left-eye ('L') or right-eye ('R') data.
         """
@@ -449,8 +451,8 @@ class GazeData(object):
         
         :param args:
             If no argument is given, center of all fixations are obtained as 
-            a numpy.ndarray object whose shape is (n,2).
-            If an integer (n-1) is given, the center of n-th fixation is obtained.
+            a numpy.ndarray object whose shape is (n,2). If an integer (n-1)
+            is given, the center of n-th fixation is obtained.
         """
         if len(args) == 0:
             l = numpy.zeros([self.nFix,2])
@@ -470,10 +472,10 @@ class GazeData(object):
         Get the start and end time of fixations.
         
         :param args:
-            If no argument is given, the start and end time of all fixations are 
-            obtained as a numpy.ndarray object whose shape is (n,2).
-            If an integer (n-1) is given, the start and end time of n-th fixation 
-            is obtained.
+            If no argument is given, the start and end time of all fixations
+            are obtained as a numpy.ndarray object whose shape is (n,2).
+            If an integer (n-1) is given, the start and end time of n-th
+            fixation is obtained.
         """
         if len(args) == 0:
             l = numpy.zeros([self.nFix,2])
@@ -493,9 +495,9 @@ class GazeData(object):
         Get the start and end time of blinks.
         
         :param args:
-            If no argument is given, the start and end time of all blinks are 
+            If no argument is given, the start and end time of all blinks are
             obtained as a numpy.ndarray object whose shape is (n,2).
-            If an integer (n-1) is given, the start and end time of n-th blink 
+            If an integer (n-1) is given, the start and end time of n-th blink
             is obtained.
         """
         if len(args) == 0:
@@ -516,9 +518,10 @@ class GazeData(object):
         Get the recorded time of messages.
         
         :param args:
-            If no argument is given, the received time of all messages obtained as 
-            a numpy.ndarray object whose shape is (n,1).
-            If an integer (n-1) is given, the recorded of n-th fixation is obtained.
+            If no argument is given, the received time of all messages obtained
+            as a numpy.ndarray object whose shape is (n,1).
+            If an integer (n-1) is given, the recorded of n-th fixation is
+            obtained.
         """
         if len(args) == 0:
             l = numpy.zeros([self.nMsg,1])
@@ -538,10 +541,11 @@ class GazeData(object):
         Get gaze trajectory during a saccade.
         
         :param integer index:
-            Index of saccade.  Give n-1 to get gaze trajectory during n-th saccade.
+            Index of saccade.  Give n-1 to get gaze trajectory during n-th
+            saccade.
         :param str eye:
-            Output both-eye ('B'), left-eye ('L'), right-eye ('R') data or None (recorded eye).
-            Default value is None.
+            Output both-eye ('B'), left-eye ('L'), right-eye ('R') data or
+            None (recorded eye). Default value is None.
         """
         if not (0 <= index < self.nSac):
             raise ValueError, 'Index is out of range.'
@@ -565,9 +569,9 @@ class GazeData(object):
         Get saccade length.
         
         :param integer index:
-            Index of saccade.  Give n-1 to get gaze trajectory during n-th saccade.
-            If no index is supplied, length of all saccades are returned as a 
-            numpy.ndarray object.
+            Index of saccade.  Give n-1 to get gaze trajectory during n-th
+            saccade. If no index is supplied, length of all saccades are
+            returned as a numpy.ndarray object.
         :param str eye:
             Output both-eye ('B'), left-eye ('L') or right-eye ('R') data.
         """
@@ -705,8 +709,8 @@ class GazeData(object):
             A text to be found.
         :param bool byIndices:
             If ture, matched messages are returned by a list of indices.
-            Otherwise, matched messages are returned by a list of GazeParser.Core.MessageData objects.
-            Default value is False.
+            Otherwise, matched messages are returned by a list of
+            GazeParser.Core.MessageData objects.  Default value is False.
         :param bool useRegexp:
             If true, 'text' parapeter is considered as a regular expression.
             Default value is False.
@@ -734,7 +738,8 @@ class GazeData(object):
     
     def getPreviousEvent(self,event,step=1,eventType=None):
         """
-        Get an event previous to the argument. If no previous event, return None.
+        Get an event previous to the argument.
+        If no previous event, return None.
         
         :param event:
             An instance of SaccadeData, FixaionData, BlinkData or MessageData.
@@ -957,8 +962,9 @@ class GazeData(object):
     
     def getPathLength(self,sac):
         """
-        Get saccade length along saccade trajectory.  If a list of SaccadeData object is provided,
-        a list of the length of each saccades in the input list is returned.
+        Get saccade length along saccade trajectory.  If a list of SaccadeData
+        object is provided, a list of the length of each saccades in the input
+        list is returned.
         
         :param sac:
             a SaccadeData object or a list of SaccadeData object.
