@@ -79,18 +79,30 @@ class SaccadeData(object):
         Saccade onset time relative to indicated time.
         Unit is msec.
         
-        :param float time: reference time. Unit is msec.
+        :param time:
+            reference time. Unit is msec. If objects that has 'time' attribute
+            (e.g. GazeParser.Core.MessageData) is passed, the value of 'time' 
+            attribute is used.
         """
-        return self.startTime - time
+        if hasattr(time,'time'):
+            return self.startTime - time.time
+        else:
+            return self.startTime - time
     
     def relativeEndTime(self, time):
         """
         Saccade offset time relative to indicated time.
         Unit is msec.
         
-        :param float time: reference time. Unit is msec.
+        :param time:
+            reference time. Unit is msec. If objects that has 'time' attribute
+            (e.g. GazeParser.Core.MessageData) is passed, the value of 'time' 
+            attribute is used.
         """
-        return self.endTime - time
+        if hasattr(time,'time'):
+            return self.endTime - time.time
+        else:
+            return self.endTime - time
     
     def _setParent(self, obj):
         if self in obj._Sac:
@@ -189,19 +201,31 @@ class FixationData(object):
         Fixation onset time relative to indicated time.
         Unit is msec.
         
-        :param float time: reference time. Unit is msec.
+        :param time:
+            reference time. Unit is msec. If objects that has 'time' attribute
+            (e.g. GazeParser.Core.MessageData) is passed, the value of 'time' 
+            attribute is used.
         """
-        return self.startTime - time
-    
+        if hasattr(time,'time'):
+            return self.startTime - time.time
+        else:
+            return self.startTime - time
+        
     def relativeEndTime(self, time):
         """
         Fixation offset time relative to indicated time.
         Unit is msec.
         
-        :param float time: reference time. Unit is msec.
+        :param time:
+            reference time. Unit is msec. If objects that has 'time' attribute
+            (e.g. GazeParser.Core.MessageData) is passed, the value of 'time' 
+            attribute is used.
         """
-        return self.endTime - time
-    
+        if hasattr(time,'time'):
+            return self.endTime - time.time
+        else:
+            return self.endTime - time
+        
     def _setParent(self, obj):
         if self in obj._Fix:
             self._parent = obj
@@ -320,18 +344,30 @@ class BlinkData(object):
         Blink onset time relative to indicated time.
         Unit is msec.
         
-        :param float time: reference time. Unit is msec.
+        :param time:
+            reference time. Unit is msec. If objects that has 'time' attribute
+            (e.g. GazeParser.Core.MessageData) is passed, the value of 'time' 
+            attribute is used.
         """
-        return self.startTime - time
+        if hasattr(time,'time'):
+            return self.startTime - time.time
+        else:
+            return self.startTime - time
     
     def relativeEndTime(self, time):
         """
         Blink offset time relative to indicated time.
         Unit is msec.
         
-        :param float time: reference time. Unit is msec.
+        :param time:
+            reference time. Unit is msec. If objects that has 'time' attribute
+            (e.g. GazeParser.Core.MessageData) is passed, the value of 'time' 
+            attribute is used.
         """
-        return self.endTime - time
+        if hasattr(time,'time'):
+            return self.endTime - time.time
+        else:
+            return self.endTime - time
     
     def _setParent(self, obj):
         if self in obj._Blink:
