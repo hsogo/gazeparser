@@ -6,6 +6,7 @@
 .. note:: This module is under construction. Functions have not been tested.
 """
 
+import GazeParser.Core
 import numpy
 
 def getAreaCurvature(traj,absolute=False,ignoreNaN=False):
