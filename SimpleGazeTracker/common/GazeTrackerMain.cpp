@@ -881,6 +881,8 @@ main: Entry point of the application
 @date 2012/07/27 Don't render screen if g_isInhibitRendering is true.
 @date 2012/07/30
 - EOG-SimpleGazeTracker concurrent recording mode is appended
+@date 2012/12/13
+- Change conditions for rendering screen (!g_isRecording -> g_isShowingCameraImage)
 */
 int main(int argc, char** argv)
 {
@@ -1173,7 +1175,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if(!g_isRecording && !g_isInhibitRendering)
+		if(g_isShowingCameraImage && !g_isInhibitRendering)
 		{ // if it is not under recording, flip screen in a regular way.
 			render();
 		}
@@ -1794,6 +1796,7 @@ This function is called from sockProcess() when sockProcess() received "startMea
 @param[in] maxlen Size of buffer pointed by p.
 @return No value is returned.
 @date 2012/07/17 Created.
+@date 2012/12/13 g_isShowingCameraImage = true during measurement.
 */
 void startMeasurement(void)
 {
@@ -1802,7 +1805,7 @@ void startMeasurement(void)
 		g_DataCounter = 0;
 		g_MessageEnd = 0;
 		g_isRecording = true;
-		g_isShowingCameraImage = false;
+		g_isShowingCameraImage = true;
 		g_isShowingCalResult = false;
 
 		g_RecStartTime = getCurrentTime();
