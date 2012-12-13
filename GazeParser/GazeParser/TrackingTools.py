@@ -39,7 +39,8 @@ ControllerDefaults = {
 
 class BaseController(object):
     """
-    Base class for SimpleGazeTracker controllers. Following methods must be overridden.
+    Base class for SimpleGazeTracker controllers. Following methods must be
+    overridden.
     
     - self.setCalibrationScreen(self, screen)
     - self.updateScreen(self)
@@ -55,8 +56,8 @@ class BaseController(object):
         Initialize controller.
         
         :param str configFile: name of the configuration file.
-            If None, TrackingTools.cfg in the GazeParser configuration directory is used.
-            Default value is None.
+            If None, TrackingTools.cfg in the GazeParser configuration directory
+            is used. Default value is None.
         """
         cfgp = ConfigParser.SafeConfigParser()
         cfgp.optionxform = str
@@ -133,8 +134,8 @@ class BaseController(object):
     
     def setCalibrationTargetPositions(self, area, calposlist):
         """
-        Send calibration area and calibration target positions to the Tracker Host PC.
-        This method must be called before starting calibration.
+        Send calibration area and calibration target positions to the Tracker
+        Host PC. This method must be called before starting calibration.
         
         The order of calibration target positions is shuffled each time calibration
         is performed. However, the first target position (i.e. the target position 
@@ -215,9 +216,9 @@ class BaseController(object):
     
     def connect(self, address='', portSend=10000, portRecv=10001):
         """
-        Connect to the Tracker Host PC. Because most of methods communicate with 
-        the Tracker Host PC, this method should be called immediately after controller
-        object is created.
+        Connect to the Tracker Host PC. Because most of methods communicate with
+        the Tracker Host PC, this method should be called immediately after
+        controller object is created.
         
         :param str address: IP address of SimpeGazeTracker (e.g. '192.168.1.2').
             If the value is '', TRACKER_IP_ADDRESS in the configuration file is
@@ -400,18 +401,18 @@ class BaseController(object):
         Send a command to get current gaze position.
         
         :param float timeout:
-            If the Tracker Host PC does not respond within this duration, tuple of Nones
-            are returned. Unit is second. Default value is 0.02
+            If the Tracker Host PC does not respond within this duration, tuple of
+            Nones are returned. Unit is second. Default value is 0.02
         :param bool getPupil:
             If true, pupil size is returned with gaze position.
         :return:
-            When recording mode is monocular, return value is a tuple of 2 or 3 elements.
-            The first two elements represents holizontal(X) and vertical(Y) gaze position
-            in screen corrdinate. If getPupil is true, area of pupil is returned as the 
-            third element of the tuple.
-            When recording mode is binocular and getPupil is False, return value is
-            (Left X, Left Y, Right X, Right Y). If getPupil is True, return value is
-            (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
+            When recording mode is monocular, return value is a tuple of 2 or 3
+            elements.  The first two elements represents holizontal(X) and
+            vertical(Y) gaze position in screen corrdinate. If getPupil is true,
+            area of pupil is returned as the third element of the tuple.
+            When recording mode is binocular and getPupil is False, return value
+            is (Left X, Left Y, Right X, Right Y). If getPupil is True, return
+value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
         """
         self.sendSock.send('getEyePosition'+chr(0))
         hasGotEye = False
@@ -520,13 +521,15 @@ class BaseController(object):
         :param float timeout:
             If the Host Tracker PC does not respond within this duration, '----'
             is returned. Unit is second. Default value is 0.2
-        :return: a tuple representing goodness of calibration (GoC, horizontal and vertical),
-            mean error and maximum error. Larger value of GoC means better recording.
-            mean and maximum error are the distance between calibration taget position 
-            and gaze position in screen corrdinate. When recording mode is monocular, 
-            return value is (holizontal GoC, vertical GoC, mean error, maximum error).
-            When binocular, return value is a tuple of 8 elements: the former 4 elements 
-            correspond to left eye and the latter 4 elements correspond to right eye.
+        :return:
+            a tuple representing goodness of calibration (GoC, horizontal and
+            vertical), mean error and maximum error. Larger value of GoC means
+            better recording.  Mean and maximum error are the distance between
+            calibration taget position and gaze position in screen corrdinate.
+            When recording mode is monocular, return value is (holizontal GoC,
+            vertical GoC, mean error, maximum error). When binocular, return
+            value is a tuple of 8 elements: the former 4 elements correspond to
+            left eye and the latter 4 elements correspond to right eye.
             
         """
         self.sendSock.send('getCalResults'+chr(0))
@@ -1064,14 +1067,14 @@ class BaseController(object):
         
         These parameters can be overwrited by using
         :func:`~GazeParser.TrackingTools.BaseController.setCalibrationTargetMotionParameters`
-        and 
+        and
         :func:`~GazeParser.TrackingTools.BaseController.setCalibrationSampleAcquisitionParameters`.
         
         :param float t: time spent for current target position. The range of t is 
             0<=t<CALTARGET_DURATION_PER_POS.  When 0<=t<CALTARGET_MOTION_DURATION,
             the calibration target is moving to the current position.  When
             CALTARGET_MOTION_DURATION<=t<CALTARGET_DURATION_PER_POS, the calibration
-            target stays on the current position.  Acquisition of calibration samples
+            target stays on the current position. Acquisition of calibration samples
             starts when (CALTARGET_MOTION_DURATION+CAL_GETSAMPLE_DEALAY)<t.
         :param index: This value represents the order of current target position.
             This value is 0 before calibration is initiated by space key press.
@@ -1146,18 +1149,19 @@ class BaseController(object):
         :param int numSamplesPerPos:
             Number of samples collected at each calibration position.
             This value must be must be greater than 0. Default value is defined by 
-            NUM_SAMPLES_PER_TRGPOS parameter of GazeParser.TrackingTools configuration
-            file. By default, NUM_SAMPLES_PER_TRGPOS=10.
+            NUM_SAMPLES_PER_TRGPOS parameter of GazeParser.TrackingTools
+            configuration file. By default, NUM_SAMPLES_PER_TRGPOS=10.
         :param float getSampleDelay:
             Delay of starting sample acquisition from target arrived at calibration 
-            position. Unit is second. This value must not be negative.  Default value
-            is defined by CAL_GETSAMPLE_DEALAY parameter of GazeParser.TrackingTools 
-            configuration file. By default, CAL_GETSAMPLE_DEALAY=0.4.
+            position. Unit is second. This value must not be negative.
+            Default value is defined by CAL_GETSAMPLE_DEALAY parameter of
+            GazeParser.TrackingTools configuration file.
+            By default, CAL_GETSAMPLE_DEALAY=0.4.
         
         .. note::
-            If no configuration file is specified when Controller object is created,
-            a file named 'TrackingTools.cfg ' in the GazeParser configuration directory
-            is used as the configuration file.
+            If no configuration file is specified when Controller object is 
+            created, a file named 'TrackingTools.cfg ' in the GazeParser
+            configuration directory is used as the configuration file.
         """
         if numSamplesPerPos <= 0:
             raise ValueError, 'numSamplesPerPos must be greater than 0.'
@@ -1418,8 +1422,8 @@ class ControllerPsychoPyBackend(BaseController):
         """
         Set calibration screen.
         
-        :param psychopy.visual.window win: instance of psychopy.visual.window to display
-            calibration screen.
+        :param psychopy.visual.window win: instance of psychopy.visual.window to
+            display calibration screen.
         :param str font: font name.
         """
         self.win = win
@@ -1476,8 +1480,8 @@ class ControllerPsychoPyBackend(BaseController):
     #Override
     def setCalibrationTargetPositions(self, area, calposlist, units='pix'):
         """
-        Send calibration area and calibration target positions to the Tracker Host PC.
-        This method must be called before starting calibration.
+        Send calibration area and calibration target positions to the Tracker
+        Host PC. This method must be called before starting calibration.
         
         The order of calibration target positions is shuffled each time calibration
         is performed. However, the first target position (i.e. the target position 
@@ -1509,20 +1513,20 @@ class ControllerPsychoPyBackend(BaseController):
         Send a command to get current gaze position.
         
         :param float timeout:
-            If the Tracker Host PC does not respond within this duration, tuple of Nones
-            are returned. Unit is second. Default value is 0.02
-        :param str units: units of returned value.  'norm', 'height', 'deg', 'cm' and
-            'pix' are accepted.  Default value is 'pix'.
+            If the Tracker Host PC does not respond within this duration, tuple of
+            Nones are returned. Unit is second. Default value is 0.02
+        :param str units: units of returned value.  'norm', 'height', 'deg', 'cm'
+            and 'pix' are accepted.  Default value is 'pix'.
         :param bool getPupil:
             If true, pupil size is returned with gaze position.
         :return:
-            When recording mode is monocular, return value is a tuple of 2 or 3 elements.
-            The first two elements represents holizontal(X) and vertical(Y) gaze position
-            in screen corrdinate. If getPupil is true, area of pupil is returned as the 
-            third element of the tuple.
-            When recording mode is binocular and getPupil is False, return value is
-            (Left X, Left Y, Right X, Right Y). If getPupil is True, return value is
-            (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
+            When recording mode is monocular, return value is a tuple of 2 or 3
+            elements. The first two elements represents holizontal(X) and
+            vertical(Y) gaze position in screen corrdinate. If getPupil is true,
+            area of pupil is returned as the third element of the tuple.
+            When recording mode is binocular and getPupil is False, return value
+            is (Left X, Left Y, Right X, Right Y). If getPupil is True, return
+            value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
         """
         e = BaseController.getEyePosition(self, timeout, getPupil=getPupil)
         if getPupil:
@@ -1539,11 +1543,12 @@ class ControllerPsychoPyBackend(BaseController):
         Verify measurement error at a given position on the screen.
         
         :param position:
-            A tuple of two numbers that represents target position in screen coordinate.
-            If None, the center of the screen is used.  Default value is None.
+            A tuple of two numbers that represents target position in screen
+            coordinate. If None, the center of the screen is used.
+            Default value is None.
         :param responseKey:
-            When this key is pressed, eye position is measured and spatial error is 
-            evaluated.  Default value is 'space'.
+            When this key is pressed, eye position is measured and spatial error
+            is evaluated.  Default value is 'space'.
         :param responseMouseButton:
             If this value is 0, left button of the mouse is also used to 
             measure eye position.  If the value is 2, right button is used.
