@@ -330,11 +330,19 @@ def buildEventListBinocular(T,LHV,RHV,config):
     
     #delete small saccade first, then check fixation
     #check saccade duration
-    idx = numpy.where(saccadeCandidatesL[:,2]>config.SACCADE_MINIMUM_DURATION)[0]
-    saccadeCandidatesL = saccadeCandidatesL[idx,:]
-    idx = numpy.where(saccadeCandidatesR[:,2]>config.SACCADE_MINIMUM_DURATION)[0]
-    saccadeCandidatesR = saccadeCandidatesR[idx,:]
-    
+    if len(saccadeCandidatesL)>0:
+        idx = numpy.where(saccadeCandidatesL[:,2]>config.SACCADE_MINIMUM_DURATION)[0]
+        if len(idx)>0:
+            saccadeCandidatesL = saccadeCandidatesL[idx,:]
+        else:
+            saccadeCandidatesL = []
+    if len(saccadeCandidatesR)>0:
+        idx = numpy.where(saccadeCandidatesR[:,2]>config.SACCADE_MINIMUM_DURATION)[0]
+        if len(idx)>0:
+            saccadeCandidatesR = saccadeCandidatesR[idx,:]
+        else:
+            saccadeCandidatesR = []
+            
     saccadeCandidates = []
     #check binocular coincidence
     for index in range(len(saccadeCandidatesL)):
@@ -432,16 +440,20 @@ def buildEventListMonocular(T,HV,config):
     blinkCandidates = parseBlinkCandidates(T, HV, config)
     
     #delete small saccade first, then check fixation
-    #check saccade duration
-    idx = numpy.where(saccadeCandidates[:,2]>config.SACCADE_MINIMUM_DURATION)[0]
-    saccadeCandidates = saccadeCandidates[idx,:]
-    
-    #check saccade amplitude
-    amplitudeCheckList = []
-    for idx in range(len(saccadeCandidates)):
-        if numpy.linalg.norm((HV[saccadeCandidates[idx,1],:]-HV[saccadeCandidates[idx,0],:])*pix2deg) >= config.SACCADE_MINIMUM_AMPLITUDE:
-            amplitudeCheckList.append(idx)
-    saccadeCandidates = saccadeCandidates[amplitudeCheckList,:]
+    if len(saccadeCandidates) > 0:
+        #check saccade duration
+        idx = numpy.where(saccadeCandidates[:,2]>config.SACCADE_MINIMUM_DURATION)[0]
+        saccadeCandidates = saccadeCandidates[idx,:]
+        
+        #check saccade amplitude
+        amplitudeCheckList = []
+        for idx in range(len(saccadeCandidates)):
+            if numpy.linalg.norm((HV[saccadeCandidates[idx,1],:]-HV[saccadeCandidates[idx,0],:])*pix2deg) >= config.SACCADE_MINIMUM_AMPLITUDE:
+                amplitudeCheckList.append(idx)
+        if len(amplitudeCheckList) > 0:
+            saccadeCandidates = saccadeCandidates[amplitudeCheckList,:]
+        else:
+            saccadeCandidates = []
     
     #find fixations
     if len(saccadeCandidates) > 0:
