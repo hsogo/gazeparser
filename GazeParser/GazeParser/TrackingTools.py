@@ -960,6 +960,8 @@ value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
         """
         self.calibrationResults = None
     
+    '''
+    #obsolete
     def getSpatialError(self, position=None, responseKey='space', message=None, responseMouseButton=None):
         """
         Verify measurement error at a given position on the screen.
@@ -1051,6 +1053,7 @@ value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
             retval = (error, errorL, errorR, eyepos)
         
         return retval
+    '''
     
     def updateCalibrationTargetStimulusCallBack(self, t, index, targetPosition, currentPosition):
         """
@@ -1392,6 +1395,97 @@ class ControllerVisionEggBackend(BaseController):
             self.caltarget = stim
             self.viewport = self.VEViewport(screen=self.screen, stimuli=[self.img,self.imgCal,self.caltarget,self.msgtext])
 
+    def getSpatialError(self, position=None, responseKey='space', message=None, responseMouseButton=None):
+        """
+        Verify measurement error at a given position on the screen.
+        
+        :param position:
+            A tuple of two numbers that represents target position in screen
+            coordinate.  If None, the center of the screen is used.
+            Default value is None.
+        :param responseKey:
+            When this key is pressed, eye position is measured and spatial error is
+            evaluated.  Default value is 'space'.
+        :param message:
+            If a string is given, the string is presented on the screen.
+            Default value is None.
+        :param responseMouseButton:
+            If this value is 0, left button of the mouse is also used to 
+            measure eye position.  If the value is 2, right button is used.
+            If None, mouse buttons are ignored.
+            Default value is None.
+        
+        :return:
+            If recording mode is monocular, a tuple of two elements is returned.
+            The first element is the distance from target to measured eye position.
+            The second element is a tuple that represents measured eye position.
+            If measurement is failed, the first element is None.
+            
+            If recording mode is binocular, a tuple of four elements is returned.
+            The first, second and third element is the distance from target to 
+            measured eye position.  The second and third element are the results 
+            for left eye and right eye, respectively.  These elements are None if 
+            measurement of corresponding eye is failed.  The first element is 
+            the average of the second and third element.  If measurement of either
+            Left or Right eye is failed, the first element is also None.
+            The fourth element is measured eye position.
+        """
+        if position==None:
+            position = self.screenCenter
+        
+        self.calTargetPosition = position
+        
+        self.showCameraImage = False
+        self.showCalImage = False
+        self.showCalTarget = True
+        if message == None:
+            self.SHOW_CALDISPLAY = False
+        else:
+            self.SHOW_CALDISPLAY = True
+            self.messageText = message
+        
+        self.startMeasurement()
+        
+        isWaitingKey = True
+        while isWaitingKey:
+            if responseMouseButton != None:
+                if self.getMousePressed()[responseMouseButton]==1:
+                    isWaitingKey = False
+                    eyepos = self.getEyePosition()
+                    break
+            keys = self.getKeys()
+            for key in keys:
+                if key == responseKey:
+                    isWaitingKey = False
+                    eyepos = self.getEyePosition()
+                    break
+            self.updateScreen()
+        
+        self.stopMeasurement()
+        
+        if len(eyepos)==2: #monocular
+            if eyepos[0] == None:
+                error = None
+            else:
+                error = numpy.linalg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+            retval = (error, eyepos)
+            
+        else: #binocular
+            if eyepos[0] == None:
+                errorL = None
+            else:
+                errorL = numpy.linalg.norm((eyepos[0]-position[0],eyepos[1]-position[1]))
+            if eyepos[2] == None:
+                errorR = None
+            else:
+                errorR = numpy.linalg.norm((eyepos[2]-position[0],eyepos[3]-position[1]))
+            
+            if errorL != None and errorR != None:
+                error = (errorL+errorR)/2.0
+            
+            retval = (error, errorL, errorR, eyepos)
+        
+        return retval
 
 class ControllerPsychoPyBackend(BaseController):
     """
@@ -1581,10 +1675,38 @@ class ControllerPsychoPyBackend(BaseController):
             position = (0, 0)
             posInPix = (0, 0)
         
-        error = BaseController.getSpatialError(self, position=posInPix, responseKey=responseKey, message=message,  responseMouseButton=responseMouseButton)
-        eyepos = self.convertFromPix(error[-1], units)
+        self.calTargetPosition = posInPix
         
-        # following part is copied from BaseController.getSpatialError
+        self.showCameraImage = False
+        self.showCalImage = False
+        self.showCalTarget = True
+        if message == None:
+            self.SHOW_CALDISPLAY = False
+        else:
+            self.SHOW_CALDISPLAY = True
+            self.messageText = message
+        
+        self.startMeasurement()
+        
+        isWaitingKey = True
+        while isWaitingKey:
+            if responseMouseButton != None:
+                if self.getMousePressed()[responseMouseButton]==1:
+                    isWaitingKey = False
+                    eyepos = self.getEyePosition(units='pix')
+                    break
+            keys = self.getKeys()
+            for key in keys:
+                if key == responseKey:
+                    isWaitingKey = False
+                    eyepos = self.getEyePosition(units='pix')
+                    break
+            self.updateScreen()
+        
+        self.stopMeasurement()
+        
+        eyepos = self.convertFromPix(eyepos, units)
+        
         if len(eyepos)==2: #monocular
             if eyepos[0] == None:
                 error = None
@@ -1989,7 +2111,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         if self.win.units=='pix':
             return self.convertFromPix(e, units)
         else:
-            return e
+            return self.convertFromPix(self.convertToPix(e, self.win.units), units)
     
     def sendMessage(self, message):
         """
@@ -2069,8 +2191,6 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         Set calibration screen.
         """
         ControllerPsychoPyBackend.setCalibrationScreen(self, win, font)
-        if self.win.units != 'pix':
-            print 'warning: getEyePosition() of dummy controller will not work correctly when default units of the window is not \'pix\'.'
         draw = ImageDraw.Draw(self.PILimgCAL)
         draw.rectangle(((0,0),self.PILimgCAL.size),fill=0)
         draw.text((64,64),'Calibration/Validation Results',fill=255)
@@ -2097,6 +2217,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         else:
             self.showCalImage = False
         self.messageText = 'Dummy Results'
+    
 
 def getController(backend, configFile=None, dummy=False):
     """
