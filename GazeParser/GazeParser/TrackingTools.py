@@ -1173,7 +1173,9 @@ value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
         self.NUM_SAMPLES_PER_TRGPOS = numSamplesPerPos
         self.CAL_GETSAMPLE_DEALAY = getSampleDelay
     
-    def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None):
+    def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None, position=None,
+                       gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey='m',
+                       showMarker=False, showBackground=False):
         """
         Verify spatial error of measurement. If spatial error is larger than a
         given amount, calibration loop is automatically called and velification
@@ -1201,6 +1203,30 @@ value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
             - 'Please fixate on a square and press space key.'
             - 'Please fixate on a square and press space key again.'
             - 'Gaze position could not be detected. Please call experimenter.'
+        :param position:
+            Specify position of the target. If None, the center of the screen is used.
+            Default value is None.
+        :param gazeMarker:
+            Specify a stimulus which is presented on the current gaze position.
+            If None, default marker is used.
+            Default value is None.
+        :param backgroundStimuli:
+            Specify a list of stimuli which are presented as background stimuli.
+            If None, a gray circle is presented as background.
+            Default value is None.
+        :param str toggleMarkerKey:
+            Specify name of a key to toggle visibility of gaze marker.
+            Default value is 'm'.
+        :param str toggleBackgroundKey:
+            Specify name of a key to toggle visibility of background stimuli.
+            Default value is 'm'.
+        :param bool showMarker:
+            If True, gaze marker is visible when getSpatialError is called.
+            Default value is False.
+        :param bool showBackground:
+            If True, gaze marker is visible when getSpatialError is called.
+            Default value is False.
+        
         :return:
             If calibration is terminated by 'q' key, 'q' is returned.
             Otherwise, spatial error is returned.
@@ -1212,14 +1238,25 @@ value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
                        'Please fixate on a square and press space key again.',
                        'Gaze position could not be detected. Please call experimenter.']
         
+        if backgroundStimuli==None:
+            if position==None:
+                position = self.screenCenter
+            backgroundStimuli = [self.VEFilledCircle(radius=permissibleError,color=(0.6,0.6,0.6),position=position)]
+        
         numTry = 0
-        error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton)
+        error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton, position=None,
+                                     gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
+                                     toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
+                                     showMarker=showMarker, showBackground=showBackground)
         if error[0]!=None and error[0] < permissibleError:
             return error
         
         numTry += 1
         while True:
-            error = self.getSpatialError(message=message[1], responseKey=key, responseMouseButton=mouseButton)
+            error = self.getSpatialError(message=message[1], responseKey=key, responseMouseButton=mouseButton, position=None,
+                                         gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
+                                         toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
+                                         showMarker=showMarker, showBackground=showBackground)
             if error[0]!=None and error[0] < permissibleError:
                 return error
             else:
@@ -1227,7 +1264,10 @@ value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
                 numTry += 1
                 if numTry == maxTry: #recalibration
                     #spatial error is unnecessary, but this is an easy way to show message and wait keypress.
-                    error = self.getSpatialError(message=message[2], responseKey=key, responseMouseButton=mouseButton)
+                    error = self.getSpatialError(message=message[2], responseKey=key, responseMouseButton=mouseButton, position=None,
+                                                 gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
+                                                 toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
+                                                 showMarker=showMarker, showBackground=showBackground)
                     self.removeCalibrationResults()
                     while True:
                         res = self.calibrationLoop()
@@ -1252,13 +1292,14 @@ class ControllerVisionEggBackend(BaseController):
         from VisionEgg.Core import Viewport
         from VisionEgg.Text import Text
         from VisionEgg.Textures import Texture, TextureStimulus
-        from VisionEgg.MoreStimuli import Target2D
+        from VisionEgg.MoreStimuli import Target2D, FilledCircle
         from VisionEgg.GL import GL_NEAREST
         from pygame import key, event, mouse
         from pygame.locals import KEYDOWN, K_LEFT, K_RIGHT
         self.VEswap_buffers = swap_buffers
         self.VEViewport = Viewport
         self.VETarget2D = Target2D
+        self.VEFilledCircle = FilledCircle
         self.VETexture = Texture
         self.VETextureStimulus = TextureStimulus
         self.VEText = Text
@@ -1395,7 +1436,9 @@ class ControllerVisionEggBackend(BaseController):
             self.caltarget = stim
             self.viewport = self.VEViewport(screen=self.screen, stimuli=[self.img,self.imgCal,self.caltarget,self.msgtext])
 
-    def getSpatialError(self, position=None, responseKey='space', message=None, responseMouseButton=None):
+    def getSpatialError(self, position=None, responseKey='space', message=None, responseMouseButton=None,
+                        gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey=None,
+                        showMarker=False, showBackground=False):
         """
         Verify measurement error at a given position on the screen.
         
@@ -1414,6 +1457,26 @@ class ControllerVisionEggBackend(BaseController):
             measure eye position.  If the value is 2, right button is used.
             If None, mouse buttons are ignored.
             Default value is None.
+        :param gazeMarker:
+            Specify a stimulus which is presented on the current gaze position.
+            If None, default marker is used.
+            Default value is None.
+        :param backgroundStimuli:
+            Specify a list of stimuli which are presented as background stimuli.
+            If None, a gray circle is presented as background.
+            Default value is None.
+        :param str toggleMarkerKey:
+            Specify name of a key to toggle visibility of gaze marker.
+            Default value is 'm'.
+        :param str toggleBackgroundKey:
+            Specify name of a key to toggle visibility of background stimuli.
+            Default value is None.
+        :param bool showMarker:
+            If True, gaze marker is visible when getSpatialError is called.
+            Default value is False.
+        :param bool showBackground:
+            If True, gaze marker is visible when getSpatialError is called.
+            Default value is False.
         
         :return:
             If recording mode is monocular, a tuple of two elements is returned.
@@ -1433,16 +1496,29 @@ class ControllerVisionEggBackend(BaseController):
         if position==None:
             position = self.screenCenter
         
-        self.calTargetPosition = position
-        
-        self.showCameraImage = False
-        self.showCalImage = False
-        self.showCalTarget = True
-        if message == None:
-            self.SHOW_CALDISPLAY = False
+        if isinstance(self.caltarget, tuple):
+            for s in self.caltarget:
+                s.parameters.on = True
+                s.parameters.position = position
         else:
-            self.SHOW_CALDISPLAY = True
-            self.messageText = message
+            self.caltarget.parameters.on = True
+            self.caltarget.parameters.position = position
+        self.msgtext.parameters.text = message
+        
+        mainViewport = self.VEViewport(screen=self.screen, stimuli=[self.caltarget,self.msgtext])
+        
+        isMarkerVisible = showMarker
+        isBackgroundVisible = showBackground
+        if gazeMarker==None:
+            gazeMarker = self.VETarget2D(size=(2,2),color=(1,1,0))
+        gazeMarker.parameters.on = isMarkerVisible
+        if backgroundStimuli==None:
+            backgroundStimuli = [self.VEFilledCircle(radius=100,color=(0.6,0.6,0.6),position=position)]
+        for i in range(len(backgroundStimuli)):
+            backgroundStimuli[-(i+1)].parameters.on = isBackgroundVisible
+        
+        markerViewport = self.VEViewport(screen=self.screen, stimuli=[gazeMarker])
+        backgroundViewport = self.VEViewport(screen=self.screen, stimuli=backgroundStimuli)
         
         self.startMeasurement()
         
@@ -1459,7 +1535,27 @@ class ControllerVisionEggBackend(BaseController):
                     isWaitingKey = False
                     eyepos = self.getEyePosition()
                     break
-            self.updateScreen()
+                if key == toggleMarkerKey:
+                    isMarkerVisible = not isMarkerVisible
+                    gazeMarker.parameters.on = isMarkerVisible
+                if key == toggleBackgroundKey:
+                    isBackgroundVisible = not isBackgroundVisible
+                    for s in backgroundStimuli:
+                        s.parameters.on = isBackgroundVisible
+            if isMarkerVisible:
+                eyepos=self.getEyePosition()
+                if len(eyepos)==2:
+                    if eyepos[0]!=None:
+                        gazeMarker.parameters.position = eyepos
+                else:
+                    if eyepos[0]!=None and eyepos[1]!=None:
+                        gazeMarker.parameters.position = ((eyepos[0]+eyepos[2])/2.0,(eyepos[1]+eyepos[3])/2.0)
+            self.screen.clear()
+            backgroundViewport.draw()
+            mainViewport.draw()
+            markerViewport.draw()
+            self.VEswap_buffers()
+            
         
         self.stopMeasurement()
         
@@ -1496,13 +1592,14 @@ class ControllerPsychoPyBackend(BaseController):
         :param str configFile: Controller configuration file. If None, default
             configurations are used.
         """
-        from psychopy.visual import TextStim, SimpleImageStim, Rect
+        from psychopy.visual import TextStim, SimpleImageStim, Rect, Circle
         from psychopy.event import getKeys, Mouse
         from psychopy.misc import cm2pix,deg2pix,pix2cm,pix2deg
         self.PPSimpleImageStim = SimpleImageStim
         self.PPTextStim = TextStim
         self.PPmouse = Mouse
         self.PPRect = Rect
+        self.PPCircle = Circle
         self.cm2pix = cm2pix
         self.deg2pix = deg2pix
         self.pix2cm = pix2cm
@@ -1631,8 +1728,9 @@ class ControllerPsychoPyBackend(BaseController):
             else:
                 return self.convertFromPix(e[:4], units) + e[4:]
     
-    #Override
-    def getSpatialError(self, position=None, responseKey='space', message=None,  responseMouseButton=None, units='pix'):
+    def getSpatialError(self, position=None, responseKey='space', message=None,  responseMouseButton=None,
+                        gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey=None,
+                        showMarker=False, showBackground=False, units='pix'):
         """
         Verify measurement error at a given position on the screen.
         
@@ -1643,14 +1741,34 @@ class ControllerPsychoPyBackend(BaseController):
         :param responseKey:
             When this key is pressed, eye position is measured and spatial error
             is evaluated.  Default value is 'space'.
+        :param str message:
+            If a string is given, the string is presented on the screen.
+            Default value is None.
         :param responseMouseButton:
             If this value is 0, left button of the mouse is also used to 
             measure eye position.  If the value is 2, right button is used.
             If None, mouse buttons are ignored.
             Default value is None.
-        :param message:
-            If a string is given, the string is presented on the screen.
+        :param gazeMarker:
+            Specify a stimulus which is presented on the current gaze position.
+            If None, default marker is used.
             Default value is None.
+        :param backgroundStimuli:
+            Specify a list of stimuli which are presented as background stimuli.
+            If None, a gray circle is presented as background.
+            Default value is None.
+        :param str toggleMarkerKey:
+            Specify name of a key to toggle visibility of gaze marker.
+            Default value is 'm'.
+        :param str toggleBackgroundKey:
+            Specify name of a key to toggle visibility of background stimuli.
+            Default value is None.
+        :param bool showMarker:
+            If True, gaze marker is visible when getSpatialError is called.
+            Default value is False.
+        :param bool showBackground:
+            If True, gaze marker is visible when getSpatialError is called.
+            Default value is False.
         :param str units: units of 'position' and returned value.  'norm', 'height',
             'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
         
@@ -1675,16 +1793,19 @@ class ControllerPsychoPyBackend(BaseController):
             position = (0, 0)
             posInPix = (0, 0)
         
-        self.calTargetPosition = posInPix
-        
-        self.showCameraImage = False
-        self.showCalImage = False
-        self.showCalTarget = True
-        if message == None:
-            self.SHOW_CALDISPLAY = False
+        if isinstance(self.caltarget, tuple):
+            for s in self.caltarget:
+                s.setPos(posInPix, units='pix')
         else:
-            self.SHOW_CALDISPLAY = True
-            self.messageText = message
+            self.caltarget.setPos(posInPix, units='pix')
+        self.msgtext.setText(self.messageText)
+        
+        isMarkerVisible = showMarker
+        isBackgroundVisible = showBackground
+        if gazeMarker==None:
+            gazeMarker = self.PPRect(self.win, width=3, height=3, units='pix', lineWidth=1, fillColor=(1,1,0), lineColor=(1,1,0))
+        if backgroundStimuli==None:
+            backgroundStimuli = [self.PPCircle(self.win, radius=100, units='pix', lineWidth=1, lineColor=(0.5,0.5,0.5))]
         
         self.startMeasurement()
         
@@ -1701,7 +1822,31 @@ class ControllerPsychoPyBackend(BaseController):
                     isWaitingKey = False
                     eyepos = self.getEyePosition(units='pix')
                     break
-            self.updateScreen()
+                if key == toggleMarkerKey:
+                    isMarkerVisible = not isMarkerVisible
+                if key == toggleBackgroundKey:
+                    isBackgroundVisible = not isBackgroundVisible
+            if isMarkerVisible:
+                eyepos=self.getEyePosition()
+                if len(eyepos)==2:
+                    if eyepos[0]!=None:
+                        gazeMarker.setPos(eyepos)
+                else:
+                    if eyepos[0]!=None and eyepos[1]!=None:
+                        gazeMarker.setPos(((eyepos[0]+eyepos[2])/2.0,(eyepos[1]+eyepos[3])/2.0))
+            
+            #update screen
+            if isBackgroundVisible:
+                for s in backgroundStimuli:
+                    s.draw()
+            if isinstance(self.caltarget, tuple):
+                for s in self.caltarget:
+                    s.draw()
+            else:
+                self.caltarget.draw()
+            if isMarkerVisible:
+                gazeMarker.draw()
+            self.win.flip()
         
         self.stopMeasurement()
         
@@ -1863,8 +2008,9 @@ class ControllerPsychoPyBackend(BaseController):
         else: #suppose VisionEgg.Core.Stimulus
             self.caltarget = stim
     
-    #Override
-    def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None, units='pix'):
+    def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None, position=None,
+                       gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey='m',
+                       showMarker=False, showBackground=False, units='pix'):
         """
         Verify spatial error of measurement. If spatial error is larger than a
         given amount, calibration loop is automatically called and velification
@@ -1892,8 +2038,32 @@ class ControllerPsychoPyBackend(BaseController):
             - 'Please fixate on a square and press space key.'
             - 'Please fixate on a square and press space key again.'
             - 'Gaze position could not be detected. Please call experimenter.'
+        :param position:
+            Specify position of the target. If None, the center of the screen is used.
+            Default value is None.
+        :param gazeMarker:
+            Specify a stimulus which is presented on the current gaze position.
+            If None, default marker is used.
+            Default value is None.
+        :param backgroundStimuli:
+            Specify a list of stimuli which are presented as background stimuli.
+            If None, a gray circle is presented as background.
+            Default value is None.
+        :param str toggleMarkerKey:
+            Specify name of a key to toggle visibility of gaze marker.
+            Default value is 'm'.
+        :param str toggleBackgroundKey:
+            Specify name of a key to toggle visibility of background stimuli.
+            Default value is 'm'.
+        :param bool showMarker:
+            If True, gaze marker is visible when getSpatialError is called.
+            Default value is False.
+        :param bool showBackground:
+            If True, gaze marker is visible when getSpatialError is called.
+            Default value is False.
         :param str units: units of 'area' and 'calposlist'.  'norm', 'height',
             'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
+        
         :return:
             If calibration is terminated by 'q' key, 'q' is returned.
             Otherwise, spatial error is returned.
@@ -1905,14 +2075,26 @@ class ControllerPsychoPyBackend(BaseController):
                        'Please fixate on a square and press space key again.',
                        'Gaze position could not be detected. Please call experimenter.']
         
+        if backgroundStimuli==None:
+            if position==None:
+                position = self.screenCenter
+            backgroundStimuli = [self.PPCircle(self.win, radius=permissibleError, units=units, lineWidth=1, lineColor=(0.5,0.5,0.5))]
+        
         numTry = 0
-        error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton, units=units)
+        error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton, position=None,
+                                     gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
+                                     toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
+                                     showMarker=showMarker, showBackground=showBackground, units=units)
         if error[0]!=None and error[0] < permissibleError:
             return error
         
         numTry += 1
         while True:
-            error = self.getSpatialError(message=message[1], responseKey=key, responseMouseButton=mouseButton, units=units)
+            error = self.getSpatialError(message=message[1], responseKey=key, responseMouseButton=mouseButton, position=None,
+                                         gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
+                                         toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
+                                         showMarker=showMarker, showBackground=showBackground, units=units)
+            
             if error[0]!=None and error[0] < permissibleError:
                 return error
             else:
@@ -1920,7 +2102,10 @@ class ControllerPsychoPyBackend(BaseController):
                 numTry += 1
                 if numTry == maxTry: #recalibration
                     #spatial error is unnecessary, but this is an easy way to show message and wait keypress.
-                    error = self.getSpatialError(message=message[2], responseKey=key, responseMouseButton=mouseButton, units=units)
+                    error = self.getSpatialError(message=message[2], responseKey=key, responseMouseButton=mouseButton, position=None,
+                                                 gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
+                                                 toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
+                                                 showMarker=showMarker, showBackground=showBackground, units=units)
                     self.removeCalibrationResults()
                     while True:
                         res = self.calibrationLoop()
