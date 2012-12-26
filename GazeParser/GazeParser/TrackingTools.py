@@ -1503,9 +1503,12 @@ class ControllerVisionEggBackend(BaseController):
         else:
             self.caltarget.parameters.on = True
             self.caltarget.parameters.position = position
-        self.msgtext.parameters.text = message
         
-        mainViewport = self.VEViewport(screen=self.screen, stimuli=[self.caltarget,self.msgtext])
+        if message != None:
+            self.msgtext.parameters.text = message
+            mainViewport = self.VEViewport(screen=self.screen, stimuli=[self.caltarget,self.msgtext])
+        else:
+            mainViewport = self.VEViewport(screen=self.screen, stimuli=[self.caltarget])
         
         isMarkerVisible = showMarker
         isBackgroundVisible = showBackground
@@ -1798,7 +1801,12 @@ class ControllerPsychoPyBackend(BaseController):
                 s.setPos(posInPix, units='pix')
         else:
             self.caltarget.setPos(posInPix, units='pix')
-        self.msgtext.setText(self.messageText)
+        
+        if message != None:
+            self.msgtext.setText(message)
+            doDrawMessage = True
+        else:
+            doDrawMessage = False
         
         isMarkerVisible = showMarker
         isBackgroundVisible = showBackground
@@ -1844,6 +1852,8 @@ class ControllerPsychoPyBackend(BaseController):
                     s.draw()
             else:
                 self.caltarget.draw()
+            if doDrawMessage:
+                self.msgtext.draw()
             if isMarkerVisible:
                 gazeMarker.draw()
             self.win.flip()
