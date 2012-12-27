@@ -194,14 +194,6 @@ int initParameters( void )
 	int param;
 	bool isInSection = true; //default is True to support old config file
 
-	getDataDirectoryPath(&g_DataPath);
-	//getApplicationDirectoryPath(&g_AppDirPath);
-	getParameterDirectoryPath(&g_ParamPath);
-
-	checkAndCreateDirectory(g_DataPath);
-	checkAndCreateDirectory(g_ParamPath);
-	checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath);
-
 	fname.assign(g_ParamPath);
 	fname.append(PATH_SEPARATOR);
 	fname.append("CONFIG");
@@ -262,9 +254,16 @@ int initParameters( void )
 		else if(strcmp(buff,"DELAY_CORRECTION")==0) g_DelayCorrection = param;
 		else if(strcmp(buff,"OUTPUT_PUPILSIZE")==0) g_isOutputPupilSize = param;
 		else{
-			printf("Unknown option (\"%s\")\n",buff);
+			printf("Error: Unknown option (\"%s\")\n",buff);
+			g_LogFS << "Error: Unknown option in CONFIG (" << buff << ")" << std::endl;
 			return E_FAIL; //unknown option
 		}
+	}
+	
+	if(g_CameraWidth*g_CameraHeight==0)
+	{
+		g_LogFS << "Error: Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero. Please check contents of \"CONFIG\"." << std::endl;
+		return E_FAIL;
 	}
 
 	if(g_ROIWidth==0) g_ROIWidth = g_CameraWidth;
@@ -895,6 +894,33 @@ int main(int argc, char** argv)
 
 	int nInitMessage=0;
 
+	//check directory and crate them if necessary.
+	getDataDirectoryPath(&g_DataPath);
+	getParameterDirectoryPath(&g_ParamPath);
+
+	checkAndCreateDirectory(g_DataPath);
+	checkAndCreateDirectory(g_ParamPath);
+
+	//open logfile and output welcome message.
+	std::string logFilePath;
+	getLogFilePath(&logFilePath);
+	g_LogFS.open(logFilePath.c_str(),std::ios::out);
+	if(!g_LogFS.is_open()){
+		return -1;
+	}
+	std::string str("Welcome to SimpleGazeTracker version ");
+	str.append(VERSION);
+	str.append(" ");
+	str.append(getEditionString());
+	g_LogFS << str << std::endl;
+	
+	//if CONFIG file is not found, copy it.
+	if(FAILED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
+		g_LogFS << "Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+		return -1;
+	}
+	
+	//start initialization
 	SDL_Init(SDL_INIT_VIDEO);
 
 	g_pSDLscreen=SDL_SetVideoMode(SCREEN_WIDTH,SCREEN_HEIGHT,32,SDL_SWSURFACE);
@@ -908,18 +934,6 @@ int main(int argc, char** argv)
 		SDL_Quit();
 		return -1;
 	}
-
-	std::string logFilePath;
-	getLogFilePath(&logFilePath);
-	g_LogFS.open(logFilePath.c_str(),std::ios::out);
-	if(!g_LogFS.is_open()){
-		return -1;
-	}
-	std::string str("Welcome to SimpleGazeTracker version ");
-	str.append(VERSION);
-	str.append(" ");
-	str.append(getEditionString());
-	g_LogFS << str << std::endl;
 	g_LogFS << "initParameters ... OK." << std::endl;
 
 	//TODO output parameters here?

@@ -215,6 +215,9 @@ int checkAndRenameFile(std::string path)
 }
 
 int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath)
+/*@date 2012/12/27
+- return E_FAIL when source file is not found.
+*/
 {
 	std::string str(path);
 	str.append(PATH_SEPARATOR);
@@ -225,6 +228,9 @@ int checkAndCopyFile(std::string path, const char* filename, std::string sourceP
 		std::string strFrom(sourcePath);
 		strFrom.append(PATH_SEPARATOR);
 		strFrom.append(filename);
+		if(!PathFileExists(strFrom.c_str())){
+			return E_FAIL;
+		}
 		CopyFile(strFrom.c_str(),str.c_str(),true);
 	}
 #else
@@ -238,6 +244,11 @@ int checkAndCopyFile(std::string path, const char* filename, std::string sourceP
 		std::string strFrom(sourcePath);
 		strFrom.append(PATH_SEPARATOR);
 		strFrom.append(filename);
+		res = stat(strFrom.c_str(),&statbuff);
+		if(res<0)
+		{
+			return E_FAIL;
+		}
 		std::ifstream fromFS(strFrom.c_str(),std::ios::binary);
 		std::ofstream toFS(str.c_str(),std::ios::binary);
 		std::copy( std::istreambuf_iterator< char >( fromFS ),
