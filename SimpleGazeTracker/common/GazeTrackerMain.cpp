@@ -916,7 +916,8 @@ int main(int argc, char** argv)
 	
 	//if CONFIG file is not found, copy it.
 	if(FAILED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
-		g_LogFS << "Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+		printf("Error: Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed.\n");
+		g_LogFS << "Error: Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed." << std::endl;
 		return -1;
 	}
 	
@@ -925,12 +926,16 @@ int main(int argc, char** argv)
 
 	g_pSDLscreen=SDL_SetVideoMode(SCREEN_WIDTH,SCREEN_HEIGHT,32,SDL_SWSURFACE);
 	if(g_pSDLscreen == NULL){
+		printf("Error: Could not prepare SDL Window.\n");
+		g_LogFS << "Error: Could not prepare SDL Window." << std::endl;
 		SDL_Quit();
 		return -1;
 	}
 	SDL_WM_SetCaption("SimpleGazeTracker",NULL);
 
 	if(FAILED(initParameters())){
+		printf("Error: Could not initialize parameters. Check \"CONFIG\" file.\n");
+		g_LogFS << "Error: Could not initialize parameters. Check \"CONFIG\" file." << std::endl;
 		SDL_Quit();
 		return -1;
 	}

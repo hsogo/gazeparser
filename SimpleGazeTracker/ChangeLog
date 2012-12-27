@@ -1,4 +1,7 @@
-2012-12-12
+
+  * Detailed error message is output when CONFIG is not found in the installation directory.
+
+2012-12-12 Hiroyuki Sogo
 
   release: 0.6.2
   * "openDataFile" command receives a new parameter to overwrite/rename existing data file.
