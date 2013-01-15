@@ -1,0 +1,275 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: GazeParser 0.6.3\n"
+"POT-Creation-Date: 2013-01-12 20:34+0900\n"
+"PO-Revision-Date: 2013-01-12 20:34+0900\n"
+"Last-Translator: Hiroyuki Sogo <hsogo@ehime-u.ac.jp>\n"
+"Language-Team: \n"
+"Language: Japanese\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.5.4\n"
+"X-Poedit-KeywordsList: _;gettext;gettext_noop\n"
+"X-Poedit-Basepath: D:\\Users\\Hiroyuki\\Dropbox\\git-repository\\gazeparser-"
+"code\\GazeParser\\GazeParser\\lang\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: ..\\app\n"
+
+#: ..\app/Viewer.py:136 ..\app/Viewer.py:280 ..\app/Viewer.py:385
+#: ..\app/Viewer.py:468 ..\app/Viewer.py:484 ..\app/Viewer.py:542
+#: ..\app/Viewer.py:594 ..\app/Viewer.py:602 ..\app/Viewer.py:609
+#: ..\app/Viewer.py:768 ..\app/Viewer.py:773 ..\app/Viewer.py:915
+#: ..\app/Viewer.py:934 ..\app/Viewer.py:1018 ..\app/Viewer.py:1026
+#: ..\app/Viewer.py:1043 ..\app/Viewer.py:1051
+msgid "Error"
+msgstr "エラー"
+
+#: ..\app/Viewer.py:145 ..\app/Viewer.py:155 ..\app/Viewer.py:174
+#: ..\app/Viewer.py:761 ..\app/Viewer.py:765 ..\app/Viewer.py:895
+#: ..\app/Viewer.py:1312
+msgid "Info"
+msgstr "お知らせ"
+
+#: ..\app/Viewer.py:227 ..\app/Viewer.py:326
+msgid "Update plot"
+msgstr "プロットを更新する"
+
+#: ..\app/Viewer.py:228
+msgid "Reset"
+msgstr "リセット"
+
+#: ..\app/Viewer.py:280
+msgid "Illeagal values"
+msgstr "不正な値です"
+
+#: ..\app/Viewer.py:308
+msgid "Abscissa"
+msgstr "横軸"
+
+#: ..\app/Viewer.py:309 ..\app/Viewer.py:318
+msgid "No grid"
+msgstr "グリッドなし"
+
+#: ..\app/Viewer.py:310 ..\app/Viewer.py:319
+msgid "Show grid on current ticks"
+msgstr "現在の目盛でグリッドを表示"
+
+#: ..\app/Viewer.py:311 ..\app/Viewer.py:320
+msgid "Set interval ticks"
+msgstr "等間隔の目盛を設定"
+
+#: ..\app/Viewer.py:312 ..\app/Viewer.py:321
+msgid "Set custom ticks"
+msgstr "pythonの文で目盛を設定"
+
+#: ..\app/Viewer.py:317
+msgid "Ordinate"
+msgstr "縦軸"
+
+#: ..\app/Viewer.py:385 ..\app/Viewer.py:468 ..\app/Viewer.py:484
+#: ..\app/Viewer.py:542 ..\app/Viewer.py:915 ..\app/Viewer.py:934
+msgid "No Data"
+msgstr "データがありません"
+
+#: ..\app/Viewer.py:415 ..\app/Viewer.py:644
+msgid "File"
+msgstr "ファイル"
+
+#: ..\app/Viewer.py:416 ..\app/Viewer.py:645
+msgid "View"
+msgstr "ビュー"
+
+#: ..\app/Viewer.py:417
+msgid "Export Config"
+msgstr "設定をエクスポート"
+
+#: ..\app/Viewer.py:418
+msgid "Close"
+msgstr "終了"
+
+#: ..\app/Viewer.py:419 ..\app/Viewer.py:473 ..\app/Viewer.py:475
+#: ..\app/Viewer.py:489 ..\app/Viewer.py:491 ..\app/Viewer.py:657
+#: ..\app/Viewer.py:809 ..\app/Viewer.py:920 ..\app/Viewer.py:922
+#: ..\app/Viewer.py:939 ..\app/Viewer.py:941
+msgid "Prev Trial"
+msgstr "前の試行"
+
+#: ..\app/Viewer.py:420 ..\app/Viewer.py:477 ..\app/Viewer.py:479
+#: ..\app/Viewer.py:493 ..\app/Viewer.py:495 ..\app/Viewer.py:658
+#: ..\app/Viewer.py:811 ..\app/Viewer.py:924 ..\app/Viewer.py:926
+#: ..\app/Viewer.py:943 ..\app/Viewer.py:945
+msgid "Next Trial"
+msgstr "次の試行"
+
+#: ..\app/Viewer.py:443
+msgid "Original Config"
+msgstr "元の設定"
+
+#: ..\app/Viewer.py:444
+msgid "New Config"
+msgstr "新しい設定"
+
+#: ..\app/Viewer.py:456
+msgid "Update"
+msgstr "更新する"
+
+#: ..\app/Viewer.py:602
+msgid "New configuration is empty"
+msgstr "新しい設定が空です"
+
+#: ..\app/Viewer.py:609
+#, python-format
+msgid "Could not write configuration to \"%s\""
+msgstr "設定を%sに出力できません"
+
+#: ..\app/Viewer.py:646
+msgid "Convert"
+msgstr "データ変換"
+
+#: ..\app/Viewer.py:648
+msgid "Open"
+msgstr "開く"
+
+#: ..\app/Viewer.py:649
+msgid "Recent Dir"
+msgstr "最近開いた場所"
+
+#: ..\app/Viewer.py:655
+msgid "Export"
+msgstr "エクスポート"
+
+#: ..\app/Viewer.py:656
+msgid "Exit"
+msgstr "終了"
+
+#: ..\app/Viewer.py:660
+msgid "Toggle Fixation Number"
+msgstr "凝視番号表示のON/OFF"
+
+#: ..\app/Viewer.py:661
+msgid "Toggle View"
+msgstr "プロットの切り替え(XY - XYT)"
+
+#: ..\app/Viewer.py:663
+msgid "Set grid"
+msgstr "グリッドの設定"
+
+#: ..\app/Viewer.py:664
+msgid "Config color"
+msgstr "色の設定"
+
+#: ..\app/Viewer.py:665
+msgid "Convert SimpleGazeTracker CSV"
+msgstr "SimpleGazeTracker CSVファイルを変換"
+
+#: ..\app/Viewer.py:666
+msgid "Convert Eyelink EDF"
+msgstr "Eyelink EDFファイルを変換"
+
+#: ..\app/Viewer.py:667
+msgid "Convert Tobii TSV"
+msgstr "Tobii TSVファイルを変換"
+
+#: ..\app/Viewer.py:669
+msgid "Edit GazeParser.Configuration file"
+msgstr "GazeParser設定ファイルを編集"
+
+#: ..\app/Viewer.py:670
+msgid "Interactive configuration"
+msgstr "インタラクティブ設定エディタ"
+
+#: ..\app/Viewer.py:697
+msgid "Emphasize"
+msgstr "強調"
+
+#: ..\app/Viewer.py:698
+msgid "Extract"
+msgstr "抽出"
+
+#: ..\app/Viewer.py:759
+#, python-format
+msgid "%s already exists. Overwrite?"
+msgstr "%sは既に存在しています。上書きしますか？"
+
+#: ..\app/Viewer.py:761
+msgid "Conversion canceled."
+msgstr "変換は中断されました。"
+
+#: ..\app/Viewer.py:765
+msgid ""
+"Conversion succeeded.\n"
+"Open converted data file."
+msgstr ""
+"変換が成功しました。\n"
+"変換されたファイルを開きます"
+
+#: ..\app/Viewer.py:768
+#, python-format
+msgid "Failed to convert %s to GazeParser .db file"
+msgstr "%sをGazeParser .dbファイルに変換できませんでした"
+
+#: ..\app/Viewer.py:773
+#, python-format
+msgid "File contains no data. (%s)"
+msgstr "ファイル(%s)がデータを含んでいません"
+
+#: ..\app/Viewer.py:830
+msgid "Check items to export."
+msgstr "エクスポートする項目をチェックしてください"
+
+#: ..\app/Viewer.py:831
+msgid "Saccade"
+msgstr "サッカード"
+
+#: ..\app/Viewer.py:832
+msgid "Fixation"
+msgstr "凝視"
+
+#: ..\app/Viewer.py:833
+msgid "Blink"
+msgstr "瞬き"
+
+#: ..\app/Viewer.py:834
+msgid "Message"
+msgstr "メッセージ"
+
+#: ..\app/Viewer.py:835
+msgid "This trial"
+msgstr "この試行のみ"
+
+#: ..\app/Viewer.py:836
+msgid "All trials"
+msgstr "全ての試行"
+
+#: ..\app/Viewer.py:837
+msgid "Sort by time"
+msgstr "時刻順に並べる"
+
+#: ..\app/Viewer.py:838
+msgid "Sort by events"
+msgstr "イベント別に並べる"
+
+#: ..\app/Viewer.py:839
+msgid "Ok"
+msgstr "Ok"
+
+#: ..\app/Viewer.py:895
+msgid "Done"
+msgstr "完了しました"
+
+#: ..\app/Viewer.py:1018 ..\app/Viewer.py:1043
+#, python-format
+msgid "\"%s\" is not a float number."
+msgstr "%sは小数ではありません。"
+
+#: ..\app/Viewer.py:1026 ..\app/Viewer.py:1051
+#, python-format
+msgid "\"%s\" is not a python statement."
+msgstr "%sはpythonの文ではありません"
+
+#: ..\app/Viewer.py:1312
+msgid ""
+"Data must be loaded before\n"
+"using interactive configuration."
+msgstr "インタラクティブ設定を使用する前にデータをロードする必要があります"

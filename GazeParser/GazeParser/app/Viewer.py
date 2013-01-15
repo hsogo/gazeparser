@@ -36,7 +36,24 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from GazeParser.Converter import buildEventListBinocular, buildEventListMonocular, applyFilter
 
+import gettext
+import locale
+
 MAX_RECENT = 5
+
+def init_localization(lang=''):
+    moFilename = os.path.join(GazeParser.appDir,'lang','messages_'+lang+'.mo')
+    
+    print moFilename
+    try:
+        #logging.debug( "Opening message file %s for locale %s", filename, loc[0] )
+        trans = gettext.GNUTranslations(open( moFilename, "rb" ) )
+    except IOError:
+        print  'Warning: Locale not found. Using default messages'
+        #logging.debug( "Locale not found. Using default messages" )
+        trans = gettext.NullTranslations()
+    
+    trans.install()
 
 def getComplementaryColorStr(col):
     """
@@ -116,7 +133,7 @@ class ViewerOptions(object):
         try:
             self.VIEWER_VERSION = appConf.get('Version','VIEWER_VERSION')
         except:
-            ans = tkMessageBox.askyesno('Error','No VIEWER_VERSION option in configuration file (%s). Backup current file and then initialize configuration file?\n' % (self.viewerConfigFile))
+            ans = tkMessageBox.askyesno(_('Error'),'No VIEWER_VERSION option in configuration file (%s). Backup current file and then initialize configuration file?\n' % (self.viewerConfigFile))
             if ans:
                 shutil.copyfile(self.viewerConfigFile,self.viewerConfigFile+'.bak')
                 shutil.copyfile(initialConfigFile,self.viewerConfigFile)
@@ -125,7 +142,7 @@ class ViewerOptions(object):
                 appConf.read(self.viewerConfigFile)
                 self.VIEWER_VERSION = appConf.get('Version','VIEWER_VERSION')
             else:
-                tkMessageBox.showinfo('info','Please correct configuration file manually.')
+                tkMessageBox.showinfo(_('Info'),'Please correct configuration file manually.')
                 sys.exit()
         
         doMerge = False
@@ -135,7 +152,7 @@ class ViewerOptions(object):
                 shutil.copyfile(self.viewerConfigFile,self.viewerConfigFile+'.bak')
                 doMerge = True
             else:
-                tkMessageBox.showinfo('info','Please update configuration file manually.')
+                tkMessageBox.showinfo(_('Info'),'Please update configuration file manually.')
                 sys.exit()
         
         if doMerge:
@@ -154,7 +171,7 @@ class ViewerOptions(object):
                         setattr(self,optName,optType(appNewConf.get(section,optName)))
                         newOpts.append(' * '+optName)
             #new version number
-            tkMessageBox.showinfo('info','Added:\n'+'\n'.join(newOpts))
+            tkMessageBox.showinfo(_('Info'),'Added:\n'+'\n'.join(newOpts))
         
         else:
             for section,params in self.options:
@@ -207,8 +224,8 @@ class configColorWindow(Tkinter.Frame):
                                                            bg=self.newColorDict[name], fg=getTextColor(self.newColorDict[name]))
                     self.buttonDict[name].grid(row=r,column=1,sticky=Tkinter.W + Tkinter.E)
                     r+=1
-        Tkinter.Button(self, text='Update plot', command=self._updatePlot).grid(row=r,column=0)
-        Tkinter.Button(self, text='Reset', command=self._resetColor).grid(row=r,column=1)
+        Tkinter.Button(self, text=_('Update plot'), command=self._updatePlot).grid(row=r,column=0)
+        Tkinter.Button(self, text=_('Reset'), command=self._resetColor).grid(row=r,column=1)
         self.pack()
     
     def _chooseColor(self,name):
@@ -260,7 +277,7 @@ class plotRangeWindow(Tkinter.Frame):
             self.ax.axis(self.currentPlotArea)
             self.fig.canvas.draw()
         except:
-            tkMessageBox.showinfo('Error','Illeagal values')
+            tkMessageBox.showinfo(_('Error'),_('Illeagal values'))
 
 class configGridWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
@@ -288,25 +305,25 @@ class configGridWindow(Tkinter.Frame):
             self.strOrdinate.set(yparams[1])
         
         
-        xframe = Tkinter.LabelFrame(self, text='Abscissa')
-        Tkinter.Radiobutton(xframe, text='No grid', variable=self.choiceAbscissa, value='NOGRID', command=self._onClickRadiobuttons).grid(row=0,column=0)
-        Tkinter.Radiobutton(xframe, text='Show grid on current ticks', variable=self.choiceAbscissa, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
-        Tkinter.Radiobutton(xframe, text='Set interval ticks', variable=self.choiceAbscissa, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
-        Tkinter.Radiobutton(xframe, text='Set custom ticks', variable=self.choiceAbscissa, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
+        xframe = Tkinter.LabelFrame(self, text=_('Abscissa'))
+        Tkinter.Radiobutton(xframe, text=_('No grid'), variable=self.choiceAbscissa, value='NOGRID', command=self._onClickRadiobuttons).grid(row=0,column=0)
+        Tkinter.Radiobutton(xframe, text=_('Show grid on current ticks'), variable=self.choiceAbscissa, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
+        Tkinter.Radiobutton(xframe, text=_('Set interval ticks'), variable=self.choiceAbscissa, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
+        Tkinter.Radiobutton(xframe, text=_('Set custom ticks'), variable=self.choiceAbscissa, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
         self.abscissaEntry = Tkinter.Entry(xframe, textvariable=self.strAbscissa)
         self.abscissaEntry.grid(row=1,column=0,columnspan=4,sticky=Tkinter.W+Tkinter.E)
         xframe.pack()
         
-        yframe = Tkinter.LabelFrame(self, text='Ordinate')
-        Tkinter.Radiobutton(yframe, text='No grid', variable=self.choiceOrdinate, value='NOGRID', command=self._onClickRadiobuttons).grid(row=0,column=0)
-        Tkinter.Radiobutton(yframe, text='Show grid on current ticks', variable=self.choiceOrdinate, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
-        Tkinter.Radiobutton(yframe, text='Set interval ticks', variable=self.choiceOrdinate, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
-        Tkinter.Radiobutton(yframe, text='Set custom ticks', variable=self.choiceOrdinate, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
+        yframe = Tkinter.LabelFrame(self, text=_('Ordinate'))
+        Tkinter.Radiobutton(yframe, text=_('No grid'), variable=self.choiceOrdinate, value='NOGRID', command=self._onClickRadiobuttons).grid(row=0,column=0)
+        Tkinter.Radiobutton(yframe, text=_('Show grid on current ticks'), variable=self.choiceOrdinate, value='CURRENT', command=self._onClickRadiobuttons).grid(row=0,column=1)
+        Tkinter.Radiobutton(yframe, text=_('Set interval ticks'), variable=self.choiceOrdinate, value='INTERVAL', command=self._onClickRadiobuttons).grid(row=0,column=2)
+        Tkinter.Radiobutton(yframe, text=_('Set custom ticks'), variable=self.choiceOrdinate, value='CUSTOM', command=self._onClickRadiobuttons).grid(row=0,column=3)
         self.ordinateEntry = Tkinter.Entry(yframe, textvariable=self.strOrdinate)
         self.ordinateEntry.grid(row=1,column=0,columnspan=4,sticky=Tkinter.W+Tkinter.E)
         yframe.pack()
         
-        Tkinter.Button(self, text='Update plot', command=self._updatePlot).pack()
+        Tkinter.Button(self, text=_('Update plot'), command=self._updatePlot).pack()
         
         self._onClickRadiobuttons()
         
@@ -365,7 +382,7 @@ class InteractiveConfig(Tkinter.Frame):
     def __init__(self, data, additional, conf, master=None):
         self.configtypes = [('GazeParser Configuration File','*.cfg')]
         if data==None:
-            tkMessageBox.showerror('Error','No data')
+            tkMessageBox.showerror(_('Error'),_('No Data'))
             return
         
         self.D = data
@@ -395,12 +412,12 @@ class InteractiveConfig(Tkinter.Frame):
         menu_bar = Tkinter.Menu(tearoff=False)
         menu_file = Tkinter.Menu(tearoff=False)
         self.menu_view = Tkinter.Menu(tearoff=False)
-        menu_bar.add_cascade(label='File',menu=menu_file,underline=0)
-        menu_bar.add_cascade(label='View',menu=self.menu_view,underline=0)
-        menu_file.add_command(label='Export Config',under=0,command=self._exportConfig)
-        menu_file.add_command(label='Close',under=0,command=self._close)
-        self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
-        self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
+        menu_bar.add_cascade(label=_('File'),menu=menu_file,underline=0)
+        menu_bar.add_cascade(label=_('View'),menu=self.menu_view,underline=0)
+        menu_file.add_command(label=_('Export Config'),under=0,command=self._exportConfig)
+        menu_file.add_command(label=_('Close'),under=0,command=self._close)
+        self.menu_view.add_command(label=_('Prev Trial'),under=0,command=self._prevTrial)
+        self.menu_view.add_command(label=_('Next Trial'),under=0,command=self._nextTrial)
         self.master.configure(menu = menu_bar)
         
         ########
@@ -423,8 +440,8 @@ class InteractiveConfig(Tkinter.Frame):
         self.newParamStringsDict = {}
         self.paramFrame = Tkinter.Frame(self.mainFrame, bd=3, relief='groove') #subFrame
         r=0
-        Tkinter.Label(self.paramFrame, text='Original').grid(row=r,column=1)
-        Tkinter.Label(self.paramFrame, text='New').grid(row=r,column=2)
+        Tkinter.Label(self.paramFrame, text=_('Original Config')).grid(row=r,column=1)
+        Tkinter.Label(self.paramFrame, text=_('New Config')).grid(row=r,column=2)
         for key in GazeParser.Configuration.GazeParserOptions:
             r += 1
             Tkinter.Label(self.paramFrame, text=key).grid(row=r,column=0,sticky=Tkinter.W,)
@@ -436,7 +453,7 @@ class InteractiveConfig(Tkinter.Frame):
                 Tkinter.Label(self.paramFrame, text='not available').grid(row=r,column=1,sticky=Tkinter.W,)
             Tkinter.Entry(self.paramFrame, textvariable=self.newParamStringsDict[key]).grid(row=r,column=2)
         r+=1
-        Tkinter.Button(self.paramFrame, text='Update', command=self._updateParameters).grid(row=r,column=0,columnspan=3)
+        Tkinter.Button(self.paramFrame, text=_('Update'), command=self._updateParameters).grid(row=r,column=0,columnspan=3)
         self.paramFrame.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
         self.mainFrame.pack(side=Tkinter.TOP,fill=Tkinter.BOTH,expand=True)
         
@@ -448,34 +465,34 @@ class InteractiveConfig(Tkinter.Frame):
         
     def _prevTrial(self, event=None):
         if self.D==None:
-            tkMessageBox.showerror('Error','No Data')
+            tkMessageBox.showerror(_('Error'),_('No Data'))
             return
         if self.tr>0:
             self.tr -= 1
             if self.tr==0:
-                self.menu_view.entryconfigure('Prev Trial', state = 'disabled')
+                self.menu_view.entryconfigure(_('Prev Trial'), state = 'disabled')
             else:
-                self.menu_view.entryconfigure('Prev Trial', state = 'normal')
+                self.menu_view.entryconfigure(_('Prev Trial'), state = 'normal')
             if self.tr==len(self.D)-1:
-                self.menu_view.entryconfigure('Next Trial', state = 'disabled')
+                self.menu_view.entryconfigure(_('Next Trial'), state = 'disabled')
             else:
-                self.menu_view.entryconfigure('Next Trial', state = 'normal')
+                self.menu_view.entryconfigure(_('Next Trial'), state = 'normal')
         self._editParameters()
         
     def _nextTrial(self, event=None):
         if self.D==None:
-            tkMessageBox.showerror('Error','No Data')
+            tkMessageBox.showerror(_('Error'),_('No Data'))
             return
         if self.tr<len(self.D)-1:
             self.tr += 1
             if self.tr==0:
-                self.menu_view.entryconfigure('Prev Trial', state = 'disabled')
+                self.menu_view.entryconfigure(_('Prev Trial'), state = 'disabled')
             else:
-                self.menu_view.entryconfigure('Prev Trial', state = 'normal')
+                self.menu_view.entryconfigure(_('Prev Trial'), state = 'normal')
             if self.tr==len(self.D)-1:
-                self.menu_view.entryconfigure('Next Trial', state = 'disabled')
+                self.menu_view.entryconfigure(_('Next Trial'), state = 'disabled')
             else:
-                self.menu_view.entryconfigure('Next Trial', state = 'normal')
+                self.menu_view.entryconfigure(_('Next Trial'), state = 'normal')
         self.updateAdjustResults1()
         self.updateAdjustResults2()
         
@@ -522,7 +539,7 @@ class InteractiveConfig(Tkinter.Frame):
     
     def _updateParameters(self):
         if self.D == None:
-            tkMessageBox.showerror('Error','No data!')
+            tkMessageBox.showerror(_('Error'),_('No Data'))
             return
             
         if self.newConfig==None:
@@ -574,7 +591,7 @@ class InteractiveConfig(Tkinter.Frame):
             for tbi in tbinfo:
                 errormsg += tbi
             errormsg += '  %s' % str(info[1])
-            tkMessageBox.showerror('Error', errormsg)
+            tkMessageBox.showerror(_('Error'), errormsg)
             self.newSacList = None
             self.newFixList = None
         else:
@@ -582,18 +599,19 @@ class InteractiveConfig(Tkinter.Frame):
     
     def _exportConfig(self):
         if self.newConfig == None:
-            tkMessageBox.showerror('Error','New configuration is empty')
+            tkMessageBox.showerror(_('Error'),_('New configuration is empty'))
             return
         
         try:
             fname = tkFileDialog.asksaveasfilename(filetypes=self.configtypes, initialdir=GazeParser.configDir)
             self.newConfig.save(fname)
         except:
-            tkMessageBox.showerror('Error','Could not write configuration to \'' + fname + '\'')
+            tkMessageBox.showerror(_('Error'),_('Could not write configuration to "%s"') % (fname))
 
 class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
         self.conf = ViewerOptions()
+        init_localization('ja')
         
         #self.ftypes = [('GazeParser/SimpleGazeTracker Datafile','*.db;*.csv')]
         self.ftypes = [('GazeParser Datafile','*.db'),('SimpleGazeTracker CSV file','*.csv')]
@@ -623,33 +641,33 @@ class mainWindow(Tkinter.Frame):
         self.menu_convert = Tkinter.Menu(tearoff=False)
         self.menu_recent = Tkinter.Menu(tearoff=False)
         self.menu_config = Tkinter.Menu(tearoff=False)
-        self.menu_bar.add_cascade(label='File',menu=self.menu_file,underline=0)
-        self.menu_bar.add_cascade(label='View',menu=self.menu_view,underline=0)
-        self.menu_bar.add_cascade(label='Convert',menu=self.menu_convert,underline=0)
+        self.menu_bar.add_cascade(label=_('File'),menu=self.menu_file,underline=0)
+        self.menu_bar.add_cascade(label=_('View'),menu=self.menu_view,underline=0)
+        self.menu_bar.add_cascade(label=_('Convert'),menu=self.menu_convert,underline=0)
         
-        self.menu_file.add_command(label='Open',under=0,command=self._openfile)
-        self.menu_file.add_cascade(label='Recent Dir',menu=self.menu_recent,underline=0)
+        self.menu_file.add_command(label=_('Open'),under=0,command=self._openfile)
+        self.menu_file.add_cascade(label=_('Recent Dir'),menu=self.menu_recent,underline=0)
         if self.conf.RecentDir == []:
             self.menu_recent.add_command(label='None',state=Tkinter.DISABLED)
         else:
             for i in range(len(self.conf.RecentDir)):
                 self.menu_recent.add_command(label=self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
-        self.menu_file.add_command(label='Export',under=0,command=self._exportfile)
-        self.menu_file.add_command(label='Exit',under=0,command=self._exit)
-        self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
-        self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
+        self.menu_file.add_command(label=_('Export'),under=0,command=self._exportfile)
+        self.menu_file.add_command(label=_('Exit'),under=0,command=self._exit)
+        self.menu_view.add_command(label=_('Prev Trial'),under=0,command=self._prevTrial)
+        self.menu_view.add_command(label=_('Next Trial'),under=0,command=self._nextTrial)
         self.menu_view.add_separator()
-        self.menu_view.add_command(label='Toggle Fixation Number',under=0,command=self._toggleFixNum)
-        self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
+        self.menu_view.add_command(label=_('Toggle Fixation Number'),under=0,command=self._toggleFixNum)
+        self.menu_view.add_command(label=_('Toggle View'),under=0,command=self._toggleView)
         self.menu_view.add_separator()
-        self.menu_view.add_command(label='Set grid',under=0,command=self._configGrid)
-        self.menu_view.add_command(label='Config color', under=0, command=self._configColor)
-        self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=0,command=self._convertGT)
-        self.menu_convert.add_command(label='Convert Eyelink EDF',under=0,command=self._convertEL)
-        self.menu_convert.add_command(label='Convert Tobii TSV',under=0,command=self._convertTSV)
+        self.menu_view.add_command(label=_('Set grid'),under=0,command=self._configGrid)
+        self.menu_view.add_command(label=_('Config color'), under=0, command=self._configColor)
+        self.menu_convert.add_command(label=_('Convert SimpleGazeTracker CSV'),under=0,command=self._convertGT)
+        self.menu_convert.add_command(label=_('Convert Eyelink EDF'),under=0,command=self._convertEL)
+        self.menu_convert.add_command(label=_('Convert Tobii TSV'),under=0,command=self._convertTSV)
         self.menu_convert.add_separator()
-        self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
-        self.menu_convert.add_command(label='Interactive configuration',under=0,command=self._interactive)
+        self.menu_convert.add_command(label=_('Edit GazeParser.Configuration file'),under=0,command=self._configEditor)
+        self.menu_convert.add_command(label=_('Interactive configuration'),under=0,command=self._interactive)
         
         self.master.configure(menu = self.menu_bar)
         
@@ -676,8 +694,8 @@ class mainWindow(Tkinter.Frame):
         
         self.sideFrame = Tkinter.Frame(master)
         self.listboxFrame = Tkinter.Frame(self.sideFrame)
-        Tkinter.Radiobutton(self.sideFrame,text='Emphasize',variable=self.selectiontype,value='Emphasize').pack(side=Tkinter.TOP)
-        Tkinter.Radiobutton(self.sideFrame,text='Extract',variable=self.selectiontype,value='Extract').pack(side=Tkinter.TOP)
+        Tkinter.Radiobutton(self.sideFrame,text=_('Emphasize'),variable=self.selectiontype,value='Emphasize').pack(side=Tkinter.TOP)
+        Tkinter.Radiobutton(self.sideFrame,text=_('Extract'),variable=self.selectiontype,value='Extract').pack(side=Tkinter.TOP)
         Tkinter.Button(self.sideFrame,text='Ok',command=self._setmarker).pack(side=Tkinter.TOP)
         self.yscroll = Tkinter.Scrollbar(self.listboxFrame, orient=Tkinter.VERTICAL)
         self.msglistbox = Tkinter.Listbox(master=self.listboxFrame,yscrollcommand=self.yscroll.set, selectmode=Tkinter.EXTENDED)
@@ -738,21 +756,21 @@ class mainWindow(Tkinter.Frame):
             dbFileName = os.path.splitext(self.dataFileName)[0]+'.db'
             print dbFileName
             if os.path.isfile(dbFileName):
-                doOverwrite = tkMessageBox.askyesno('Overwrite?',dbFileName+' already exists. Overwrite?')
+                doOverwrite = tkMessageBox.askyesno('Overwrite?',_('%s already exists. Overwrite?') % (dbFileName))
                 if not doOverwrite:
-                    tkMessageBox.showinfo('Info','Conversion canceled.')
+                    tkMessageBox.showinfo(_('Info'),_('Conversion canceled.'))
                     return
             ret = GazeParser.Converter.TrackerToGazeParser(self.dataFileName, overwrite=True)
             if ret == 'SUCCESS':
-                tkMessageBox.showinfo('Info','Conversion succeeded.\nOpen converted data file.')
+                tkMessageBox.showinfo(_('Info'),_('Conversion succeeded.\nOpen converted data file.'))
                 self.dataFileName = dbFileName
             else:
-                tkMessageBox.showinfo('Conversion error','Failed to convert %s to GazeParser .db file' % (self.dataFileName))
+                tkMessageBox.showinfo(_('Error'),_('Failed to convert %s to GazeParser .db file') % (self.dataFileName))
                 return
         
         [self.D,self.C] = GazeParser.load(self.dataFileName)
         if len(self.D)==0:
-            tkMessageBox.showerror('Error','File contains no data. (%s)'%(self.dataFileName))
+            tkMessageBox.showerror(_('Error'),_('File contains no data. (%s)') % (self.dataFileName))
             self.D = None
             self.C = None
             return
@@ -788,9 +806,9 @@ class mainWindow(Tkinter.Frame):
         
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         self.selectiontype.set('Emphasize')
-        self.menu_view.entryconfigure('Prev Trial', state = 'disabled')
+        self.menu_view.entryconfigure(_('Prev Trial'), state = 'disabled')
         if len(self.D)<2:
-            self.menu_view.entryconfigure('Next Trial', state = 'disabled')
+            self.menu_view.entryconfigure(_('Next Trial'), state = 'disabled')
         self._plotData()
         self._updateMsgBox()
     
@@ -809,16 +827,16 @@ class mainWindow(Tkinter.Frame):
         flgOrder = Tkinter.StringVar()
         flgTrials.set('ThisTrial')
         flgOrder.set('ByTime')
-        Tkinter.Label(dlg, text='Check items to export.').grid(row=0,column=0,columnspan=2)
-        Tkinter.Checkbutton(dlg, text='Saccade', variable=flgSac).grid(row=1,column=0)
-        Tkinter.Checkbutton(dlg, text='Fixation', variable=flgFix).grid(row=2,column=0)
-        Tkinter.Checkbutton(dlg, text='Blink', variable=flgBlk).grid(row=1,column=1)
-        Tkinter.Checkbutton(dlg, text='Message', variable=flgMsg).grid(row=2,column=1)
-        Tkinter.Radiobutton(dlg, text='This trial', variable=flgTrials, value='ThisTrial').grid(row=3,column=0)
-        Tkinter.Radiobutton(dlg, text='All trials', variable=flgTrials, value='AllTrials').grid(row=3,column=1)
-        Tkinter.Radiobutton(dlg, text='By time', variable=flgOrder, value='ByTime').grid(row=4,column=0)
-        Tkinter.Radiobutton(dlg, text='By events', variable=flgOrder, value='ByEvents').grid(row=4,column=1)
-        Tkinter.Button(dlg, text='Ok', command=dlg.destroy).grid(row=5,column=0,columnspan=2)
+        Tkinter.Label(dlg, text=_('Check items to export.')).grid(row=0,column=0,columnspan=2)
+        Tkinter.Checkbutton(dlg, text=_('Saccade'), variable=flgSac).grid(row=1,column=0)
+        Tkinter.Checkbutton(dlg, text=_('Fixation'), variable=flgFix).grid(row=2,column=0)
+        Tkinter.Checkbutton(dlg, text=_('Blink'), variable=flgBlk).grid(row=1,column=1)
+        Tkinter.Checkbutton(dlg, text=_('Message'), variable=flgMsg).grid(row=2,column=1)
+        Tkinter.Radiobutton(dlg, text=_('This trial'), variable=flgTrials, value='ThisTrial').grid(row=3,column=0)
+        Tkinter.Radiobutton(dlg, text=_('All trials'), variable=flgTrials, value='AllTrials').grid(row=3,column=1)
+        Tkinter.Radiobutton(dlg, text=_('Sort by time'), variable=flgOrder, value='ByTime').grid(row=4,column=0)
+        Tkinter.Radiobutton(dlg, text=_('Sort by events'), variable=flgOrder, value='ByEvents').grid(row=4,column=1)
+        Tkinter.Button(dlg, text=_('Ok'), command=dlg.destroy).grid(row=5,column=0,columnspan=2)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -874,7 +892,7 @@ class mainWindow(Tkinter.Frame):
             
             fp.close()
             
-            tkMessageBox.showinfo('Info','Done.')
+            tkMessageBox.showinfo(_('Info'),_('Done'))
     
     def _configColor(self,event=None):
         geoMaster = parsegeometry(self.master.winfo_geometry())
@@ -894,18 +912,18 @@ class mainWindow(Tkinter.Frame):
         
     def _prevTrial(self, event=None):
         if self.D==None:
-            tkMessageBox.showerror('Error','No Data')
+            tkMessageBox.showerror(_('Error'),_('No Data'))
             return
         if self.tr>0:
             self.tr -= 1
             if self.tr==0:
-                self.menu_view.entryconfigure('Prev Trial', state = 'disabled')
+                self.menu_view.entryconfigure(_('Prev Trial'), state = 'disabled')
             else:
-                self.menu_view.entryconfigure('Prev Trial', state = 'normal')
+                self.menu_view.entryconfigure(_('Prev Trial'), state = 'normal')
             if self.tr==len(self.D)-1:
-                self.menu_view.entryconfigure('Next Trial', state = 'disabled')
+                self.menu_view.entryconfigure(_('Next Trial'), state = 'disabled')
             else:
-                self.menu_view.entryconfigure('Next Trial', state = 'normal')
+                self.menu_view.entryconfigure(_('Next Trial'), state = 'normal')
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         self.selectiontype.set('Emphasize')
         self._plotData()
@@ -913,18 +931,18 @@ class mainWindow(Tkinter.Frame):
         
     def _nextTrial(self, event=None):
         if self.D==None:
-            tkMessageBox.showerror('Error','No Data')
+            tkMessageBox.showerror(_('Error'),_('No Data'))
             return
         if self.tr<len(self.D)-1:
             self.tr += 1
             if self.tr==0:
-                self.menu_view.entryconfigure('Prev Trial', state = 'disabled')
+                self.menu_view.entryconfigure(_('Prev Trial'), state = 'disabled')
             else:
-                self.menu_view.entryconfigure('Prev Trial', state = 'normal')
+                self.menu_view.entryconfigure(_('Prev Trial'), state = 'normal')
             if self.tr==len(self.D)-1:
-                self.menu_view.entryconfigure('Next Trial', state = 'disabled')
+                self.menu_view.entryconfigure(_('Next Trial'), state = 'disabled')
             else:
-                self.menu_view.entryconfigure('Next Trial', state = 'normal')
+                self.menu_view.entryconfigure(_('Next Trial'), state = 'normal')
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         self.selectiontype.set('Emphasize')
         self._plotData()
@@ -997,7 +1015,7 @@ class mainWindow(Tkinter.Frame):
             try:
                 interval = float(params[1])
             except:
-                tkMessageBox.showerror('Error','"%s" is not a float number.', (params[1]))
+                tkMessageBox.showerror(_('Error'),_('"%s" is not a float number.') % (params[1]))
                 return
             self.ax.xaxis.grid(True)
             self.ax.xaxis.set_major_locator(MultipleLocator(interval))
@@ -1005,7 +1023,7 @@ class mainWindow(Tkinter.Frame):
             try:
                 format = eval(params[1])
             except:
-                tkMessageBox.showerror('Error','"%s" is not a python statement.'% (params[1]))
+                tkMessageBox.showerror(_('Error'),_('"%s" is not a python statement.') % (params[1]))
                 return
             
             self.ax.xaxis.grid(True)
@@ -1022,7 +1040,7 @@ class mainWindow(Tkinter.Frame):
             try:
                 interval = float(params[1])
             except:
-                tkMessageBox.showerror('Error','"%s" is not a float number.' % (params[1]))
+                tkMessageBox.showerror(_('Error'),_('"%s" is not a float number.') % (params[1]))
                 return
             self.ax.yaxis.grid(True)
             self.ax.yaxis.set_major_locator(MultipleLocator(interval))
@@ -1030,7 +1048,7 @@ class mainWindow(Tkinter.Frame):
             try:
                 format = eval(params[1])
             except:
-                tkMessageBox.showerror('Error','"%s" is not a python statement.'%(params[1]))
+                tkMessageBox.showerror(_('Error'),_('"%s" is not a python statement.') % (params[1]))
                 return
             self.ax.yaxis.grid(True)
             self.ax.yaxis.set_ticks(format)
@@ -1291,7 +1309,7 @@ class mainWindow(Tkinter.Frame):
     
     def _interactive(self):
         if self.D == None:
-            tkMessageBox.showinfo('info','Data must be loaded before\nusing interactive configuration.')
+            tkMessageBox.showinfo(_('Info'),_('Data must be loaded before\nusing interactive configuration.'))
             return
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
