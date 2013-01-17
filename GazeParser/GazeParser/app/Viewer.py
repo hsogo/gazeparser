@@ -37,6 +37,195 @@ from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from GazeParser.Converter import buildEventListBinocular, buildEventListMonocular, applyFilter
 
 MAX_RECENT = 5
+PLOT_OFFSET = 10
+
+class jumpToTrialWindow(Tkinter.Frame):
+    def __init__(self, mainWindow, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.mainWindow = mainWindow
+        
+        self.newtrStr = Tkinter.StringVar()
+        Tkinter.Label(self, text='Jump to... (0-%s)'%(len(mainWindow.D)-1)).grid(row=0,column=0)
+        Tkinter.Entry(self, textvariable=self.newtrStr).grid(row=0,column=1)
+        
+        Tkinter.Button(self, text='OK', command=self.jump).grid(row=1,column=0,columnspan=2)
+        self.pack()
+
+    def jump(self, event=None):
+        try:
+            newtr = int(self.newtrStr.get())
+        except:
+            tkMessageBox.showerror('Error','Value must be an integer')
+            return
+        
+        if newtr<0 or newtr>=len(self.mainWindow.D):
+            tkMessageBox.showerror('Error','Invalid trial number')
+            return
+        
+        self.mainWindow.tr = newtr
+        if self.mainWindow.tr==0:
+            self.mainWindow.menu_view.entryconfigure('Prev Trial', state = 'disabled')
+        else:
+            self.mainWindow.menu_view.entryconfigure('Prev Trial', state = 'normal')
+        if self.mainWindow.tr==len(self.mainWindow.D)-1:
+            self.mainWindow.menu_view.entryconfigure('Next Trial', state = 'disabled')
+        else:
+            self.mainWindow.menu_view.entryconfigure('Next Trial', state = 'normal')
+        self.mainWindow.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
+        self.mainWindow.selectiontype.set('Emphasize')
+        self.mainWindow._plotData()
+        self.mainWindow._updateMsgBox()
+
+class exportToFileWindow(Tkinter.Frame):
+    def __init__(self, data, additional, trial, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.D = data
+        self.tr = trial
+        
+        self.flgSac = Tkinter.BooleanVar()
+        self.flgFix = Tkinter.BooleanVar()
+        self.flgBlk = Tkinter.BooleanVar()
+        self.flgMsg = Tkinter.BooleanVar()
+        self.flgSac.set(1)
+        self.flgFix.set(1)
+        self.flgBlk.set(1)
+        self.flgMsg.set(1)
+        self.flgTrials = Tkinter.StringVar()
+        self.flgOrder = Tkinter.StringVar()
+        self.flgTrials.set('ThisTrial')
+        self.flgOrder.set('ByTime')
+        
+        itemFrame = Tkinter.LabelFrame(self, text='Check items to export.')
+        itemFrame.grid(row=0,column=0)
+        Tkinter.Checkbutton(itemFrame, text='Saccade', variable=self.flgSac).grid(row=0,column=0)
+        Tkinter.Checkbutton(itemFrame, text='Fixation', variable=self.flgFix).grid(row=1,column=0)
+        Tkinter.Checkbutton(itemFrame, text='Blink', variable=self.flgBlk).grid(row=0,column=1)
+        Tkinter.Checkbutton(itemFrame, text='Message', variable=self.flgMsg).grid(row=1,column=1)
+        
+        trialFrame = Tkinter.LabelFrame(self, text='Range')
+        trialFrame.grid(row=1,column=0)
+        Tkinter.Radiobutton(trialFrame, text='This trial', variable=self.flgTrials, value='ThisTrial').grid(row=0,column=0)
+        Tkinter.Radiobutton(trialFrame, text='All trials', variable=self.flgTrials, value='AllTrials').grid(row=0,column=1)
+        
+        groupFrame = Tkinter.LabelFrame(self, text='Grouping')
+        groupFrame.grid(row=2,column=0)
+        Tkinter.Radiobutton(groupFrame, text='By time', variable=self.flgOrder, value='ByTime').grid(row=0,column=0)
+        Tkinter.Radiobutton(groupFrame, text='By events', variable=self.flgOrder, value='ByEvents').grid(row=0,column=1)
+        
+        Tkinter.Button(self, text='Export', command=self.export).grid(row=3,column=0)
+        self.pack()
+        
+    def export(self, event=None):
+        if self.flgSac.get() or self.flgFix.get() or self.flgBlk.get() or self.flgMsg.get():
+            exportFileName = tkFileDialog.asksaveasfilename(initialdir=GazeParser.homeDir)
+            fp = open(exportFileName, 'w')
+            
+            if self.flgOrder.get()=='ByTime':
+                if self.flgTrials.get()=='ThisTrial':
+                    trlist = [self.tr]
+                else: #AllTrials
+                    trlist = range(len(self.D))
+                for tr in trlist:
+                    fp.write('TRIAL%d\n' % (tr+1))
+                    for e in self.D[self.tr].EventList:
+                        if isinstance(e,GazeParser.SaccadeData) and self.flgSac.get():
+                            fp.write('SAC,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\n' % 
+                                     (e.startTime, e.endTime, e.start[0], e.start[1], e.end[0], e.end[1]))
+                        elif isinstance(e,GazeParser.FixationData) and self.flgFix.get():
+                            fp.write('FIX,%.1f,%.1f,%.1f,%.1f\n' % 
+                                     (e.startTime, e.endTime, e.center[0],e.center[1]))
+                        elif isinstance(e,GazeParser.MessageData) and self.flgMsg.get():
+                            fp.write('MSG,%.1f,%.1f,%s\n' % (e.time, e.time, e.text))
+                        elif isinstance(e,GazeParser.BlinkData) and self.flgBlk.get():
+                            fp.write('BLK,%.1f,%.1f\n' % (e.startTime, e.endTime))
+                
+            else: #ByEvents
+                if self.flgTrials.get()=='ThisTrial':
+                    trlist = [self.tr]
+                else: #AllTrials
+                    trlist = range(len(self.D))
+                for tr in trlist:
+                    fp.write('TRIAL%d\n' % (tr+1))
+                    if self.flgSac.get():
+                        for e in self.D[tr].Sac:
+                            fp.write('SAC,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\n' % 
+                                     (e.startTime, e.endTime, e.start[0], e.start[1], e.end[0], e.end[1]))
+                    if self.flgFix.get():
+                        for e in self.D[tr].Fix:
+                            fp.write('FIX,%.1f,%.1f,%.1f,%.1f\n' % 
+                                     (e.startTime, e.endTime, e.center[0],e.center[1]))
+                    if self.flgMsg.get():
+                        for e in self.D[tr].Msg:
+                            fp.write('MSG,%.1f,%.1f,%s\n' % (e.time, e.time, e.text))
+                    if self.flgBlk.get():
+                        for e in self.D[tr].Blink:
+                            fp.write('BLK,%.1f,%.1f\n' % (e.startTime, e.endTime))
+            
+            fp.close()
+            
+            tkMessageBox.showinfo('Info','Done.')
+        
+        else:
+            tkMessageBox.showinfo('Info','No items were selected.')
+
+class GetSaccadeLatency(Tkinter.Frame):
+    def __init__(self, data, additional, conf, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.D = data
+        self.C = additional
+        self.conf = conf
+        
+        self.messageStr = Tkinter.StringVar()
+        self.useRegexp = Tkinter.BooleanVar()
+        self.minLatencyStr = Tkinter.StringVar()
+        self.maxLatencyStr = Tkinter.StringVar()
+        self.minAmplitudeStr = Tkinter.StringVar()
+        self.maxAmplitudeStr = Tkinter.StringVar()
+        self.amplitudeUnit = Tkinter.StringVar()
+        self.amplitudeUnit.set('pix')
+        r=0
+        Tkinter.Label(self, text='Message').grid(row=r,column=0)
+        Tkinter.Entry(self, textvariable=self.messageStr).grid(row=r,column=1,columnspan=2, sticky=Tkinter.W+Tkinter.E)
+        Tkinter.Checkbutton(self, text='Regular expression', variable=self.useRegexp).grid(row=r,column=3,columnspan=2)
+        r+=1
+        Tkinter.Label(self, text='Min/Max Latency').grid(row=r,column=0)
+        Tkinter.Entry(self, textvariable=self.minLatencyStr).grid(row=r,column=1)
+        Tkinter.Entry(self, textvariable=self.maxLatencyStr).grid(row=r,column=2)
+        r+=1
+        Tkinter.Label(self, text='Min/Max Amplitude').grid(row=r,column=0)
+        Tkinter.Entry(self, textvariable=self.minAmplitudeStr).grid(row=r,column=1)
+        Tkinter.Entry(self, textvariable=self.maxAmplitudeStr).grid(row=r,column=2)
+        Tkinter.Radiobutton(self, text='deg', variable=self.amplitudeUnit, value='deg').grid(row=r,column=3)
+        Tkinter.Radiobutton(self, text='pix', variable=self.amplitudeUnit, value='pix').grid(row=r,column=4)
+        r+=1
+        Tkinter.Button(self, text='Calculate', command=self.calc).grid(row=r,column=0,columnspan=5)
+        
+        self.pack()
+    
+    def calc(self, event=None):
+        minamp = None
+        maxamp = None
+        minlat = None
+        maxlat = None
+        try:
+            if self.minAmplitudeStr.get() != '':
+                minamp = float(self.minAmplitudeStr.get())
+            if self.maxAmplitudeStr.get() != '':
+                maxamp = float(self.maxAmplitudeStr.get())
+            if self.minLatencyStr.get() != '':
+                minlat = float(self.minLatencyStr.get())
+            if self.maxLatencyStr.get() != '':
+                maxlat = float(self.maxLatencyStr.get())
+        except:
+            tkMessageBox.showerror('Error','Invalid values are found in amplitude/latency.')
+        for tr in range(len(self.D)):
+            idxlist = self.D[tr].findMessage(self.messageStr.get(), byIndices=True, useRegexp=self.useRegexp.get())
+            for msgidx in idxlist:
+                sac = self.D[tr].Msg[msgidx].getNextEvent(eventType='saccade')
+                if sac != None:
+                    #TODO: check latency and amplitude
+                    print self.D[tr].Msg[msgidx].text, sac.relativeStartTime(self.D[tr].Msg[msgidx])
+
 
 def getComplementaryColorStr(col):
     """
@@ -548,7 +737,7 @@ class InteractiveConfig(Tkinter.Frame):
             self.param2Text.set(configStr)
             return
         
-        offset = 10
+        offset = PLOT_OFFSET
         try:
             #from GazeParser.Converter.TrackerToGazeParser
             if self.newConfig.RECORDED_EYE=='B':
@@ -623,9 +812,11 @@ class mainWindow(Tkinter.Frame):
         self.menu_convert = Tkinter.Menu(tearoff=False)
         self.menu_recent = Tkinter.Menu(tearoff=False)
         self.menu_config = Tkinter.Menu(tearoff=False)
+        self.menu_analyse = Tkinter.Menu(tearoff=False)
         self.menu_bar.add_cascade(label='File',menu=self.menu_file,underline=0)
         self.menu_bar.add_cascade(label='View',menu=self.menu_view,underline=0)
         self.menu_bar.add_cascade(label='Convert',menu=self.menu_convert,underline=0)
+        self.menu_bar.add_cascade(label='Analyse',menu=self.menu_analyse,underline=0)
         
         self.menu_file.add_command(label='Open',under=0,command=self._openfile)
         self.menu_file.add_cascade(label='Recent Dir',menu=self.menu_recent,underline=0)
@@ -638,6 +829,7 @@ class mainWindow(Tkinter.Frame):
         self.menu_file.add_command(label='Exit',under=0,command=self._exit)
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
+        self.menu_view.add_command(label='Jump to...',under=0,command=self._jumpToTrial)
         self.menu_view.add_separator()
         self.menu_view.add_command(label='Toggle Fixation Number',under=0,command=self._toggleFixNum)
         self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
@@ -650,6 +842,7 @@ class mainWindow(Tkinter.Frame):
         self.menu_convert.add_separator()
         self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
         self.menu_convert.add_command(label='Interactive configuration',under=0,command=self._interactive)
+        self.menu_analyse.add_command(label='Calculate saccade latency',under=0,command=self._getLatency)
         
         self.master.configure(menu = self.menu_bar)
         
@@ -799,26 +992,12 @@ class mainWindow(Tkinter.Frame):
         self._openfile()
     
     def _exportfile(self,event=None):
+        if self.D == None:
+            tkMessageBox.showinfo('info','Data must be loaded before export')
+            return
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        flgSac = Tkinter.BooleanVar()
-        flgFix = Tkinter.BooleanVar()
-        flgBlk = Tkinter.BooleanVar()
-        flgMsg = Tkinter.BooleanVar()
-        flgTrials = Tkinter.StringVar()
-        flgOrder = Tkinter.StringVar()
-        flgTrials.set('ThisTrial')
-        flgOrder.set('ByTime')
-        Tkinter.Label(dlg, text='Check items to export.').grid(row=0,column=0,columnspan=2)
-        Tkinter.Checkbutton(dlg, text='Saccade', variable=flgSac).grid(row=1,column=0)
-        Tkinter.Checkbutton(dlg, text='Fixation', variable=flgFix).grid(row=2,column=0)
-        Tkinter.Checkbutton(dlg, text='Blink', variable=flgBlk).grid(row=1,column=1)
-        Tkinter.Checkbutton(dlg, text='Message', variable=flgMsg).grid(row=2,column=1)
-        Tkinter.Radiobutton(dlg, text='This trial', variable=flgTrials, value='ThisTrial').grid(row=3,column=0)
-        Tkinter.Radiobutton(dlg, text='All trials', variable=flgTrials, value='AllTrials').grid(row=3,column=1)
-        Tkinter.Radiobutton(dlg, text='By time', variable=flgOrder, value='ByTime').grid(row=4,column=0)
-        Tkinter.Radiobutton(dlg, text='By events', variable=flgOrder, value='ByEvents').grid(row=4,column=1)
-        Tkinter.Button(dlg, text='Ok', command=dlg.destroy).grid(row=5,column=0,columnspan=2)
+        exportToFileWindow(master=dlg, data=self.D, additional=self.C, trial=self.tr)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -827,54 +1006,6 @@ class mainWindow(Tkinter.Frame):
         geo = parsegeometry(dlg.winfo_geometry())
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
         
-        if flgSac.get() or flgFix.get() or flgBlk.get() or flgMsg.get():
-            exportFileName = tkFileDialog.asksaveasfilename(initialdir=GazeParser.homeDir)
-            fp = open(exportFileName, 'w')
-            
-            if flgOrder.get()=='ByTime':
-                if flgTrials.get()=='ThisTrial':
-                    trlist = [self.tr]
-                else: #AllTrials
-                    trlist = range(len(self.D))
-                for tr in trlist:
-                    fp.write('TRIAL%d\n' % (tr+1))
-                    for e in self.D[self.tr].EventList:
-                        if isinstance(e,GazeParser.SaccadeData) and flgSac.get():
-                            fp.write('SAC,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\n' % 
-                                     (e.startTime, e.endTime, e.Start[0], e.Start[1], e.End[0], e.End[1]))
-                        elif isinstance(e,GazeParser.FixationData) and flgFix.get():
-                            fp.write('FIX,%.1f,%.1f,%.1f,%.1f\n' % 
-                                     (e.startTime, e.endTime, e.center[0],e.center[1]))
-                        elif isinstance(e,GazeParser.MessageData) and flgMsg.get():
-                            fp.write('MSG,%.1f,%.1f,%s\n' % (e.time, e.time, e.text))
-                        elif isinstance(e,GazeParser.BlinkData) and flgBlk.get():
-                            fp.write('BLK,%.1f,%.1f\n' % (e.startTime, e.endTime))
-                
-            else: #ByEvents
-                if flgTrials.get()=='ThisTrial':
-                    trlist = [self.tr]
-                else: #AllTrials
-                    trlist = range(len(self.D))
-                for tr in trlist:
-                    fp.write('TRIAL%d\n' % (tr+1))
-                    if flgSac.get():
-                        for e in self.D[tr].Sac:
-                            fp.write('SAC,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\n' % 
-                                     (e.startTime, e.endTime, e.Start[0], e.Start[1], e.End[0], e.End[1]))
-                    if flgFix.get():
-                        for e in self.D[tr].Fix:
-                            fp.write('FIX,%.1f,%.1f,%.1f,%.1f\n' % 
-                                     (e.startTime, e.endTime, e.center[0],e.center[1]))
-                    if flgMsg.get():
-                        for e in self.D[tr].Msg:
-                            fp.write('MSG,%.1f,%.1f,%s\n' % (e.time, e.time, e.text))
-                    if flgBlk.get():
-                        for e in self.D[tr].Blink:
-                            fp.write('BLK,%.1f,%.1f\n' % (e.startTime, e.endTime))
-            
-            fp.close()
-            
-            tkMessageBox.showinfo('Info','Done.')
     
     def _configColor(self,event=None):
         geoMaster = parsegeometry(self.master.winfo_geometry())
@@ -929,6 +1060,21 @@ class mainWindow(Tkinter.Frame):
         self.selectiontype.set('Emphasize')
         self._plotData()
         self._updateMsgBox()
+    
+    def _jumpToTrial(self, event=None):
+        if self.D==None:
+            tkMessageBox.showerror('Error','No Data')
+            return
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        jumpToTrialWindow(master=dlg, mainWindow=self)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _jumpToTime(self, event=None):
         if self.plotStyle == 'XY':
@@ -1304,6 +1450,20 @@ class mainWindow(Tkinter.Frame):
         geo = parsegeometry(dlg.winfo_geometry())
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
+    def _getLatency(self):
+        if self.D == None:
+            tkMessageBox.showinfo('info','Data must be loaded before\nmeasuring saccade latency')
+            return
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        GetSaccadeLatency(master=dlg, data=self.D, additional=self.C, conf=self.conf)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
 
 if __name__ == '__main__':
     w = mainWindow()
