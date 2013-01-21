@@ -27,6 +27,7 @@ import functools
 import traceback
 import numpy
 import matplotlib
+#import matplotlib.pyplot
 import matplotlib.figure
 import matplotlib.font_manager
 import matplotlib.patches
@@ -218,13 +219,45 @@ class GetSaccadeLatency(Tkinter.Frame):
                 maxlat = float(self.maxLatencyStr.get())
         except:
             tkMessageBox.showerror('Error','Invalid values are found in amplitude/latency.')
+        nMsg = 0
+        nSac = 0
+        trdata = []
+        sacdata = []
         for tr in range(len(self.D)):
             idxlist = self.D[tr].findMessage(self.messageStr.get(), byIndices=True, useRegexp=self.useRegexp.get())
+            nMsg += len(idxlist)
             for msgidx in idxlist:
+                isSaccadeFound = False
                 sac = self.D[tr].Msg[msgidx].getNextEvent(eventType='saccade')
-                if sac != None:
-                    #TODO: check latency and amplitude
-                    print self.D[tr].Msg[msgidx].text, sac.relativeStartTime(self.D[tr].Msg[msgidx])
+                if sac != None: #no saccade
+                    while True:
+                        tmplatency = sac.relativeStartTime(self.D[tr].Msg[msgidx])
+                        if self.amplitudeUnit.get()=='deg':
+                            tmpamplitude = sac.amplitude
+                        else:
+                            tmpamplitude = sac.length
+                        if (minamp==None or minamp<=tmpamplitude) and (maxamp==None or maxamp>=tmpamplitude) and \
+                           (minlat==None or minamp<=tmplatency) and (maxlat==None or maxamp>=tmplatency):
+                            isSaccadeFound = True
+                            break
+                        sac = sac.getNextEvent(eventType='saccade')
+                        if sac == None:
+                            break
+                if isSaccadeFound:
+                    nSac += 1
+                    trdata.append([tr,self.D[tr].Msg[msgidx].text])
+                    sacdata.append([tmplatency,tmpamplitude])
+                    print tr, self.D[tr].Msg[msgidx].text, sac.relativeStartTime(self.D[tr].Msg[msgidx])
+        
+        #sacdata = numpy.array(sacdata)
+        #matplotlib.pyplot.hist(sacdata[:,1])
+        #matplotlib.pyplot.show()
+        
+        ans = tkMessageBox.askyesno('Export','%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
+        #if ans:
+        #    
+        
+        
 
 
 def getComplementaryColorStr(col):
