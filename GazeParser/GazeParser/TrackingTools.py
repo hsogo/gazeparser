@@ -1637,7 +1637,7 @@ class ControllerPsychoPyBackend(BaseController):
         
         *Usually, you don't need use this method.*
         """
-        self.msgtext.setText(self.messageText)
+        self.msgtext.setText(self.messageText, log=False)
         if self.showCameraImage:
             self.img.draw()
         if self.showCalImage:
@@ -1645,10 +1645,10 @@ class ControllerPsychoPyBackend(BaseController):
         if self.showCalTarget:
             if isinstance(self.caltarget, tuple):
                 for s in self.caltarget:
-                    s.setPos(self.calTargetPosition,units='pix')
+                    s.setPos(self.calTargetPosition,units='pix', log=False)
                     s.draw()
             else:
-                self.caltarget.setPos(self.calTargetPosition,units='pix')
+                self.caltarget.setPos(self.calTargetPosition,units='pix', log=False)
                 self.caltarget.draw()
         if self.SHOW_CALDISPLAY:
             self.msgtext.draw()
@@ -1661,7 +1661,7 @@ class ControllerPsychoPyBackend(BaseController):
         
         *Usually, you don't need use this method.*
         """
-        self.img.setImage(self.PILimg)
+        self.img.setImage(self.PILimg, log=False)
     
     def drawCalibrationResults(self):
         """
@@ -1669,7 +1669,7 @@ class ControllerPsychoPyBackend(BaseController):
         
         *Usually, you don't need use this method.*
         """
-        self.imgCal.setImage(self.PILimgCAL)
+        self.imgCal.setImage(self.PILimgCAL, log=False)
     
     #Override
     def setCalibrationTargetPositions(self, area, calposlist, units='pix'):
@@ -1798,12 +1798,12 @@ class ControllerPsychoPyBackend(BaseController):
         
         if isinstance(self.caltarget, tuple):
             for s in self.caltarget:
-                s.setPos(posInPix, units='pix')
+                s.setPos(posInPix, units='pix', log=False)
         else:
-            self.caltarget.setPos(posInPix, units='pix')
+            self.caltarget.setPos(posInPix, units='pix', log=False)
         
         if message != None:
-            self.msgtext.setText(message)
+            self.msgtext.setText(message, log=False)
             doDrawMessage = True
         else:
             doDrawMessage = False
@@ -1838,10 +1838,10 @@ class ControllerPsychoPyBackend(BaseController):
                 eyepos=self.getEyePosition()
                 if len(eyepos)==2:
                     if eyepos[0]!=None:
-                        gazeMarker.setPos(eyepos)
+                        gazeMarker.setPos(eyepos, log=False)
                 else:
                     if eyepos[0]!=None and eyepos[1]!=None:
-                        gazeMarker.setPos(((eyepos[0]+eyepos[2])/2.0,(eyepos[1]+eyepos[3])/2.0))
+                        gazeMarker.setPos(((eyepos[0]+eyepos[2])/2.0,(eyepos[1]+eyepos[3])/2.0), log=False)
             
             #update screen
             if isBackgroundVisible:
