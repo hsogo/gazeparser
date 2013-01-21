@@ -55,4 +55,5 @@ class GazeParserCheckComponent(BaseComponent):
             buff.writeIndented('    message=None)\n\n')
         else:
             buff.writeIndented('    message=%(message)s)\n\n' % (self.params))
+        buff.writeIndented('routineTimer.reset()\n')
         

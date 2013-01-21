@@ -67,7 +67,8 @@ class GazeParserInitComponent(BaseComponent):
         else:
             buff.writeIndented('GazeParserTracker = GazeParser.TrackingTools.getController(backend="PsychoPy",configFile=%(trconfigfile)s,dummy=%(dummymode)s)\n' % (self.params))
         buff.writeIndented('GazeParserTracker.connect(%(ipaddress)s)\n' % (self.params))
-        buff.writeIndented('GazeParserTracker.openDataFile(%(ipaddress)s)\n' % (self.params))
+        if self.params['datafile'].val != '':
+            buff.writeIndented('GazeParserTracker.openDataFile(%(datafile)s)\n' % (self.params))
         buff.writeIndented('GazeParserTracker.sendSettings(GazeParser.config.getParametersAsDict())\n')
         buff.writeIndented('GazeParserTracker.setCalibrationScreen(win)\n')
         buff.writeIndented('GazeParserTracker.setCalibrationTargetPositions(%(calarea)s, %(caltargetpos)s, %(units)s)\n' % (self.params))
@@ -76,13 +77,14 @@ class GazeParserInitComponent(BaseComponent):
         buff.writeIndented('GazeParserRes = GazeParserTracker.calibrationLoop()\n')
         buff.writeIndented('if GazeParserRes=="q":\n')
         buff.setIndentLevel(+1, relative=True)
-        buff.writeIndented('core.exit(0)\n')
+        buff.writeIndented('core.quit(0)\n')
         buff.setIndentLevel(-1, relative=True)
         buff.writeIndented('if GazeParserTracker.isCalibrationFinished():\n')
         buff.setIndentLevel(+1, relative=True)
         buff.writeIndented('break\n\n')
         buff.setIndentLevel(-2, relative=True)
     def writeExperimentEndCode(self,buff):
-        buff.writeIndented('GazeParserTracker.closeDataFile()\n')
+        if self.params['datafile'].val != '':
+            buff.writeIndented('GazeParserTracker.closeDataFile()\n')
 
         
