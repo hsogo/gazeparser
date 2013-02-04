@@ -27,7 +27,6 @@ import functools
 import traceback
 import numpy
 import matplotlib
-#import matplotlib.pyplot
 import matplotlib.figure
 import matplotlib.font_manager
 import matplotlib.patches

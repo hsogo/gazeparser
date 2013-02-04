@@ -1,5 +1,5 @@
 
-from _visual import * #to get the template visual component
+from _base import * #to get the template visual component
 from os import path
 from psychopy.app.builder.experiment import Param
 
@@ -11,8 +11,8 @@ tooltip = 'GazeParserRec: recording with GazeParser.TrackingTools'
 paramNames = ['startmsg', 'stopmsg', 'msglist']
 
 
-class GazeParserRecComponent(VisualComponent):
-    """An event class for presenting geometric shapes"""
+class GazeParserRecComponent(BaseComponent):
+    """Recording with GazeParser.TrackingTools"""
     categories = ['Custom']
     def __init__(self, exp, parentName, name='GazeParserRec', startmsg='routine start', stopmsg='routine end', msglist=[], units='time (s)'):
         self.type='GazeParserRec'
