@@ -183,22 +183,42 @@ class GetSaccadeLatency(Tkinter.Frame):
         self.maxAmplitudeStr = Tkinter.StringVar()
         self.amplitudeUnit = Tkinter.StringVar()
         self.amplitudeUnit.set('pix')
-        r=0
-        Tkinter.Label(self, text='Message').grid(row=r,column=0)
-        Tkinter.Entry(self, textvariable=self.messageStr).grid(row=r,column=1,columnspan=2, sticky=Tkinter.W+Tkinter.E)
-        Tkinter.Checkbutton(self, text='Regular expression', variable=self.useRegexp).grid(row=r,column=3,columnspan=2)
-        r+=1
-        Tkinter.Label(self, text='Min/Max Latency').grid(row=r,column=0)
-        Tkinter.Entry(self, textvariable=self.minLatencyStr).grid(row=r,column=1)
-        Tkinter.Entry(self, textvariable=self.maxLatencyStr).grid(row=r,column=2)
-        r+=1
-        Tkinter.Label(self, text='Min/Max Amplitude').grid(row=r,column=0)
-        Tkinter.Entry(self, textvariable=self.minAmplitudeStr).grid(row=r,column=1)
-        Tkinter.Entry(self, textvariable=self.maxAmplitudeStr).grid(row=r,column=2)
-        Tkinter.Radiobutton(self, text='deg', variable=self.amplitudeUnit, value='deg').grid(row=r,column=3)
-        Tkinter.Radiobutton(self, text='pix', variable=self.amplitudeUnit, value='pix').grid(row=r,column=4)
-        r+=1
-        Tkinter.Button(self, text='Calculate', command=self.calc).grid(row=r,column=0,columnspan=5)
+        
+        #plot frame
+        plotFrame = Tkinter.Frame(self)
+        self.fig = matplotlib.figure.Figure()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=plotFrame)
+        self.ax = self.fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        self.canvas._tkcanvas.pack(side=Tkinter.TOP, fill=Tkinter.BOTH, expand=True)
+        plotFrame.pack(side=Tkinter.LEFT)
+        
+        #parameter frame
+        paramFrame = Tkinter.Frame(self)
+        
+        messageFrame = Tkinter.LabelFrame(paramFrame,text='Message')
+        Tkinter.Entry(messageFrame, textvariable=self.messageStr).pack()
+        Tkinter.Checkbutton(messageFrame, text='Regular expression', variable=self.useRegexp).pack()
+        messageFrame.pack(fill=Tkinter.X)
+        
+        latencyFrame = Tkinter.LabelFrame(paramFrame,text='Latency')
+        Tkinter.Label(latencyFrame, text='Min').grid(row=0,column=0)
+        Tkinter.Entry(latencyFrame, textvariable=self.minLatencyStr).grid(row=0,column=1)
+        Tkinter.Label(latencyFrame, text='Max').grid(row=1,column=0)
+        Tkinter.Entry(latencyFrame, textvariable=self.maxLatencyStr).grid(row=1,column=1)
+        latencyFrame.pack(fill=Tkinter.X)
+        
+        amplitudeFrame = Tkinter.LabelFrame(paramFrame,text='Amplitude')
+        Tkinter.Label(amplitudeFrame, text='Min').grid(row=0,column=0)
+        Tkinter.Entry(amplitudeFrame, textvariable=self.minAmplitudeStr).grid(row=0,column=1)
+        Tkinter.Label(amplitudeFrame, text='Max').grid(row=1,column=0)
+        Tkinter.Entry(amplitudeFrame, textvariable=self.maxAmplitudeStr).grid(row=1,column=1)
+        Tkinter.Radiobutton(amplitudeFrame, text='deg', variable=self.amplitudeUnit, value='deg').grid(row=2,column=1)
+        Tkinter.Radiobutton(amplitudeFrame, text='pix', variable=self.amplitudeUnit, value='pix').grid(row=3,column=1)
+        amplitudeFrame.pack(fill=Tkinter.X)
+        
+        Tkinter.Button(paramFrame, text='Search', command=self.calc).pack()
+        
+        paramFrame.pack(side=Tkinter.LEFT, anchor=Tkinter.NW)
         
         self.pack()
     
@@ -218,6 +238,11 @@ class GetSaccadeLatency(Tkinter.Frame):
                 maxlat = float(self.maxLatencyStr.get())
         except:
             tkMessageBox.showerror('Error','Invalid values are found in amplitude/latency.')
+        for value in (minamp,maxamp,minlat,maxlat):
+            if value!=None and value<0:
+                tkMessageBox.showerror('Error','latency and amplitude must be zero or positive.')
+                return
+        
         nMsg = 0
         nSac = 0
         trdata = []
@@ -236,7 +261,7 @@ class GetSaccadeLatency(Tkinter.Frame):
                         else:
                             tmpamplitude = sac.length
                         if (minamp==None or minamp<=tmpamplitude) and (maxamp==None or maxamp>=tmpamplitude) and \
-                           (minlat==None or minamp<=tmplatency) and (maxlat==None or maxamp>=tmplatency):
+                           (minlat==None or minlat<=tmplatency) and (maxlat==None or maxlat>=tmplatency):
                             isSaccadeFound = True
                             break
                         sac = sac.getNextEvent(eventType='saccade')
@@ -244,19 +269,32 @@ class GetSaccadeLatency(Tkinter.Frame):
                             break
                 if isSaccadeFound:
                     nSac += 1
-                    trdata.append([tr,self.D[tr].Msg[msgidx].text])
+                    trdata.append([tr,self.D[tr].Msg[msgidx].time,self.D[tr].Msg[msgidx].text])
                     sacdata.append([tmplatency,tmpamplitude])
-                    print tr, self.D[tr].Msg[msgidx].text, sac.relativeStartTime(self.D[tr].Msg[msgidx])
         
-        #sacdata = numpy.array(sacdata)
-        #matplotlib.pyplot.hist(sacdata[:,1])
-        #matplotlib.pyplot.show()
-        
-        ans = tkMessageBox.askyesno('Export','%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
-        #if ans:
-        #    
-        
-        
+        if nMsg>0:
+            if nSac>0:
+                self.ax.clear()
+                latdata = numpy.array(sacdata)[:,0]
+                self.ax.hist(latdata)
+                self.fig.canvas.draw()
+                ans = tkMessageBox.askyesno('Export','%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
+                if ans:
+                    fname = tkFileDialog.asksaveasfilename()
+                    if fname!='':
+                        fp = open(fname, 'w')
+                        fp.write('Trial\tMessageTime\tMessageText\tLatency\tAmplitude\n')
+                        for n in range(nSac):
+                            fp.write('%d\t%.2f\t%s\t' % tuple(trdata[n]))
+                            fp.write('%.2f\t%.2f\n' % tuple(sacdata[n]))
+                        fp.close()
+                        tkMessageBox.showinfo('Info','Done.')
+                    else:
+                        tkMessageBox.showinfo('Info','Canceled.')
+            else:
+                tkMessageBox.showinfo('Info','No saccades are detected')
+        else:
+            tkMessageBox.showinfo('Info','No messages are found')
 
 
 def getComplementaryColorStr(col):
@@ -816,8 +854,8 @@ class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
         self.conf = ViewerOptions()
         
-        #self.ftypes = [('GazeParser/SimpleGazeTracker Datafile','*.db;*.csv')]
-        self.ftypes = [('GazeParser Datafile','*.db'),('SimpleGazeTracker CSV file','*.csv')]
+        self.ftypes = [('GazeParser/SimpleGazeTracker Datafile','*.db;*.csv')]
+        #self.ftypes = [('GazeParser Datafile','*.db'),('SimpleGazeTracker CSV file','*.csv')]
         self.initialDataDir = GazeParser.homeDir
         self.D = None
         self.C = None
@@ -848,7 +886,7 @@ class mainWindow(Tkinter.Frame):
         self.menu_bar.add_cascade(label='File',menu=self.menu_file,underline=0)
         self.menu_bar.add_cascade(label='View',menu=self.menu_view,underline=0)
         self.menu_bar.add_cascade(label='Convert',menu=self.menu_convert,underline=0)
-        self.menu_bar.add_cascade(label='Analyse',menu=self.menu_analyse,underline=0)
+        self.menu_bar.add_cascade(label='Analysis',menu=self.menu_analyse,underline=0)
         
         self.menu_file.add_command(label='Open',under=0,command=self._openfile)
         self.menu_file.add_cascade(label='Recent Dir',menu=self.menu_recent,underline=0)
@@ -874,7 +912,7 @@ class mainWindow(Tkinter.Frame):
         self.menu_convert.add_separator()
         self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
         self.menu_convert.add_command(label='Interactive configuration',under=0,command=self._interactive)
-        self.menu_analyse.add_command(label='Calculate saccade latency',under=0,command=self._getLatency)
+        self.menu_analyse.add_command(label='Saccade latency',under=0,command=self._getLatency)
         
         self.master.configure(menu = self.menu_bar)
         
