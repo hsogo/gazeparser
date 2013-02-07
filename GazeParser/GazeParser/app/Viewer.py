@@ -901,24 +901,27 @@ class mainWindow(Tkinter.Frame):
             self.menu_recent.add_command(label='None',state=Tkinter.DISABLED)
         else:
             for i in range(len(self.conf.RecentDir)):
-                self.menu_recent.add_command(label=self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
+                self.menu_recent.add_command(label=str(i+1)+'. '+self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
         self.menu_file.add_command(label='Export',under=0,command=self._exportfile)
-        self.menu_file.add_command(label='Exit',under=0,command=self._exit)
+        self.menu_file.add_command(label='Exit',under=1,command=self._exit)
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
         self.menu_view.add_command(label='Jump to...',under=0,command=self._jumpToTrial)
         self.menu_view.add_separator()
-        self.menu_view.add_command(label='Toggle Fixation Number',under=0,command=self._toggleFixNum)
-        self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
+        self.menu_view.add_command(label='T-XY plot',under=0, command=self._toTXYView)
+        self.menu_view.add_command(label='XY plot',under=0, command=self._toXYView)
+        self.menu_view.add_command(label='Scatter plot',under=0, command=self._toScatterView)
+        self.menu_view.add_command(label='Heatmap plot',under=0, command=self._toHeatmapView)
         self.menu_view.add_separator()
-        self.menu_view.add_command(label='Set grid',under=0,command=self._configGrid)
-        self.menu_view.add_command(label='Config color', under=0, command=self._configColor)
-        self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=0,command=self._convertGT)
-        self.menu_convert.add_command(label='Convert Eyelink EDF',under=0,command=self._convertEL)
-        self.menu_convert.add_command(label='Convert Tobii TSV',under=0,command=self._convertTSV)
+        self.menu_view.add_command(label='Toggle Fixation Number', under=7,command=self._toggleFixNum)
+        self.menu_view.add_command(label='Config grid', command=self._configGrid)
+        self.menu_view.add_command(label='Config color', command=self._configColor)
+        self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=8,command=self._convertGT)
+        self.menu_convert.add_command(label='Convert Eyelink EDF',under=8,command=self._convertEL)
+        self.menu_convert.add_command(label='Convert Tobii TSV',under=8,command=self._convertTSV)
         self.menu_convert.add_separator()
-        self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
-        self.menu_convert.add_command(label='Interactive configuration',under=0,command=self._interactive)
+        self.menu_convert.add_command(label='Edit GazeParser.Configuration file',command=self._configEditor)
+        self.menu_convert.add_command(label='Interactive configuration',command=self._interactive)
         self.menu_analyse.add_command(label='Saccade latency',under=0,command=self._getLatency)
         
         self.master.configure(menu = self.menu_bar)
@@ -973,6 +976,7 @@ class mainWindow(Tkinter.Frame):
             self.fontPlotText = matplotlib.font_manager.FontProperties()
     
     def _toggleView(self, event=None):
+        
         if self.plotStyle == 'XY':
             self.plotStyle = 'SCATTER'
             self.currentPlotArea = self.plotAreaXY
@@ -987,7 +991,27 @@ class mainWindow(Tkinter.Frame):
             self.currentPlotArea = self.plotAreaXY
             
         self._plotData()
-        
+    
+    def _toTXYView(self):
+        self.plotStyle = 'TXY'
+        self.currentPlotArea = self.plotAreaTXY
+        self._plotData()
+    
+    def _toXYView(self):
+        self.plotStyle = 'XY'
+        self.currentPlotArea = self.plotAreaXY
+        self._plotData()
+    
+    def _toScatterView(self):
+        self.plotStyle = 'SCATTER'
+        self.currentPlotArea = self.plotAreaXY
+        self._plotData()
+    
+    def _toHeatmapView(self):
+        self.plotStyle = 'HEATMAP'
+        self.currentPlotArea = self.plotAreaXY
+        self._plotData()
+    
     def _toggleFixNum(self, event=None):
         if self.conf.CANVAS_SHOW_FIXNUMBER:
             self.conf.CANVAS_SHOW_FIXNUMBER = False
@@ -1010,7 +1034,7 @@ class mainWindow(Tkinter.Frame):
         #update menu recent_dir
         self.menu_recent.delete(0,MAX_RECENT)
         for i in range(len(self.conf.RecentDir)):
-            self.menu_recent.add_command(label=self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
+            self.menu_recent.add_command(label=str(i+1)+'. '+self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
         
         #if extension is .csv, try converting
         if os.path.splitext(self.dataFileName)[1].lower() == '.csv':
