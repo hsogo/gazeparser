@@ -941,7 +941,10 @@ class mainWindow(Tkinter.Frame):
         self.listboxFrame = Tkinter.Frame(self.sideFrame)
         Tkinter.Radiobutton(self.sideFrame,text='Emphasize',variable=self.selectiontype,value='Emphasize').pack(side=Tkinter.TOP)
         Tkinter.Radiobutton(self.sideFrame,text='Extract',variable=self.selectiontype,value='Extract').pack(side=Tkinter.TOP)
-        Tkinter.Button(self.sideFrame,text='Ok',command=self._setmarker).pack(side=Tkinter.TOP)
+        buttonFrame = Tkinter.Frame(self.sideFrame)
+        Tkinter.Button(buttonFrame,text='Ok',command=self._setmarker).pack(side=Tkinter.LEFT, padx=5)
+        Tkinter.Button(buttonFrame,text='Clear',command=self._clearmarker).pack(side=Tkinter.LEFT, padx=5)
+        buttonFrame.pack(side=Tkinter.TOP)
         self.yscroll = Tkinter.Scrollbar(self.listboxFrame, orient=Tkinter.VERTICAL)
         self.msglistbox = Tkinter.Listbox(master=self.listboxFrame,yscrollcommand=self.yscroll.set, selectmode=Tkinter.EXTENDED)
         self.msglistbox.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
@@ -1173,6 +1176,9 @@ class mainWindow(Tkinter.Frame):
             self.fig.canvas.draw()
     
     def _modifyPlotRange(self):
+        """
+        .. deprecated:: 0.6.1
+        """
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
         plotRangeWindow(master=dlg,mainWindow=self)
@@ -1452,9 +1458,14 @@ class mainWindow(Tkinter.Frame):
             elif isinstance(e,GazeParser.BlinkData):
                 self.selectionlist['Blink'].append(numpy.where(e==self.D[self.tr].Blink)[0][0])
             
-        self.currentPlotArea = self.ax.get_xlim()+self.ax.get_ylim()
+        #self.currentPlotArea = self.ax.get_xlim()+self.ax.get_ylim()
         self._plotData()
         
+    
+    def _clearmarker(self):
+        self.msglistbox.selection_clear(0,self.msglistbox.size())
+        self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
+        self._plotData()
     
     def _configEditor(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
