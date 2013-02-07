@@ -1550,6 +1550,8 @@ class mainWindow(Tkinter.Frame):
     def _clearmarker(self):
         self.msglistbox.selection_clear(0,self.msglistbox.size())
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
+        if self.selectiontype.get() == 'Extract':
+            self.selectiontype.set('Emphasize')
         self._plotData()
     
     def _configEditor(self):
