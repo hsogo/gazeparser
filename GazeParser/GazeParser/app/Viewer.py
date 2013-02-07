@@ -30,6 +30,7 @@ import matplotlib
 import matplotlib.figure
 import matplotlib.font_manager
 import matplotlib.patches
+import matplotlib.cm
 import GazeParser.app.ConfigEditor
 import GazeParser.app.Converters
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -38,6 +39,7 @@ from GazeParser.Converter import buildEventListBinocular, buildEventListMonocula
 
 MAX_RECENT = 5
 PLOT_OFFSET = 10
+XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
 
 class jumpToTrialWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
@@ -530,7 +532,7 @@ class configGridWindow(Tkinter.Frame):
         self.strAbscissa = Tkinter.StringVar()
         self.strOrdinate = Tkinter.StringVar()
         
-        if self.mainWindow.plotStyle == 'XY':
+        if self.mainWindow.plotStyle in XYPLOTMODES:
             xparams = self.mainWindow.conf.CANVAS_GRID_ABSCISSA_XY.split('#')
             self.choiceAbscissa.set(xparams[0])
             yparams = self.mainWindow.conf.CANVAS_GRID_ORDINATE_XY.split('#')
@@ -610,7 +612,7 @@ class configGridWindow(Tkinter.Frame):
         else:
             raise ValueError, 'Unknown ordinate grid type (%s)' % (gridtypeY)
         
-        if self.mainWindow.plotStyle == 'XY':
+        if self.mainWindow.plotStyle in XYPLOTMODES:
             self.mainWindow.conf.CANVAS_GRID_ABSCISSA_XY = xstr
             self.mainWindow.conf.CANVAS_GRID_ORDINATE_XY = ystr
         else:
@@ -869,8 +871,14 @@ class mainWindow(Tkinter.Frame):
         elif self.confCanvasDefaultView == 'XY':
             self.plotStyle ='XY'
             self.currentPlotArea = self.plotAreaXY
+        elif self.confCanvasDefaultView == 'SCATTER':
+            self.plotStyle ='SCATTER'
+            self.currentPlotArea = self.plotAreaXY
+        elif self.confCanvasDefaultView == 'HEATMAP':
+            self.plotStyle ='HEATMAP'
+            self.currentPlotArea = self.plotAreaXY
         else:
-            raise ValueError, 'Default view must be XY or TXY.'
+            raise ValueError, 'Default view must be ' + ', '.join(XYPLOTMODES) + ' or TXY.'
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         
         Tkinter.Frame.__init__(self,master)
@@ -964,9 +972,15 @@ class mainWindow(Tkinter.Frame):
     
     def _toggleView(self, event=None):
         if self.plotStyle == 'XY':
+            self.plotStyle = 'SCATTER'
+            self.currentPlotArea = self.plotAreaXY
+        elif self.plotStyle == 'SCATTER':
+            self.plotStyle = 'HEATMAP'
+            self.currentPlotArea = self.plotAreaXY
+        elif self.plotStyle == 'HEATMAP':
             self.plotStyle = 'TXY'
             self.currentPlotArea = self.plotAreaTXY
-        else:
+        else: #XYT
             self.plotStyle = 'XY'
             self.currentPlotArea = self.plotAreaXY
             
@@ -1046,7 +1060,7 @@ class mainWindow(Tkinter.Frame):
             self.hasRData = True
         
         #initialize current plot area
-        if self.plotStyle == 'XY':
+        if self.plotStyle in XYPLOTMODES:
             self.currentPlotArea = self.plotAreaXY
         
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
@@ -1147,7 +1161,7 @@ class mainWindow(Tkinter.Frame):
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _jumpToTime(self, event=None):
-        if self.plotStyle == 'XY':
+        if self.plotStyle in XYPLOTMODES:
             i= self.msglistbox.index(Tkinter.ACTIVE)
             if isinstance(self.D[self.tr].EventList[i], GazeParser.Core.SaccadeData):
                 pos = (self.D[self.tr].EventList[i].start + self.D[self.tr].EventList[i].end)/2.0
@@ -1197,7 +1211,7 @@ class mainWindow(Tkinter.Frame):
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _updateGrid(self):
-        if self.plotStyle == 'XY':
+        if self.plotStyle in XYPLOTMODES:
             xattr = 'CANVAS_GRID_ABSCISSA_XY'
             yattr = 'CANVAS_GRID_ORDINATE_XY'
         else:
@@ -1330,6 +1344,74 @@ class mainWindow(Tkinter.Frame):
                     else:
                         if s in self.selectionlist['Sac']:
                             self.ax.plot(straj[:,0], straj[:,1], '.-', linewidth=1.0, color=col)
+            
+            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+                self.ax.set_xlabel('Vertical gaze position (pix)')
+                self.ax.set_ylabel('Horizontal gaze position (pix)')
+            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+                self.ax.set_xlabel('Vertical gaze position (deg)')
+                self.ax.set_ylabel('Horizontal gaze position (deg)')
+            
+            self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
+                          sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
+        
+        elif self.plotStyle == 'SCATTER':
+            #plot fixations
+            fixcenter = self.D[self.tr].getFixCenter()
+            fixdur = self.D[self.tr].getFixDur()
+            self.ax.plot(fixcenter[:,0],fixcenter[:,1],'k-')
+            self.ax.scatter(fixcenter[:,0],fixcenter[:,1],s=fixdur,c=fixdur,alpha=0.7)
+            for f in range(self.D[self.tr].nFix):
+                if self.selectiontype.get()=='Emphasize':
+                    if f in self.selectionlist['Fix']:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC_E,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG_E, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+                    else:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+                else:
+                    if f in self.selectionlist['Fix']:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+
+            
+            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+                self.ax.set_xlabel('Vertical gaze position (pix)')
+                self.ax.set_ylabel('Horizontal gaze position (pix)')
+            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+                self.ax.set_xlabel('Vertical gaze position (deg)')
+                self.ax.set_ylabel('Horizontal gaze position (deg)')
+            
+            self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
+                          sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
+        
+        elif self.plotStyle == 'HEATMAP':
+            fixcenter = self.D[self.tr].getFixCenter()
+            fixdur = self.D[self.tr].getFixDur()
+            xmin = sf[0]*self.currentPlotArea[0]
+            xmax = sf[0]*self.currentPlotArea[1]
+            ymin = sf[1]*self.currentPlotArea[2]
+            ymax = sf[1]*self.currentPlotArea[3]
+            xstep = (xmax-xmin)/64.0
+            ystep = (ymax-ymin)/64.0
+            meshsize = [[xmin,xmax,xstep],[ymin,ymax,ystep]]
+            xmesh,ymesh = numpy.meshgrid(numpy.arange(xmin,xmax,xstep),
+                                         numpy.arange(ymin,ymax,ystep))
+            heatmap = numpy.zeros(xmesh.shape)
+            for idx in range(fixcenter.shape[0]):
+                if numpy.isnan(fixcenter[idx,0]) or numpy.isnan(fixcenter[idx,1]):
+                    continue
+                heatmap = heatmap + fixdur[idx,0]*numpy.exp(-((xmesh-fixcenter[idx,0])/50)**2-((ymesh-fixcenter[idx,1])/50)**2)
+            self.ax.imshow(heatmap, extent=(xmin,xmax,ymin,ymax), origin='lower', cmap=matplotlib.cm.hot)
             
             if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
                 self.ax.set_xlabel('Vertical gaze position (pix)')
