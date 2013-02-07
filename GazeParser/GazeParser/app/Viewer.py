@@ -721,7 +721,7 @@ class InteractiveConfig(Tkinter.Frame):
                 self.menu_view.entryconfigure('Next Trial', state = 'disabled')
             else:
                 self.menu_view.entryconfigure('Next Trial', state = 'normal')
-        self._editParameters()
+        self._updateParameters()
         
     def _nextTrial(self, event=None):
         if self.D==None:
@@ -737,8 +737,7 @@ class InteractiveConfig(Tkinter.Frame):
                 self.menu_view.entryconfigure('Next Trial', state = 'disabled')
             else:
                 self.menu_view.entryconfigure('Next Trial', state = 'normal')
-        self.updateAdjustResults1()
-        self.updateAdjustResults2()
+        self._updateParameters()
         
     def _plotData(self):
         self.ax.clear()
@@ -1350,16 +1349,6 @@ class mainWindow(Tkinter.Frame):
                     else:
                         if s in self.selectionlist['Sac']:
                             self.ax.plot(straj[:,0], straj[:,1], '.-', linewidth=1.0, color=col)
-            
-            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
-                self.ax.set_xlabel('Vertical gaze position (pix)')
-                self.ax.set_ylabel('Horizontal gaze position (pix)')
-            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
-                self.ax.set_xlabel('Vertical gaze position (deg)')
-                self.ax.set_ylabel('Horizontal gaze position (deg)')
-            
-            self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
-                          sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
         
         elif self.plotStyle == 'SCATTER':
             #plot fixations
@@ -1388,17 +1377,6 @@ class mainWindow(Tkinter.Frame):
                                          color=self.conf.COLOR_FIXATION_FC,
                                          bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
                                          fontproperties = self.fontPlotText, clip_on=True)
-
-            
-            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
-                self.ax.set_xlabel('Vertical gaze position (pix)')
-                self.ax.set_ylabel('Horizontal gaze position (pix)')
-            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
-                self.ax.set_xlabel('Vertical gaze position (deg)')
-                self.ax.set_ylabel('Horizontal gaze position (deg)')
-            
-            self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
-                          sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
         
         elif self.plotStyle == 'HEATMAP':
             fixcenter = self.D[self.tr].getFixCenter()
@@ -1418,16 +1396,6 @@ class mainWindow(Tkinter.Frame):
                     continue
                 heatmap = heatmap + fixdur[idx,0]*numpy.exp(-((xmesh-fixcenter[idx,0])/50)**2-((ymesh-fixcenter[idx,1])/50)**2)
             self.ax.imshow(heatmap, extent=(xmin,xmax,ymin,ymax), origin='lower', cmap=matplotlib.cm.hot)
-            
-            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
-                self.ax.set_xlabel('Vertical gaze position (pix)')
-                self.ax.set_ylabel('Horizontal gaze position (pix)')
-            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
-                self.ax.set_xlabel('Vertical gaze position (deg)')
-                self.ax.set_ylabel('Horizontal gaze position (deg)')
-            
-            self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
-                          sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
         
         else: #XY-T
             tStart = self.D[self.tr].T[0]
@@ -1490,7 +1458,19 @@ class mainWindow(Tkinter.Frame):
                 self.ax.text(mObj.time, 0, msgtext, color=self.conf.COLOR_MESSAGE_FC,
                              bbox=dict(boxstyle="round", fc=self.conf.COLOR_MESSAGE_BG, clip_on=True, clip_box=self.ax.bbox),
                              fontproperties = self.fontPlotText, clip_on=True)
+        
+        #set plotrange and axis labels
+        if self.plotStyle in XYPLOTMODES:
+            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+                self.ax.set_xlabel('Vertical gaze position (pix)')
+                self.ax.set_ylabel('Horizontal gaze position (pix)')
+            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+                self.ax.set_xlabel('Vertical gaze position (deg)')
+                self.ax.set_ylabel('Horizontal gaze position (deg)')
             
+            self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
+                          sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
+        else: #TXY
             if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
                 self.ax.set_xlabel('Time (ms)')
                 self.ax.set_ylabel('Gaze position (pix)')
@@ -1500,7 +1480,6 @@ class mainWindow(Tkinter.Frame):
             
             self.ax.axis((self.currentPlotArea[0],self.currentPlotArea[1],
                           sf[0]*self.currentPlotArea[2],sf[0]*self.currentPlotArea[3]))
-        
         
         self.ax.set_title('%s: Trial%d' % (os.path.basename(self.dataFileName), self.tr))
         self._updateGrid()
