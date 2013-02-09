@@ -328,6 +328,7 @@ class ViewerOptions(object):
           ['CANVAS_HEIGHT',int],
           ['CANVAS_DEFAULT_VIEW',str],
           ['CANVAS_SHOW_FIXNUMBER',bool],
+          ['CANVAS_SHOW_STIMIMAGE',bool],
           ['CANVAS_FONT_FILE',str],
           ['CANVAS_XYAXES_UNIT',str],
           ['CANVAS_GRID_ABSCISSA_XY',str],
@@ -863,6 +864,9 @@ class mainWindow(Tkinter.Frame):
         self.tr = 0
         self.plotAreaXY = [0,1024,0,768]
         self.plotAreaTXY = [0,3000,0,1024]
+        self.showStimImage = False
+        self.stimImage = None
+        self.stimImageExtent = [0,1024,0,768]
         self.dataFileName = 'Please open data file.'
         if self.conf.CANVAS_DEFAULT_VIEW == 'TXY':
             self.plotStyle ='TXY'
@@ -914,6 +918,7 @@ class mainWindow(Tkinter.Frame):
         self.menu_view.add_command(label='Heatmap plot',under=0, command=self._toHeatmapView)
         self.menu_view.add_separator()
         self.menu_view.add_command(label='Toggle Fixation Number', under=7,command=self._toggleFixNum)
+        self.menu_view.add_command(label='Toggle Stimulus Image', under=7,command=self._toggleStimImage)
         self.menu_view.add_command(label='Config grid', command=self._configGrid)
         self.menu_view.add_command(label='Config color', command=self._configColor)
         self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=8,command=self._convertGT)
@@ -1020,6 +1025,14 @@ class mainWindow(Tkinter.Frame):
         
         self._plotData()
     
+    def _toggleStimImage(self, event=None):
+        if self.conf.CANVAS_SHOW_STIMIMAGE:
+            self.conf.CANVAS_SHOW_STIMIMAGE = False
+        else:
+            self.conf.CANVAS_SHOW_STIMIMAGE = True
+        
+        self._plotData()
+    
     def _openfile(self, event=None):
         self.dataFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes,initialdir=self.initialDataDir)
         if self.dataFileName=='':
@@ -1094,12 +1107,60 @@ class mainWindow(Tkinter.Frame):
         self.menu_view.entryconfigure('Prev Trial', state = 'disabled')
         if len(self.D)<2:
             self.menu_view.entryconfigure('Next Trial', state = 'disabled')
+        
+        self._loadStimImage()
+        
         self._plotData()
         self._updateMsgBox()
     
     def _openRecent(self, d):
         self.initialDataDir = self.conf.RecentDir[d]
         self._openfile()
+    
+    def _loadStimImage(self):
+        msg = self.D[self.tr].findMessage('!STIMIMAGE',useRegexp=False)
+        sep = ' '
+        imagePath = os.path.join(os.path.split(self.dataFileName)[0],'stimimage')
+        self.stimImage = None
+        if len(msg) == 0:
+            return False
+        elif len(msg) > 1:
+            tkMessageBox.showerror('Error','Multiple !STIMIMAGE commands in this trial.')
+            return False
+        else:
+            params = msg[0].text.split(sep)
+            if params[0] != '!STIMIMAGE':
+                tkMessageBox.showerror('Error','!STIMIMAGE command must be at the beginning of message text.')
+                return False
+            try:
+                imageFilename = os.path.join(imagePath, params[1])
+                self.stimImage = Image.open(imageFilename)
+            except:
+                tkMessageBox.showerror('Error','Cannot open %s as StimImage.' % imageFilename)
+            
+            if len(params) == 4:
+                try:
+                    self.stimImageExtent[0] = float(params[2])
+                    self.stimImageExtent[2] = float(params[3])
+                except:
+                    tkMessageBox.showerror('Error','Invalid extent: %s' % sep.join(params[2:]) )
+                    self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
+                    return False
+                
+                self.stimImageExtent[1] = self.stimImageExtent[0] + self.stimImage.size[0]
+                self.stimImageExtent[3] = self.stimImageExtent[2] + self.stimImage.size[1]
+            if len(params) == 6:
+                try:
+                    self.stimImageExtent[0] = float(params[2])
+                    self.stimImageExtent[1] = float(params[3])
+                    self.stimImageExtent[2] = float(params[4])
+                    self.stimImageExtent[3] = float(params[5])
+                except:
+                    tkMessageBox.showerror('Error','Invalid extent: %s' % sep.join(params[2:]))
+                    self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
+                    return False
+            
+            return True
     
     def _exportfile(self,event=None):
         if self.D == None:
@@ -1149,6 +1210,7 @@ class mainWindow(Tkinter.Frame):
                 self.menu_view.entryconfigure('Next Trial', state = 'normal')
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         self.selectiontype.set('Emphasize')
+        self._loadStimImage()
         self._plotData()
         self._updateMsgBox()
         
@@ -1168,6 +1230,7 @@ class mainWindow(Tkinter.Frame):
                 self.menu_view.entryconfigure('Next Trial', state = 'normal')
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         self.selectiontype.set('Emphasize')
+        self._loadStimImage()
         self._plotData()
         self._updateMsgBox()
     
@@ -1308,6 +1371,9 @@ class mainWindow(Tkinter.Frame):
         elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
              sf = self.D[self.tr]._pix2deg
         
+        if self.plotStyle in XYPLOTMODES and self.stimImage != None and self.conf.CANVAS_SHOW_STIMIMAGE:
+            self.ax.imshow(self.stimImage, extent=self.stimImageExtent, origin='lower')
+        
         if self.plotStyle == 'XY':
             #plot fixations
             for f in range(self.D[self.tr].nFix):
@@ -1409,9 +1475,8 @@ class mainWindow(Tkinter.Frame):
             xmax = sf[0]*self.currentPlotArea[1]
             ymin = sf[1]*self.currentPlotArea[2]
             ymax = sf[1]*self.currentPlotArea[3]
-            xstep = (xmax-xmin)/64.0
-            ystep = (ymax-ymin)/64.0
-            meshsize = [[xmin,xmax,xstep],[ymin,ymax,ystep]]
+            xstep = (xmax-xmin)/128.0
+            ystep = (ymax-ymin)/128.0
             xmesh,ymesh = numpy.meshgrid(numpy.arange(xmin,xmax,xstep),
                                          numpy.arange(ymin,ymax,ystep))
             heatmap = numpy.zeros(xmesh.shape)
@@ -1419,7 +1484,34 @@ class mainWindow(Tkinter.Frame):
                 if numpy.isnan(fixcenter[idx,0]) or numpy.isnan(fixcenter[idx,1]):
                     continue
                 heatmap = heatmap + fixdur[idx,0]*numpy.exp(-((xmesh-fixcenter[idx,0])/50)**2-((ymesh-fixcenter[idx,1])/50)**2)
-            self.ax.imshow(heatmap, extent=(xmin,xmax,ymin,ymax), origin='lower', cmap=matplotlib.cm.hot)
+            cmap = matplotlib.cm.get_cmap('hot')
+            cmap._init()
+            alphas = numpy.linspace(0.0,5.0, cmap.N)
+            alphas[numpy.where(alphas>0.8)[0]] = 0.8
+            cmap._lut[:-3,-1] = alphas
+            self.ax.imshow(heatmap, extent=(xmin,xmax,ymin,ymax), origin='lower', cmap=cmap)
+            
+            for f in range(self.D[self.tr].nFix):
+                if self.selectiontype.get()=='Emphasize':
+                    if f in self.selectionlist['Fix']:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC_E,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG_E, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+                    else:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+                else:
+                    if f in self.selectionlist['Fix']:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
         
         else: #XY-T
             tStart = self.D[self.tr].T[0]
