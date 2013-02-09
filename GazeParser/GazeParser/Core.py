@@ -1,6 +1,6 @@
 """
 .. Part of GazeParser package.
-.. Copyright (C) 2012 Hiroyuki Sogo.
+.. Copyright (C) 2012-2013 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
 
@@ -296,7 +296,23 @@ class MessageData(object):
     
     def getPreviousEvent(self,step=1,eventType=None):
         return self._parent.getPreviousEvent(self,step=step,eventType=eventType)
-
+    
+    def delete(self):
+        self._parent.deleteMessage(self)
+    
+    def updateMessage(self, newTime=None, newText=None):
+        """
+        Update message time and/or text.
+        
+        :param newTime:
+            New timestamp. If None, timestamp is not updated.
+        :param newText:
+            New text. If None, text is not updated.
+        """
+        if newText != None:
+            self._text = newText
+        if newTime != None:
+            self._time = newTime
 
 class BlinkData(object):
     """
@@ -774,6 +790,64 @@ class GazeData(object):
         
         return ret
         
+    
+    def deleteMessage(self, message):
+        """
+        Delete a message from message list.
+        
+        :param message:
+            MessageData to be deleted. a :class:`~GazeParser.Core.MessageData` 
+            object or an integer is accepted.
+        """
+        
+        if isinstance(message, int):
+            idxMsg = message
+        elif isinstance(message, GazeParser.Core.MessageData):
+            try:
+                idxMsg = numpy.where(self._Msg==message)[0]
+            except:
+                raise ValueError
+        else:
+            raise ValueError
+        
+        idxEvent = numpy.where(self._EventList==self.Msg[idxMsg])[0]
+        
+        self._Msg = numpy.delete(self.Msg, idxMsg)
+        self._nMsg = self.nMsg-1
+        self._EventList = numpy.delete(self.EventList, idxEvent)
+    
+    def insertNewMessage(self, time, text):
+        """
+        Insert a new message to MessageList.
+        
+        :param time:
+            Timestamp of the new message.
+        :param text:
+            Message text of the new message.
+        """
+        newmsg = MessageData([time,text])
+        
+        t = self.getMsgTime()
+        idx = numpy.where(time<t)[0]
+        if idx.size>0:
+            self._Msg = numpy.insert(self.Msg, idx[0], newmsg)
+        else:
+            self._Msg = numpy.append(self.Msg, newmsg)
+        
+        self._nMsg = self.nMsg+1
+        
+        newmsg._setParent(self)
+        
+        t = []
+        for e in self.EventList:
+            if hasattr(e, 'startTime'):
+                t.append(e.startTime)
+            else:
+                t.append(e.time)
+        if idx.size>0:
+            self._EventList = numpy.insert(self.EventList, idx[0], newmsg)
+        else:
+            self._EventList = numpy.append(self.EventList, newmsg)
     
     def getPreviousEvent(self,event,step=1,eventType=None):
         """
