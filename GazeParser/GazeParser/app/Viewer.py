@@ -30,6 +30,7 @@ import matplotlib
 import matplotlib.figure
 import matplotlib.font_manager
 import matplotlib.patches
+import matplotlib.cm
 import GazeParser.app.ConfigEditor
 import GazeParser.app.Converters
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
@@ -38,6 +39,7 @@ from GazeParser.Converter import buildEventListBinocular, buildEventListMonocula
 
 MAX_RECENT = 5
 PLOT_OFFSET = 10
+XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
 
 class jumpToTrialWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
@@ -326,6 +328,7 @@ class ViewerOptions(object):
           ['CANVAS_HEIGHT',int],
           ['CANVAS_DEFAULT_VIEW',str],
           ['CANVAS_SHOW_FIXNUMBER',bool],
+          ['CANVAS_SHOW_STIMIMAGE',bool],
           ['CANVAS_FONT_FILE',str],
           ['CANVAS_XYAXES_UNIT',str],
           ['CANVAS_GRID_ABSCISSA_XY',str],
@@ -530,7 +533,7 @@ class configGridWindow(Tkinter.Frame):
         self.strAbscissa = Tkinter.StringVar()
         self.strOrdinate = Tkinter.StringVar()
         
-        if self.mainWindow.plotStyle == 'XY':
+        if self.mainWindow.plotStyle in XYPLOTMODES:
             xparams = self.mainWindow.conf.CANVAS_GRID_ABSCISSA_XY.split('#')
             self.choiceAbscissa.set(xparams[0])
             yparams = self.mainWindow.conf.CANVAS_GRID_ORDINATE_XY.split('#')
@@ -610,7 +613,7 @@ class configGridWindow(Tkinter.Frame):
         else:
             raise ValueError, 'Unknown ordinate grid type (%s)' % (gridtypeY)
         
-        if self.mainWindow.plotStyle == 'XY':
+        if self.mainWindow.plotStyle in XYPLOTMODES:
             self.mainWindow.conf.CANVAS_GRID_ABSCISSA_XY = xstr
             self.mainWindow.conf.CANVAS_GRID_ORDINATE_XY = ystr
         else:
@@ -719,7 +722,7 @@ class InteractiveConfig(Tkinter.Frame):
                 self.menu_view.entryconfigure('Next Trial', state = 'disabled')
             else:
                 self.menu_view.entryconfigure('Next Trial', state = 'normal')
-        self._editParameters()
+        self._updateParameters()
         
     def _nextTrial(self, event=None):
         if self.D==None:
@@ -735,8 +738,7 @@ class InteractiveConfig(Tkinter.Frame):
                 self.menu_view.entryconfigure('Next Trial', state = 'disabled')
             else:
                 self.menu_view.entryconfigure('Next Trial', state = 'normal')
-        self.updateAdjustResults1()
-        self.updateAdjustResults2()
+        self._updateParameters()
         
     def _plotData(self):
         self.ax.clear()
@@ -862,6 +864,9 @@ class mainWindow(Tkinter.Frame):
         self.tr = 0
         self.plotAreaXY = [0,1024,0,768]
         self.plotAreaTXY = [0,3000,0,1024]
+        self.showStimImage = False
+        self.stimImage = None
+        self.stimImageExtent = [0,1024,0,768]
         self.dataFileName = 'Please open data file.'
         if self.conf.CANVAS_DEFAULT_VIEW == 'TXY':
             self.plotStyle ='TXY'
@@ -869,8 +874,14 @@ class mainWindow(Tkinter.Frame):
         elif self.confCanvasDefaultView == 'XY':
             self.plotStyle ='XY'
             self.currentPlotArea = self.plotAreaXY
+        elif self.confCanvasDefaultView == 'SCATTER':
+            self.plotStyle ='SCATTER'
+            self.currentPlotArea = self.plotAreaXY
+        elif self.confCanvasDefaultView == 'HEATMAP':
+            self.plotStyle ='HEATMAP'
+            self.currentPlotArea = self.plotAreaXY
         else:
-            raise ValueError, 'Default view must be XY or TXY.'
+            raise ValueError, 'Default view must be ' + ', '.join(XYPLOTMODES) + ' or TXY.'
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         
         Tkinter.Frame.__init__(self,master)
@@ -894,24 +905,28 @@ class mainWindow(Tkinter.Frame):
             self.menu_recent.add_command(label='None',state=Tkinter.DISABLED)
         else:
             for i in range(len(self.conf.RecentDir)):
-                self.menu_recent.add_command(label=self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
+                self.menu_recent.add_command(label=str(i+1)+'. '+self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
         self.menu_file.add_command(label='Export',under=0,command=self._exportfile)
-        self.menu_file.add_command(label='Exit',under=0,command=self._exit)
+        self.menu_file.add_command(label='Exit',under=1,command=self._exit)
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
         self.menu_view.add_command(label='Jump to...',under=0,command=self._jumpToTrial)
         self.menu_view.add_separator()
-        self.menu_view.add_command(label='Toggle Fixation Number',under=0,command=self._toggleFixNum)
-        self.menu_view.add_command(label='Toggle View',under=0,command=self._toggleView)
+        self.menu_view.add_command(label='T-XY plot',under=0, command=self._toTXYView)
+        self.menu_view.add_command(label='XY plot',under=0, command=self._toXYView)
+        self.menu_view.add_command(label='Scatter plot',under=0, command=self._toScatterView)
+        self.menu_view.add_command(label='Heatmap plot',under=0, command=self._toHeatmapView)
         self.menu_view.add_separator()
-        self.menu_view.add_command(label='Set grid',under=0,command=self._configGrid)
-        self.menu_view.add_command(label='Config color', under=0, command=self._configColor)
-        self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=0,command=self._convertGT)
-        self.menu_convert.add_command(label='Convert Eyelink EDF',under=0,command=self._convertEL)
-        self.menu_convert.add_command(label='Convert Tobii TSV',under=0,command=self._convertTSV)
+        self.menu_view.add_command(label='Toggle Fixation Number', under=7,command=self._toggleFixNum)
+        self.menu_view.add_command(label='Toggle Stimulus Image', under=7,command=self._toggleStimImage)
+        self.menu_view.add_command(label='Config grid', command=self._configGrid)
+        self.menu_view.add_command(label='Config color', command=self._configColor)
+        self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=8,command=self._convertGT)
+        self.menu_convert.add_command(label='Convert Eyelink EDF',under=8,command=self._convertEL)
+        self.menu_convert.add_command(label='Convert Tobii TSV',under=8,command=self._convertTSV)
         self.menu_convert.add_separator()
-        self.menu_convert.add_command(label='Edit GazeParser.Configuration file',under=0,command=self._configEditor)
-        self.menu_convert.add_command(label='Interactive configuration',under=0,command=self._interactive)
+        self.menu_convert.add_command(label='Edit GazeParser.Configuration file',command=self._configEditor)
+        self.menu_convert.add_command(label='Interactive configuration',command=self._interactive)
         self.menu_analyse.add_command(label='Saccade latency',under=0,command=self._getLatency)
         
         self.master.configure(menu = self.menu_bar)
@@ -966,20 +981,55 @@ class mainWindow(Tkinter.Frame):
             self.fontPlotText = matplotlib.font_manager.FontProperties()
     
     def _toggleView(self, event=None):
+        
         if self.plotStyle == 'XY':
+            self.plotStyle = 'SCATTER'
+            self.currentPlotArea = self.plotAreaXY
+        elif self.plotStyle == 'SCATTER':
+            self.plotStyle = 'HEATMAP'
+            self.currentPlotArea = self.plotAreaXY
+        elif self.plotStyle == 'HEATMAP':
             self.plotStyle = 'TXY'
             self.currentPlotArea = self.plotAreaTXY
-        else:
+        else: #XYT
             self.plotStyle = 'XY'
             self.currentPlotArea = self.plotAreaXY
             
         self._plotData()
-        
+    
+    def _toTXYView(self):
+        self.plotStyle = 'TXY'
+        self.currentPlotArea = self.plotAreaTXY
+        self._plotData()
+    
+    def _toXYView(self):
+        self.plotStyle = 'XY'
+        self.currentPlotArea = self.plotAreaXY
+        self._plotData()
+    
+    def _toScatterView(self):
+        self.plotStyle = 'SCATTER'
+        self.currentPlotArea = self.plotAreaXY
+        self._plotData()
+    
+    def _toHeatmapView(self):
+        self.plotStyle = 'HEATMAP'
+        self.currentPlotArea = self.plotAreaXY
+        self._plotData()
+    
     def _toggleFixNum(self, event=None):
         if self.conf.CANVAS_SHOW_FIXNUMBER:
             self.conf.CANVAS_SHOW_FIXNUMBER = False
         else:
             self.conf.CANVAS_SHOW_FIXNUMBER = True
+        
+        self._plotData()
+    
+    def _toggleStimImage(self, event=None):
+        if self.conf.CANVAS_SHOW_STIMIMAGE:
+            self.conf.CANVAS_SHOW_STIMIMAGE = False
+        else:
+            self.conf.CANVAS_SHOW_STIMIMAGE = True
         
         self._plotData()
     
@@ -997,7 +1047,7 @@ class mainWindow(Tkinter.Frame):
         #update menu recent_dir
         self.menu_recent.delete(0,MAX_RECENT)
         for i in range(len(self.conf.RecentDir)):
-            self.menu_recent.add_command(label=self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
+            self.menu_recent.add_command(label=str(i+1)+'. '+self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
         
         #if extension is .csv, try converting
         if os.path.splitext(self.dataFileName)[1].lower() == '.csv':
@@ -1049,7 +1099,7 @@ class mainWindow(Tkinter.Frame):
             self.hasRData = True
         
         #initialize current plot area
-        if self.plotStyle == 'XY':
+        if self.plotStyle in XYPLOTMODES:
             self.currentPlotArea = self.plotAreaXY
         
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
@@ -1057,12 +1107,60 @@ class mainWindow(Tkinter.Frame):
         self.menu_view.entryconfigure('Prev Trial', state = 'disabled')
         if len(self.D)<2:
             self.menu_view.entryconfigure('Next Trial', state = 'disabled')
+        
+        self._loadStimImage()
+        
         self._plotData()
         self._updateMsgBox()
     
     def _openRecent(self, d):
         self.initialDataDir = self.conf.RecentDir[d]
         self._openfile()
+    
+    def _loadStimImage(self):
+        msg = self.D[self.tr].findMessage('!STIMIMAGE',useRegexp=False)
+        sep = ' '
+        imagePath = os.path.join(os.path.split(self.dataFileName)[0],'stimimage')
+        self.stimImage = None
+        if len(msg) == 0:
+            return False
+        elif len(msg) > 1:
+            tkMessageBox.showerror('Error','Multiple !STIMIMAGE commands in this trial.')
+            return False
+        else:
+            params = msg[0].text.split(sep)
+            if params[0] != '!STIMIMAGE':
+                tkMessageBox.showerror('Error','!STIMIMAGE command must be at the beginning of message text.')
+                return False
+            try:
+                imageFilename = os.path.join(imagePath, params[1])
+                self.stimImage = Image.open(imageFilename)
+            except:
+                tkMessageBox.showerror('Error','Cannot open %s as StimImage.' % imageFilename)
+            
+            if len(params) == 4:
+                try:
+                    self.stimImageExtent[0] = float(params[2])
+                    self.stimImageExtent[2] = float(params[3])
+                except:
+                    tkMessageBox.showerror('Error','Invalid extent: %s' % sep.join(params[2:]) )
+                    self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
+                    return False
+                
+                self.stimImageExtent[1] = self.stimImageExtent[0] + self.stimImage.size[0]
+                self.stimImageExtent[3] = self.stimImageExtent[2] + self.stimImage.size[1]
+            if len(params) == 6:
+                try:
+                    self.stimImageExtent[0] = float(params[2])
+                    self.stimImageExtent[1] = float(params[3])
+                    self.stimImageExtent[2] = float(params[4])
+                    self.stimImageExtent[3] = float(params[5])
+                except:
+                    tkMessageBox.showerror('Error','Invalid extent: %s' % sep.join(params[2:]))
+                    self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
+                    return False
+            
+            return True
     
     def _exportfile(self,event=None):
         if self.D == None:
@@ -1112,6 +1210,7 @@ class mainWindow(Tkinter.Frame):
                 self.menu_view.entryconfigure('Next Trial', state = 'normal')
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         self.selectiontype.set('Emphasize')
+        self._loadStimImage()
         self._plotData()
         self._updateMsgBox()
         
@@ -1131,6 +1230,7 @@ class mainWindow(Tkinter.Frame):
                 self.menu_view.entryconfigure('Next Trial', state = 'normal')
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
         self.selectiontype.set('Emphasize')
+        self._loadStimImage()
         self._plotData()
         self._updateMsgBox()
     
@@ -1150,7 +1250,7 @@ class mainWindow(Tkinter.Frame):
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _jumpToTime(self, event=None):
-        if self.plotStyle == 'XY':
+        if self.plotStyle in XYPLOTMODES:
             i= self.msglistbox.index(Tkinter.ACTIVE)
             if isinstance(self.D[self.tr].EventList[i], GazeParser.Core.SaccadeData):
                 pos = (self.D[self.tr].EventList[i].start + self.D[self.tr].EventList[i].end)/2.0
@@ -1203,7 +1303,7 @@ class mainWindow(Tkinter.Frame):
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _updateGrid(self):
-        if self.plotStyle == 'XY':
+        if self.plotStyle in XYPLOTMODES:
             xattr = 'CANVAS_GRID_ABSCISSA_XY'
             yattr = 'CANVAS_GRID_ORDINATE_XY'
         else:
@@ -1271,6 +1371,9 @@ class mainWindow(Tkinter.Frame):
         elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
              sf = self.D[self.tr]._pix2deg
         
+        if self.plotStyle in XYPLOTMODES and self.stimImage != None and self.conf.CANVAS_SHOW_STIMIMAGE:
+            self.ax.imshow(self.stimImage, extent=self.stimImageExtent, origin='lower')
+        
         if self.plotStyle == 'XY':
             #plot fixations
             for f in range(self.D[self.tr].nFix):
@@ -1336,16 +1439,79 @@ class mainWindow(Tkinter.Frame):
                     else:
                         if s in self.selectionlist['Sac']:
                             self.ax.plot(straj[:,0], straj[:,1], '.-', linewidth=1.0, color=col)
+        
+        elif self.plotStyle == 'SCATTER':
+            #plot fixations
+            fixcenter = self.D[self.tr].getFixCenter()
+            fixdur = self.D[self.tr].getFixDur()
+            self.ax.plot(fixcenter[:,0],fixcenter[:,1],'k-')
+            self.ax.scatter(fixcenter[:,0],fixcenter[:,1],s=fixdur,c=fixdur,alpha=0.7)
+            for f in range(self.D[self.tr].nFix):
+                if self.selectiontype.get()=='Emphasize':
+                    if f in self.selectionlist['Fix']:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC_E,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG_E, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+                    else:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+                else:
+                    if f in self.selectionlist['Fix']:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+        
+        elif self.plotStyle == 'HEATMAP':
+            fixcenter = self.D[self.tr].getFixCenter()
+            fixdur = self.D[self.tr].getFixDur()
+            xmin = sf[0]*self.currentPlotArea[0]
+            xmax = sf[0]*self.currentPlotArea[1]
+            ymin = sf[1]*self.currentPlotArea[2]
+            ymax = sf[1]*self.currentPlotArea[3]
+            xstep = (xmax-xmin)/128.0
+            ystep = (ymax-ymin)/128.0
+            xmesh,ymesh = numpy.meshgrid(numpy.arange(xmin,xmax,xstep),
+                                         numpy.arange(ymin,ymax,ystep))
+            heatmap = numpy.zeros(xmesh.shape)
+            for idx in range(fixcenter.shape[0]):
+                if numpy.isnan(fixcenter[idx,0]) or numpy.isnan(fixcenter[idx,1]):
+                    continue
+                heatmap = heatmap + fixdur[idx,0]*numpy.exp(-((xmesh-fixcenter[idx,0])/50)**2-((ymesh-fixcenter[idx,1])/50)**2)
+            cmap = matplotlib.cm.get_cmap('hot')
+            cmap._init()
+            alphas = numpy.linspace(0.0,5.0, cmap.N)
+            alphas[numpy.where(alphas>0.8)[0]] = 0.8
+            cmap._lut[:-3,-1] = alphas
+            self.ax.imshow(heatmap, extent=(xmin,xmax,ymin,ymax), origin='lower', cmap=cmap)
             
-            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
-                self.ax.set_xlabel('Vertical gaze position (pix)')
-                self.ax.set_ylabel('Horizontal gaze position (pix)')
-            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
-                self.ax.set_xlabel('Vertical gaze position (deg)')
-                self.ax.set_ylabel('Horizontal gaze position (deg)')
-            
-            self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
-                          sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
+            for f in range(self.D[self.tr].nFix):
+                if self.selectiontype.get()=='Emphasize':
+                    if f in self.selectionlist['Fix']:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC_E,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG_E, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+                    else:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
+                else:
+                    if f in self.selectionlist['Fix']:
+                        if self.conf.CANVAS_SHOW_FIXNUMBER:
+                            self.ax.text(sf[0]*self.D[self.tr].Fix[f].center[0], sf[1]*self.D[self.tr].Fix[f].center[1], str(f),
+                                         color=self.conf.COLOR_FIXATION_FC,
+                                         bbox=dict(boxstyle="round", fc=self.conf.COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox),
+                                         fontproperties = self.fontPlotText, clip_on=True)
         
         else: #XY-T
             tStart = self.D[self.tr].T[0]
@@ -1408,7 +1574,19 @@ class mainWindow(Tkinter.Frame):
                 self.ax.text(mObj.time, 0, msgtext, color=self.conf.COLOR_MESSAGE_FC,
                              bbox=dict(boxstyle="round", fc=self.conf.COLOR_MESSAGE_BG, clip_on=True, clip_box=self.ax.bbox),
                              fontproperties = self.fontPlotText, clip_on=True)
+        
+        #set plotrange and axis labels
+        if self.plotStyle in XYPLOTMODES:
+            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+                self.ax.set_xlabel('Vertical gaze position (pix)')
+                self.ax.set_ylabel('Horizontal gaze position (pix)')
+            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+                self.ax.set_xlabel('Vertical gaze position (deg)')
+                self.ax.set_ylabel('Horizontal gaze position (deg)')
             
+            self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
+                          sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
+        else: #TXY
             if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
                 self.ax.set_xlabel('Time (ms)')
                 self.ax.set_ylabel('Gaze position (pix)')
@@ -1418,7 +1596,6 @@ class mainWindow(Tkinter.Frame):
             
             self.ax.axis((self.currentPlotArea[0],self.currentPlotArea[1],
                           sf[0]*self.currentPlotArea[2],sf[0]*self.currentPlotArea[3]))
-        
         
         self.ax.set_title('%s: Trial%d' % (os.path.basename(self.dataFileName), self.tr))
         self._updateGrid()
@@ -1465,6 +1642,8 @@ class mainWindow(Tkinter.Frame):
     def _clearmarker(self):
         self.msglistbox.selection_clear(0,self.msglistbox.size())
         self.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
+        if self.selectiontype.get() == 'Extract':
+            self.selectiontype.set('Emphasize')
         self._plotData()
     
     def _configEditor(self):
