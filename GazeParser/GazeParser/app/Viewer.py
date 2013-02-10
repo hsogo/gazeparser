@@ -170,7 +170,7 @@ class exportToFileWindow(Tkinter.Frame):
         else:
             tkMessageBox.showinfo('Info','No items were selected.')
 
-class GetSaccadeLatency(Tkinter.Frame):
+class getSaccadeLatencyWindow(Tkinter.Frame):
     def __init__(self, data, additional, conf, master=None):
         Tkinter.Frame.__init__(self,master)
         self.D = data
@@ -1716,7 +1716,7 @@ class mainWindow(Tkinter.Frame):
             return
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GetSaccadeLatency(master=dlg, data=self.D, additional=self.C, conf=self.conf)
+        getSaccadeLatencyWindow(master=dlg, data=self.D, additional=self.C, conf=self.conf)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
