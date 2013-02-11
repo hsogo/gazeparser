@@ -41,6 +41,7 @@ MAX_RECENT = 5
 PLOT_OFFSET = 10
 XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
 
+
 class jumpToTrialWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
         Tkinter.Frame.__init__(self,master)
@@ -868,6 +869,7 @@ class mainWindow(Tkinter.Frame):
         self.stimImage = None
         self.stimImageExtent = [0,1024,0,768]
         self.dataFileName = 'Please open data file.'
+        self.dataFileModified = False
         if self.conf.CANVAS_DEFAULT_VIEW == 'TXY':
             self.plotStyle ='TXY'
             self.currentPlotArea = self.plotAreaTXY
@@ -1073,6 +1075,7 @@ class mainWindow(Tkinter.Frame):
             self.C = None
             return
         
+        self.dataFileModified = False
         self.block = 0
         self.tr = 0
         self.plotAreaTXY[1] = 3000
@@ -1609,16 +1612,16 @@ class mainWindow(Tkinter.Frame):
         
         for e in self.D[self.tr].EventList:
             if isinstance(e,GazeParser.SaccadeData):
-                self.msglistbox.insert(Tkinter.END,str(e.startTime)+':Sac')
+                self.msglistbox.insert(Tkinter.END,'%10.1f'%(e.startTime)+':Sac')
                 #self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_TRAJECTORY_L_SAC)
             elif isinstance(e,GazeParser.FixationData):
-                self.msglistbox.insert(Tkinter.END,str(e.startTime)+':Fix')
+                self.msglistbox.insert(Tkinter.END,'%10.1f'%(e.startTime)+':Fix')
                 #self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_TRAJECTORY_L_FIX)
             elif isinstance(e,GazeParser.MessageData):
-                self.msglistbox.insert(Tkinter.END,str(e.time)+':'+e.text)
+                self.msglistbox.insert(Tkinter.END,'%10.1f'%(e.time)+':'+e.text)
                 self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_MESSAGE_BG, fg=self.conf.COLOR_MESSAGE_FC)
             elif isinstance(e,GazeParser.BlinkData):
-                self.msglistbox.insert(Tkinter.END,str(e.startTime)+':Blk')
+                self.msglistbox.insert(Tkinter.END,'%10.1f'%(e.startTime)+':Blk')
     
     def _setmarker(self):
         selected = self.msglistbox.curselection()
@@ -1712,7 +1715,7 @@ class mainWindow(Tkinter.Frame):
     
     def _getLatency(self):
         if self.D == None:
-            tkMessageBox.showinfo('info','Data must be loaded before\nmeasuring saccade latency')
+            tkMessageBox.showinfo('info','Data must be loaded before getting saccade latency')
             return
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
