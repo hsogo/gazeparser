@@ -844,10 +844,34 @@ class GazeData(object):
                 t.append(e.startTime)
             else:
                 t.append(e.time)
+        idx = numpy.where(time<numpy.array(t))[0]
         if idx.size>0:
             self._EventList = numpy.insert(self.EventList, idx[0], newmsg)
         else:
             self._EventList = numpy.append(self.EventList, newmsg)
+    
+    def sortMessagesByTime(self):
+        """
+        Sort messages by time.
+        """
+        t = self.getMsgTime().flatten()
+        index = numpy.argsort(t)
+        self._Msg = self.Msg[index]
+    
+    def sortEventListByTime(self):
+        """
+        Sort event list by time.
+        """
+        t = []
+        for e in self.EventList:
+            if hasattr(e, 'startTime'):
+                t.append(e.startTime)
+            else:
+                t.append(e.time)
+        
+        index = numpy.argsort(t)
+        self._EventList = self.EventList[index]
+        
     
     def getPreviousEvent(self,event,step=1,eventType=None):
         """

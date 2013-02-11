@@ -133,6 +133,9 @@ class editMessageWindow(Tkinter.Frame):
             tkMessageBox.showerror('Error','Message cannot be updated.\n\n'+str(newTime)+'\n'+newText)
             return
         
+        self.mainWindow.D[self.mainWindow.tr].sortMessagesByTime()
+        self.mainWindow.D[self.mainWindow.tr].sortEventListByTime()
+        
         self.mainWindow._updateMsgBox()
         self.mainWindow._loadStimImage()
         self.mainWindow._plotData()
