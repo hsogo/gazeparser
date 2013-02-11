@@ -41,6 +41,106 @@ MAX_RECENT = 5
 PLOT_OFFSET = 10
 XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
 
+class insertNewMessageWindow(Tkinter.Frame):
+    def __init__(self, mainWindow, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.mainWindow = mainWindow
+        
+        self.time = Tkinter.StringVar()
+        self.text = Tkinter.StringVar()
+        
+        r=0
+        Tkinter.Label(self, text='Time').grid(row=r, column=0)
+        Tkinter.Entry(self, textvariable=self.time).grid(row=r, column=1)
+        r+=1
+        Tkinter.Label(self, text='Message').grid(row=r, column=0)
+        Tkinter.Entry(self, textvariable=self.text).grid(row=r, column=1)
+        r+=1
+        Tkinter.Button(self, text='Insert', command=self.insert).grid(row=r, column=0, columnspan=2)
+        
+        self.pack()
+    
+    def insert(self, event=None):
+        try:
+            newTime = float(self.time.get())
+        except:
+            tkMessageBox.showerror('Error','Invalid time value')
+            return
+        
+        newText = self.text.get()
+        
+        try:
+            self.mainWindow.D[self.mainWindow.tr].insertNewMessage(newTime, newText)
+        except:
+            tkMessageBox.showerror('Error','Invalid time value')
+            return
+        
+        self.mainWindow._updateMsgBox()
+        self.mainWindow._loadStimImage()
+        self.mainWindow._plotData()
+        
+        self.mainWindow.dataModified = True
+        self.master.destroy()
+        
+        #tkMessageBox.showinfo('Info','Message is inserted.')
+
+class editMessageWindow(Tkinter.Frame):
+    def __init__(self, message, mainWindow, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.mainWindow = mainWindow
+        
+        self.message = message
+        currentTime = '%10.1f' % (message.time)
+        if len(message.text)>30:
+            currentMessage =  message.text[:27]+'...'
+        else:
+            currentMessage = message.text
+        
+        self.time = Tkinter.StringVar()
+        self.text = Tkinter.StringVar()
+        
+        self.time.set(str(message.time))
+        self.text.set(str(message.text))
+        
+        r=0
+        Tkinter.Label(self, text='Current').grid(row=r, column=1)
+        Tkinter.Label(self, text='New').grid(row=r, column=2)
+        r+=1
+        Tkinter.Label(self, text='Time').grid(row=r, column=0)
+        Tkinter.Label(self, text=currentTime, relief=Tkinter.RIDGE).grid(row=r, column=1, sticky=Tkinter.W+Tkinter.E)
+        Tkinter.Entry(self, textvariable=self.time).grid(row=r, column=2)
+        r+=1
+        Tkinter.Label(self, text='Message').grid(row=r, column=0)
+        Tkinter.Label(self, text=currentMessage, relief=Tkinter.RIDGE).grid(row=r, column=1, sticky=Tkinter.W+Tkinter.E)
+        Tkinter.Entry(self, textvariable=self.text).grid(row=r, column=2)
+        r+=1
+        Tkinter.Button(self, text='Update', command=self.update).grid(row=r, column=0, columnspan=3)
+        
+        self.pack()
+    
+    def update(self, event=None):
+        try:
+            newTime = float(self.time.get())
+        except:
+            tkMessageBox.showerror('Error','Invalid time value')
+            return
+        
+        newText = self.text.get()
+        
+        try:
+            self.message.updateMessage(newTime, newText)
+        except:
+            tkMessageBox.showerror('Error','Message cannot be updated.\n\n'+str(newTime)+'\n'+newText)
+            return
+        
+        self.mainWindow._updateMsgBox()
+        self.mainWindow._loadStimImage()
+        self.mainWindow._plotData()
+        
+        self.mainWindow.dataModified = True
+        self.master.destroy()
+        
+        #tkMessageBox.showinfo('Info','Message is updated.')
 
 class jumpToTrialWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
@@ -67,11 +167,11 @@ class jumpToTrialWindow(Tkinter.Frame):
         
         self.mainWindow.tr = newtr
         if self.mainWindow.tr==0:
-            self.mainWindow.menu_view.entryconfigure('Prev Trial', state = 'disabled')
+            self.mainWindow.menu_view.entryconfigure('Prev Trial', state='disabled')
         else:
-            self.mainWindow.menu_view.entryconfigure('Prev Trial', state = 'normal')
+            self.mainWindow.menu_view.entryconfigure('Prev Trial', state='normal')
         if self.mainWindow.tr==len(self.mainWindow.D)-1:
-            self.mainWindow.menu_view.entryconfigure('Next Trial', state = 'disabled')
+            self.mainWindow.menu_view.entryconfigure('Next Trial', state='disabled')
         else:
             self.mainWindow.menu_view.entryconfigure('Next Trial', state = 'normal')
         self.mainWindow.selectionlist = {'Sac':[], 'Fix':[], 'Msg':[], 'Blink':[]}
@@ -869,7 +969,7 @@ class mainWindow(Tkinter.Frame):
         self.stimImage = None
         self.stimImageExtent = [0,1024,0,768]
         self.dataFileName = 'Please open data file.'
-        self.dataFileModified = False
+        self.dataModified = False
         if self.conf.CANVAS_DEFAULT_VIEW == 'TXY':
             self.plotStyle ='TXY'
             self.currentPlotArea = self.plotAreaTXY
@@ -889,6 +989,8 @@ class mainWindow(Tkinter.Frame):
         Tkinter.Frame.__init__(self,master)
         self.master.title('GazeParser Viewer')
         self.master.protocol('WM_DELETE_WINDOW', self._exit)
+        
+        #main menu
         self.menu_bar = Tkinter.Menu(tearoff=False)
         self.menu_file = Tkinter.Menu(tearoff=False)
         self.menu_view = Tkinter.Menu(tearoff=False)
@@ -933,10 +1035,16 @@ class mainWindow(Tkinter.Frame):
         
         self.master.configure(menu = self.menu_bar)
         
+        #popup menu
+        self.popup_msglistbox = Tkinter.Menu(tearoff=False)
+        self.popup_msglistbox.add_command(label='Edit selected message', command=self._editMessage, state='disabled')
+        self.popup_msglistbox.add_command(label='Insert new message', command=self._insertNewMessage, state='disabled')
+        self.popup_msglistbox.add_command(label='Delete selected message(s)', command=self._deleteMessages, state='disabled')
+        
+        # viewFrame
         self.selectiontype = Tkinter.StringVar()
         self.selectiontype.set('Emphasize')
         
-        # viewFrame
         self.viewFrame = Tkinter.Frame(master)
         self.fig = matplotlib.figure.Figure()
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.viewFrame)
@@ -976,6 +1084,7 @@ class mainWindow(Tkinter.Frame):
         self.master.bind('<Left>', self._prevTrial)
         self.master.bind('<Right>', self._nextTrial)
         self.msglistbox.bind('<Double-Button-1>', self._jumpToTime)
+        self.msglistbox.bind('<Button-3>', self._showPopupMsglistbox)
         
         if self.conf.CANVAS_FONT_FILE != '':
             self.fontPlotText = matplotlib.font_manager.FontProperties(fname=self.conf.CANVAS_FONT_FILE)
@@ -1075,7 +1184,7 @@ class mainWindow(Tkinter.Frame):
             self.C = None
             return
         
-        self.dataFileModified = False
+        self.dataModified = False
         self.block = 0
         self.tr = 0
         self.plotAreaTXY[1] = 3000
@@ -1115,6 +1224,11 @@ class mainWindow(Tkinter.Frame):
         
         self._plotData()
         self._updateMsgBox()
+        
+        #enabel message-edit popup
+        self.popup_msglistbox.entryconfigure('Edit selected message', state='normal')
+        self.popup_msglistbox.entryconfigure('Insert new message', state='normal')
+        self.popup_msglistbox.entryconfigure('Delete selected message(s)', state='normal')
     
     def _openRecent(self, d):
         self.initialDataDir = self.conf.RecentDir[d]
@@ -1277,6 +1391,9 @@ class mainWindow(Tkinter.Frame):
             halfXrange = (xlim[1]-xlim[0])/2.0
             self.ax.set_xlim((time-halfXrange,time+halfXrange))
             self.fig.canvas.draw()
+    
+    def _showPopupMsglistbox(self, event=None):
+        self.popup_msglistbox.post(event.x_root,event.y_root)
     
     def _modifyPlotRange(self):
         """
@@ -1727,6 +1844,74 @@ class mainWindow(Tkinter.Frame):
         dlg.update_idletasks()
         geo = parsegeometry(dlg.winfo_geometry())
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+
+    def _editMessage(self):
+        if self.D == None:
+            tkMessageBox.showinfo('info','Data must be loaded before editing message')
+            return
+        
+        selected = self.msglistbox.curselection()
+        numSelectedMessages = 0
+        for s in selected:
+            e = self.D[self.tr].EventList[int(s)]
+            if isinstance(e,GazeParser.MessageData):
+                numSelectedMessages += 1
+                if numSelectedMessages > 1:
+                    tkMessageBox.showerror('Error','More than two messages are selected.')
+                    return
+        
+        if numSelectedMessages == 0:
+            tkMessageBox.showerror('Error','No messages are selected.')
+            return
+        
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        editMessageWindow(master=dlg, mainWindow=self, message=self.D[self.tr].EventList[int(selected[0])])
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+    
+    def _insertNewMessage(self):
+        if self.D == None:
+            tkMessageBox.showinfo('info','Data must be loaded before inserting new message')
+            return
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        insertNewMessageWindow(master=dlg, mainWindow=self)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+    
+    def _deleteMessages(self):
+        selected = self.msglistbox.curselection()
+        selectedMessages = []
+        selectedMessagesText = ''
+        for s in selected:
+            e = self.D[self.tr].EventList[int(s)]
+            if isinstance(e,GazeParser.MessageData):
+                selectedMessages.append(e)
+                msgtext = e.text
+                if len(msgtext)>30:
+                    msgtext = msgtext[:27]+'...'
+                selectedMessagesText += '%10.1f, %s\n' % (e.time, msgtext)
+        
+        ans = tkMessageBox.askokcancel('Warning','You cannot undo this operation. Are you sure to delete following message(s)?\n\n'+selectedMessagesText)
+        if ans:
+            for m in selectedMessages:
+                m.delete()
+            self._updateMsgBox()
+            self._loadStimImage()
+            self._plotData()
+            
+            self.dataModified = True
 
 if __name__ == '__main__':
     w = mainWindow()
