@@ -41,6 +41,90 @@ MAX_RECENT = 5
 PLOT_OFFSET = 10
 XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
 
+class fontSelectWindow(Tkinter.Frame):
+    def __init__(self, mainWindow, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.mainWindow = mainWindow
+        
+        self.fontnamelist = []
+        self.fontfilelist = []
+        
+        if sys.platform == 'win32':
+            fontdir = matplotlib.font_manager.win32FontDirectory()
+            for fname in os.listdir(fontdir):
+                if os.path.splitext(fname)[1].lower() in ['.ttc','.ttf']:
+                    fontprop = matplotlib.font_manager.FontProperties(fname=os.path.join(fontdir,fname))
+                    fontname = fontprop.get_name()
+                    if not fontname in self.fontnamelist:
+                        self.fontnamelist.append(fontname)
+                        self.fontfilelist.append(os.path.join(fontdir,fname))
+        else: #linux(?)
+            if sys.platform == 'darwin':
+                fontdirs = matplotlib.font_manager.OSXFontDirectories
+            else:
+                fontdirs = matplotlib.font_manager.X11FontDirectories
+            for fontdir in fontdirs:
+                for dpath, dnames, fnames in os.walk(fontdir):
+                    for fname in fnames:
+                        if os.path.splitext(fname)[1].lower() in ['.ttc','.ttf']:
+                            fontprop = matplotlib.font_manager.FontProperties(fname=os.path.join(fontdir,fname))
+                            fontname = fontprop.get_name()
+                            if not fontname in self.fontnamelist:
+                                self.fontnamelist.append(fontname)
+                                self.fontfilelist.append(os.path.join(fontdir,fname))
+        self.sortedIndex = numpy.argsort(self.fontnamelist)
+        
+        self.currentFontfile = Tkinter.Label(self,text='Current font:'+self.mainWindow.conf.CANVAS_FONT_FILE,anchor=Tkinter.W,width=96)
+        listframe = Tkinter.Frame(self, bg='yellow')
+        self.yscroll = Tkinter.Scrollbar(listframe, orient=Tkinter.VERTICAL)
+        self.fontlistbox = Tkinter.Listbox(listframe, yscrollcommand=self.yscroll.set)
+        self.yscroll['command'] = self.fontlistbox.yview
+        self.sample = Tkinter.Label(listframe, text='ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789')
+        self.fontlistbox.bind('<Button-1>', self.updateSample)
+        
+        for i in self.sortedIndex:
+            self.fontlistbox.insert(Tkinter.END, self.fontnamelist[i])
+        
+        self.currentFontfile.pack(anchor=Tkinter.W, fill=Tkinter.X)
+        self.fontlistbox.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH)
+        self.yscroll.pack(side=Tkinter.LEFT,anchor=Tkinter.W, fill=Tkinter.Y)
+        self.sample.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
+        listframe.pack(anchor=Tkinter.W, fill=Tkinter.BOTH, expand=True)
+        
+        buttonframe = Tkinter.Frame(self)
+        Tkinter.Button(buttonframe, text='Use this font', command=self.setFont).grid(row=0,column=0)
+        Tkinter.Button(buttonframe, text='Use default font', command=self.clearFont).grid(row=0,column=1)
+        buttonframe.pack(anchor=Tkinter.W, fill=Tkinter.X, expand=True)
+        
+        self.pack()
+        
+    def updateSample(self, event=None):
+        selected = self.fontlistbox.curselection()
+        if len(selected)==0:
+            return
+        i = int(selected[0])
+        self.sample.configure(font=(self.fontnamelist[self.sortedIndex[i]],'12'))
+    
+    def setFont(self, event=None):
+        selected = self.fontlistbox.curselection()
+        if len(selected)==0:
+            tkMessageBox.showerror('Error','No font is selected')
+            return
+        i = int(selected[0])
+        self.mainWindow.conf.CANVAS_FONT_FILE = self.fontfilelist[self.sortedIndex[i]]
+        self.mainWindow.fontPlotText = matplotlib.font_manager.FontProperties(fname=self.mainWindow.conf.CANVAS_FONT_FILE)
+        self.currentFontfile.configure(text='Current font:'+self.mainWindow.conf.CANVAS_FONT_FILE)
+        if self.mainWindow.D!=None:
+            self.mainWindow._plotData()
+    
+    def clearFont(self, event=None):
+        self.mainWindow.conf.CANVAS_FONT_FILE = ''
+        self.mainWindow.fontPlotText = matplotlib.font_manager.FontProperties()
+        self.currentFontfile.configure(text='Current font:'+self.mainWindow.conf.CANVAS_FONT_FILE)
+        if self.mainWindow.D!=None:
+            self.mainWindow._plotData()
+
+
 class insertNewMessageWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
         Tkinter.Frame.__init__(self,master)
@@ -132,9 +216,6 @@ class editMessageWindow(Tkinter.Frame):
         except:
             tkMessageBox.showerror('Error','Message cannot be updated.\n\n'+str(newTime)+'\n'+newText)
             return
-        
-        self.mainWindow.D[self.mainWindow.tr].sortMessagesByTime()
-        self.mainWindow.D[self.mainWindow.tr].sortEventListByTime()
         
         self.mainWindow._updateMsgBox()
         self.mainWindow._loadStimImage()
@@ -457,6 +538,9 @@ class ViewerOptions(object):
           ['COLOR_MESSAGE_CURSOR',str],
           ['COLOR_MESSAGE_FC',str],
           ['COLOR_MESSAGE_BG',str]]],
+        ['Command',
+         [['COMMAND_SEPARATOR',str],
+          ['COMMAND_STIMIMAGE_PATH',str]]],
         ['Recent',
          [['RECENT_DIR01',str],
           ['RECENT_DIR02',str],
@@ -1028,6 +1112,7 @@ class mainWindow(Tkinter.Frame):
         self.menu_view.add_command(label='Toggle Stimulus Image', under=7,command=self._toggleStimImage)
         self.menu_view.add_command(label='Config grid', command=self._configGrid)
         self.menu_view.add_command(label='Config color', command=self._configColor)
+        self.menu_view.add_command(label='Config font', command=self._configFont)
         self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=8,command=self._convertGT)
         self.menu_convert.add_command(label='Convert Eyelink EDF',under=8,command=self._convertEL)
         self.menu_convert.add_command(label='Convert Tobii TSV',under=8,command=self._convertTSV)
@@ -1240,7 +1325,10 @@ class mainWindow(Tkinter.Frame):
     def _loadStimImage(self):
         msg = self.D[self.tr].findMessage('!STIMIMAGE',useRegexp=False)
         sep = ' '
-        imagePath = os.path.join(os.path.split(self.dataFileName)[0],'stimimage')
+        if os.path.isabs(self.conf.COMMAND_STIMIMAGE_PATH):
+            imagePath = self.conf.COMMAND_STIMIMAGE_PATH
+        else:
+            imagePath = os.path.join(os.path.split(self.dataFileName)[0],self.conf.COMMAND_STIMIMAGE_PATH)
         self.stimImage = None
         if len(msg) == 0:
             return False
@@ -1916,6 +2004,18 @@ class mainWindow(Tkinter.Frame):
             
             self.dataModified = True
 
+    def _configFont(self):
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        fontSelectWindow(master=dlg, mainWindow=self)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+    
 if __name__ == '__main__':
     w = mainWindow()
     w.mainloop()

@@ -313,6 +313,10 @@ class MessageData(object):
             self._text = newText
         if newTime != None:
             self._time = newTime
+        
+        if self._parent != None:
+            self._parent.sortMessagesByTime()
+            self._parent.sortEventListByTime()
 
 class BlinkData(object):
     """
