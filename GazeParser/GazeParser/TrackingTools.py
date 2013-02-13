@@ -1249,6 +1249,7 @@ value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
                                      toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
                                      showMarker=showMarker, showBackground=showBackground)
         if error[0]!=None and error[0] < permissibleError:
+            time.sleep(0.5)
             return error
         
         numTry += 1
@@ -1258,6 +1259,7 @@ value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
                                          toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
                                          showMarker=showMarker, showBackground=showBackground)
             if error[0]!=None and error[0] < permissibleError:
+                time.sleep(0.5)
                 return error
             else:
                 time.sleep(0.5)
@@ -1277,7 +1279,8 @@ value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
                             break
                     time.sleep(0.5)
                     numTry = 0
-
+        
+        time.sleep(0.5)
 
 class ControllerVisionEggBackend(BaseController):
     """
@@ -2096,6 +2099,7 @@ class ControllerPsychoPyBackend(BaseController):
                                      toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
                                      showMarker=showMarker, showBackground=showBackground, units=units)
         if error[0]!=None and error[0] < permissibleError:
+            time.sleep(0.5)
             return error
         
         numTry += 1
@@ -2106,6 +2110,7 @@ class ControllerPsychoPyBackend(BaseController):
                                          showMarker=showMarker, showBackground=showBackground, units=units)
             
             if error[0]!=None and error[0] < permissibleError:
+                time.sleep(0.5)
                 return error
             else:
                 time.sleep(0.5)
@@ -2125,7 +2130,9 @@ class ControllerPsychoPyBackend(BaseController):
                             break
                     time.sleep(0.5)
                     numTry = 0
-    
+        
+        time.sleep(0.5)
+
 class DummyVisionEggBackend(ControllerVisionEggBackend):
     """
     Dummy controller for VisionEgg.
