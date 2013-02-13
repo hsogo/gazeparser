@@ -41,6 +41,30 @@ MAX_RECENT = 5
 PLOT_OFFSET = 10
 XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
 
+class configStimImageWindow(Tkinter.Frame):
+    def __init__(self, mainWindow, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.mainWindow = mainWindow
+        
+        self.stimImagePrefix = Tkinter.StringVar()
+        self.stimImagePrefix.set(self.mainWindow.conf.COMMAND_STIMIMAGE_PATH)
+        
+        r=0
+        Tkinter.Label(self, text='StimImage Prefix').grid(row=r, column=0)
+        Tkinter.Entry(self, textvariable=self.stimImagePrefix).grid(row=r, column=1)
+        
+        r+=1
+        Tkinter.Button(self, text='OK', command=self.setValues).grid(row=r, column=0, columnspan=2)
+        
+        self.pack()
+    
+    def setValues(self, event=None):
+        self.mainWindow.conf.COMMAND_STIMIMAGE_PATH = self.stimImagePrefix.get()
+        self.mainWindow._loadStimImage()
+        self.mainWindow._plotData()
+        
+        self.master.destroy()
+
 class fontSelectWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
         Tkinter.Frame.__init__(self,master)
@@ -123,7 +147,6 @@ class fontSelectWindow(Tkinter.Frame):
         self.currentFontfile.configure(text='Current font:'+self.mainWindow.conf.CANVAS_FONT_FILE)
         if self.mainWindow.D!=None:
             self.mainWindow._plotData()
-
 
 class insertNewMessageWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
@@ -1110,9 +1133,11 @@ class mainWindow(Tkinter.Frame):
         self.menu_view.add_separator()
         self.menu_view.add_command(label='Toggle Fixation Number', under=7,command=self._toggleFixNum)
         self.menu_view.add_command(label='Toggle Stimulus Image', under=7,command=self._toggleStimImage)
+        self.menu_view.add_separator()
         self.menu_view.add_command(label='Config grid', command=self._configGrid)
         self.menu_view.add_command(label='Config color', command=self._configColor)
         self.menu_view.add_command(label='Config font', command=self._configFont)
+        self.menu_view.add_command(label='Config Stimulus Image', command=self._configStimImage)
         self.menu_convert.add_command(label='Convert SimpleGazeTracker CSV',under=8,command=self._convertGT)
         self.menu_convert.add_command(label='Convert Eyelink EDF',under=8,command=self._convertEL)
         self.menu_convert.add_command(label='Convert Tobii TSV',under=8,command=self._convertTSV)
@@ -1345,6 +1370,7 @@ class mainWindow(Tkinter.Frame):
                 self.stimImage = Image.open(imageFilename)
             except:
                 tkMessageBox.showerror('Error','Cannot open %s as StimImage.' % imageFilename)
+                return
             
             if len(params) == 4:
                 try:
@@ -2003,7 +2029,7 @@ class mainWindow(Tkinter.Frame):
             self._plotData()
             
             self.dataModified = True
-
+    
     def _configFont(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
@@ -2016,6 +2042,18 @@ class mainWindow(Tkinter.Frame):
         geo = parsegeometry(dlg.winfo_geometry())
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
+    def _configStimImage(self):
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        configStimImageWindow(master=dlg, mainWindow=self)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+        
 if __name__ == '__main__':
     w = mainWindow()
     w.mainloop()
