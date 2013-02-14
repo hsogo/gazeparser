@@ -143,5 +143,33 @@ def sortrows(d,cols,order=None):
             idx = (-d[ndx,cols[i]]).argsort(kind='mergesort')
         ndx = ndx[idx]
     return ndx
-    
 
+def splitFilenames(filenames):
+    """
+    Split return value of tkFileDialog.askopenfilenames.
+    On Windows, tkFileDialog.askopenfilenames does not return list of file names
+    but an unicode string. This function splits the unicode string into a list.
+    
+    :param unicode filenames:
+        return value of tkFileDialog.askopenfilenames.
+    """
+    tmplist = filenames.split(' ')
+    newFilenames = []
+    i = 0
+    while i<len(tmplist):
+        if tmplist[i][0] == '{': #space is included
+            s = i
+            while tmplist[i][-1] != '}':
+                i+=1
+            fname = ' '.join(tmplist[s:i+1])
+            newFilenames.append(fname[1:-1])
+        elif tmplist[i][-1] == '\\':
+            s = i
+            while tmplist[i][-1] == '\\':
+                i+=1
+            fname = ' '.join(tmplist[s:i+1])
+            newFilenames.append(fname.replace('\\',''))
+        else:
+            newFilenames.append(tmplist[i].replace('\\',''))
+        i+=1
+    return newFilenames

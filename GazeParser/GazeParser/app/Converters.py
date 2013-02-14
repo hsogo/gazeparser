@@ -19,6 +19,7 @@ import copy
 
 from GazeParser.Converter import EyelinkToGazeParser, TrackerToGazeParser, TobiiToGazeParser
 from GazeParser.Converter import buildEventListBinocular, buildEventListMonocular, applyFilter
+from GazeParser.Utility import splitFilenames
 
 import matplotlib,matplotlib.figure
 import matplotlib.patches
@@ -351,29 +352,6 @@ class TobiiConverter(Tkinter.Frame):
                 setattr(self.configuration, key, float(value))
             else:
                 setattr(self.configuration, key, value)
-
-
-def splitFilenames(filenames):
-    tmplist = filenames.split(' ')
-    newFilenames = []
-    i = 0
-    while i<len(tmplist):
-        if tmplist[i][0] == '{': #space is included
-            s = i
-            while tmplist[i][-1] != '}':
-                i+=1
-            fname = ' '.join(tmplist[s:i+1])
-            newFilenames.append(fname[1:-1])
-        elif tmplist[i][-1] == '\\':
-            s = i
-            while tmplist[i][-1] == '\\':
-                i+=1
-            fname = ' '.join(tmplist[s:i+1])
-            newFilenames.append(fname.replace('\\',''))
-        else:
-            newFilenames.append(tmplist[i].replace('\\',''))
-        i+=1
-    return newFilenames
 
 if (__name__ == '__main__'):
     def ok(event=None):
