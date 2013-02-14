@@ -20,6 +20,7 @@ import Image
 import ImageTk
 import GazeParser
 import GazeParser.Converter
+import GazeParser.Utility
 import os
 import sys
 import re
@@ -40,6 +41,97 @@ from GazeParser.Converter import buildEventListBinocular, buildEventListMonocula
 MAX_RECENT = 5
 PLOT_OFFSET = 10
 XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
+
+class combineDataFileWindow(Tkinter.Frame):
+    def __init__(self, mainWindow, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.mainWindow = mainWindow
+        
+        listboxFrame = Tkinter.Frame(self)
+        self.yscroll = Tkinter.Scrollbar(listboxFrame, orient=Tkinter.VERTICAL)
+        self.filelistbox = Tkinter.Listbox(master=listboxFrame, yscrollcommand=self.yscroll.set, width=96)
+        self.filelistbox.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
+        self.yscroll.pack(side=Tkinter.LEFT, anchor=Tkinter.W, fill=Tkinter.Y, expand=False)
+        self.yscroll['command'] = self.filelistbox.yview
+        updownButtonFrame = Tkinter.Frame(listboxFrame)
+        Tkinter.Button(updownButtonFrame, text='up', command=self.up).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
+        Tkinter.Button(updownButtonFrame, text='down', command=self.down).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
+        Tkinter.Button(updownButtonFrame, text='add files', command=self.addfiles).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
+        Tkinter.Button(updownButtonFrame, text='remove selected', command=self.removefiles).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
+        Tkinter.Button(updownButtonFrame, text='combine & save', command=self.combine).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
+        updownButtonFrame.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
+        listboxFrame.pack(side=Tkinter.TOP,fill=Tkinter.BOTH, expand=True)
+        
+        if self.mainWindow.D != None:
+            self.filelistbox.insert(Tkinter.END, 'Current Data (' + self.mainWindow.dataFileName +')')
+        
+        self.pack()
+    
+    def up(self, event=None):
+        selected = self.filelistbox.curselection()
+        if len(selected)>0:
+            index = int(selected[0])
+            if index==0:
+                return
+            item = self.filelistbox.get(index)
+            self.filelistbox.delete(index)
+            self.filelistbox.insert(index-1, item)
+            self.filelistbox.selection_set(index-1)
+    
+    def down(self, event=None):
+        selected = self.filelistbox.curselection()
+        if len(selected)>0:
+            index = int(selected[0])
+            if index>=self.filelistbox.size()-1:
+                return
+            item = self.filelistbox.get(index)
+            self.filelistbox.delete(index)
+            self.filelistbox.insert(index+1, item)
+            self.filelistbox.selection_set(index+1)
+    
+    def addfiles(self, event=None):
+        fnames = tkFileDialog.askopenfilenames(filetypes=self.mainWindow.datafiletype, initialdir=self.mainWindow.initialDataDir)
+        if fnames=='':
+            return
+            
+        if isinstance(fnames, unicode):
+            fnames = GazeParser.Utility.splitFilenames(fnames)
+        
+        for fname in fnames:
+            self.filelistbox.insert(Tkinter.END, fname)
+    
+    def removefiles(self, event=None):
+        selected = self.filelistbox.curselection()
+        if len(selected)>0:
+            self.filelistbox.delete(selected)
+        self.filelistbox.selection_set(selected)
+
+    
+    def combine(self, event=None):
+        if self.filelistbox.size()<=1:
+            tkMessageBox.showinfo('Info', 'At least two data files must be added.')
+            return
+        fnames = list(self.filelistbox.get(0,Tkinter.END))
+        for index in range(len(fnames)):
+            if fnames[index][:14] == 'Current Data (':
+                fnames[index] = fnames[index][14:-1]
+        
+        combinedFilename = tkFileDialog.asksaveasfilename(filetypes=self.mainWindow.datafiletype)
+        if combinedFilename=='':
+            return
+        
+        try:
+            GazeParser.Utility.join(combinedFilename, fnames)
+        except:
+            info = sys.exc_info()
+            tbinfo = traceback.format_tb(info[2])
+            errormsg = ''
+            for tbi in tbinfo:
+                errormsg += tbi
+            errormsg += '  %s' % str(info[1])
+            tkMessageBox.showerror('Error', errormsg)
+        else:
+            tkMessageBox.showinfo('Info','Done')
 
 class configStimImageWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
@@ -490,7 +582,7 @@ class getSaccadeLatencyWindow(Tkinter.Frame):
                 self.fig.canvas.draw()
                 ans = tkMessageBox.askyesno('Export','%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
                 if ans:
-                    fname = tkFileDialog.asksaveasfilename()
+                    fname = tkFileDialog.asksaveasfilename(initialdir=self.initialDataDir)
                     if fname!='':
                         fp = open(fname, 'w')
                         fp.write('Trial\tMessageTime\tMessageText\tLatency\tAmplitude\n')
@@ -1068,7 +1160,7 @@ class mainWindow(Tkinter.Frame):
         self.conf = ViewerOptions()
         
         self.ftypes = [('GazeParser/SimpleGazeTracker Datafile','*.db;*.csv')]
-        #self.ftypes = [('GazeParser Datafile','*.db'),('SimpleGazeTracker CSV file','*.csv')]
+        self.datafiletype = [('GazeParser Datafile','*.db')]
         self.initialDataDir = GazeParser.homeDir
         self.D = None
         self.C = None
@@ -1120,7 +1212,9 @@ class mainWindow(Tkinter.Frame):
         else:
             for i in range(len(self.conf.RecentDir)):
                 self.menu_recent.add_command(label=str(i+1)+'. '+self.conf.RecentDir[i],under=0,command=functools.partial(self._openRecent,d=i))
+        self.menu_file.add_command(label='Save',under=0,command=self._savefile)
         self.menu_file.add_command(label='Export',under=0,command=self._exportfile)
+        self.menu_file.add_command(label='Combine data files',under=0,command=self._combinefiles)
         self.menu_file.add_command(label='Exit',under=1,command=self._exit)
         self.menu_view.add_command(label='Prev Trial',under=0,command=self._prevTrial)
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
@@ -1184,7 +1278,7 @@ class mainWindow(Tkinter.Frame):
         Tkinter.Button(buttonFrame,text='Clear',command=self._clearmarker).pack(side=Tkinter.LEFT, padx=5)
         buttonFrame.pack(side=Tkinter.TOP)
         self.yscroll = Tkinter.Scrollbar(self.listboxFrame, orient=Tkinter.VERTICAL)
-        self.msglistbox = Tkinter.Listbox(master=self.listboxFrame,yscrollcommand=self.yscroll.set, selectmode=Tkinter.EXTENDED)
+        self.msglistbox = Tkinter.Listbox(master=self.listboxFrame, yscrollcommand=self.yscroll.set, selectmode=Tkinter.EXTENDED)
         self.msglistbox.pack(side=Tkinter.LEFT, fill=Tkinter.BOTH, expand=True)
         self.yscroll.pack(side=Tkinter.LEFT, anchor=Tkinter.W, fill=Tkinter.Y, expand=False)
         self.yscroll['command'] = self.msglistbox.yview
@@ -1258,9 +1352,15 @@ class mainWindow(Tkinter.Frame):
         self._plotData()
     
     def _openfile(self, event=None):
-        self.dataFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes,initialdir=self.initialDataDir)
-        if self.dataFileName=='':
+        if self.dataModified:
+            doSave = tkMessageBox.askyesno('Warning','Your changes have not been saved. Do you want to save the changes?')
+            if doSave:
+                self._savefile()
+        
+        fname = tkFileDialog.askopenfilename(filetypes=self.ftypes,initialdir=self.initialDataDir)
+        if fname=='':
             return
+        self.dataFileName = fname
         self.initialDataDir = os.path.split(self.dataFileName)[0]
         #record recent dir
         if self.initialDataDir in self.conf.RecentDir:
@@ -1396,6 +1496,23 @@ class mainWindow(Tkinter.Frame):
             
             return True
     
+    def _savefile(self, event=None):
+        if self.D == None:
+            tkMessageBox.showinfo('info','No data')
+            return
+        
+        filename = tkFileDialog.asksaveasfilename(filetypes=self.datafiletype, initialfile=self.dataFileName, initialdir=self.initialDataDir)
+        if filename == '':
+            return
+        
+        try:
+            GazeParser.save(filename, self.D, self.C)
+        except:
+            tkMessageBox.showinfo('Error','Cannot save data as %s' % (filename))
+            return
+        
+        self.dataModified = False
+    
     def _exportfile(self,event=None):
         if self.D == None:
             tkMessageBox.showinfo('info','Data must be loaded before export')
@@ -1425,6 +1542,10 @@ class mainWindow(Tkinter.Frame):
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
     
     def _exit(self,event=None):
+        if self.dataModified:
+            doSave = tkMessageBox.askyesno('Warning','Your changes have not been saved. Do you want to save the changes?')
+            if doSave:
+                self._savefile()
         self.conf._write()
         self.master.destroy()
         
@@ -1846,16 +1967,16 @@ class mainWindow(Tkinter.Frame):
         
         for e in self.D[self.tr].EventList:
             if isinstance(e,GazeParser.SaccadeData):
-                self.msglistbox.insert(Tkinter.END,'%10.1f'%(e.startTime)+':Sac')
+                self.msglistbox.insert(Tkinter.END, '%10.1f'%(e.startTime)+':Sac')
                 #self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_TRAJECTORY_L_SAC)
             elif isinstance(e,GazeParser.FixationData):
-                self.msglistbox.insert(Tkinter.END,'%10.1f'%(e.startTime)+':Fix')
+                self.msglistbox.insert(Tkinter.END, '%10.1f'%(e.startTime)+':Fix')
                 #self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_TRAJECTORY_L_FIX)
             elif isinstance(e,GazeParser.MessageData):
-                self.msglistbox.insert(Tkinter.END,'%10.1f'%(e.time)+':'+e.text)
+                self.msglistbox.insert(Tkinter.END, '%10.1f'%(e.time)+':'+e.text)
                 self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_MESSAGE_BG, fg=self.conf.COLOR_MESSAGE_FC)
             elif isinstance(e,GazeParser.BlinkData):
-                self.msglistbox.insert(Tkinter.END,'%10.1f'%(e.startTime)+':Blk')
+                self.msglistbox.insert(Tkinter.END, '%10.1f'%(e.startTime)+':Blk')
     
     def _setmarker(self):
         selected = self.msglistbox.curselection()
@@ -2054,6 +2175,18 @@ class mainWindow(Tkinter.Frame):
         geo = parsegeometry(dlg.winfo_geometry())
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
         
+    def _combinefiles(self, event=None):
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        combineDataFileWindow(master=dlg, mainWindow=self)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+    
 if __name__ == '__main__':
     w = mainWindow()
     w.mainloop()
