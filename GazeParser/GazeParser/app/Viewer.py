@@ -183,11 +183,11 @@ class fontSelectWindow(Tkinter.Frame):
                 for dpath, dnames, fnames in os.walk(fontdir):
                     for fname in fnames:
                         if os.path.splitext(fname)[1].lower() in ['.ttc','.ttf']:
-                            fontprop = matplotlib.font_manager.FontProperties(fname=os.path.join(fontdir,fname))
+                            fontprop = matplotlib.font_manager.FontProperties(fname=os.path.join(dpath,fname))
                             fontname = fontprop.get_name()
                             if not fontname in self.fontnamelist:
                                 self.fontnamelist.append(fontname)
-                                self.fontfilelist.append(os.path.join(fontdir,fname))
+                                self.fontfilelist.append(os.path.join(dpath,fname))
         self.sortedIndex = numpy.argsort(self.fontnamelist)
         
         self.currentFontfile = Tkinter.Label(self,text='Current font:'+self.mainWindow.conf.CANVAS_FONT_FILE,anchor=Tkinter.W,width=96)
@@ -1159,7 +1159,7 @@ class mainWindow(Tkinter.Frame):
     def __init__(self,master=None):
         self.conf = ViewerOptions()
         
-        self.ftypes = [('GazeParser/SimpleGazeTracker Datafile','*.db;*.csv')]
+        self.ftypes = [('GazeParser/SimpleGazeTracker Datafile',('*.db', '*.csv'))]
         self.datafiletype = [('GazeParser Datafile','*.db')]
         self.initialDataDir = GazeParser.homeDir
         self.D = None
