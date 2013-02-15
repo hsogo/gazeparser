@@ -420,10 +420,11 @@ def buildEventListBinocular(T,LHV,RHV,config):
         amp = numpy.linalg.norm((pix2deg[0]*(ex-sx),pix2deg[1]*(ey-sy)))
         saccadeList.append(GazeParser.SaccadeData((T[s[0]],T[s[1]]),(s[2],sx,sy,ex,ey,amp),T))
     
-    for f in fixationCandidates:
-        cx = nanmean(numpy.hstack((LHV[f[0]:f[1]+1,0],RHV[f[0]:f[1]+1,0])))
-        cy = nanmean(numpy.hstack((LHV[f[0]:f[1]+1,1],RHV[f[0]:f[1]+1,1])))
-        fixationList.append(GazeParser.FixationData((T[f[0]],T[f[1]]),(f[2],cx,cy),T))
+    if not (numpy.isnan(LHV[:,0]).all() and numpy.isnan(RHV[:,0]).all()): #Fixation is not appended if all values are none.
+        for f in fixationCandidates:
+            cx = nanmean(numpy.hstack((LHV[f[0]:f[1]+1,0],RHV[f[0]:f[1]+1,0])))
+            cy = nanmean(numpy.hstack((LHV[f[0]:f[1]+1,1],RHV[f[0]:f[1]+1,1])))
+            fixationList.append(GazeParser.FixationData((T[f[0]],T[f[1]]),(f[2],cx,cy),T))
     
     for b in blinkCandidates:
         blinkList.append(GazeParser.BlinkData((T[b[0]],T[b[1]]),b[2],T))
@@ -512,10 +513,11 @@ def buildEventListMonocular(T,HV,config):
         amp = numpy.linalg.norm((pix2deg[0]*(ex-sx),pix2deg[1]*(ey-sy)))
         saccadeList.append(GazeParser.SaccadeData((T[s[0]],T[s[1]]),(s[2],sx,sy,ex,ey,amp),T))
     
-    for f in fixationCandidates:
-        cx = nanmean(HV[f[0]:f[1]+1,0])
-        cy = nanmean(HV[f[0]:f[1]+1,1])
-        fixationList.append(GazeParser.FixationData((T[f[0]],T[f[1]]),(f[2],cx,cy),T))
+    if not numpy.isnan(HV[:,0]).all(): #Fixation is not appended if all values are none.
+        for f in fixationCandidates:
+            cx = nanmean(HV[f[0]:f[1]+1,0])
+            cy = nanmean(HV[f[0]:f[1]+1,1])
+            fixationList.append(GazeParser.FixationData((T[f[0]],T[f[1]]),(f[2],cx,cy),T))
     
     for b in blinkCandidates:
         blinkList.append(GazeParser.BlinkData((T[b[0]],T[b[1]]),b[2],T))
@@ -549,12 +551,13 @@ def linearInterpolation(t,w):
     """
     
     """
-    
     #w[0] and w[-1] must not be numpy.nan.
     if numpy.isnan(w[0]):
         i = 0
         while(numpy.isnan(w[i])):
             i += 1
+            if i>= len(w): #all values are None.
+                return w
         w[0] = w[i]
     if numpy.isnan(w[-1]):
         i = len(w)-1
