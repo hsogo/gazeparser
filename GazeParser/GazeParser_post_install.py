@@ -45,10 +45,11 @@ if len(sys.argv)>1:
             
             #Link to Viewer.py
             viewerPath = os.path.join(sys.prefix , 'lib','site-packages', 'GazeParser', 'app', 'Viewer.py')
+            viewerIconPath = os.path.join(sys.prefix , 'lib','site-packages', 'GazeParser', 'app', 'img', 'viewer.ico')
             viewerLink = os.path.join(shortcuts, 'Viewer.lnk')
             if os.path.isfile(viewerLink):
                 os.remove(viewerLink)
-            create_shortcut(viewerPath, 'GazeParser Data Viewer', viewerLink)
+            create_shortcut(viewerPath, 'GazeParser Data Viewer', viewerLink, iconpath=viewerIconPath)
             file_created(viewerLink)
         except:
             print "failed to install shortcuts"
