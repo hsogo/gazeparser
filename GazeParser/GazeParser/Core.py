@@ -490,6 +490,10 @@ class GazeData(object):
             Give n-1 to get duration of n-th fixation.
             If None, all fixations are included.
             Default value is None.
+        
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index==None:
             l = numpy.zeros([self.nFix,1])
@@ -515,6 +519,11 @@ class GazeData(object):
             Give n-1 to get the center of n-th fixation.
             If None, all fixations are included.
             Default value is None.
+        
+        :return:
+            If an integer is passed, horizontal and vertical position
+            of the fixation center is returned.
+            Otherwise, an *n x 2* numpy.ndarray object is returned.
         """
         if index==None:
             l = numpy.zeros([self.nFix,2])
@@ -537,9 +546,13 @@ class GazeData(object):
         
         :param index:
             An index or a list of indices of fixation(s).
-            Give n-1 to get the start and end time of n-th fixation.
+            Give n-1 to get the starting and finish time of n-th fixation.
             If None, all fixations are included.
             Default value is None.
+        
+        :return:
+            If an integer is passed, starting and finish time of the fixation
+            is returned. Otherwise, an *n x 2* numpy.ndarray object is returned.
         """
         if index==None:
             l = numpy.zeros([self.nFix,2])
@@ -565,6 +578,10 @@ class GazeData(object):
             Give n-1 to get the start and end time of n-th blink.
             If None, all fixations are included.
             Default value is None.
+        
+        :return:
+            If an integer is passed, starting and finish time of the blink
+            is returned. Otherwise, an *n x 2* numpy.ndarray object is returned.
         """
         if index==None:
             l = numpy.zeros([self.nBlink,2])
@@ -590,6 +607,10 @@ class GazeData(object):
             Give n-1 to get timestamp of n-th message.
             If None, all messages are included.
             Default value is None.
+        
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index==None:
             l = numpy.zeros([self.nMsg,1])
@@ -643,6 +664,10 @@ class GazeData(object):
             Give n-1 to get length of n-th saccade.
             If None, all saccades are included.
             Default value is None.
+        
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index==None:
             l = numpy.zeros([self.nSac,1])
@@ -668,6 +693,10 @@ class GazeData(object):
             Give n-1 to get amplitude of n-th saccade.
             If None, all saccades are included.
             Default value is None.
+        
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index==None:
             l = numpy.zeros([self.nSac,1])
@@ -693,6 +722,10 @@ class GazeData(object):
             Give n-1 to get duration of n-th saccade.
             If None, all saccades are included.
             Default value is None.
+        
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index==None:
             l = numpy.zeros([self.nSac,1])
@@ -718,6 +751,10 @@ class GazeData(object):
             Give n-1 to get the start and end time of n-th saccade.
             If None, all saccades are included.
             Default value is None.
+        
+        :return:
+            If an integer is passed, starting and finish time of the saccade
+            is returned. Otherwise, an *n x 2* numpy.ndarray object is returned.
         """
         if index==None:
             l = numpy.zeros([self.nSac,2])
