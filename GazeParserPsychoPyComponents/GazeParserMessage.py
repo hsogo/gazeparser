@@ -39,7 +39,7 @@ class GazeParserMessageComponent(BaseComponent):
 
     def writeFrameCode(self,buff):
         if self.params['units'].val=='time (s)':
-            buff.writeIndented('if %(name)s_sent=False and %(time)s<=t:\n' % (self.params))
+            buff.writeIndented('if %(name)s_sent==False and %(time)s<=t:\n' % (self.params))
             buff.setIndentLevel(+1, relative=True)
             buff.writeIndented('GazeParserTracker.sendMessage(%(text)s)\n' % (self.params))
             buff.writeIndented('%(name)s_sent=True\n' % (self.params))
