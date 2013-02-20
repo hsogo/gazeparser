@@ -23,5 +23,5 @@
 #endif
 
 
-#include "C:\Program Files\Interface\GPC5300\include\IFCml.h"
+#include "IFCml.h"
 #include "../common/GazeTrackerCommon.h"
