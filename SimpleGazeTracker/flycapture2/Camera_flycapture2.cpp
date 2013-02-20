@@ -101,8 +101,6 @@ int initCamera( const char* ParamPath )
 	}
 
 	FlyCapture2::FC2Config Config;
-	//FlyCapture2::VideoMode videoMode;
-	//FlyCapture2::FrameRate frameRate;
 	FlyCapture2::Format7ImageSettings imageSettings;
 	FlyCapture2::Format7PacketInfo packetInfo;
 	FlyCapture2::Property prop;
@@ -111,27 +109,24 @@ int initCamera( const char* ParamPath )
 	float percentage;
 	bool settingsAreValid;
 
-	//g_FC2Camera.GetVideoModeAndFrameRate(&videoMode, &frameRate);
-	//propInfo.type = FlyCapture2::FRAME_RATE;
-	//g_FC2Camera.GetPropertyInfo(&propInfo);
-
 	//set Format7 configuration
 	g_FC2Camera.GetFormat7Configuration(&imageSettings, &packetSize, &percentage);
 	imageSettings.mode = FlyCapture2::MODE_1;
-	imageSettings.width=640;
-	imageSettings.height=480;
+	imageSettings.width=g_CameraWidth;
+	imageSettings.height=g_CameraHeight;
+	imageSettings.offsetX = (640-g_CameraWidth)/2;  //TODO: read from configuration file
+	imageSettings.offsetY = (512-g_CameraHeight)/2; //TODO: read from configuration file
 	imageSettings.pixelFormat = FlyCapture2::PIXEL_FORMAT_RAW8;
 	g_FC2Camera.ValidateFormat7Settings(&imageSettings, &settingsAreValid, &packetInfo);
 	error = g_FC2Camera.SetFormat7Configuration(&imageSettings, packetInfo.recommendedBytesPerPacket);
 	error = g_FC2Camera.GetFormat7Configuration(&imageSettings, &packetSize, &percentage);
 
-	
 	//set frame rate (manual)
 	prop.type = FlyCapture2::FRAME_RATE;
 	prop.autoManualMode = false;
 	prop.onOff = true;
 	prop.absControl = true;
-	prop.absValue = 250.0;
+	prop.absValue = 250.0; //TODO: read from configuration file
 	error = g_FC2Camera.SetProperty(&prop);
 	error = g_FC2Camera.GetProperty(&prop);
 
