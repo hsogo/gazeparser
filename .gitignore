@@ -14,7 +14,8 @@ _build/
 #for SimpleGazeTracker_OpenCV
 
 FreeSans.ttf
-simplegazetracker
+#simplegazetracker
 autom4te.cache/
+
 
 
