@@ -98,7 +98,8 @@ def getFixationsInRegion(data, region, period=[None,None], useCenter=True, conta
         Default value is 'all'.
     :param str containsTraj:
         'any' or 'all'. If 'all', the whole trajectory of fixation must be 
-        included in a region specified by 'region' parameter.
+        included in a region specified by 'region' parameter. If useCenter is
+        True, this parameter is ignored.
         Default value is 'all'.
     :param bool byIndices:
         If True, a list of indices are returned instead of
