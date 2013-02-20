@@ -13,11 +13,13 @@
 - Support pupil size recording
 @date 2012/10/15
 - change version number
+@date 2013/02/14
+- change version number
 */
 
 
 
-#define VERSION "0.6.2"
+#define VERSION "0.6.3"
 
 #ifdef _WIN32
 #include <windows.h>

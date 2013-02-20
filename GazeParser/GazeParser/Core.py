@@ -457,7 +457,7 @@ class GazeData(object):
                                      self._config.DOTS_PER_CENTIMETER_V/cm2deg))
         self._pix2deg = 1.0/self._deg2pix
         
-    def getFixTraj(self,index,eye=None):
+    def getFixTraj(self, index, eye=None):
         """
         Get gaze trajectory during a fixation.
         
@@ -481,121 +481,153 @@ class GazeData(object):
         else:
             raise ValueError, 'Eye must be \'L\', \'R\', \'B\' or None'
 
-    def getFixDur(self,*args):
+    def getFixDur(self, index=None):
         """
         Get duration of fixations in milliseconds.
         
-        :param integer index:
-            Index of fixation.  Give n-1 to get gaze trajectory during
-            n-th fixation.
-        :param str eye:
-            Output both-eye ('B'), left-eye ('L') or right-eye ('R') data.
+        :param index:
+            An index or a list of indices of fixation(s).
+            Give n-1 to get duration of n-th fixation.
+            If None, all fixations are included.
+            Default value is None.
+        
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
-        if len(args) == 0:
+        if index==None:
             l = numpy.zeros([self.nFix,1])
-            for idx in range(self.nFix):
-                l[idx] = self.Fix[idx].duration
+            for i in range(self.nFix):
+                l[i] = self.Fix[i].duration
             return l
-        elif len(args) == 1:
-            Idx = args[0]
-            if not (0 <= Idx < self.nFix):
+        elif isinstance(index, int):
+            if not (0 <= index < self.nFix):
                 raise ValueError, 'Index is out of range.'
-            return self.Fix[Idx].duration
-        else:
-            raise ValueError, 'None or 1 arg is required.'
+            return self.Fix[index].duration
+        else: #list
+            l = numpy.zeros([len(index),1])
+            for i in range(len(index)):
+                l[i] = self.Fix[index[i]].duration
+            return l
     
-    def getFixCenter(self,*args):
+    def getFixCenter(self, index=None):
         """
         Get the center of fixations in screen coordinate.
         
-        :param args:
-            If no argument is given, center of all fixations are obtained as 
-            a numpy.ndarray object whose shape is (n,2). If an integer (n-1)
-            is given, the center of n-th fixation is obtained.
+        :param index:
+            An index or a list of indices of fixation(s).
+            Give n-1 to get the center of n-th fixation.
+            If None, all fixations are included.
+            Default value is None.
+        
+        :return:
+            If an integer is passed, horizontal and vertical position
+            of the fixation center is returned.
+            Otherwise, an *n x 2* numpy.ndarray object is returned.
         """
-        if len(args) == 0:
+        if index==None:
             l = numpy.zeros([self.nFix,2])
-            for idx in range(self.nFix):
-                l[idx,:] = self.Fix[idx].center
+            for i in range(self.nFix):
+                l[i,:] = self.Fix[i].center
             return l
-        elif len(args) == 1:
-            Idx = args[0]
-            if not (0 <= Idx < self.nFix):
+        elif isinstance(index, int):
+            if not (0 <= index < self.nFix):
                 raise ValueError, 'Index is out of range.'
-            return self.Fix[Idx].center
+            return self.Fix[index].center
         else:
-            raise ValueError, 'None or 1 arg is required.'
+            l = numpy.zeros([len(index),2])
+            for i in range(len(index)):
+                l[i,:] = self.Fix[index[i]].center
+            return l
     
-    def getFixTime(self,*args):
+    def getFixTime(self, index=None):
         """
         Get the start and end time of fixations.
         
-        :param args:
-            If no argument is given, the start and end time of all fixations
-            are obtained as a numpy.ndarray object whose shape is (n,2).
-            If an integer (n-1) is given, the start and end time of n-th
-            fixation is obtained.
-        """
-        if len(args) == 0:
-            l = numpy.zeros([self.nFix,2])
-            for idx in range(self.nFix):
-                l[idx,:] = [self.Fix[idx].startTime,self.Fix[idx].endTime]
-            return l
-        elif len(args) == 1:
-            Idx = args[0]
-            if not (0 <= Idx < self.nFix):
-                raise ValueError, 'Index is out of range.'
-            return (self.Fix[Idx].startTime,self.Fix[Idx].endTime)
-        else:
-            raise ValueError, 'None or 1 arg is required.'
+        :param index:
+            An index or a list of indices of fixation(s).
+            Give n-1 to get the starting and finish time of n-th fixation.
+            If None, all fixations are included.
+            Default value is None.
         
-    def getBlinkTime(self,*args):
+        :return:
+            If an integer is passed, starting and finish time of the fixation
+            is returned. Otherwise, an *n x 2* numpy.ndarray object is returned.
+        """
+        if index==None:
+            l = numpy.zeros([self.nFix,2])
+            for i in range(self.nFix):
+                l[i,:] = [self.Fix[i].startTime,self.Fix[i].endTime]
+            return l
+        elif isinstance(index, int):
+            if not (0 <= index < self.nFix):
+                raise ValueError, 'Index is out of range.'
+            return (self.Fix[index].startTime,self.Fix[index].endTime)
+        else:
+            l = numpy.zeros([len(index),2])
+            for i in range(len(index)):
+                l[i,:] = [self.Fix[index[i]].startTime, self.Fix[index[i]].endTime]
+            return l
+        
+    def getBlinkTime(self, index=None):
         """
         Get the start and end time of blinks.
         
-        :param args:
-            If no argument is given, the start and end time of all blinks are
-            obtained as a numpy.ndarray object whose shape is (n,2).
-            If an integer (n-1) is given, the start and end time of n-th blink
-            is obtained.
+        :param index:
+            An index or a list of indices of blink(s).
+            Give n-1 to get the start and end time of n-th blink.
+            If None, all fixations are included.
+            Default value is None.
+        
+        :return:
+            If an integer is passed, starting and finish time of the blink
+            is returned. Otherwise, an *n x 2* numpy.ndarray object is returned.
         """
-        if len(args) == 0:
+        if index==None:
             l = numpy.zeros([self.nBlink,2])
-            for idx in range(self.nBlink):
-                l[idx,:] = [self.Blink[idx].startTime,self.Blink[idx].endTime]
+            for i in range(self.nBlink):
+                l[i,:] = [self.Blink[i].startTime,self.Blink[i].endTime]
             return l
-        elif len(args) == 1:
-            Idx = args[0]
-            if not (0 <= Idx < self.nBlink):
+        elif isinstance(index, int):
+            if not (0 <= index < self.nBlink):
                 raise ValueError, 'Index is out of range.'
-            return (self.Blink[Idx].startTime,self.Blink[Idx].endTime)
+            return (self.Blink[index].startTime,self.Blink[index].endTime)
         else:
-            raise ValueError, 'None or 1 arg is required.'
+            l = numpy.zeros([len(index),2])
+            for i in range(len(index)):
+                l[i,:] = [self.Blink[index[i]].startTime, self.Blink[index[i]].endTime]
+            return l
     
-    def getMsgTime(self,*args):
+    def getMsgTime(self, index=None):
         """
         Get the recorded time of messages.
         
-        :param args:
-            If no argument is given, the received time of all messages obtained
-            as a numpy.ndarray object whose shape is (n,1).
-            If an integer (n-1) is given, the recorded of n-th fixation is
-            obtained.
+        :param index:
+            An index or a list of indices of message(s).
+            Give n-1 to get timestamp of n-th message.
+            If None, all messages are included.
+            Default value is None.
+        
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
-        if len(args) == 0:
+        if index==None:
             l = numpy.zeros([self.nMsg,1])
-            for idx in range(self.nMsg):
-                l[idx] = self.Msg[idx].time
+            for i in range(self.nMsg):
+                l[i] = self.Msg[i].time
             return l
-        elif len(args) == 1:
-            Idx = args[0]
-            if not (0 <= Idx < self.nMsg):
+        elif isinstance(index, int):
+            if not (0 <= index < self.nMsg):
                 raise ValueError, 'Index is out of range.'
-            return self.Msg[idx].time
+            return self.Msg[index].time
         else:
-            raise ValueError, 'None or 1 arg is required.'
+            l = numpy.zeros([len(index),1])
+            for i in range(len(index)):
+                l[i] = self.Msg[index[i]].time
+            return l
     
-    def getSacTraj(self,index,eye=None):
+    def getSacTraj(self, index, eye=None):
         """
         Get gaze trajectory during a saccade.
         
@@ -623,76 +655,121 @@ class GazeData(object):
         else:
             raise ValueError, 'Eye must be \'L\', \'R\', \'B\' or None'
     
-    def getSacLen(self,*args):
+    def getSacLen(self, index=None):
         """
         Get saccade length.
         
-        :param integer index:
-            Index of saccade.  Give n-1 to get gaze trajectory during n-th
-            saccade. If no index is supplied, length of all saccades are
-            returned as a numpy.ndarray object.
-        :param str eye:
-            Output both-eye ('B'), left-eye ('L') or right-eye ('R') data.
-        """
-        if len(args) == 0:
-            l = numpy.zeros([self.nSac,1])
-            for idx in range(self.nSac):
-                l[idx] = self.Sac[idx].length
-            return l
-        elif len(args) == 1:
-            Idx = args[0]
-            if not (0 <= Idx < self.nSac):
-                raise ValueError, 'Index is out of range.'
-            return self.Sac[Idx].length
-        else:
-            raise ValueError, 'None or 1 arg is required.'
+        :param index:
+            An index or a list of indices of saccade(s).
+            Give n-1 to get length of n-th saccade.
+            If None, all saccades are included.
+            Default value is None.
         
-    def getSacDur(self,*args):
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
+        """
+        if index==None:
+            l = numpy.zeros([self.nSac,1])
+            for i in range(self.nSac):
+                l[i] = self.Sac[i].length
+            return l
+        elif isinstance(index, int):
+            if not (0 <= index < self.nSac):
+                raise ValueError, 'Index is out of range.'
+            return self.Sac[index].length
+        else:
+            l = numpy.zeros([len(index),1])
+            for i in range(len(index)):
+                l[i] = self.Sac[index[i]].length
+            return l
+        
+    def getSacAmp(self, index=None):
+        """
+        Get saccade amplitude.
+        
+        :param index:
+            An index or a list of indices of saccade(s).
+            Give n-1 to get amplitude of n-th saccade.
+            If None, all saccades are included.
+            Default value is None.
+        
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
+        """
+        if index==None:
+            l = numpy.zeros([self.nSac,1])
+            for i in range(self.nSac):
+                l[i] = self.Sac[i].amplitude
+            return l
+        elif isinstance(index, int):
+            if not (0 <= index < self.nSac):
+                raise ValueError, 'Index is out of range.'
+            return self.Sac[index].amplitude
+        else:
+            l = numpy.zeros([len(index),1])
+            for i in range(len(index)):
+                l[i] = self.Sac[index[i]].amplitude
+            return l
+        
+    def getSacDur(self, index=None):
         """
         Get duration of saccades in milliseconds.
         
-        :param integer index:
-            Index of fixation.  Give n-1 to get gaze trajectory during n-th fixation.
-            If no index is supplied, length of all saccades are returned as a 
-            numpy.ndarray object.
-        :param str eye:
-            Output both-eye ('B'), left-eye ('L') or right-eye ('R') data.
+        :param index:
+            An index or a list of indices of saccade(s).
+            Give n-1 to get duration of n-th saccade.
+            If None, all saccades are included.
+            Default value is None.
+        
+        :return:
+            If an integer is passed, a float value is returned.
+            Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
-        if len(args) == 0:
+        if index==None:
             l = numpy.zeros([self.nSac,1])
-            for idx in range(self.nSac):
-                l[idx] = self.Sac[idx].duration
+            for i in range(self.nSac):
+                l[i] = self.Sac[i].duration
             return l
-        elif len(args) == 1:
-            Idx = args[0]
-            if not (0 <= Idx < self.nSac):
+        elif isinstance(index, int):
+            if not (0 <= index < self.nSac):
                 raise ValueError, 'Index is out of range.'
             return self.Sac[Idx].duration
         else:
-            raise ValueError, 'None or 1 arg is required.'
+            l = numpy.zeros([len(index),1])
+            for i in range(len(index)):
+                l[i] = self.Sac[index[i]].duration
+            return l
         
-    def getSacTime(self,*args):
+    def getSacTime(self, index=None):
         """
         Get the start and end time of saccades.
         
-        :param args:
-            If no argument is given, the start and end time of all saccades are 
-            obtained as a numpy.ndarray object whose shape is (n,2).
-            If an integer (n-1) is given, the start and end time of n-th saccade 
-            is obtained.
+        :param index:
+            An index or a list of indices of saccade(s).
+            Give n-1 to get the start and end time of n-th saccade.
+            If None, all saccades are included.
+            Default value is None.
+        
+        :return:
+            If an integer is passed, starting and finish time of the saccade
+            is returned. Otherwise, an *n x 2* numpy.ndarray object is returned.
         """
-        if len(args) == 0:
+        if index==None:
             l = numpy.zeros([self.nSac,2])
-            for idx in range(self.nSac):
-                l[idx,:] = [self.Sac[idx].startTime,self.Sac[idx].endTime]
+            for i in range(self.nSac):
+                l[i,:] = [self.Sac[i].startTime,self.Sac[i].endTime]
             return l
-        elif len(args) == 1:
-            Idx = args[0]
-            if not (0 <= Idx < self.nSac):
+        elif isinstance(index, int):
+            if not (0 <= index < self.nSac):
                 raise ValueError, 'Index is out of range.'
-            return (self.Sac[Idx].startTime,self.Sac[Idx].endTime)
+            return (self.Sac[index].startTime,self.Sac[index].endTime)
         else:
-            raise ValueError, 'None or 1 arg is required.'
+            l = numpy.zeros([len(index),2])
+            for i in range(len(index)):
+                l[i,:] = [self.Sac[index[i]].startTime, self.Sac[index[i]].endTime]
+            return l
     
     def _getEventListByTime(self,fromTime,toTime):
         """

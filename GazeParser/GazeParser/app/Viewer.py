@@ -21,6 +21,7 @@ import ImageTk
 import GazeParser
 import GazeParser.Converter
 import GazeParser.Utility
+import GazeParser.Region
 import os
 import sys
 import re
@@ -41,6 +42,300 @@ from GazeParser.Converter import buildEventListBinocular, buildEventListMonocula
 MAX_RECENT = 5
 PLOT_OFFSET = 10
 XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
+
+class getFixationsInRegionWindow(Tkinter.Frame):
+    def __init__(self, data, additional, conf, master=None):
+        Tkinter.Frame.__init__(self,master)
+        self.D = data
+        self.C = additional
+        self.conf = conf
+        
+        self.commandChoice = Tkinter.StringVar()
+        self.commandChoice.set('embedded')
+        
+        self.regionType = Tkinter.StringVar()
+        self.regionType.set('circle')
+        self.x = Tkinter.StringVar()
+        self.y = Tkinter.StringVar()
+        self.r = Tkinter.StringVar()
+        self.x1 = Tkinter.StringVar()
+        self.x2 = Tkinter.StringVar()
+        self.y1 = Tkinter.StringVar()
+        self.y2 = Tkinter.StringVar()
+        self.regionEntryCircle = []
+        self.regionEntryRect = []
+        
+        self.fromStr = Tkinter.StringVar()
+        self.toStr = Tkinter.StringVar()
+        
+        self.containsMode = Tkinter.StringVar()
+        self.containsMode.set('center')
+        self.containsTimeMode = Tkinter.BooleanVar()
+        
+        self.messageStr = Tkinter.StringVar()
+        self.useregexp = Tkinter.BooleanVar()
+        
+        choiceFrame = Tkinter.Frame(self)
+        Tkinter.Radiobutton(choiceFrame, text='Use commands inserted in the data', variable=self.commandChoice, value='embedded', command=self.onClickChoiceRadiobutton).grid(row=0, column=0)
+        Tkinter.Radiobutton(choiceFrame, text='Use following commands', variable=self.commandChoice, value='dialog', command=self.onClickChoiceRadiobutton).grid(row=0, column=1)
+        choiceFrame.pack(fill=Tkinter.X)
+        
+        paramFrame = Tkinter.Frame(self)
+        regionShapeFrame = Tkinter.LabelFrame(paramFrame, text='Region')
+        r = 0
+        Tkinter.Radiobutton(regionShapeFrame, text='Circle', variable=self.regionType, value='circle', command=self.onClickRegionRadiobutton).grid(row=r, column=0, columnspan=2, sticky=Tkinter.W)
+        r += 1
+        Tkinter.Label(regionShapeFrame, text='x').grid(row=r,column=0)
+        Tkinter.Label(regionShapeFrame, text='y').grid(row=r,column=2)
+        Tkinter.Label(regionShapeFrame, text='r').grid(row=r,column=4)
+        self.regionEntryCircle.append(Tkinter.Entry(regionShapeFrame, textvariable=self.x, width=6))
+        self.regionEntryCircle.append(Tkinter.Entry(regionShapeFrame, textvariable=self.y, width=6))
+        self.regionEntryCircle.append(Tkinter.Entry(regionShapeFrame, textvariable=self.r, width=6))
+        for i in range(3):
+            self.regionEntryCircle[i].grid(row=r, column=2*i+1)
+        r += 1
+        Tkinter.Radiobutton(regionShapeFrame, text='Rectangle', variable=self.regionType, value='rect', command=self.onClickRegionRadiobutton).grid(row=r, column=0, columnspan=2, sticky=Tkinter.W)
+        r += 1
+        Tkinter.Label(regionShapeFrame, text='x1').grid(row=r,column=0)
+        Tkinter.Label(regionShapeFrame, text='x2').grid(row=r,column=2)
+        Tkinter.Label(regionShapeFrame, text='y1').grid(row=r,column=4)
+        Tkinter.Label(regionShapeFrame, text='y2').grid(row=r,column=6)
+        self.regionEntryRect.append(Tkinter.Entry(regionShapeFrame, textvariable=self.x1, width=6))
+        self.regionEntryRect.append(Tkinter.Entry(regionShapeFrame, textvariable=self.x2, width=6))
+        self.regionEntryRect.append(Tkinter.Entry(regionShapeFrame, textvariable=self.y1, width=6))
+        self.regionEntryRect.append(Tkinter.Entry(regionShapeFrame, textvariable=self.y2, width=6))
+        for i in range(4):
+            self.regionEntryRect[i].grid(row=r, column=2*i+1)
+        regionShapeFrame.pack(fill=Tkinter.X)
+        
+        timeFrame = Tkinter.LabelFrame(paramFrame, text='Time')
+        r = 0
+        Tkinter.Label(timeFrame, text='From (empty=beginning of trial)').grid(row=r, column=0)
+        Tkinter.Entry(timeFrame, textvariable=self.fromStr).grid(row=r, column=1)
+        r += 1
+        Tkinter.Label(timeFrame, text='To (empty=end of trial)').grid(row=r, column=0)
+        Tkinter.Entry(timeFrame, textvariable=self.toStr).grid(row=r, column=1)
+        timeFrame.pack(fill=Tkinter.X)
+        
+        optspatialFrame = Tkinter.LabelFrame(paramFrame, text='Inclusion criteria (spatial)')
+        r=0
+        Tkinter.Radiobutton(optspatialFrame, text='The center of fixation is included in the region', variable=self.containsMode, value='center').grid(row=r, column=0, sticky=Tkinter.W)
+        r+=1
+        Tkinter.Radiobutton(optspatialFrame, text='Whole trajectory of fixation is included in the region', variable=self.containsMode, value='all').grid(row=r, column=0, sticky=Tkinter.W)
+        r+=1
+        Tkinter.Radiobutton(optspatialFrame, text='A part of trajectory of fixation is included in the region', variable=self.containsMode, value='any').grid(row=r, column=0, sticky=Tkinter.W)
+        optspatialFrame.pack(fill=Tkinter.X)
+        
+        opttimeFrame = Tkinter.LabelFrame(paramFrame, text='Inclusion criteria (temporal)')
+        Tkinter.Checkbutton(opttimeFrame, text='Whole fixation must be included beween "From" and "To"', variable=self.containsTimeMode).grid(row=r, column=0)
+        opttimeFrame.pack(fill=Tkinter.X)
+        
+        messageFrame = Tkinter.Frame(paramFrame)
+        Tkinter.Label(messageFrame, text='Only trials including this message:').grid(row=0, column=0)
+        Tkinter.Entry(messageFrame, textvariable=self.messageStr).grid(row=0, column=1)
+        Tkinter.Checkbutton(messageFrame, text='Regura expression', variable=self.useregexp).grid(row=0, column=2)
+        messageFrame.pack(fill=Tkinter.X)
+        
+        paramFrame.pack()
+        self.paramFrameList = [regionShapeFrame, timeFrame, optspatialFrame, opttimeFrame, messageFrame]
+        
+        
+        self.onClickChoiceRadiobutton()
+        
+        Tkinter.Button(self, text='Search', command=self.calc).pack()
+        
+        self.pack()
+    
+    def onClickChoiceRadiobutton(self, event=None):
+        if self.commandChoice.get() == 'embedded':
+            for childFrame in self.paramFrameList:
+                for child in childFrame.winfo_children():
+                    try:
+                        child.configure(state='disabled')
+                    except:
+                        pass
+        else:
+            for childFrame in self.paramFrameList:
+                for child in childFrame.winfo_children():
+                    try:
+                        child.configure(state='normal')
+                    except:
+                        pass
+            self.onClickRegionRadiobutton()
+    
+    def onClickRegionRadiobutton(self, event=None):
+        if self.regionType.get() == 'circle':
+            for e in self.regionEntryCircle:
+                e.configure(state='normal')
+            for e in self.regionEntryRect:
+                e.configure(state='disabled')
+        else:
+            for e in self.regionEntryCircle:
+                e.configure(state='disabled')
+            for e in self.regionEntryRect:
+                e.configure(state='normal')
+    
+    def calc(self, event=None):
+        if self.commandChoice.get() == 'embedded':
+            sep = ' '
+            
+            data = []
+            labels = []
+            nFixList = []
+            nTrial = 0
+            for tr in range(len(self.D)):
+                msglist = self.D[tr].findMessage('!FIXINREGION', useRegexp=False)
+                if len(msglist)>0:
+                    fixlistTrial = []
+                    labelsTrial = []
+                    for msg in msglist:
+                        commands = msg.text.split(sep)
+                        period = [0,0]
+                        try:
+                            label = commands[1]
+                            try:
+                                period[0] = float(commands[2])
+                            except: #label
+                                if commands[2]=='!BEGINNING':
+                                    period[0] = None
+                                else:
+                                    period[0] = self.D[tr].findMessage(commands[2])[0].time
+                            try:
+                                period[1] = float(commands[3])
+                            except: #label
+                                if commands[3]=='!END':
+                                    period[1] = None
+                                else:
+                                    period[1] = self.D[tr].findMessage(commands[3])[0].time
+                            regiontype = commands[4]
+                            if regiontype == 'CIRCLE':
+                                region = GazeParser.Region.CircleRegion(float(commands[5]),
+                                                                        float(commands[6]),
+                                                                        float(commands[7]))
+                                pi = 8
+                            elif regiontype == 'RECT':
+                                region = GazeParser.Region.RectRegion(float(commands[5]),
+                                                                      float(commands[6]),
+                                                                      float(commands[7]),
+                                                                      float(commands[8]))
+                                pi = 9
+                            
+                            if len(commands)>pi:
+                                useCenter = True if commands[pi].lower()=='true' else False
+                                containsTime = commands[pi+1]
+                                containsTraj = commands[pi+2]
+                            else:
+                                useCenter = True
+                                containsTime = 'all'
+                                containsTraj = 'all'
+                            
+                            fixlist = GazeParser.Region.getFixationsInRegion(self.D[tr], region, period, useCenter, containsTime, containsTraj)
+                            fixlistTrial.extend(fixlist)
+                            labelsTrial.extend([label]*len(fixlist))
+                        except:
+                            info = sys.exc_info()
+                            tbinfo = traceback.format_tb(info[2])
+                            errormsg = ''
+                            for tbi in tbinfo:
+                                errormsg += tbi
+                            errormsg += '  %s' % str(info[1])
+                            tkMessageBox.showerror('Error', msg.text+'\n\n'+errormsg)
+                    data.append(fixlistTrial)
+                    labels.append(labelsTrial)
+                    nFixList.append(len(fixlistTrial))
+                    nTrial += 1
+                else:
+                    data.append([])
+                    labels.append([])
+                    nFixList.append(0)
+        
+        else: #use dualog parameters
+            if self.regionType.get() == 'circle':
+                try:
+                    x = float(self.x.get())
+                    y = float(self.y.get())
+                    r = float(self.r.get())
+                except:
+                    tkMessageBox.showerror('Error','non-float values in x, y, and/or r')
+                    return
+                
+                region = GazeParser.Region.CircleRegion(x, y, r)
+            
+            else: #rect
+                try:
+                    x1 = float(self.x1.get())
+                    x2 = float(self.x2.get())
+                    y1 = float(self.y1.get())
+                    y2 = float(self.y2.get())
+                except:
+                    tkMessageBox.showerror('Error','non-float values in x1, x2, y1 and/or y2')
+                    return
+                
+                region = GazeParser.Region.RectRegion(x1, x2, y1, y2)
+            
+            period = [None, None]
+            
+            fromStr = self.fromStr.get()
+            toStr = self.toStr.get()
+            try:
+                if fromStr!='':
+                    period[0] = float(fromStr)
+                if toStr!='':
+                    period[1] = float(toStr)
+            except:
+                tkMessageBox.showerror('Error','From and To must be empty or float value.')
+                return
+            
+            if self.containsTimeMode.get():
+                containsTime = 'all'
+            else:
+                containsTime = 'any'
+            
+            containsTraj = self.containsMode.get()
+            if containsTraj=='center':
+                useCenter=True
+                containsTraj = 'all' # any is also OK.
+            else:
+                useCenter=False
+            
+            msg = self.messageStr.get()
+            useregexp = self.useregexp.get()
+            
+            data = []
+            labels = []
+            nFixList = []
+            nTrial = 0
+            for tr in range(len(self.D)):
+                if msg != '' and self.D[tr].findMessage(msg, useRegexp=useregexp) == []:
+                    data.append([])
+                    labels.append([])
+                    nFixList.append(0)
+                    continue
+                fixlist = GazeParser.Region.getFixationsInRegion(self.D[tr], region, period, useCenter, containsTime, containsTraj)
+                data.append(fixlist)
+                labels.append([msg]*len(fixlist)) # generate a list of msg
+                nFixList.append(len(fixlist))
+                nTrial += 1
+        
+        #output data
+        ans = tkMessageBox.askyesno('Info','%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList),nTrial))
+        if ans:
+            fname = tkFileDialog.asksaveasfilename()
+            if fname!='':
+                fp = open(fname, 'w')
+                fp.write('Trial\tLabel\tStarting\tFinish\tDuration\tCenterX\tCenterY\n')
+                for i in range(len(data)):
+                    for fi in range(len(data[i])):
+                        fp.write('%d\t%s\t%.1f\t%.1f\t%.1f\t%.2f\t%.2f\n' % (i,labels[i][fi],
+                                                                               data[i][fi].startTime,
+                                                                               data[i][fi].endTime,
+                                                                               data[i][fi].duration,
+                                                                               data[i][fi].center[0],
+                                                                               data[i][fi].center[1]))
+                fp.close()
+                tkMessageBox.showinfo('Info','Done.')
+            else:
+                tkMessageBox.showinfo('Info','Canceled.')
 
 class combineDataFileWindow(Tkinter.Frame):
     def __init__(self, mainWindow, master=None):
@@ -1239,6 +1534,7 @@ class mainWindow(Tkinter.Frame):
         self.menu_convert.add_command(label='Edit GazeParser.Configuration file',command=self._configEditor)
         self.menu_convert.add_command(label='Interactive configuration',command=self._interactive)
         self.menu_analyse.add_command(label='Saccade latency',under=0,command=self._getLatency)
+        self.menu_analyse.add_command(label='Fixations in region',under=0,command=self._getFixationsInRegion)
         
         self.master.configure(menu = self.menu_bar)
         
@@ -2082,7 +2378,22 @@ class mainWindow(Tkinter.Frame):
         dlg.update_idletasks()
         geo = parsegeometry(dlg.winfo_geometry())
         dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
-
+    
+    def _getFixationsInRegion(self):
+        if self.D == None:
+            tkMessageBox.showinfo('info','Data must be loaded before getting fixations in region')
+            return
+        geoMaster = parsegeometry(self.master.winfo_geometry())
+        dlg = Tkinter.Toplevel(self)
+        getFixationsInRegionWindow(master=dlg, data=self.D, additional=self.C, conf=self.conf)
+        dlg.focus_set()
+        dlg.grab_set()
+        dlg.transient(self)
+        dlg.resizable(0, 0)
+        dlg.update_idletasks()
+        geo = parsegeometry(dlg.winfo_geometry())
+        dlg.geometry('%dx%d+%d+%d'%(geo[0],geo[1],geoMaster[2]+50,geoMaster[3]+50))
+    
     def _editMessage(self):
         if self.D == None:
             tkMessageBox.showinfo('info','Data must be loaded before editing message')

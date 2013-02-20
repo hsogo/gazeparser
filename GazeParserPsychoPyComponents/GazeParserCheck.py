@@ -24,7 +24,7 @@ class GazeParserCheckComponent(BaseComponent):
         self.params={}
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             hint="",
-            label="Name") #This name does not actually need to be independent of the others.
+            label="Name")
         self.params['maxtry']=Param(maxtry, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint=".",

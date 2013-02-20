@@ -26,7 +26,7 @@ class GazeParserInitComponent(BaseComponent):
         self.params={}
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             hint="",
-            label="Name") #This name does not actually need to be independent of the others.
+            label="Name")
         self.params['gpconfigfile']=Param(ipaddress, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="GazeParser configuration file",
