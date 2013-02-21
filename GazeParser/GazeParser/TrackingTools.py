@@ -412,7 +412,7 @@ class BaseController(object):
             area of pupil is returned as the third element of the tuple.
             When recording mode is binocular and getPupil is False, return value
             is (Left X, Left Y, Right X, Right Y). If getPupil is True, return
-value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
+            value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
         """
         self.sendSock.send('getEyePosition'+chr(0))
         hasGotEye = False
