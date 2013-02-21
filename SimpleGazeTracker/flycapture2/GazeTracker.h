@@ -11,6 +11,6 @@
 */
 
 #define EDITION "FlyCapture2 Edition"
+#define CAMERA_CONFIG_FILE "CONFIG_FLYCAPTURE2"
 
-#include "FlyCapture2.h"
 #include "../common/GazeTrackerCommon.h"

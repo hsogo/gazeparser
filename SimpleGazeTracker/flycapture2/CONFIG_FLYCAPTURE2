@@ -1,0 +1,5 @@
+[SimpleGazeTrackerFlyCapture2]
+OFFSET_X=0
+OFFSET_Y=16
+FRAME_RATE=250
+CAMERA_MODE=1

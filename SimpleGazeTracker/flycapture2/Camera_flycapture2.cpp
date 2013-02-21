@@ -4,8 +4,8 @@
 @copyright GNU General Public License (GPL) version 3.
 @brief Camera-dependent procedures are defined.
 
-@date 2012/03/23
-- Custom menu is supported.
+@date 2013/02/21
+- Created.
 */
 
 #define _CRT_SECURE_NO_DEPRECATE
@@ -13,6 +13,7 @@
 
 #include <atlbase.h>
 #include "GazeTracker.h"
+#include "FlyCapture2.h"
 
 #include <fstream>
 #include <string>
@@ -21,10 +22,11 @@ FlyCapture2::Camera g_FC2Camera;
 FlyCapture2::PGRGuid g_FC2CameraGUID;
 FlyCapture2::Image g_rawImage;
 
-HANDLE g_CameraDeviceHandle; /*!< Holds camera device handle */
-HANDLE g_CameraMemHandle; /*!< Holds camera buffer handle */
+int g_OffsetX = 0;
+int g_OffsetY = 0;
+int g_CameraMode = 1;
+float g_FrameRate = 250;
 
-unsigned char* g_TmpFrameBuffer; /*!< Temporary buffer to hold camera image until CallBackProc() is called.*/
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
 
 
@@ -40,19 +42,6 @@ const char* getEditionString(void)
 	return EDITION;
 }
 
-/*!
-CallBackProc: Grab camera images.
-
-@param[in] IntFlg Event ID.
-@param[in] User User defined data.
-@return no value is returned.
- 
-void CALLBACK CallBackProc(DWORD IntFlg, DWORD User)
-{
-	memcpy(g_frameBuffer, g_TmpFrameBuffer, g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-	g_NewFrameAvailable = true;
-}
-*/
 
 /*!
 initCamera: Initialize camera.
@@ -69,7 +58,99 @@ Read parameters from the configuration file, start camera and set callback funct
  */
 int initCamera( const char* ParamPath )
 {
+	std::fstream fs;
+	std::string str;
+	char *p,*pp;
+	char buff[1024];
+	double param;
+	bool isInSection = true; //default is True to support old config file
+	
+	str = ParamPath;
+	str.append(PATH_SEPARATOR);
+	str.append(CAMERA_CONFIG_FILE);
+
 	FlyCapture2::Error error;
+	FlyCapture2::Mode mode;
+
+	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+
+	fs.open(str.c_str(),std::ios::in);
+	if(fs.is_open())
+	{
+		g_LogFS << "Open camera configuration file (" << str << ")" << std::endl;
+		while(fs.getline(buff,sizeof(buff)-1))
+		{
+			if(buff[0]=='#') continue;
+
+			//in Section "[SimpleGazeTrackerFlyCapture2]"
+			if(buff[0]=='['){
+				if(strcmp(buff,"[SimpleGazeTrackerFlyCapture2]")==0){
+					isInSection = true;
+				}
+				else
+				{
+					isInSection = false;
+				}
+				continue;
+			}
+		
+			if(!isInSection) continue; //not in section
+		
+
+			//Check options.
+			//If "=" is not included, this line is not option.
+			if((p=strchr(buff,'='))==NULL) continue;
+
+			//remove space/tab
+			*p = '\0';
+			while(*(p-1)==0x09 || *(p-1)==0x20)
+			{
+				p--;
+				*p= '\0';
+			}
+			while(*(p+1)==0x09 || *(p+1)==0x20) p++;
+			param = strtod(p+1,&pp); //paramete is not int but double
+
+			if(strcmp(buff,"OFFSET_X")==0)
+			{
+				g_OffsetX = (int)param;
+			}
+			else if(strcmp(buff,"OFFSET_Y")==0)
+			{
+				g_OffsetY = (int)param;
+			}
+			else if(strcmp(buff,"FRAME_RATE")==0)
+			{
+				g_FrameRate = (float)param;
+			}
+			else if(strcmp(buff,"CAMERA_MODE")==0)
+			{
+				g_CameraMode = (int)param;
+			}
+		}
+		fs.close();
+	}else{
+		g_LogFS << "ERROR: failed to open camera configuration file (" << str << ")" << std::endl;
+		return E_FAIL;
+	}
+
+	// get camera mode
+	switch(g_CameraMode)
+	{
+	case 0:
+		mode = FlyCapture2::MODE_0;
+		break;
+
+	case 1:
+		mode = FlyCapture2::MODE_1;
+		break;
+
+	default:
+		g_LogFS << "ERROR: only MODE_0 and MODE_1 are supported." << std::endl;
+		return E_FAIL;
+	}
+
+	//Init FlyCapture2 camera
 
 	FlyCapture2::BusManager busMgr;
 	unsigned int numCameras;
@@ -111,40 +192,81 @@ int initCamera( const char* ParamPath )
 
 	//set Format7 configuration
 	g_FC2Camera.GetFormat7Configuration(&imageSettings, &packetSize, &percentage);
-	imageSettings.mode = FlyCapture2::MODE_1;
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to get \"Format7\" camera configuration." << std::endl;
+		return E_FAIL;
+	}
+	imageSettings.mode = mode;
 	imageSettings.width=g_CameraWidth;
 	imageSettings.height=g_CameraHeight;
-	imageSettings.offsetX = (640-g_CameraWidth)/2;  //TODO: read from configuration file
-	imageSettings.offsetY = (512-g_CameraHeight)/2; //TODO: read from configuration file
+	imageSettings.offsetX = g_OffsetX;
+	imageSettings.offsetY = g_OffsetY;
 	imageSettings.pixelFormat = FlyCapture2::PIXEL_FORMAT_RAW8;
-	g_FC2Camera.ValidateFormat7Settings(&imageSettings, &settingsAreValid, &packetInfo);
+	error = g_FC2Camera.ValidateFormat7Settings(&imageSettings, &settingsAreValid, &packetInfo);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: could not validate \"Format7\" camera format.  Check CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE." << std::endl;
+		return E_FAIL;
+	}
+	if(!settingsAreValid)
+	{
+		g_LogFS << "ERROR: invalid \"Format7\" camera format. Check CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE." << std::endl;
+		return E_FAIL;
+	}
 	error = g_FC2Camera.SetFormat7Configuration(&imageSettings, packetInfo.recommendedBytesPerPacket);
-	error = g_FC2Camera.GetFormat7Configuration(&imageSettings, &packetSize, &percentage);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to configure \"Format7\" camera format." << std::endl;
+		return E_FAIL;
+	}
+	//error = g_FC2Camera.GetFormat7Configuration(&imageSettings, &packetSize, &percentage);
 
-	//set frame rate (manual)
+	//set frame rate (manual mode, absolute value)
 	prop.type = FlyCapture2::FRAME_RATE;
 	prop.autoManualMode = false;
 	prop.onOff = true;
 	prop.absControl = true;
-	prop.absValue = 250.0; //TODO: read from configuration file
+	prop.absValue = g_FrameRate;
 	error = g_FC2Camera.SetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to set frame rate." << std::endl;
+		return E_FAIL;
+	}
 	error = g_FC2Camera.GetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to get frame rate." << std::endl;
+		return E_FAIL;
+	}
+	else
+	{
+		g_LogFS << "Frame rate is set to " << prop.absValue << " fps." << std::endl;
+	}
 
 	//set grabTimeout = 0 (immediate) 
-	g_FC2Camera.GetConfiguration(&Config);
+	error = g_FC2Camera.GetConfiguration(&Config);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to get camera configuration." << std::endl;
+		return E_FAIL;
+	}
 	Config.grabTimeout = 0;
 	error = g_FC2Camera.SetConfiguration(&Config);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to set grab-timeout." << std::endl;
+		return E_FAIL;
+	}
 
-
+	//start camera
 	error = g_FC2Camera.StartCapture();
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
 		g_LogFS << "ERROR: failed to start capture by FlyCapture2 camera" << std::endl;
 		return E_FAIL;
 	}
-
-	//checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
-
 
 	return S_OK;
 }
