@@ -10,18 +10,7 @@
 - EDITION is defined here.
 */
 
-#define EDITION "GPC5300 Edition"
+#define EDITION "FlyCapture2 Edition"
 
-#ifdef TOSHIBA
-
-#define CAMERA_CONFIG_FILE "CAMERA_TOSHIBA.cfg"
-
-#elif IMPERX
-
-#define CAMERA_CONFIG_FILE "CAMERA.cfg"
-
-#endif
-
-
-#include "IFCml.h"
+#include "FlyCapture2.h"
 #include "../common/GazeTrackerCommon.h"
