@@ -28,8 +28,8 @@ class GazeParserMessageComponent(BaseComponent):
             label="Time")
         self.params['text']=Param(text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Message text.",
-            label="Message text.")
+            hint="Message text",
+            label="Message text")
         self.params['units']=Param(units, valType='str', allowedVals=['frame N', 'time (s)'],
             hint="Units of message sending time",
             label="Unit of time")

@@ -8,7 +8,7 @@ iconFile = path.join(thisFolder,'GazeParserInit.png')
 tooltip = 'GazeParserInit: initialize GazeParser.TrackingTools'
 
 # want a complete, ordered list of codeParams in Builder._BaseParamsDlg, best to define once:
-paramNames = ['gpconfigfile', 'trconfigfile', 'ipaddress', 'calarea', 'caltargetpos', 'datafile', 'dummymode', 'units']
+paramNames = ['gpconfigfile', 'trconfigfile', 'ipaddress', 'calarea', 'caltargetpos', 'datafile', 'dummymode', 'units', 'calibration']
 
 
 class GazeParserInitComponent(BaseComponent):
@@ -16,7 +16,7 @@ class GazeParserInitComponent(BaseComponent):
     categories = ['Custom']
     def __init__(self, exp, parentName, name='GazeParserInit',gpconfigfile="",trconfigfile="",ipaddress="",calarea="[-400,-300,400,300]",
                  caltargetpos="[[0,0],[-350,-250],[-350,0],[-350,250],\n[0,-250],[0,0],[0,250],\n[350,-250],[350,0],[350,250]]",
-                 datafile="data.csv",dummymode=False,units="pix"):
+                 datafile="data.csv",dummymode=False,units="pix",calibration=True):
         self.type='GazeParserInit'
         self.url="http://gazeparser.sourceforge.net/"
         self.exp=exp#so we can access the experiment if necess
@@ -45,8 +45,12 @@ class GazeParserInitComponent(BaseComponent):
             label="Calibration Area")
         self.params['caltargetpos']=Param(caltargetpos, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="List ",
+            hint="List of calibration target positions ([[x1,y1],[x2,y2],...]).",
             label="Calibration Target Position")
+        self.params['calibration']=Param(calibration, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="Perform calibration after initialization is finished.",
+            label="Calibration")
         self.params['datafile']=Param(datafile, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Name of SimpleGazeTracker data file.",
@@ -72,17 +76,18 @@ class GazeParserInitComponent(BaseComponent):
         buff.writeIndented('GazeParserTracker.sendSettings(GazeParser.config.getParametersAsDict())\n')
         buff.writeIndented('GazeParserTracker.setCalibrationScreen(win)\n')
         buff.writeIndented('GazeParserTracker.setCalibrationTargetPositions(%(calarea)s, %(caltargetpos)s, %(units)s)\n' % (self.params))
-        buff.writeIndented('while True:\n')
-        buff.setIndentLevel(+1, relative=True)
-        buff.writeIndented('GazeParserRes = GazeParserTracker.calibrationLoop()\n')
-        buff.writeIndented('if GazeParserRes=="q":\n')
-        buff.setIndentLevel(+1, relative=True)
-        buff.writeIndented('core.quit(0)\n')
-        buff.setIndentLevel(-1, relative=True)
-        buff.writeIndented('if GazeParserTracker.isCalibrationFinished():\n')
-        buff.setIndentLevel(+1, relative=True)
-        buff.writeIndented('break\n\n')
-        buff.setIndentLevel(-2, relative=True)
+        if self.params['calibration'].val:
+            buff.writeIndented('while True:\n')
+            buff.setIndentLevel(+1, relative=True)
+            buff.writeIndented('GazeParserRes = GazeParserTracker.calibrationLoop()\n')
+            buff.writeIndented('if GazeParserRes=="q":\n')
+            buff.setIndentLevel(+1, relative=True)
+            buff.writeIndented('core.quit(0)\n')
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndented('if GazeParserTracker.isCalibrationFinished():\n')
+            buff.setIndentLevel(+1, relative=True)
+            buff.writeIndented('break\n\n')
+            buff.setIndentLevel(-2, relative=True)
     def writeExperimentEndCode(self,buff):
         if self.params['datafile'].val != '':
             buff.writeIndented('GazeParserTracker.closeDataFile()\n')
