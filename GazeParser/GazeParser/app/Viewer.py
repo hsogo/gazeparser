@@ -229,6 +229,8 @@ class getFixationsInRegionWindow(Tkinter.Frame):
                                 containsTime = 'all'
                                 containsTraj = 'all'
                             
+                            print region, period, useCenter, containsTime, containsTraj
+                            
                             fixlist = GazeParser.Region.getFixationsInRegion(self.D[tr], region, period, useCenter, containsTime, containsTraj)
                             fixlistTrial.extend(fixlist)
                             labelsTrial.extend([label]*len(fixlist))
@@ -877,7 +879,7 @@ class getSaccadeLatencyWindow(Tkinter.Frame):
                 self.fig.canvas.draw()
                 ans = tkMessageBox.askyesno('Export','%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
                 if ans:
-                    fname = tkFileDialog.asksaveasfilename(initialdir=self.initialDataDir)
+                    fname = tkFileDialog.asksaveasfilename()
                     if fname!='':
                         fp = open(fname, 'w')
                         fp.write('Trial\tMessageTime\tMessageText\tLatency\tAmplitude\n')
