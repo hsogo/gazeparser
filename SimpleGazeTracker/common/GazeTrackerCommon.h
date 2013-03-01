@@ -178,6 +178,7 @@ extern void insertMessage(char* message);
 extern void insertSettings(char* settings);
 extern void connectionClosed(void);
 extern void getEyePosition(double* pos);
+extern HRESULT getPreviousEyePosition(double* pos, int offset);
 extern void saveCameraImage(const char* filename);
 extern void startMeasurement(void);
 extern void stopMeasurement(void);

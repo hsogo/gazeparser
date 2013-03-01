@@ -460,6 +460,47 @@ int sockProcess(void)
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
 					}
+					else if(strcmp(buff+nextp,"getEyePositionList")==0)
+					{
+						char* param = buff+nextp+19;
+						char* p, *dstbuf;
+						int val, len, s;
+
+						double pos[6];
+						char posstr[8192];
+
+						val = strtol(param, &p, 10);
+
+						s=sizeof(posstr);
+						dstbuf = posstr;
+						for(int offset=0; offset<val; offset++){
+							if(FAILED(getPreviousEyePosition(pos, offset))) break;
+							if(g_RecordingMode==RECORDING_MONOCULAR){
+								len = snprintf(dstbuf,s,"%.0f,%.0f,%.0f",pos[0],pos[1],pos[2]);
+							}else{
+								len = snprintf(dstbuf,s,"%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
+							}
+							dstbuf = dstbuf+len;
+							s -= len;
+							if(s<=96){//check overflow
+								len = sizeof(posstr)-s;
+								posstr[len-1]='\0';
+								SDLNet_TCP_Send(g_SockSend,posstr,len);
+								s=sizeof(posstr);
+								dstbuf=posstr;
+							}
+						}
+						if(s!=sizeof(posstr)){
+							len = sizeof(posstr)-s;
+							posstr[len-1]='\0';
+							SDLNet_TCP_Send(g_SockSend,posstr,len);
+						}
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
 					else if(strcmp(buff+nextp,"getCalResults")==0)
 					{
 						int len;

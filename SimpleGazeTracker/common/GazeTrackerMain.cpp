@@ -1722,6 +1722,34 @@ void getEyePosition(double* pos)
 }
 
 /*!
+getPreviousEyePosition: get previous eye position
+
+This function is called from sockProcess() when sockProcess() received "getEyePositionList" command.
+
+@param[out] pos.
+@param[in] index.
+@return E_FAIL if offset is greater than number of data.
+@todo overflow is not concidered.
+
+@date 2013/02/28 created.
+*/
+HRESULT getPreviousEyePosition(double* pos, int offset)
+{
+	if(g_DataCounter-offset<0){
+		return E_FAIL;
+	}
+	if(g_RecordingMode==RECORDING_MONOCULAR){
+		getGazePositionMono(g_EyeData[g_DataCounter-offset], pos);
+		pos[2] = g_PupilSizeData[g_DataCounter-offset][MONO_P];
+	}else{
+		getGazePositionBin(g_EyeData[g_DataCounter-offset], pos);
+		pos[4] = g_PupilSizeData[g_DataCounter-offset][BIN_LP];
+		pos[5] = g_PupilSizeData[g_DataCounter-offset][BIN_RP];
+	}
+	return S_OK;
+}
+
+/*!
 getCalibrationResults: get calibration error.
 
 This function is called from sockProcess() when sockProcess() received "getCalResults" command.
