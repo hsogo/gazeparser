@@ -22,7 +22,6 @@ class GazeParserCheckComponent(BaseComponent):
         self.categories=['misc']
         self.order = ['name'] + paramNames[:] # want a copy, else codeParamNames list gets mutated
         self.params={}
-        self.params['advancedParams']=['mode','message1','message2','message3']
         self.params['name']=Param(name, valType='code', allowedTypes=[],
             hint="",
             label="Name")
