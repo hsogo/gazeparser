@@ -353,8 +353,9 @@ class combineDataFileWindow(Tkinter.Frame):
         updownButtonFrame = Tkinter.Frame(listboxFrame)
         Tkinter.Button(updownButtonFrame, text='up', command=self.up).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
         Tkinter.Button(updownButtonFrame, text='down', command=self.down).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
-        Tkinter.Button(updownButtonFrame, text='add files', command=self.addfiles).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
-        Tkinter.Button(updownButtonFrame, text='remove selected', command=self.removefiles).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
+        Tkinter.Button(updownButtonFrame, text='add files', command=self.addfiles).pack(side=Tkinter.TOP, fill=Tkinter.BOTH, pady=3)
+        Tkinter.Button(updownButtonFrame, text='remove selected', command=self.removefiles).pack(side=Tkinter.TOP, fill=Tkinter.BOTH, pady=3)
+        Tkinter.Button(updownButtonFrame, text='remove all', command=self.removeAll).pack(side=Tkinter.TOP, fill=Tkinter.BOTH, pady=3)
         Tkinter.Button(updownButtonFrame, text='combine & save', command=self.combine).pack(side=Tkinter.TOP, fill=Tkinter.BOTH)
         updownButtonFrame.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
         listboxFrame.pack(side=Tkinter.TOP,fill=Tkinter.BOTH, expand=True)
@@ -399,10 +400,21 @@ class combineDataFileWindow(Tkinter.Frame):
     
     def removefiles(self, event=None):
         selected = self.filelistbox.curselection()
+        print self.filelistbox.size(),selected[0]
         if len(selected)>0:
             self.filelistbox.delete(selected)
-        self.filelistbox.selection_set(selected)
-
+            print self.filelistbox.size(),selected[0]
+            if self.filelistbox.size()<=int(selected[0]):
+                print 'select '+selected[0]+'-1'
+                self.filelistbox.selection_set(int(selected[0])-1)
+            else:
+                print 'select '+selected[0]
+                self.filelistbox.selection_set(selected)
+    
+    def removeAll(self, event=None):
+        if self.filelistbox.size()>0:
+            self.filelistbox.delete(0, Tkinter.END)
+        
     
     def combine(self, event=None):
         if self.filelistbox.size()<=1:
