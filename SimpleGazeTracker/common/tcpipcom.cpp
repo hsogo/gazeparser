@@ -476,9 +476,9 @@ int sockProcess(void)
 						for(int offset=0; offset<val; offset++){
 							if(FAILED(getPreviousEyePosition(pos, offset))) break;
 							if(g_RecordingMode==RECORDING_MONOCULAR){
-								len = snprintf(dstbuf,s,"%.0f,%.0f,%.0f",pos[0],pos[1],pos[2]);
+								len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2]);
 							}else{
-								len = snprintf(dstbuf,s,"%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
+								len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
 							}
 							dstbuf = dstbuf+len;
 							s -= len;

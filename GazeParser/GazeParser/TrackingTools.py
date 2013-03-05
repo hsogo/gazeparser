@@ -395,7 +395,6 @@ class BaseController(object):
         self.sendSock.send('stopMeasurement'+chr(0))
         time.sleep(wait)
     
-    
     def getEyePosition(self, timeout=0.02, getPupil=False):
         """
         Send a command to get current gaze position.
@@ -451,7 +450,7 @@ class BaseController(object):
                     else:
                         return retval[:2]
             else:
-                #if recording mode is monocular, length of retval must be 6.
+                #if recording mode is binocular, length of retval must be 6.
                 if len(retval) == 6:
                     if getPupil:
                         return retval
@@ -470,6 +469,41 @@ class BaseController(object):
             else:
                 return [None,None,None,None]
         
+    def getEyePositionList(self, n, timeout=0.02):
+        self.sendSock.send('getEyePositionList'+chr(0)+str(n)+chr(0))
+        hasGotEye = False
+        isInLoop = True
+        data = ''
+        startTime = self.clock()
+        while isInLoop:
+            if self.clock()-startTime > timeout:
+                #print 'GetEyePosition timeout'
+                break
+            [r,w,c] = select.select(self.readSockList,[],[],0)
+            for x in r:
+                try:
+                    newData = x.recv(4096)
+                except:
+                    isInLoop = False
+                if newData:
+                    if '\0' in newData:
+                        delimiterIndex = newData.index('\0')
+                        if delimiterIndex+1 < len(newData):
+                            print 'getEyePosition:', newData
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
+                        hasGotEye = True
+                        isInLoop = False
+                        break
+                    else:
+                        data += newData
+        if hasGotEye:
+            retval = numpy.array([float(x) for x in data.split(',')])
+            if self.isMonocularRecording:
+                return retval.reshape((-1,3))
+            else:
+                return retval.reshape((-1,6))
+    
     def getCurrentMenuItem(self,timeout=0.2):
         """
         Get current menu item on the Tracker Host PC as a text.

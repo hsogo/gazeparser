@@ -1735,16 +1735,16 @@ This function is called from sockProcess() when sockProcess() received "getEyePo
 */
 HRESULT getPreviousEyePosition(double* pos, int offset)
 {
-	if(g_DataCounter-offset<0){
+	if((g_DataCounter-1)-offset<0){ //One must be subtracted from g_DataCounter because it points next address.
 		return E_FAIL;
 	}
 	if(g_RecordingMode==RECORDING_MONOCULAR){
-		getGazePositionMono(g_EyeData[g_DataCounter-offset], pos);
-		pos[2] = g_PupilSizeData[g_DataCounter-offset][MONO_P];
+		getGazePositionMono(g_EyeData[(g_DataCounter-1)-offset], pos);
+		pos[2] = g_PupilSizeData[(g_DataCounter-1)-offset][MONO_P];
 	}else{
-		getGazePositionBin(g_EyeData[g_DataCounter-offset], pos);
-		pos[4] = g_PupilSizeData[g_DataCounter-offset][BIN_LP];
-		pos[5] = g_PupilSizeData[g_DataCounter-offset][BIN_RP];
+		getGazePositionBin(g_EyeData[(g_DataCounter-1)-offset], pos);
+		pos[4] = g_PupilSizeData[(g_DataCounter-1)-offset][BIN_LP];
+		pos[5] = g_PupilSizeData[(g_DataCounter-1)-offset][BIN_RP];
 	}
 	return S_OK;
 }
