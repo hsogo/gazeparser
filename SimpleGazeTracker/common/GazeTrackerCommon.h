@@ -15,6 +15,8 @@
 - change version number
 @date 2013/02/14
 - change version number
+@date 2013/03/06
+- added: getPreviousEyePositionForward, getPreviousEyePositionReverse
 */
 
 
@@ -178,7 +180,8 @@ extern void insertMessage(char* message);
 extern void insertSettings(char* settings);
 extern void connectionClosed(void);
 extern void getEyePosition(double* pos);
-extern HRESULT getPreviousEyePosition(double* pos, int offset);
+extern HRESULT getPreviousEyePositionForward(double* pos, int offset);
+extern HRESULT getPreviousEyePositionReverse(double* pos, int offset);
 extern void saveCameraImage(const char* filename);
 extern void startMeasurement(void);
 extern void stopMeasurement(void);

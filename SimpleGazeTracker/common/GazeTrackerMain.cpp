@@ -1721,8 +1721,37 @@ void getEyePosition(double* pos)
 	}
 }
 
+
 /*!
-getPreviousEyePosition: get previous eye position
+getPreviousEyePositionForward: get previous eye position from head
+
+This function is called from sockProcess() when sockProcess() received "getEyePositionList" command.
+
+@param[out] pos.
+@param[in] index.
+@return E_FAIL if offset is greater than number of data.
+@todo overflow is not concidered.
+
+@date 2013/03/06 created.
+*/
+HRESULT getPreviousEyePositionForward(double* pos, int offset)
+{
+	if((g_DataCounter-1)<offset){ //One must be subtracted from g_DataCounter because it points next address.
+		return E_FAIL;
+	}
+	if(g_RecordingMode==RECORDING_MONOCULAR){
+		getGazePositionMono(g_EyeData[offset], pos);
+		pos[2] = g_PupilSizeData[offset][MONO_P];
+	}else{
+		getGazePositionBin(g_EyeData[offset], pos);
+		pos[4] = g_PupilSizeData[offset][BIN_LP];
+		pos[5] = g_PupilSizeData[offset][BIN_RP];
+	}
+	return S_OK;
+}
+
+/*!
+getPreviousEyePositionReverse: get previous eye position from tail
 
 This function is called from sockProcess() when sockProcess() received "getEyePositionList" command.
 
@@ -1732,8 +1761,9 @@ This function is called from sockProcess() when sockProcess() received "getEyePo
 @todo overflow is not concidered.
 
 @date 2013/02/28 created.
+@date 2013/03/06 renamed: getPreviousEyePosition -> getPreviousEyePositionReverse
 */
-HRESULT getPreviousEyePosition(double* pos, int offset)
+HRESULT getPreviousEyePositionReverse(double* pos, int offset)
 {
 	if((g_DataCounter-1)-offset<0){ //One must be subtracted from g_DataCounter because it points next address.
 		return E_FAIL;

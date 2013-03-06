@@ -473,26 +473,65 @@ int sockProcess(void)
 
 						s=sizeof(posstr);
 						dstbuf = posstr;
-						for(int offset=0; offset<val; offset++){
-							if(FAILED(getPreviousEyePosition(pos, offset))) break;
-							if(g_RecordingMode==RECORDING_MONOCULAR){
-								len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2]);
-							}else{
-								len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
+
+						if(val<0){ //from tail
+							val *= -1; //convert to positive value
+							for(int offset=0; offset<val; offset++){
+								if(FAILED(getPreviousEyePositionReverse(pos, offset))) break;
+								if(g_RecordingMode==RECORDING_MONOCULAR){
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2]);
+								}else{
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
+								}
+								dstbuf = dstbuf+len;
+								s -= len;
+								if(s<=96){//check overflow
+									len = sizeof(posstr)-s;
+									SDLNet_TCP_Send(g_SockSend,posstr,len);
+									s=sizeof(posstr);
+									dstbuf=posstr;
+								}
 							}
-							dstbuf = dstbuf+len;
-							s -= len;
-							if(s<=96){//check overflow
-								len = sizeof(posstr)-s;
-								posstr[len-1]='\0';
-								SDLNet_TCP_Send(g_SockSend,posstr,len);
-								s=sizeof(posstr);
-								dstbuf=posstr;
+						}else if(val>0){ //from head
+							for(int offset=0; offset<val; offset++){
+								if(FAILED(getPreviousEyePositionForward(pos, offset))) break;
+								if(g_RecordingMode==RECORDING_MONOCULAR){
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2]);
+								}else{
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
+								}
+								dstbuf = dstbuf+len;
+								s -= len;
+								if(s<=96){//check overflow
+									len = sizeof(posstr)-s;
+									SDLNet_TCP_Send(g_SockSend,posstr,len);
+									s=sizeof(posstr);
+									dstbuf=posstr;
+								}
+							}
+						}else{ //val==0: all
+							int offset=0;
+							while(SUCCEEDED(getPreviousEyePositionForward(pos, offset))){
+								if(g_RecordingMode==RECORDING_MONOCULAR){
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2]);
+								}else{
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
+								}
+								dstbuf = dstbuf+len;
+								s -= len;
+								if(s<=96){//check overflow
+									len = sizeof(posstr)-s;
+									SDLNet_TCP_Send(g_SockSend,posstr,len);
+									s=sizeof(posstr);
+									dstbuf=posstr;
+								}
+								offset++;
 							}
 						}
+
 						if(s!=sizeof(posstr)){
 							len = sizeof(posstr)-s;
-							posstr[len-1]='\0';
+							posstr[len-1]='\0'; //replace the last camma with \0
 							SDLNet_TCP_Send(g_SockSend,posstr,len);
 						}
 
