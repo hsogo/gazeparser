@@ -441,21 +441,24 @@ class BaseController(object):
                     else:
                         data += newData
         if hasGotEye:
-            retval = [int(x) for x in data.split(',')]
-            if self.isMonocularRecording:
-                #if recording mode is monocular, length of retval must be 3.
-                if len(retval) == 3:
-                    if getPupil:
-                        return retval
-                    else:
-                        return retval[:2]
-            else:
-                #if recording mode is binocular, length of retval must be 6.
-                if len(retval) == 6:
-                    if getPupil:
-                        return retval
-                    else:
-                        return retval[:4]
+            try:
+                retval = [int(x) for x in data.split(',')]
+                if self.isMonocularRecording:
+                    #if recording mode is monocular, length of retval must be 3.
+                    if len(retval) == 3:
+                        if getPupil:
+                            return retval
+                        else:
+                            return retval[:2]
+                else:
+                    #if recording mode is binocular, length of retval must be 6.
+                    if len(retval) == 6:
+                        if getPupil:
+                            return retval
+                        else:
+                            return retval[:4]
+            except:
+                print 'getEyePosition: non-float value is found in the received data.'
         
         #timeout or wrong data length
         if self.isMonocularRecording:
@@ -477,19 +480,19 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                #print 'GetEyePosition timeout'
+                #print 'GetEyePositionList timeout'
                 break
             [r,w,c] = select.select(self.readSockList,[],[],0)
             for x in r:
                 try:
-                    newData = x.recv(4096)
+                    newData = x.recv(8192)
                 except:
                     isInLoop = False
                 if newData:
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getEyePosition:', newData
+                            print 'getEyePositionList:', newData
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotEye = True
@@ -498,11 +501,15 @@ class BaseController(object):
                     else:
                         data += newData
         if hasGotEye:
-            retval = numpy.array([float(x) for x in data.split(',')])
-            if self.isMonocularRecording:
-                return retval.reshape((-1,3))
-            else:
-                return retval.reshape((-1,6))
+            try:
+                retval = numpy.array([float(x) for x in data.split(',')])
+                if self.isMonocularRecording:
+                    return retval.reshape((-1,3))
+                else:
+                    return retval.reshape((-1,6))
+            except:
+                print 'getEyePositionList: non-float value is found in the received data.'
+        
     
     def getCurrentMenuItem(self,timeout=0.2):
         """
@@ -595,13 +602,16 @@ class BaseController(object):
                     else:
                         data += newData
         if hasGotCal:
-            retval = [float(x) for x in data.split(',')]
-            if len(retval) == 4:
-                self.isMonocularRecording = True
-                return retval
-            elif len(retval) == 8:
-                self.isMonocularRecording = False
-                return retval
+            try:
+                retval = [float(x) for x in data.split(',')]
+                if len(retval) == 4:
+                    self.isMonocularRecording = True
+                    return retval
+                elif len(retval) == 8:
+                    self.isMonocularRecording = False
+                    return retval
+            except:
+                 print 'getCalibrationResults: non-float value is found in the received data.'
         
         return None
     
@@ -798,37 +808,40 @@ class BaseController(object):
             self.showCalImage = False
         
         if hasGotCal:
-            retval = [float(x) for x in data.split(',')]
-            if self.isMonocularRecording:
-                if len(retval)%4 != 0:
-                    print 'getCalibrationResultsDetail: illeagal data', retval
+            try:
+                retval = [float(x) for x in data.split(',')]
+                if self.isMonocularRecording:
+                    if len(retval)%4 != 0:
+                        print 'getCalibrationResultsDetail: illeagal data', retval
+                        self.drawCalibrationResults()
+                        return None
+                    
+                    for i in range(len(retval)/4):
+                        draw.line(
+                            ((retval[4*i]+self.calResultScreenOrigin[0],retval[4*i+1]+self.calResultScreenOrigin[1]),
+                            (retval[4*i+2]+self.calResultScreenOrigin[0],retval[4*i+3]+self.calResultScreenOrigin[1])),
+                            fill=32)
                     self.drawCalibrationResults()
-                    return None
-                
-                for i in range(len(retval)/4):
-                    draw.line(
-                        ((retval[4*i]+self.calResultScreenOrigin[0],retval[4*i+1]+self.calResultScreenOrigin[1]),
-                        (retval[4*i+2]+self.calResultScreenOrigin[0],retval[4*i+3]+self.calResultScreenOrigin[1])),
-                        fill=32)
-                self.drawCalibrationResults()
-            else:
-                if len(retval)%6 != 0:
-                    print 'getCalibrationResultsDetail: illeagal data', retval
+                else:
+                    if len(retval)%6 != 0:
+                        print 'getCalibrationResultsDetail: illeagal data', retval
+                        self.drawCalibrationResults()
+                        return None
+                    
+                    for i in range(len(retval)/6):
+                        draw.line(
+                            ((retval[6*i]+self.calResultScreenOrigin[0],retval[6*i+1]+self.calResultScreenOrigin[1]),
+                            (retval[6*i+2]+self.calResultScreenOrigin[0],retval[6*i+3]+self.calResultScreenOrigin[1])),
+                            fill=32)
+                        draw.line(
+                            ((retval[6*i]+self.calResultScreenOrigin[0],retval[6*i+1]+self.calResultScreenOrigin[1]),
+                            (retval[6*i+4]+self.calResultScreenOrigin[0],retval[6*i+5]+self.calResultScreenOrigin[1])),
+                            fill=224)
                     self.drawCalibrationResults()
-                    return None
                 
-                for i in range(len(retval)/6):
-                    draw.line(
-                        ((retval[6*i]+self.calResultScreenOrigin[0],retval[6*i+1]+self.calResultScreenOrigin[1]),
-                        (retval[6*i+2]+self.calResultScreenOrigin[0],retval[6*i+3]+self.calResultScreenOrigin[1])),
-                        fill=32)
-                    draw.line(
-                        ((retval[6*i]+self.calResultScreenOrigin[0],retval[6*i+1]+self.calResultScreenOrigin[1]),
-                        (retval[6*i+4]+self.calResultScreenOrigin[0],retval[6*i+5]+self.calResultScreenOrigin[1])),
-                        fill=224)
-                self.drawCalibrationResults()
-            
-            return None #Success
+                return None #Success
+            except:
+                print 'getCalibrationResultsDetail: non-float value is found in the received data.'
         
         self.drawCalibrationResults()
     
