@@ -112,6 +112,9 @@ class BaseController(object):
         else:
             self.clock = time.time
     
+    def isDummy(self):
+        return False
+    
     def setReceiveImageSize(self, size):
         """
         Set size of camera image sent from Tracker Host PC.
@@ -472,8 +475,12 @@ class BaseController(object):
             else:
                 return [None,None,None,None]
         
-    def getEyePositionList(self, n, timeout=0.02):
-        self.sendSock.send('getEyePositionList'+chr(0)+str(n)+chr(0))
+    def getEyePositionList(self, n, timeout=0.02, getPupil=False):
+        if getPupil:
+            getPupilFlagStr = '1'
+        else:
+            getPupilFlagStr = '0'
+        self.sendSock.send('getEyePositionList'+chr(0)+str(n)+chr(0)+getPupilFlagStr+chr(0))
         hasGotEye = False
         isInLoop = True
         data = ''
@@ -503,12 +510,77 @@ class BaseController(object):
         if hasGotEye:
             try:
                 retval = numpy.array([float(x) for x in data.split(',')])
-                if self.isMonocularRecording:
-                    return retval.reshape((-1,3))
-                else:
-                    return retval.reshape((-1,6))
             except:
                 print 'getEyePositionList: non-float value is found in the received data.'
+                #print data
+            
+            try:
+                if self.isMonocularRecording:
+                    if getPupil:
+                        return retval.reshape((-1,4))
+                    else:
+                        return retval.reshape((-1,3))
+                else:
+                    if getPupil:
+                        return retval.reshape((-1,7))
+                    else:
+                        return retval.reshape((-1,5))
+            except:
+                print 'getWholeEyePositionList: data was not successfully received.'
+                #print data
+        
+    
+    def getWholeEyePositionList(self, timeout=0.02, getPupil=False):
+        if getPupil:
+            getPupilFlagStr = '1'
+        else:
+            getPupilFlagStr = '0'
+        self.sendSock.send('getWholeEyePositionList'+chr(0)+getPupilFlagStr+chr(0))
+        hasGotEye = False
+        isInLoop = True
+        data = ''
+        startTime = self.clock()
+        while isInLoop:
+            if self.clock()-startTime > timeout:
+                #print 'GetWholeEyePositionList timeout'
+                break
+            [r,w,c] = select.select(self.readSockList,[],[],0)
+            for x in r:
+                try:
+                    newData = x.recv(8192)
+                except:
+                    isInLoop = False
+                if newData:
+                    if '\0' in newData:
+                        delimiterIndex = newData.index('\0')
+                        if delimiterIndex+1 < len(newData):
+                            print 'getWholeEyePositionList:', newData
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
+                        hasGotEye = True
+                        isInLoop = False
+                        break
+                    else:
+                        data += newData
+        if hasGotEye:
+            try:
+                retval = numpy.array([float(x) for x in data.split(',')])
+            except:
+                print 'getWholeEyePositionList: non-float value is found in the received data.'
+            
+            try:
+                if self.isMonocularRecording:
+                    if getPupil:
+                        return retval.reshape((-1,4))
+                    else:
+                        return retval.reshape((-1,3))
+                else:
+                    if getPupil:
+                        return retval.reshape((-1,7))
+                    else:
+                        return retval.reshape((-1,5))
+            except:
+                print 'getWholeEyePositionList: data was not successfully received.'
         
     
     def getCurrentMenuItem(self,timeout=0.2):
@@ -604,6 +676,10 @@ class BaseController(object):
         if hasGotCal:
             try:
                 retval = [float(x) for x in data.split(',')]
+            except:
+                 print 'getCalibrationResults: non-float value is found in the received data.'
+            
+            try:
                 if len(retval) == 4:
                     self.isMonocularRecording = True
                     return retval
@@ -611,7 +687,7 @@ class BaseController(object):
                     self.isMonocularRecording = False
                     return retval
             except:
-                 print 'getCalibrationResults: non-float value is found in the received data.'
+                print 'getCalibrationResults: data was not successfully received.'
         
         return None
     
@@ -810,6 +886,10 @@ class BaseController(object):
         if hasGotCal:
             try:
                 retval = [float(x) for x in data.split(',')]
+            except:
+                print 'getCalibrationResultsDetail: non-float value is found in the received data.'
+            
+            try:
                 if self.isMonocularRecording:
                     if len(retval)%4 != 0:
                         print 'getCalibrationResultsDetail: illeagal data', retval
@@ -838,10 +918,10 @@ class BaseController(object):
                             (retval[6*i+4]+self.calResultScreenOrigin[0],retval[6*i+5]+self.calResultScreenOrigin[1])),
                             fill=224)
                     self.drawCalibrationResults()
-                
-                return None #Success
             except:
-                print 'getCalibrationResultsDetail: non-float value is found in the received data.'
+                print  'getCalibrationResultsDetail: data was not successfully received.'
+            
+            return None #Success
         
         self.drawCalibrationResults()
     
@@ -1105,7 +1185,7 @@ class BaseController(object):
     def updateCalibrationTargetStimulusCallBack(self, t, index, targetPosition, currentPosition):
         """
         This method is called every time before updating calibration screen.
-        In default, this method do nothing.  If you want to update calibration
+        In default, This method does nothing.  If you want to update calibration
         target during calibration, override this method.
         
         Following parameters defined in the configuration file determine 
@@ -1781,6 +1861,38 @@ class ControllerPsychoPyBackend(BaseController):
             else:
                 return self.convertFromPix(e[:4], units) + e[4:]
     
+    #Override
+    def getEyePositionList(self, n, timeout=0.02, units='pix', getPupil=False):
+        e = BaseController.getEyePositionList(self, n, timeout, getPupil)
+        
+        if units=='pix':
+            return e
+        
+        if self.isMonocularRecording:
+            converted = self.convertFromPix(e[:,1:3].reshape((1,-1)), units)
+            e[:,1:3] = numpy.array(converted).reshape((-1,2))
+        else:
+            converted = self.convertFromPix(e[:,1:5].reshape((1,-1)), units)
+            e[:,1:5] = numpy.array(converted).reshape((-1,4))
+        
+        return e
+    
+    #Override
+    def getWholeEyePositionList(self, timeout=0.02, units='pix', getPupil=False):
+        e = BaseController.getWholeEyePositionList(self, timeout, getPupil)
+        
+        if units=='pix':
+            return e
+        
+        if self.isMonocularRecording:
+            converted = self.convertFromPix(e[:,1:3].reshape((1,-1)), units)
+            e[:,1:3] = numpy.array(converted).reshape((-1,2))
+        else:
+            converted = self.convertFromPix(e[:,1:5].reshape((1,-1)), units)
+            e[:,1:5] = numpy.array(converted).reshape((-1,4))
+        
+        return e
+    
     def getSpatialError(self, position=None, responseKey='space', message=None,  responseMouseButton=None,
                         gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey=None,
                         showMarker=False, showBackground=False, units='pix'):
@@ -2188,10 +2300,16 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         ControllerVisionEggBackend.__init__(self, configFile)
         #from pygame import mouse
         #self.mouse = mouse
+        self.mousePosList = []
+        self.lastMousePosIndex = 0
+        self.recStartTime = 0
+    
+    def isDummy(self):
+        return True
     
     def connect(self, address='', portSend=10000, portRecv=10001):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         if address=='':
             print 'connect to default IP address=%s (dummy)' % (self.TRACKER_IP_ADDRESS)
@@ -2200,13 +2318,13 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
     
     def openDataFile(self,filename):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'openDataFile (dummy): ' + filename
     
     def closeDataFile(self):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'close (dummy)'
     
@@ -2217,51 +2335,105 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         pos = self.VEmouse.get_pos()
         return (pos[0], self.screenHeight-pos[1])
     
+    def recordCurrentMousePos(self):
+        """
+        Record current mouse position.
+        This method is for debugging --- included only in dummy controller.
+        Therefore, make sure that your controller is dummy controller before 
+        calling this method.
+        
+        Example::
+        
+            if tracker.isDummy():
+                tracker.recordCurrentMousePos()
+        
+        """
+        pos = self.VEmouse.get_pos()
+        self.mousePosList.append([1000*(self.clock()-self.recStartTime), pos[0], self.screenHeight-pos[1], 0])
+    
+    def getEyePositionList(self, n, timeout=0.02, getPupil=False):
+        """
+        Dummy function for debugging. This method returns mouse position list.
+        Use recordCurrentMousePos() method to record mouse position.
+        """
+        l = len(self.mousePosList)
+        ml = numpy.array(self.mousePosList)
+        if n>0:
+            if getPupil:
+                return ml[-1:l-n-1:-1]
+            else:
+                return ml[-1:l-n-1:-1,:3]
+        else:
+            nn = min(l-self.lastMousePosIndex, -n)
+            self.lastMousePosIndex = l
+            if getPupil:
+                return ml[-1:l-nn-1:-1]
+            else:
+                return ml[-1:l-nn-1:-1,:3]
+    
+    def getWholeEyePositionList(self, timeout=0.02, getPupil=False):
+        """
+        Dummy function for debugging. This method returns mouse position list.
+        Use recordCurrentMousePos() method to record mouse position.
+        """
+        ml = numpy.array(self.mousePosList)
+        
+        if getPupil:
+            return ml
+        else:
+            return ml[:,:3]
+    
     def sendMessage(self, message):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'sendMessage (dummy): ' + message
     
     def sendSettings(self, configDict):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'sendSettings (dummy)'
     
     def startRecording(self, message='', wait=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'startRecording (dummy): ' + message
+        self.mousePosList = []
+        self.lastMousePosIndex = 0
+        self.recStartTime = self.clock()
     
     def stopRecording(self, message='', wait=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'stopRecording (dummy): ' + message
     
     def startMeasurement(self, message='', wait=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'startMeasurement (dummy): ' + message
+        self.mousePosList = []
+        self.lastMousePosIndex = 0
+        self.recStartTime = self.clock()
     
     def stopMeasurement(self, message='', wait=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'stopMeasurement (dummy): ' + message
     
     def getCurrentMenuItem(self,timeout=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         return 'Dummy Controller'
     
     def getCalibrationResults(self,timeout=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         return 'Dummy Results'
     
@@ -2279,7 +2451,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
     
     def getCalibrationResultsDetail(self,timeout=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         return None
     
@@ -2330,10 +2502,16 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         ControllerPsychoPyBackend.__init__(self, configFile)
         #from psychopy.event import Mouse
         #self.mouse = Mouse
+        self.mousePosList = []
+        self.lastMousePosIndex = 0
+        self.recStartTime = 0
+    
+    def isDummy(self):
+        return True
     
     def connect(self, address='', portSend=10000, portRecv=10001):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         if address=='':
             print 'connect to default IP address=%s (dummy)' % (self.TRACKER_IP_ADDRESS)
@@ -2342,13 +2520,13 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         
     def openDataFile(self,filename):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'openDataFile (dummy): ' + filename
     
     def closeDataFile(self):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'close (dummy)'
     
@@ -2362,51 +2540,113 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         else:
             return self.convertFromPix(self.convertToPix(e, self.win.units), units)
     
+    def recordCurrentMousePos(self):
+        """
+        Record current mouse position.
+        This method is for debugging --- included only in dummy controller.
+        Therefore, make sure that your controller is dummy controller before 
+        calling this method.
+        
+        Example::
+        
+            if tracker.isDummy():
+                tracker.recordCurrentMousePos()
+        
+        """
+        e = self.mouse.getPos()
+        if self.win.units!='pix':
+            e = self.convertToPix(e, self.win.units)  #record as 'pix'
+        self.mousePosList.append([1000*(self.clock()-self.recStartTime), e[0], e[1], 0])
+    
+    def getEyePositionList(self, n, timeout=0.02, units='pix', getPupil=False):
+        """
+        Dummy function for debugging. This method returns mouse position list.
+        Use recordCurrentMousePos() method to record mouse position.
+        """
+        l = len(self.mousePosList)
+        ml = numpy.array(self.mousePosList)
+        
+        if units!='pix':
+            ml[1:3] = self.convertFromPix(ml[1:3].reshape((1,-1)),units).reshape((-1,2))
+        
+        if n>0:
+            if getPupil:
+                return ml[-1:l-n-1:-1]
+            else:
+                return ml[-1:l-n-1:-1,:3]
+        else:
+            nn = min(l-self.lastMousePosIndex, -n)
+            self.lastMousePosIndex = l
+            if getPupil:
+                return ml[-1:l-nn-1:-1]
+            else:
+                return ml[-1:l-nn-1:-1,:3]
+        
+    def getWholeEyePositionList(self, timeout=0.02, units='pix', getPupil=False):
+        """
+        Dummy function for debugging. This method returns mouse position list.
+        Use recordCurrentMousePos() method to record mouse position.
+        """
+        ml = numpy.array(self.mousePosList)
+        if units!='pix':
+            ml[:,1:3] = numpy.array(self.convertFromPix(ml[:,1:3].reshape((1,-1)),units)).reshape((-1,2))
+        
+        if getPupil:
+            return ml
+        else:
+            return ml[:,:3]
+    
     def sendMessage(self, message):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'sendMessage (dummy): ' + message
     
     def sendSettings(self, configDict):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'sendSettings (dummy)'
     
     def startRecording(self, message='', wait=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'startRecording (dummy): ' + message
+        self.mousePosList = []
+        self.lastMousePosIndex = 0
+        self.recStartTime = self.clock()
     
     def stopRecording(self, message='', wait=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'stopRecording (dummy): ' + message
     
     def startMeasurement(self, message='', wait=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'startMeasurement (dummy): ' + message
+        self.mousePosList = []
+        self.lastMousePosIndex = 0
+        self.recStartTime = self.clock()
     
     def stopMeasurement(self, message='', wait=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         print 'stopMeasurement (dummy): ' + message
     
     def getCurrentMenuItem(self,timeout=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         return 'Dummy Controller'
     
     def getCalibrationResults(self,timeout=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         return 'Dummy Results'
     
@@ -2424,7 +2664,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     
     def getCalibrationResultsDetail(self,timeout=0.2):
         """
-        Dummy function for debugging. This method do nothing.
+        Dummy function for debugging. This method does nothing.
         """
         return None
     

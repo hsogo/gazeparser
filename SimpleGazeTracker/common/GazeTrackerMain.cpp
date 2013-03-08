@@ -105,6 +105,7 @@ int g_isShowDetectionErrorMsg = 0; /*!< Holds DetectionError message visibility.
 int g_isOutputPupilSize = 1; /*!< Holds whether pupil size is output to datafile.*/
 
 int g_DataCounter = 0;
+int g_LastSentDataCounter = 0;
 bool g_isRecording = false;
 bool g_isCalibrating = false;
 bool g_isValidating = false;
@@ -1733,6 +1734,7 @@ This function is called from sockProcess() when sockProcess() received "getEyePo
 @todo overflow is not concidered.
 
 @date 2013/03/06 created.
+@date 2013/03/08 return tickdata.
 */
 HRESULT getPreviousEyePositionForward(double* pos, int offset)
 {
@@ -1740,12 +1742,14 @@ HRESULT getPreviousEyePositionForward(double* pos, int offset)
 		return E_FAIL;
 	}
 	if(g_RecordingMode==RECORDING_MONOCULAR){
-		getGazePositionMono(g_EyeData[offset], pos);
-		pos[2] = g_PupilSizeData[offset][MONO_P];
+		pos[0] = g_TickData[offset];
+		getGazePositionMono(g_EyeData[offset], &pos[1]);
+		pos[3] = g_PupilSizeData[offset][MONO_P];
 	}else{
-		getGazePositionBin(g_EyeData[offset], pos);
-		pos[4] = g_PupilSizeData[offset][BIN_LP];
-		pos[5] = g_PupilSizeData[offset][BIN_RP];
+		pos[0] = g_TickData[offset];
+		getGazePositionBin(g_EyeData[offset], &pos[1]);
+		pos[5] = g_PupilSizeData[offset][BIN_LP];
+		pos[6] = g_PupilSizeData[offset][BIN_RP];
 	}
 	return S_OK;
 }
@@ -1757,26 +1761,46 @@ This function is called from sockProcess() when sockProcess() received "getEyePo
 
 @param[out] pos.
 @param[in] index.
+@param[in] newDataOnly.
 @return E_FAIL if offset is greater than number of data.
 @todo overflow is not concidered.
 
 @date 2013/02/28 created.
 @date 2013/03/06 renamed: getPreviousEyePosition -> getPreviousEyePositionReverse
+@date 2013/03/08 newDataOnly is added, return tickdata.
 */
-HRESULT getPreviousEyePositionReverse(double* pos, int offset)
+HRESULT getPreviousEyePositionReverse(double* pos, int offset, bool newDataOnly)
 {
-	if((g_DataCounter-1)-offset<0){ //One must be subtracted from g_DataCounter because it points next address.
+	int index = (g_DataCounter-1)-offset; //One must be subtracted from g_DataCounter because it points next address.
+
+	if(index<0){
+		return E_FAIL;
+	}
+	if(newDataOnly && index<=g_LastSentDataCounter){
 		return E_FAIL;
 	}
 	if(g_RecordingMode==RECORDING_MONOCULAR){
-		getGazePositionMono(g_EyeData[(g_DataCounter-1)-offset], pos);
-		pos[2] = g_PupilSizeData[(g_DataCounter-1)-offset][MONO_P];
+		pos[0] = g_TickData[index];
+		getGazePositionMono(g_EyeData[index], &pos[1]);
+		pos[3] = g_PupilSizeData[index][MONO_P];
 	}else{
-		getGazePositionBin(g_EyeData[(g_DataCounter-1)-offset], pos);
-		pos[4] = g_PupilSizeData[(g_DataCounter-1)-offset][BIN_LP];
-		pos[5] = g_PupilSizeData[(g_DataCounter-1)-offset][BIN_RP];
+		pos[0] = g_TickData[index];
+		getGazePositionBin(g_EyeData[index], &pos[1]);
+		pos[5] = g_PupilSizeData[index][BIN_LP];
+		pos[6] = g_PupilSizeData[index][BIN_RP];
 	}
 	return S_OK;
+}
+
+/*!
+updateLastSentDataCounter: update LastSentDataCounter.
+This function is called from sockProcess() when sockProcess() received "getEyePositionList" command.
+
+@date 2013/03/08 created.
+*/
+void updateLastSentDataCounter(void)
+{
+	g_LastSentDataCounter = g_DataCounter-1;
 }
 
 /*!

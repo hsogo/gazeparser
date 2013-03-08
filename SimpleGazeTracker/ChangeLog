@@ -1,7 +1,7 @@
 2013-xx-xx Hiroyuki Sogo
 
  release: 0.6.4
-  * "getEyePositionList" command is added to get a list of gaze position data.
+  * "getEyePositionList" and "getWholeEyePositionList" commands are added to get a list of gaze position data.
 
 2013-02-21 Hiroyuki Sogo
 
