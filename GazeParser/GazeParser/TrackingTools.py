@@ -113,6 +113,9 @@ class BaseController(object):
             self.clock = time.time
     
     def isDummy(self):
+        """
+        Returns True if this controller is dummy.
+        """
         return False
     
     def setReceiveImageSize(self, size):
@@ -2305,6 +2308,9 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         self.recStartTime = 0
     
     def isDummy(self):
+        """
+        Returns True if this controller is dummy.
+        """
         return True
     
     def connect(self, address='', portSend=10000, portRecv=10001):
@@ -2507,6 +2513,9 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         self.recStartTime = 0
     
     def isDummy(self):
+        """
+        Returns True if this controller is dummy.
+        """
         return True
     
     def connect(self, address='', portSend=10000, portRecv=10001):
