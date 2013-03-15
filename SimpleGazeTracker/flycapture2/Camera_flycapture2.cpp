@@ -72,7 +72,7 @@ int initCamera( const char* ParamPath )
 	FlyCapture2::Error error;
 	FlyCapture2::Mode mode;
 
-	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+	checkAndCopyFile(g_ParamPath, CAMERA_CONFIG_FILE, g_AppDirPath);
 
 	fs.open(str.c_str(),std::ios::in);
 	if(fs.is_open())

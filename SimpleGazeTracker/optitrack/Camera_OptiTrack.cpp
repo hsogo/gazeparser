@@ -70,7 +70,7 @@ int initCamera( const char* ParamPath )
 	str.append(PATH_SEPARATOR);
 	str.append(CAMERA_CONFIG_FILE);
 
-	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+	checkAndCopyFile(g_ParamPath, CAMERA_CONFIG_FILE, g_AppDirPath);
 
 	fs.open(str.c_str(),std::ios::in);
 	if(fs.is_open())

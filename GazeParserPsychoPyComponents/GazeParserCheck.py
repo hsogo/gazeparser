@@ -71,18 +71,21 @@ class GazeParserCheckComponent(BaseComponent):
             buff.writeIndented('GazeParserRes = GazeParserTracker.calibrationLoop()\n')
             buff.writeIndented('if GazeParserRes=="q":\n')
             buff.setIndentLevel(+1, relative=True)
-            buff.writeIndented('core.quit(0)\n')
+            buff.writeIndented('core.quit()\n')
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('if GazeParserTracker.isCalibrationFinished():\n')
             buff.setIndentLevel(+1, relative=True)
             buff.writeIndented('break\n\n')
             buff.setIndentLevel(-2, relative=True)
         if task in ['check', 'cal+check']:
-            buff.writeIndented('GazeParserTracker.verifyFixation(maxTry=%(maxtry)s, permissibleError=%(permerror)s ,key=%(key)s, \n' % (self.params))
+            buff.writeIndented('GazeParserRes=GazeParserTracker.verifyFixation(maxTry=%(maxtry)s, permissibleError=%(permerror)s ,key=%(key)s, \n' % (self.params))
             buff.writeIndented('    position=%(pos)s, mouseButton=%(mousebutton)s, units=%(units)s,\n' % (self.params))
             if self.params['message1'].val == self.params['message2'].val == self.params['message3'].val == '':
                 buff.writeIndented('    message=None)\n\n')
             else:
                 buff.writeIndented('    message=[%(message1)s, %(message2)s, %(message3)s])\n\n' % (self.params))
+            buff.writeIndented('if GazeParserRes=="q":\n')
+            buff.setIndentLevel(+1, relative=True)
+            buff.writeIndented('core.quit()\n')
+            buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('routineTimer.reset()\n')
-        
