@@ -57,8 +57,8 @@ class GazeParserInitComponent(BaseComponent):
             label="SimpleGazeTracker Data File")
         self.params['dummymode']=Param(dummymode, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="True if using dummy Mode, otherwise False.",
-            label="Dummy mode")
+            hint="Dummy mode",
+            label="Dummy Mode")
         self.params['units']=Param(units, valType='str', allowedVals=['deg', 'cm', 'pix', 'norm'],
             hint="Units for calibration area and calibration target positions",
             label="Units")
@@ -82,7 +82,7 @@ class GazeParserInitComponent(BaseComponent):
             buff.writeIndented('GazeParserRes = GazeParserTracker.calibrationLoop()\n')
             buff.writeIndented('if GazeParserRes=="q":\n')
             buff.setIndentLevel(+1, relative=True)
-            buff.writeIndented('core.quit()\n')
+            buff.writeIndented('core.quit(0)\n')
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('if GazeParserTracker.isCalibrationFinished():\n')
             buff.setIndentLevel(+1, relative=True)
