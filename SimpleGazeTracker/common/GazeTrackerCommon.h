@@ -185,10 +185,10 @@ extern void allowRendering(void);
 extern void inhibitRendering(void);
 
 //Camera.cpp
-extern int initCamera( const char* ParamPath );
+extern int initCamera( void );
 extern int getCameraImage( void );
 extern void cleanupCamera( void );
-extern void saveCameraParameters(const char* ParamPath);
+extern void saveCameraParameters( void );
 extern const char* getEditionString( void );
 
 //DetectEye.cpp
