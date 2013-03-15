@@ -32,7 +32,7 @@ import GazeParser.TrackingTools
 #(リストの順番は0番目から数える点に注意)
 
 stimList = []
-for lag in [1.8, 2.0, 2.2]:
+for lag in [1.3, 1.5, 1.7]:
     for xpos in [-400, 400]:
         for isi in [-0.2, -0.1, 0.0, 0.1, 0.2]:
             for iter in range(2): #各条件の試行を1ブロックあたり2回実施する
@@ -139,18 +139,14 @@ for blocks in range(BLOCKS):
         #計測の開始
         tracker.startRecording('START')
         
-        #1.0秒ブランク
-        win.flip()
-        psychopy.core.wait(1.0)
-        
         #時計初期化
         clock.reset()
         currentTime = 0.0
         
-        #ターゲットが出現してから0.5秒後まで繰り返す
+        #ターゲットが出現してから1秒後まで繰り返す
         #繰り返しの中で現在時刻を繰り返し参照しないのであれば
         #currentTimeという変数は不要でwhile文に直接clock.getTime() < stim[LAG]+...と書けばよい
-        while currentTime < stim[LAG]+stim[ISI]+0.5:
+        while currentTime < stim[LAG]+stim[ISI]+1.0:
             #メッセージを送る
             
             #stim[LAG]で指定された時間が経過していないなら最初の凝視点を描画

@@ -5,8 +5,8 @@
     <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
     <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
     <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
-    <Param name="Window size (pixels)" val="[1366, 768]" valType="code" updates="None"/>
-    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
+    <Param name="Window size (pixels)" val="[1920, 1200]" valType="code" updates="None"/>
+    <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
     <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
     <Param name="Save log file" val="True" valType="bool" updates="None"/>
     <Param name="Experiment info" val="{u'session': u'001', u'participant': u''}" valType="code" updates="None"/>
@@ -39,7 +39,7 @@
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
-        <Param name="letterHeight" val="24" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="36" valType="code" updates="constant"/>
       </TextComponent>
       <MouseComponent name="mouse">
         <Param name="name" val="mouse" valType="code" updates="None"/>
@@ -61,7 +61,7 @@
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="fixation" valType="code" updates="constant"/>
         <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
-        <Param name="stopVal" val="lag" valType="code" updates="constant"/>
+        <Param name="stopVal" val="$lag" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="mask" val="circle" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -73,7 +73,7 @@
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="1.0" valType="code" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="sf" val="None" valType="code" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="size" val="[20, 20]" valType="code" updates="constant"/>
@@ -84,7 +84,7 @@
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="target" valType="code" updates="constant"/>
         <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
-        <Param name="stopVal" val="0.5" valType="code" updates="constant"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="mask" val="circle" valType="str" updates="constant"/>
         <Param name="pos" val="[xpos, 0]" valType="code" updates="set every repeat"/>
@@ -96,7 +96,7 @@
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="1.0+lag+isi" valType="code" updates="None"/>
+        <Param name="startVal" val="$lag+isi" valType="code" updates="None"/>
         <Param name="sf" val="None" valType="code" updates="constant"/>
         <Param name="advancedParams"/>
         <Param name="size" val="[20, 20]" valType="code" updates="constant"/>
@@ -110,19 +110,19 @@
         <Param name="units" val="time (s)" valType="str" updates="None"/>
         <Param name="text" val="$'TARGET ON '+str(isi)" valType="str" updates="constant"/>
         <Param name="name" val="Msg_TargetOn" valType="code" updates="None"/>
-        <Param name="time" val="1.0+lag+isi" valType="code" updates="None"/>
+        <Param name="time" val="lag+isi" valType="code" updates="None"/>
       </GazeParserMessageComponent>
       <GazeParserMessageComponent name="Msg_FixOn">
         <Param name="units" val="time (s)" valType="str" updates="None"/>
         <Param name="text" val="FIX ON" valType="str" updates="constant"/>
         <Param name="name" val="Msg_FixOn" valType="code" updates="None"/>
-        <Param name="time" val="1.0" valType="code" updates="None"/>
+        <Param name="time" val="0" valType="code" updates="None"/>
       </GazeParserMessageComponent>
       <GazeParserMessageComponent name="Msg_lag">
         <Param name="units" val="time (s)" valType="str" updates="None"/>
         <Param name="text" val="$'LAG '+str(lag)" valType="str" updates="constant"/>
         <Param name="name" val="Msg_lag" valType="code" updates="None"/>
-        <Param name="time" val="1.0+lag" valType="code" updates="None"/>
+        <Param name="time" val="lag" valType="code" updates="None"/>
       </GazeParserMessageComponent>
     </Routine>
     <Routine name="init">
@@ -131,7 +131,7 @@
         <Param name="name" val="GazeParserInit" valType="code" updates="None"/>
         <Param name="calibration" val="True" valType="bool" updates="constant"/>
         <Param name="trconfigfile" val="TrackingToolsVGA.cfg" valType="str" updates="constant"/>
-        <Param name="dummymode" val="True" valType="bool" updates="constant"/>
+        <Param name="dummymode" val="False" valType="bool" updates="constant"/>
         <Param name="caltargetpos" val="[[0,0],[-350,-250],[-350,0],[-350,250],&#10;[0,-250],[0,0],[0,250],&#10;[350,-250],[350,0],[350,250]]" valType="code" updates="constant"/>
         <Param name="units" val="pix" valType="str" updates="None"/>
         <Param name="calarea" val="[-400,-300,400,300]" valType="code" updates="constant"/>
@@ -147,11 +147,12 @@
         <Param name="message3" val="再調整が必要です。実験者を呼んでください。" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="message1" val="機器の調整を確認します。中央の四角を注視してマウスの左ボタンをクリックしてください。" valType="str" updates="constant"/>
-        <Param name="message2" val="中央の四角を注視してもう一度マウスの左ボタンをクックしてください。" valType="str" updates="constant"/>
+        <Param name="message2" val="中央の視覚を注視してもう一度マウスの左ボタンをクックしてください。" valType="str" updates="constant"/>
         <Param name="mode" val="check" valType="str" updates="None"/>
         <Param name="key" val="'space'" valType="code" updates="constant"/>
         <Param name="units" val="pix" valType="str" updates="None"/>
         <Param name="maxtry" val="3" valType="code" updates="constant"/>
+        <Param name="advancedParams"/>
       </GazeParserCheckComponent>
     </Routine>
     <Routine name="thanks">
