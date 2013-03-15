@@ -996,7 +996,7 @@ int main(int argc, char** argv)
 	renderInitMessages(nInitMessage,"sockAccept ... OK.");
 	nInitMessage += 1;
 	
-	if(FAILED(initCamera(g_ParamPath.c_str()))){
+	if(FAILED(initCamera())){
 		g_LogFS << "initCamera failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"initCamera failed. Exit.");
 		sleepMilliseconds(2000);
@@ -1204,7 +1204,7 @@ int main(int argc, char** argv)
 
 	cleanupCamera();
 	saveParameters();
-	saveCameraParameters(g_ParamPath.c_str());
+	saveCameraParameters();
 	cleanup();
 	SDL_Quit();
     return 0;

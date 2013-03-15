@@ -6,6 +6,8 @@
 
 @date 2012/03/23
 - Custom menu is supported.
+@date 2013/03/15
+- Filename is renamed. (Camera_interface.cpp -> Camera_gpc5300.cpp)
 */
 
 #define _CRT_SECURE_NO_DEPRECATE
@@ -56,17 +58,19 @@ initCamera: Initialize camera.
 Read parameters from the configuration file, start camera and set callback function.
 @attention If there are custom camera menu items, number of custom menu items must be set to g_CustomMenuNum in this function.
 
-@param[in] ParamPath Path to the camera configuration file.
 @return int
 @retval S_OK Camera is successfully initialized.
 @retval E_FAIL Initialization is failed.
 @note This function is necessary when you customize this file for your camera.
 @todo check whether number of custom menus are too many.
+
+@date 2013/03/15
+- Argument "ParamPath" was removed. Use g_ParamPath instead.
  */
-int initCamera( const char* ParamPath )
+int initCamera( void )
 {
-	INT				ret;
-	DWORD			BufSize;
+	INT ret;
+	DWORD BufSize;
 	IFCMLCAPFMT     CapFmt;
 	std::string     str;
 
@@ -83,7 +87,7 @@ int initCamera( const char* ParamPath )
 		return E_FAIL;
 	}
 
-	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+	checkAndCopyFile(g_ParamPath, CAMERA_CONFIG_FILE, g_AppDirPath);
 
 	str.assign(g_ParamPath);
 	str.append(PATH_SEPARATOR);
@@ -198,8 +202,11 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 @param[in] ParamPath Path to the camera configuration file.
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
+
+@date 2013/03/15
+- Argument "ParamPath" was removed. Use g_ParamPath instead.
  */
-void saveCameraParameters(const char* ParamPath)
+void saveCameraParameters( void )
 {
 	// no custom parameters for this camera
 	return;

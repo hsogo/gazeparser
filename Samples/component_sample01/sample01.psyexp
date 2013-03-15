@@ -1,0 +1,111 @@
+<PsychoPy2experiment version="1.75.02" encoding="utf-8">
+  <Settings>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
+    <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
+    <Param name="Window size (pixels)" val="[1366, 768]" valType="code" updates="None"/>
+    <Param name="Full-screen window" val="True" valType="bool" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Experiment info" val="{u'participant': u''}" valType="code" updates="None"/>
+    <Param name="Save excel file" val="False" valType="bool" updates="None"/>
+    <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="expName" val="sample01" valType="str" updates="None"/>
+    <Param name="logging level" val="exp" valType="code" updates="None"/>
+    <Param name="Units" val="pix" valType="str" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Saved data folder" val="" valType="code" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
+  </Settings>
+  <Routines>
+    <Routine name="trial">
+      <ImageComponent name="image">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="image" valType="code" updates="constant"/>
+        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
+        <Param name="stopVal" val="10" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="mask" val="None" valType="str" updates="constant"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="interpolate" val="" valType="str" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="pix" valType="str" updates="None"/>
+        <Param name="texture resolution" val="128" valType="code" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="image" val="'stimimage/'+$photo" valType="str" updates="set every repeat"/>
+        <Param name="advancedParams"/>
+        <Param name="size" val="[650, 450]" valType="code" updates="constant"/>
+      </ImageComponent>
+      <GazeParserRecComponent name="GazeParserRec">
+        <Param name="stopmsg" val="END TRIAL" valType="str" updates="constant"/>
+        <Param name="name" val="GazeParserRec" valType="code" updates="None"/>
+        <Param name="startmsg" val="TRIAL" valType="str" updates="constant"/>
+      </GazeParserRecComponent>
+      <GazeParserMessageComponent name="Msg_fixcount">
+        <Param name="units" val="time (s)" valType="str" updates="None"/>
+        <Param name="text" val="$fixcountmsg" valType="str" updates="constant"/>
+        <Param name="name" val="Msg_fixcount" valType="code" updates="None"/>
+        <Param name="time" val="0" valType="code" updates="None"/>
+      </GazeParserMessageComponent>
+      <GazeParserMessageComponent name="Msg_stimimage">
+        <Param name="units" val="time (s)" valType="str" updates="None"/>
+        <Param name="text" val="$'!STIMIMAGE '+$photo+' -325 325 -225 225'" valType="str" updates="constant"/>
+        <Param name="name" val="Msg_stimimage" valType="code" updates="None"/>
+        <Param name="time" val="0" valType="code" updates="None"/>
+      </GazeParserMessageComponent>
+    </Routine>
+    <Routine name="init">
+      <GazeParserInitComponent name="GazeParserInit">
+        <Param name="datafile" val="$expInfo['participant']+'.csv'" valType="str" updates="constant"/>
+        <Param name="name" val="GazeParserInit" valType="code" updates="None"/>
+        <Param name="calibration" val="True" valType="bool" updates="constant"/>
+        <Param name="trconfigfile" val="TrackingToolsVGA.cfg" valType="str" updates="constant"/>
+        <Param name="dummymode" val="False" valType="bool" updates="constant"/>
+        <Param name="caltargetpos" val="[[0,0],[-350,-250],[-350,0],[-350,250],&#10;[0,-250],[0,0],[0,250],&#10;[350,-250],[350,0],[350,250]]" valType="code" updates="constant"/>
+        <Param name="units" val="pix" valType="str" updates="None"/>
+        <Param name="calarea" val="[-400,-300,400,300]" valType="code" updates="constant"/>
+        <Param name="ipaddress" val="192.168.11.15" valType="str" updates="constant"/>
+        <Param name="gpconfigfile" val="GazeParserPP.cfg" valType="str" updates="constant"/>
+      </GazeParserInitComponent>
+    </Routine>
+    <Routine name="check">
+      <GazeParserCheckComponent name="GazeParserCheck">
+        <Param name="permerror" val="48" valType="code" updates="constant"/>
+        <Param name="name" val="GazeParserCheck" valType="code" updates="None"/>
+        <Param name="mousebutton" val="0" valType="code" updates="constant"/>
+        <Param name="message3" val="再調整が必要です　実験者を呼んでください" valType="str" updates="constant"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="message1" val="四角を見つめてスペースキーを押してください" valType="str" updates="constant"/>
+        <Param name="message2" val="もう一度スペースキーを押してください" valType="str" updates="constant"/>
+        <Param name="mode" val="check" valType="str" updates="None"/>
+        <Param name="key" val="'space'" valType="code" updates="constant"/>
+        <Param name="units" val="pix" valType="str" updates="None"/>
+        <Param name="maxtry" val="3" valType="code" updates="constant"/>
+      </GazeParserCheckComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="init"/>
+    <LoopInitiator loopType="TrialHandler" name="trials">
+      <Param name="conditionsFile" val="sample01.xlsx" valType="str" updates="None"/>
+      <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="random seed" val="" valType="code" updates="None"/>
+      <Param name="loopType" val="random" valType="str" updates="None"/>
+      <Param name="nReps" val="1" valType="code" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="[{u'photo': u'img/se_013.jpg', u'fixcountmsg': u'!FIXINREGION FACE 0 None RECT 432 574 96 230'}, {u'photo': u'img/se_098.jpg', u'fixcountmsg': u'!FIXINREGION FACE 0 None RECT 179 398 102 247'}, {u'photo': u'img/se_141.jpg', u'fixcountmsg': u'!FIXINREGION FACE 0 None RECT 107 255 57 182'}]" valType="str" updates="None"/>
+    </LoopInitiator>
+    <Routine name="check"/>
+    <Routine name="trial"/>
+    <LoopTerminator name="trials"/>
+  </Flow>
+</PsychoPy2experiment>

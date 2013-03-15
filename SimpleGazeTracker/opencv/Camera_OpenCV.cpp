@@ -100,7 +100,6 @@ initCamera: Initialize camera.
 Read parameters from the configuration file, start camera and set callback function.
 @attention If there are custom camera menu items, number of custom menu items must be set to g_CustomMenuNum in this function.
 
-@param[in] ParamPath Path to the camera configuration file.
 @return int
 @retval S_OK Camera is successfully initialized.
 @retval E_FAIL Initialization is failed.
@@ -110,11 +109,13 @@ Read parameters from the configuration file, start camera and set callback funct
 @date 2012/11/05
 - Section header [SimpleGazeTrackerOpenCV] is supported.
 - spaces and tabs around '=' are removed.
+@date 2013/03/15
+- Argument "ParamPath" was removed. Use g_ParamPath instead.
  */
-int initCamera( const char* ParamPath )
+int initCamera( void )
 {
 	std::fstream fs;
-	std::string str;
+	std::string fname;
 	char *p,*pp;
 	char buff[1024];
 	double param;
@@ -122,16 +123,16 @@ int initCamera( const char* ParamPath )
 	
 	int cameraID = 0;
 
-	str = ParamPath;
-	str.append(PATH_SEPARATOR);
-	str.append(CAMERA_CONFIG_FILE);
+	fname = g_ParamPath.c_str();
+	fname.append(PATH_SEPARATOR);
+	fname.append(CAMERA_CONFIG_FILE);
 
 	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
 
-	fs.open(str.c_str(),std::ios::in);
+	fs.open(fname.c_str(),std::ios::in);
 	if(fs.is_open())
 	{
-		g_LogFS << "Open camera configuration file (" << str << ")" << std::endl;
+		g_LogFS << "Open camera configuration file (" << fname << ")" << std::endl;
 		while(fs.getline(buff,sizeof(buff)-1))
 		{
 			if(buff[0]=='#') continue;
@@ -208,7 +209,7 @@ int initCamera( const char* ParamPath )
 		}
 		fs.close();
 	}else{
-		g_LogFS << "ERROR: failed to open camera configuration file (" << str << ")" << std::endl;
+		g_LogFS << "ERROR: failed to open camera configuration file (" << fname << ")" << std::endl;
 		return E_FAIL;
 	}
 
@@ -359,8 +360,11 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 @param[in] ParamPath Path to the camera configuration file.
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
+
+@date 2013/03/15
+- Argument "ParamPath" was removed. Use g_ParamPath instead.
  */
-void saveCameraParameters(const char* ParamPath)
+void saveCameraParameters( void )
 {
 	// no custom parameters for this camera
 	return;
