@@ -233,7 +233,9 @@ class BaseController(object):
         if address=='':
             address = self.TRACKER_IP_ADDRESS
         
-        print 'Request connection...'
+        print 'Tracker IP address:' + address
+        print 'Port send:%d  receive:%d' % (portSend, portRecv)
+        print 'Request connection ...'
         self.sendSock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.sendSock.connect((address,portSend))
         self.sendSock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
