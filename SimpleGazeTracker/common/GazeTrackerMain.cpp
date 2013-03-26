@@ -305,18 +305,22 @@ Following parameters are wrote to the configuration file.
 @date 2012/07/26 DELAY_CORRECTION, PORT_SEND and PORT_RECV are supported.
 @date 2012/09/28 OUTPUT_PUPILSIZE is supported.
 @date 2012/11/05 section name [SimpleGazeTrackerCommon] is output.
+@date 2013/03/26 Output log message.
 */
 void saveParameters( void )
 {
 	std::fstream fs;
-	std::string str(g_ParamPath);
+	std::string fname(g_ParamPath);
 
-	str.append(PATH_SEPARATOR);
-	str.append("CONFIG");
+	fname.append(PATH_SEPARATOR);
+	fname.append("CONFIG");
 
-	fs.open(str.c_str(),std::ios::out);
+	g_LogFS << "Saving parameters to "<< fname << "..." << std::endl;
+
+	fs.open(fname.c_str(),std::ios::out);
 	if(!fs.is_open())
 	{
+		g_LogFS << "Error: can't open " << fname << "." << std::endl;
 		return;
 	}
 
@@ -453,9 +457,12 @@ cleanup: release malloced buffers.
 @return No value is returned.
 
 @date 2012/04/06 release buffers.
+@date 2013/03/26 output log message.
 */
-void cleanup()
+void cleanup( void )
 {
+	g_LogFS << "Release buffers..." << std::endl;
+	
 	if( g_frameBuffer != NULL )
 	{
         free(g_frameBuffer);
@@ -882,10 +889,15 @@ main: Entry point of the application
 - EOG-SimpleGazeTracker concurrent recording mode is appended
 @date 2012/12/13
 - Change conditions for rendering screen (!g_isRecording -> g_isShowingCameraImage)
+@date 2013/03/26
+- Add log messages.
 */
 int main(int argc, char** argv)
 {
 	int index;
+	time_t t;
+	struct tm *ltm;
+	char datestr[256];
 	//argv[0] must be copied to resolve application directory later.
 	//see getApplicationDirectoryPath() in PratformDependent.cpp 
 	g_AppDirPath.assign(argv[0]);
@@ -913,6 +925,10 @@ int main(int argc, char** argv)
 	str.append(" ");
 	str.append(getEditionString());
 	g_LogFS << str << std::endl;
+	time(&t);
+	ltm = localtime(&t);
+	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
+	g_LogFS << datestr << std::endl;
 	
 	//if CONFIG file is not found, copy it.
 	if(FAILED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
@@ -940,8 +956,6 @@ int main(int argc, char** argv)
 		return -1;
 	}
 	g_LogFS << "initParameters ... OK." << std::endl;
-
-	//TODO output parameters here?
 
 	initTimer();
 	//TODO output timer initialization results?
@@ -1201,11 +1215,19 @@ int main(int argc, char** argv)
 	}
 	//end mainloop
 
+	g_LogFS << "Shutting down.\nDoing camera-specific cleanup..." << std::endl;
 	cleanupCamera();
 	saveParameters();
+	g_LogFS << "Saving Camera-specific parameters..." << std::endl;
 	saveCameraParameters();
 	cleanup();
+	g_LogFS << "Shutdown SDL..." << std::endl;
 	SDL_Quit();
+	time(&t);
+	ltm = localtime(&t);
+	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
+	g_LogFS << datestr << std::endl;
+	g_LogFS << "Done." << std::endl;
     return 0;
 }
 

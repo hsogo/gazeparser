@@ -167,6 +167,9 @@ int checkAndCreateDirectory(std::string path)
 }
 
 int checkAndRenameFile(std::string path)
+/*@
+Check whether file exists. If the file exists, ".n" (n=0,1,2,...) is appended to the filename.
+*/
 {
 	std::string strTo(path);
 	std::stringstream ss;

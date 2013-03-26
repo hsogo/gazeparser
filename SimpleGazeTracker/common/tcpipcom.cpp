@@ -56,9 +56,13 @@ sockClose: Close sockets.
 
 @return int
 @retval S_OK
+
+@date 2013/03/25 edit log message.
 */
 int sockClose(void)
 {
+	g_LogFS << "Closing sockets..." << std::endl;
+
 	if(g_SockRecv){
 		SDLNet_TCP_Close(g_SockRecv);
 		SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
@@ -80,6 +84,8 @@ sockConnect: Connect socket to the client PC to send data.
 @return int
 @retval S_OK
 @retval E_FAIL
+
+@date 2013/03/25 edit log message.
 */
 int sockConnect(const char* host)
 {
@@ -106,18 +112,21 @@ sockConnectIP: Connect socket to the client PC to send data.
 @return int
 @retval S_OK
 @retval E_FAIL
+
+@date 2013/03/25 edit log message.
 */
 int sockConnectIP(IPaddress* ip)
 {
+	g_LogFS << "Opening sending socket" << std::endl;
+	
 	ip->port = htons(g_PortSend);
-
+	
 	g_SockSend= SDLNet_TCP_Open(ip);
 	if(!g_SockSend){
 		g_LogFS << "ERROR: failed to open sending socket" << std::endl;
 		return E_FAIL;
 	}
-	g_LogFS << "open sending socket" << std::endl;
-
+	
     return S_OK;
 }
 
@@ -127,10 +136,15 @@ sockAccept: Accept connection request from the client PC.
 @return int
 @retval S_OK
 @retval E_FAIL
+
+@date 2013/03/25 edit log message.
 */
 int sockAccept(void)
 {
 	IPaddress ip;
+	
+	g_LogFS << "Opening server socket..." << std::endl;
+	
 	if(SDLNet_ResolveHost(&ip, NULL, g_PortRecv)==-1){
 		g_LogFS << "ERROR: failed to resolve host" << std::endl;
 		return E_FAIL;
@@ -141,8 +155,7 @@ int sockAccept(void)
 		g_LogFS << "ERROR: failed to open server socket" << std::endl;
 		return E_FAIL;
 	}
-
-	g_LogFS << "open server socket" << std::endl;
+	
     return S_OK;
 }
 
@@ -165,7 +178,7 @@ This function parses commands sent from the Client PC and call appropriate funct
 - "toggleCalResult" command receives a parameter which specifies on/off of calibration results.
 - TCP/IP connection is closed when SDLNet_SocketReady() failed.
 */
-int sockProcess(void)
+int sockProcess( void )
 {
 	char buff[RECV_BUFFER_SIZE];
 	SDL_Event sdlEvent;
@@ -176,21 +189,23 @@ int sockProcess(void)
 		g_SockRecv = SDLNet_TCP_Accept(g_SockServ);
 
 		if(g_SockRecv){
-			g_LogFS << "open receiving socket" << std::endl;
+			g_LogFS << "Open receiving socket:" << g_SockRecv << std::endl;
 			SDLNet_TCP_AddSocket(g_SocketSet, g_SockRecv);
 			IPaddress* remote_ip;
 			remote_ip = SDLNet_TCP_GetPeerAddress(g_SockRecv);
 			if(!remote_ip){
-				g_LogFS << "could not get remote IP address" << std::endl;
+				g_LogFS << "ERROR: could not get remote IP address." << std::endl;
 				SDLNet_TCP_Close(g_SockRecv);
 				g_SockRecv = NULL;
-				g_LogFS << "close receiving socket" << std::endl;
+				g_LogFS << "ERROR: close receiving socket." << std::endl;
 			}else{
+				g_LogFS << "Connecting to " << remote_ip << "..." << std::endl;
 				if(FAILED(sockConnectIP(remote_ip)))
 				{
+					g_LogFS << "ERROR: could not connect to " << remote_ip << std::endl;
 					SDLNet_TCP_Close(g_SockRecv);
 					g_SockRecv = NULL;
-					g_LogFS << "close receiving socket" << std::endl;
+					g_LogFS << "ERROR: close receiving socket." << std::endl;
 				}
 			}
 		}
@@ -267,7 +282,7 @@ int sockProcess(void)
 						}
 						if(index+1 != g_ROIWidth*g_ROIHeight)
 						{
-							g_LogFS << "Error: Image size is not matched." << std::endl;
+							g_LogFS << "ERROR: Image size is not matched." << std::endl;
 							index = g_ROIWidth*g_ROIHeight;
 						}
 						g_SendImageBuffer[index+1] = 0;
