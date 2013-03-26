@@ -331,7 +331,7 @@ class BaseController(object):
         message = '/'.join(configlist)
         self.sendSock.send('insertSettings'+chr(0)+message+chr(0))
     
-    def startRecording(self,message='', wait=0.1):
+    def startRecording(self, message='', wait=0.1):
         """
         Send a command to start recording.
         Message can be inserted to describe trial condition and so on.
@@ -351,7 +351,7 @@ class BaseController(object):
         self.sendSock.send('startRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
     
-    def stopRecording(self,message='', wait=0.1):
+    def stopRecording(self, message='', wait=0.1):
         """
         Send a command to stop recording.
         Message can be inserted to describe exit code and so on.
