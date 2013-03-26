@@ -70,7 +70,18 @@ void sleepMilliseconds(int duration)
 #ifdef _WIN32
 	Sleep(duration);
 #else
-	usleep(duration*1000);
+	//usleep(duration*1000);
+	struct timespec ts;
+	if(duration>=1000){
+		int msec;
+		msec = duration%1000;
+		ts.tv_sec = (duration-msec)/1000;
+		ts.tv_nsec = msec*1000*1000;
+	}else{
+		ts.tv_sec = 0;
+		ts.tv_nsec = duration*1000*1000;
+	}
+	nanosleep(&ts, NULL);
 #endif
 }
 
