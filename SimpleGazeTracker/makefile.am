@@ -1,10 +1,10 @@
-bin_PROGRAMS=simplegazetracker
-simplegazetracker_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp\
+bin_PROGRAMS=sgtsrv
+sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp\
     common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
     opencv/Camera_OpenCV.cpp opencv/GazeTracker.h
 
-simplegazetracker_LDADD=$(OPENCV_LIBS) $(SDL_LIBS)
-simplegazetracker_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS)
+sgtsrv_LDADD=$(OPENCV_LIBS) $(SDL_LIBS)
+sgtsrv_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS)
 
 bindir=$(prefix)/@PACKAGE@
 datadir=$(prefix)/@PACKAGE@
