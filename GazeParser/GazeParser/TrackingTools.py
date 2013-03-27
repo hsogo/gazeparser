@@ -1283,6 +1283,43 @@ class BaseController(object):
                     numTry = 0
         
         time.sleep(0.5)
+    
+    def isBinocularMode(self, timeout=0.2):
+        self.sendCommand('isBinocularMode'+chr(0))
+        hasGot = False
+        isInLoop = True
+        data = ''
+        startTime = self.clock()
+        while isInLoop:
+            if self.clock()-startTime > timeout:
+                print 'timeout'
+                break
+            [r,w,c] = select.select(self.readSockList,[],[],0)
+            for x in r:
+                try:
+                    newData = x.recv(4096)
+                except:
+                    print 'recv error in isBinocularMode'
+                    isInLoop = False
+                if newData:
+                    if '\0' in newData:
+                        delimiterIndex = newData.index('\0')
+                        if delimiterIndex+1 < len(newData):
+                            print 'isBinocularMode', newData
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
+                        hasGotCal = True
+                        isInLoop = False
+                        break
+                    else:
+                        data += newData
+    	try:
+            if int(data[0])==1:
+                return True
+            else:
+                return False
+    	except:
+    	    raise RuntimeError
 
 class ControllerVisionEggBackend(BaseController):
     """
@@ -1590,7 +1627,7 @@ class ControllerVisionEggBackend(BaseController):
             retval = (error, errorL, errorR, eyepos)
         
         return retval
-
+    
 class ControllerPsychoPyBackend(BaseController):
     """
     SimpleGazeTracker controller for PsychoPy.
@@ -2277,6 +2314,12 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
             self.showCalImage = False
         self.messageText = 'Dummy Results'
     
+    def isBinocularMode(self, timeout=0.2):
+        """
+        Currently dummy controller emulates only monocular recording.
+        """
+        return False;
+
 class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     """
     Dummy controller for PsychoPy.
@@ -2422,6 +2465,11 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
             self.showCalImage = False
         self.messageText = 'Dummy Results'
     
+    def isBinocularMode(self, timeout=0.2):
+        """
+        Currently dummy controller emulates only monocular recording.
+        """
+        return False;
 
 def getController(backend, configFile=None, dummy=False):
     """

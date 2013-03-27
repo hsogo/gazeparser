@@ -183,6 +183,7 @@ extern void startMeasurement(void);
 extern void stopMeasurement(void);
 extern void allowRendering(void);
 extern void inhibitRendering(void);
+extern bool isBinocularMode(void);
 
 //Camera.cpp
 extern int initCamera( void );

@@ -1215,7 +1215,7 @@ int main(int argc, char** argv)
 	}
 	//end mainloop
 
-	g_LogFS << "Shutting down.\nDoing camera-specific cleanup..." << std::endl;
+	g_LogFS << "\nShutting down.\nDoing camera-specific cleanup..." << std::endl;
 	cleanupCamera();
 	saveParameters();
 	g_LogFS << "Saving Camera-specific parameters..." << std::endl;
@@ -1667,6 +1667,8 @@ This function is called from sockProcess() when sockProcess() received "insertSe
 
 @param[in] settings.
 @return No value is returned.
+@2013/03/27
+- original string is recovered to prevent parser error in sockProcess().
 */
 void insertSettings(char* settings)
 {
@@ -1686,6 +1688,7 @@ void insertSettings(char* settings)
 			{
 				*p2 = '\0';
 				fprintf(g_DataFP,"%s\n",p1);
+				*p2 = '/';
 				p1 = p2+1;
 			}
 		}
@@ -1903,4 +1906,19 @@ void inhibitRendering(void)
 {
 	g_isInhibitRendering = true;
 }
+
+/*!
+isBinocularMode: check recording mode.
+
+@return True if binocular mode.
+@date 2013/03/26 Created.
+*/
+bool isBinocularMode(void)
+{
+	if(g_RecordingMode==RECORDING_BINOCULAR)
+		return true;
+	else
+		return false;
+}
+
 

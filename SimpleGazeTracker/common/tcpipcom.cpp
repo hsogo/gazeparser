@@ -572,7 +572,23 @@ int sockProcess( void )
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
-					}					
+					}
+					else if(strcmp(buff+nextp,"isBinocularMode")==0)
+					{
+						int len;
+						char str[8];
+
+						if(isBinocularMode()){
+							len = snprintf(str,sizeof(str),"1");
+						}else{
+							len = snprintf(str,sizeof(str),"0");
+						}
+						str[len+1] = '\0';
+						SDLNet_TCP_Send(g_SockSend,str,len+1);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}				
 					else
 					{
 						return E_FAIL;
