@@ -1438,6 +1438,7 @@ This function is called from sockProcess() when sockProcess() received "startRec
 -output data format.
 -Tracker version is output when datafile is opened.
 @date 2012/12/05 output message to log file.
+@date 2013/03/27 clear g_MessageBuffer.
 */
 void startRecording(const char* message)
 {
@@ -1477,6 +1478,7 @@ void startRecording(const char* message)
 		clearData();
 		g_DataCounter = 0;
 		g_MessageEnd = 0;
+		g_MessageBuffer[0] = '\0';
 		g_isRecording = true;
 		g_isShowingCameraImage = false;
 		g_isShowingCalResult = false;
@@ -1623,6 +1625,7 @@ if number of messages reached to MAXMESSAGE, messages are written to the file im
 @return No value is returned.
 
 @2012/07/26 support DelayCorrection.
+@2013/03/27 clear g_MessageBuffer when overflow is detected.
 */
 void insertMessage(char* message)
 {
@@ -1636,6 +1639,7 @@ void insertMessage(char* message)
 		fprintf(g_DataFP,"#OVERFLOW_FLUSH_MESSAGES,%.3f\n",ctd);
 		fflush(g_DataFP);
 		g_MessageEnd = 0;
+		g_MessageBuffer[0] = '\0';
 	}
 }
 
@@ -1793,6 +1797,15 @@ HRESULT getPreviousEyePositionReverse(double* pos, int offset, bool newDataOnly)
 }
 
 /*!
+getMessageBufferPointer: returns a pointer to g_MessageBuffer.
+@date 2013/03/27 Created.
+*/
+char* getMessageBufferPointer( void )
+{
+	return g_MessageBuffer;
+}
+
+/*!
 updateLastSentDataCounter: update LastSentDataCounter.
 This function is called from sockProcess() when sockProcess() received "getEyePositionList" command.
 
@@ -1898,6 +1911,7 @@ This function is called from sockProcess() when sockProcess() received "startMea
 @return No value is returned.
 @date 2012/07/17 Created.
 @date 2012/12/13 g_isShowingCameraImage = true during measurement.
+@date 2013/03/27 clear g_MessageBuffer.
 */
 void startMeasurement(void)
 {
@@ -1905,6 +1919,7 @@ void startMeasurement(void)
 		clearData();
 		g_DataCounter = 0;
 		g_MessageEnd = 0;
+		g_MessageBuffer[0] = '\0';
 		g_isRecording = true;
 		g_isShowingCameraImage = true;
 		g_isShowingCalResult = false;

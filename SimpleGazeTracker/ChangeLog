@@ -2,6 +2,8 @@
 
  release: 0.6.4
   * "getEyePositionList" and "getWholeEyePositionList" commands are added to get a list of gaze position data.
+  * "getWholeMessageList" command is added to get a list of messages with timestamp.
+  * A bug in message initialization at the begining of recording is fixed.
 
 2013-02-21 Hiroyuki Sogo
 

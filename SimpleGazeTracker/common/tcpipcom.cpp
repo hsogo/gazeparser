@@ -597,6 +597,17 @@ int sockProcess(void)
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
 					}
+					else if(strcmp(buff+nextp,"getWholeMessageList")==0)
+					{
+						char *msgp;
+						size_t len;
+						msgp = getMessageBufferPointer();
+						len = strlen(msgp);
+						SDLNet_TCP_Send(g_SockSend,msgp,len);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
 					else if(strcmp(buff+nextp,"getCalResults")==0)
 					{
 						int len;

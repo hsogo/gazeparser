@@ -50,7 +50,7 @@
 #define MAXCALDATA 7200 // 120*30sec, 393*18.3sec
 #define MAXCALPOINT 60
 #define MAXCALSAMPLEPERPOINT (MAXCALDATA/MAXCALPOINT)
-#define MAXMESSAGE 65536
+#define MAXMESSAGE 262144
 
 #define PORT_RECV        10000
 #define PORT_SEND        10001
@@ -182,6 +182,7 @@ extern void connectionClosed(void);
 extern void getEyePosition(double* pos);
 extern HRESULT getPreviousEyePositionForward(double* pos, int offset);
 extern HRESULT getPreviousEyePositionReverse(double* pos, int offset, bool newDataOnly);
+extern char* getMessageBufferPointer( void );
 extern void updateLastSentDataCounter(void);
 extern void saveCameraImage(const char* filename);
 extern void startMeasurement(void);

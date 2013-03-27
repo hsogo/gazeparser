@@ -529,7 +529,7 @@ class BaseController(object):
                     else:
                         return retval.reshape((-1,5))
             except:
-                print 'getWholeEyePositionList: data was not successfully received.'
+                print 'getEyePositionList: data was not successfully received.'
                 #print data
         
     
@@ -585,6 +585,49 @@ class BaseController(object):
             except:
                 print 'getWholeEyePositionList: data was not successfully received.'
         
+    
+    def getWholeMessageList(self,timeout=0.2):
+        self.sendSock.send('getWholeMessageList'+chr(0))
+        hasGotData = False
+        isInLoop = True
+        data = ''
+        startTime = self.clock()
+        while isInLoop:
+            if self.clock()-startTime > timeout:
+                #print 'GetWholeEyePositionList timeout'
+                break
+            [r,w,c] = select.select(self.readSockList,[],[],0)
+            for x in r:
+                try:
+                    newData = x.recv(8192)
+                except:
+                    isInLoop = False
+                if newData:
+                    if '\0' in newData:
+                        delimiterIndex = newData.index('\0')
+                        if delimiterIndex+1 < len(newData):
+                            print 'getWholeMessageList:', newData
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
+                        hasGotData = True
+                        isInLoop = False
+                        break
+                    else:
+                        data += newData
+        ret = []
+        try:
+            msglist = data.split('\n')
+            for msg in msglist:
+                m = msg.split(',')
+                if(len(m)==3):
+                    ret.append([float(m[1]),m[2]])
+                elif(len(m)>3):
+                    ret.append([float(m[1]),','.join(m[2:])])
+        except:
+            print 'getWholeMessageList:conversion failed - possibly failure in data transfer'
+            return []
+        
+        return ret
     
     def getCurrentMenuItem(self,timeout=0.2):
         """
