@@ -1,9 +1,18 @@
+2013-xx-xx Hiroyuki Sogo
+
+ release: 0.6.4
+  * "getEyePositionList" and "getWholeEyePositionList" commands are added to get a list of gaze position data.
+  * "getWholeMessageList" command is added to get a list of messages with timestamp.
+  * Moving-average mode is added to "getEyePosition" command.
+  * A bug in message initialization at the begining of recording is fixed.
+
 2013-02-21 Hiroyuki Sogo
 
   * "isBinocularMode" command is added.
   * Bug in "insertSettings" command is fixed (Command after inserteSettings was ignored).
 
  release: 0.6.3
+  * SimpleGazeTracker FlyCapture2 edition is added.
   * Detailed error message is output when CONFIG is not found in the installation directory.
   * Camera image is visible between "startMeasurement" and "stopMeasurement" command.
   * SimpleGazeTracker checks CONFIG and copy default CONFIG when CONFIG is not found.

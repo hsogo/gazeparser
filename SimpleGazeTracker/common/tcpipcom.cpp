@@ -21,7 +21,7 @@
 #include	<stdio.h>
 #include	<fstream>
 
-#define RECV_BUFFER_SIZE	1024
+#define RECV_BUFFER_SIZE	4096
 
 TCPsocket g_SockRecv; /*!< Socket for receiving */
 TCPsocket g_SockSend; /*!< Socket for sending */
@@ -177,6 +177,10 @@ This function parses commands sent from the Client PC and call appropriate funct
 @date 2012/11/02 
 - "toggleCalResult" command receives a parameter which specifies on/off of calibration results.
 - TCP/IP connection is closed when SDLNet_SocketReady() failed.
+@date 2013/03/06
+- "getEyePositionList" command is added.
+@date 2013/03/08
+- "getWholeEyePositionList" command is added.
 */
 int sockProcess( void )
 {
@@ -460,10 +464,18 @@ int sockProcess( void )
 					}
 					else if(strcmp(buff+nextp,"getEyePosition")==0)
 					{
+						char* param = buff+nextp+15;
+						char* p;
+						int nSamples;
 						double pos[6];
-						char posstr[96];
+						char posstr[256];
 						int len;
-						getEyePosition(pos);
+
+						nSamples = strtol(param, &p, 10);
+						if(nSamples<1) nSamples=1;
+
+						getEyePosition(pos, nSamples);
+
 						if(g_RecordingMode==RECORDING_MONOCULAR){
 							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f",pos[0],pos[1],pos[2]);
 						}else{
@@ -471,6 +483,152 @@ int sockProcess( void )
 						}
 						posstr[len+1]='\0';
 						SDLNet_TCP_Send(g_SockSend,posstr,len+1);
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getEyePositionList")==0)
+					{
+						char* param = buff+nextp+19;
+						char* p, *dstbuf;
+						int val, len, s, numGet;
+						bool bGetPupil;
+
+						double pos[7];
+						char posstr[8192];
+						bool newDataOnly;
+
+						val = strtol(param, &p, 10);
+						if(*p=='1'){
+							bGetPupil = true;
+						}else{
+							bGetPupil = false;
+						}
+
+						s=sizeof(posstr);
+						dstbuf = posstr;
+						numGet = 0;
+
+						if(val<0){
+							newDataOnly = true;
+							val *= -1;
+						}else{
+							newDataOnly = false;
+						}
+
+						for(int offset=0; offset<val; offset++){
+							if(FAILED(getPreviousEyePositionReverse(pos, offset, newDataOnly))) break;
+							if(g_RecordingMode==RECORDING_MONOCULAR){
+								if(bGetPupil)
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3]);
+								else
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2]);
+							}else{
+								if(bGetPupil)
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5],pos[6]);
+								else
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4]);
+							}
+							numGet++;
+							dstbuf = dstbuf+len;
+							s -= len;
+							if(s<=96){//check overflow
+								len = sizeof(posstr)-s;
+								SDLNet_TCP_Send(g_SockSend,posstr,len);
+								s=sizeof(posstr);
+								dstbuf=posstr;
+							}
+						}
+
+						if(numGet<=0){ //no data.
+							posstr[0]='\0';
+							SDLNet_TCP_Send(g_SockSend,posstr,1);
+						}
+
+						updateLastSentDataCounter();
+
+						if(s!=sizeof(posstr)){
+							len = sizeof(posstr)-s;
+							posstr[len-1]='\0'; //replace the last camma with \0
+							SDLNet_TCP_Send(g_SockSend,posstr,len);
+						}
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getWholeEyePositionList")==0){
+						char* param = buff+nextp+24;
+						char* dstbuf;
+						int len, s, numGet;
+						bool bGetPupil;
+
+						double pos[7];
+						char posstr[8192];
+
+						if(param[0]=='1'){
+							bGetPupil = true;
+						}else{
+							bGetPupil = false;
+						}
+
+						s=sizeof(posstr);
+						dstbuf = posstr;
+						numGet = 0;
+
+						int offset=0;
+						while(SUCCEEDED(getPreviousEyePositionForward(pos, offset))){
+							if(g_RecordingMode==RECORDING_MONOCULAR){
+								if(bGetPupil)
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3]);
+								else
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2]);
+							}else{
+								if(bGetPupil)
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5],pos[6]);
+								else
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4]);
+							}
+							numGet++;
+							dstbuf = dstbuf+len;
+							s -= len;
+							if(s<=96){//check overflow
+								len = sizeof(posstr)-s;
+								SDLNet_TCP_Send(g_SockSend,posstr,len);
+								s=sizeof(posstr);
+								dstbuf=posstr;
+							}
+							offset++;
+						}
+
+						if(numGet<=0){ //no data.
+							posstr[0]='\0';
+							SDLNet_TCP_Send(g_SockSend,posstr,1);
+						}
+
+						if(s!=sizeof(posstr)){
+							len = sizeof(posstr)-s;
+							posstr[len-1]='\0'; //replace the last camma with \0
+							SDLNet_TCP_Send(g_SockSend,posstr,len);
+						}
+
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
+					}
+					else if(strcmp(buff+nextp,"getWholeMessageList")==0)
+					{
+						char *msgp;
+						size_t len;
+						msgp = getMessageBufferPointer();
+						len = strlen(msgp);
+						SDLNet_TCP_Send(g_SockSend,msgp,len);
 
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
@@ -614,4 +772,3 @@ int sockProcess( void )
 
 	return S_OK;
 }
-

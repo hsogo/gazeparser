@@ -15,6 +15,8 @@
 - change version number
 @date 2013/02/14
 - change version number
+@date 2013/03/06
+- added: getPreviousEyePositionForward, getPreviousEyePositionReverse
 */
 
 
@@ -48,19 +50,20 @@
 #define MAXCALDATA 7200 // 120*30sec, 393*18.3sec
 #define MAXCALPOINT 60
 #define MAXCALSAMPLEPERPOINT (MAXCALDATA/MAXCALPOINT)
-#define MAXMESSAGE 65536
+#define MAXMESSAGE 262144
 
 #define PORT_RECV        10000
 #define PORT_SEND        10001
 
 //Error codes
 #define E_FIRST_ERROR_CODE -10000
-#define E_PUPIL_PURKINJE_DETECTION_FAIL -10000 
+#define E_PUPIL_PURKINJE_DETECTION_FAIL -10000
 #define E_MULTIPLE_PUPIL_CANDIDATES     -10001
 #define E_NO_PUPIL_CANDIDATE            -10002
 #define	E_NO_PURKINJE_CANDIDATE         -10003
 #define E_MULTIPLE_PURKINJE_CANDIDATES  -10004
 #define E_NO_FINE_PUPIL_CANDIDATE       -10005
+#define E_NAN_IN_MOVING_AVERAGE         -10006
 #define S_PUPIL_PURKINJE                     0
 #define E_NO_PUPILSIZE                       0
 
@@ -177,7 +180,11 @@ extern void closeDataFile(void);
 extern void insertMessage(char* message);
 extern void insertSettings(char* settings);
 extern void connectionClosed(void);
-extern void getEyePosition(double* pos);
+extern void getEyePosition(double* pos, int nSamples);
+extern HRESULT getPreviousEyePositionForward(double* pos, int offset);
+extern HRESULT getPreviousEyePositionReverse(double* pos, int offset, bool newDataOnly);
+extern char* getMessageBufferPointer( void );
+extern void updateLastSentDataCounter(void);
 extern void saveCameraImage(const char* filename);
 extern void startMeasurement(void);
 extern void stopMeasurement(void);
