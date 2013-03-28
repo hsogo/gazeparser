@@ -21,7 +21,7 @@
 #include	<stdio.h>
 #include	<fstream>
 
-#define RECV_BUFFER_SIZE	1024
+#define RECV_BUFFER_SIZE	4096
 
 TCPsocket g_SockRecv; /*!< Socket for receiving */
 TCPsocket g_SockSend; /*!< Socket for sending */
@@ -449,10 +449,18 @@ int sockProcess(void)
 					}
 					else if(strcmp(buff+nextp,"getEyePosition")==0)
 					{
+						char* param = buff+nextp+15;
+						char* p;
+						int nSamples;
 						double pos[6];
-						char posstr[96];
+						char posstr[256];
 						int len;
-						getEyePosition(pos);
+
+						nSamples = strtol(param, &p, 10);
+						if(nSamples<1) nSamples=1;
+
+						getEyePosition(pos, nSamples);
+
 						if(g_RecordingMode==RECORDING_MONOCULAR){
 							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f",pos[0],pos[1],pos[2]);
 						}else{
@@ -461,6 +469,8 @@ int sockProcess(void)
 						posstr[len+1]='\0';
 						SDLNet_TCP_Send(g_SockSend,posstr,len+1);
 
+						while(buff[nextp]!=0) nextp++;
+						nextp++;
 						while(buff[nextp]!=0) nextp++;
 						nextp++;
 					}
@@ -731,4 +741,3 @@ int sockProcess(void)
 
 	return S_OK;
 }
-

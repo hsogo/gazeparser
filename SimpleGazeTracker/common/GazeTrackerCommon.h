@@ -57,12 +57,13 @@
 
 //Error codes
 #define E_FIRST_ERROR_CODE -10000
-#define E_PUPIL_PURKINJE_DETECTION_FAIL -10000 
+#define E_PUPIL_PURKINJE_DETECTION_FAIL -10000
 #define E_MULTIPLE_PUPIL_CANDIDATES     -10001
 #define E_NO_PUPIL_CANDIDATE            -10002
 #define	E_NO_PURKINJE_CANDIDATE         -10003
 #define E_MULTIPLE_PURKINJE_CANDIDATES  -10004
 #define E_NO_FINE_PUPIL_CANDIDATE       -10005
+#define E_NAN_IN_MOVING_AVERAGE         -10006
 #define S_PUPIL_PURKINJE                     0
 #define E_NO_PUPILSIZE                       0
 
@@ -179,7 +180,7 @@ extern void closeDataFile(void);
 extern void insertMessage(char* message);
 extern void insertSettings(char* settings);
 extern void connectionClosed(void);
-extern void getEyePosition(double* pos);
+extern void getEyePosition(double* pos, int nSamples);
 extern HRESULT getPreviousEyePositionForward(double* pos, int offset);
 extern HRESULT getPreviousEyePositionReverse(double* pos, int offset, bool newDataOnly);
 extern char* getMessageBufferPointer( void );

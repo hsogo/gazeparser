@@ -401,7 +401,7 @@ class BaseController(object):
         self.sendSock.send('stopMeasurement'+chr(0))
         time.sleep(wait)
     
-    def getEyePosition(self, timeout=0.02, getPupil=False):
+    def getEyePosition(self, timeout=0.02, getPupil=False, ma=1):
         """
         Send a command to get current gaze position.
         
@@ -410,6 +410,10 @@ class BaseController(object):
             Nones are returned. Unit is second. Default value is 0.02
         :param bool getPupil:
             If true, pupil size is returned with gaze position.
+        :param int ma:
+            If this value is 1, the latest position is returned. If more than 1,
+            moving average of the latest N samples is returned (N is equal to 
+            the value of this parameter). Default value is 1.
         :return:
             When recording mode is monocular, return value is a tuple of 2 or 3
             elements.  The first two elements represents holizontal(X) and
@@ -419,7 +423,9 @@ class BaseController(object):
             is (Left X, Left Y, Right X, Right Y). If getPupil is True, return
             value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
         """
-        self.sendSock.send('getEyePosition'+chr(0))
+        if ma<1:
+            raise ValueError, 'ma must be equal or larger than 1.'
+        self.sendSock.send('getEyePosition'+chr(0)+str(ma)+chr(0))
         hasGotEye = False
         isInLoop = True
         data = ''
@@ -624,7 +630,7 @@ class BaseController(object):
                 elif(len(m)>3):
                     ret.append([float(m[1]),','.join(m[2:])])
         except:
-            print 'getWholeMessageList:conversion failed - possibly failure in data transfer'
+            print 'getWholeMessageList:conversion failed - possibly failure in data transfer.'
             return []
         
         return ret
@@ -1348,7 +1354,7 @@ class BaseController(object):
     
     def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None, position=None,
                        gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey='m',
-                       showMarker=False, showBackground=False):
+                       showMarker=False, showBackground=False, ma=1):
         """
         Verify spatial error of measurement. If spatial error is larger than a
         given amount, calibration loop is automatically called and velification
@@ -1399,6 +1405,10 @@ class BaseController(object):
         :param bool showBackground:
             If True, gaze marker is visible when getSpatialError is called.
             Default value is False.
+        :param int ma:
+            If this value is 1, the latest position is used. If more than 1,
+            moving average of the latest N samples is used (N is equal to 
+            the value of this parameter). Default value is 1.
         
         :return:
             If calibration is terminated by 'q' key, 'q' is returned.
@@ -1420,7 +1430,7 @@ class BaseController(object):
         error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton, position=None,
                                      gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
                                      toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
-                                     showMarker=showMarker, showBackground=showBackground)
+                                     showMarker=showMarker, showBackground=showBackground, ma=ma)
         if error[0]!=None and error[0] < permissibleError:
             time.sleep(0.5)
             return error
@@ -1430,7 +1440,7 @@ class BaseController(object):
             error = self.getSpatialError(message=message[1], responseKey=key, responseMouseButton=mouseButton, position=None,
                                          gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
                                          toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
-                                         showMarker=showMarker, showBackground=showBackground)
+                                         showMarker=showMarker, showBackground=showBackground, ma=ma)
             if error[0]!=None and error[0] < permissibleError:
                 time.sleep(0.5)
                 return error
@@ -1442,7 +1452,7 @@ class BaseController(object):
                     error = self.getSpatialError(message=message[2], responseKey=key, responseMouseButton=mouseButton, position=None,
                                                  gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
                                                  toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
-                                                 showMarker=showMarker, showBackground=showBackground)
+                                                 showMarker=showMarker, showBackground=showBackground, ma=ma)
                     self.removeCalibrationResults()
                     while True:
                         res = self.calibrationLoop()
@@ -1878,7 +1888,7 @@ class ControllerPsychoPyBackend(BaseController):
         BaseController.setCalibrationTargetPositions(self,pixArea,pixCalposlist)
     
     #Override
-    def getEyePosition(self, timeout=0.02, units='pix', getPupil=False):
+    def getEyePosition(self, timeout=0.02, units='pix', getPupil=False, ma=1):
         """
         Send a command to get current gaze position.
         
@@ -1889,6 +1899,10 @@ class ControllerPsychoPyBackend(BaseController):
             and 'pix' are accepted.  Default value is 'pix'.
         :param bool getPupil:
             If true, pupil size is returned with gaze position.
+        :param int ma:
+            If this value is 1, the latest position is returned. If more than 1,
+            moving average of the latest N samples is returned (N is equal to 
+            the value of this parameter). Default value is 1.
         :return:
             When recording mode is monocular, return value is a tuple of 2 or 3
             elements. The first two elements represents holizontal(X) and
@@ -1898,7 +1912,9 @@ class ControllerPsychoPyBackend(BaseController):
             is (Left X, Left Y, Right X, Right Y). If getPupil is True, return
             value is (Left X, Left Y, Right X, Right Y, Left Pupil, Right Pupil).
         """
-        e = BaseController.getEyePosition(self, timeout, getPupil=getPupil)
+        if ma<1:
+            raise ValueError, 'ma must be equal or larger than 1.'
+        e = BaseController.getEyePosition(self, timeout, getPupil=getPupil, ma=ma)
         if getPupil:
             return self.convertFromPix(e, units)
         else:
@@ -2228,7 +2244,7 @@ class ControllerPsychoPyBackend(BaseController):
     
     def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None, position=None,
                        gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey='m',
-                       showMarker=False, showBackground=False, units='pix'):
+                       showMarker=False, showBackground=False, ma=1, units='pix'):
         """
         Verify spatial error of measurement. If spatial error is larger than a
         given amount, calibration loop is automatically called and velification
@@ -2279,6 +2295,10 @@ class ControllerPsychoPyBackend(BaseController):
         :param bool showBackground:
             If True, gaze marker is visible when getSpatialError is called.
             Default value is False.
+        :param int ma:
+            If this value is 1, the latest position is used. If more than 1,
+            moving average of the latest N samples is used (N is equal to 
+            the value of this parameter). Default value is 1.
         :param str units: units of 'area' and 'calposlist'.  'norm', 'height',
             'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
         
@@ -2302,7 +2322,7 @@ class ControllerPsychoPyBackend(BaseController):
         error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton, position=None,
                                      gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
                                      toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
-                                     showMarker=showMarker, showBackground=showBackground, units=units)
+                                     showMarker=showMarker, showBackground=showBackground, ma=ma, units=units)
         if error[0]!=None and error[0] < permissibleError:
             time.sleep(0.5)
             return error
@@ -2312,7 +2332,7 @@ class ControllerPsychoPyBackend(BaseController):
             error = self.getSpatialError(message=message[1], responseKey=key, responseMouseButton=mouseButton, position=None,
                                          gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
                                          toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
-                                         showMarker=showMarker, showBackground=showBackground, units=units)
+                                         showMarker=showMarker, showBackground=showBackground, ma=ma, units=units)
             
             if error[0]!=None and error[0] < permissibleError:
                 time.sleep(0.5)
@@ -2325,7 +2345,7 @@ class ControllerPsychoPyBackend(BaseController):
                     error = self.getSpatialError(message=message[2], responseKey=key, responseMouseButton=mouseButton, position=None,
                                                  gazeMarker=gazeMarker, backgroundStimuli=backgroundStimuli,
                                                  toggleMarkerKey=toggleMarkerKey, toggleBackgroundKey=toggleBackgroundKey,
-                                                 showMarker=showMarker, showBackground=showBackground, units=units)
+                                                 showMarker=showMarker, showBackground=showBackground, ma=ma, units=units)
                     self.removeCalibrationResults()
                     while True:
                         res = self.calibrationLoop()
@@ -2377,7 +2397,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         print 'close (dummy)'
     
-    def getEyePosition(self, timeout=0.02):
+    def getEyePosition(self, timeout=0.02, ma=1):
         """
         Dummy function for debugging. This method returns current mouse position.
         """
@@ -2582,7 +2602,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         print 'close (dummy)'
     
-    def getEyePosition(self, timeout=0.02, units='pix'):
+    def getEyePosition(self, timeout=0.02, units='pix', ma=1):
         """
         Dummy function for debugging. This method returns current mouse position.
         """
