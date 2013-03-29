@@ -17,3 +17,13 @@ FreeSans.ttf
 #simplegazetracker
 autom4te.cache/
 
+#automake
+#to generate these files, exec following commands.
+# aclocal
+# autoheader
+# automake --add-missing
+# autoconf
+aclocal.m4
+configure
+makefile.in
+
