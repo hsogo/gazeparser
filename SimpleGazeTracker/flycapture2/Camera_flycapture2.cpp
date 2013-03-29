@@ -25,7 +25,14 @@ FlyCapture2::Image g_rawImage;
 int g_OffsetX = 0;
 int g_OffsetY = 0;
 int g_CameraMode = 1;
-float g_FrameRate = 250;
+float g_FrameRate = 200;
+
+SDL_Thread *g_pThread;
+bool g_runThread;
+
+int g_SleepDuration = 0;
+bool g_isThreadMode = true;
+
 
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
 
@@ -40,6 +47,36 @@ getEditionString: Get edition string.
 const char* getEditionString(void)
 {
 	return EDITION;
+}
+
+/*!
+captureCameraThread: Capture camera image using thread.
+
+*/
+int captureCameraThread(void *unused)
+{
+	FlyCapture2::Error error;
+	
+	while(g_runThread)
+	{
+		//double t;
+		//t = getCurrentTime();
+		error = g_FC2Camera.RetrieveBuffer( &g_rawImage );
+		//t = getCurrentTime()-t;
+		//g_LogFS << t << std::endl;
+		if(error == FlyCapture2::PGRERROR_OK)
+		{
+			memcpy(g_frameBuffer, g_rawImage.GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
+			g_NewFrameAvailable = true;
+			
+            if(g_SleepDuration>0.0)
+            {
+                sleepMilliseconds(g_SleepDuration);
+            }
+		}
+	}
+
+    return 0;
 }
 
 
@@ -129,6 +166,17 @@ int initCamera( void )
 			else if(strcmp(buff,"CAMERA_MODE")==0)
 			{
 				g_CameraMode = (int)param;
+			}
+			else if(strcmp(buff,"SLEEP_DURATION")==0)
+			{
+				g_SleepDuration = (int)param;
+			}
+			else if(strcmp(buff,"USE_THREAD")==0)
+			{
+				if((int)param!=0)
+				{
+					g_isThreadMode = true;
+				}
 			}
 		}
 		fs.close();
@@ -271,6 +319,27 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
+	//start thread if necessary
+	if(g_isThreadMode)
+	{
+        g_runThread = true;
+        g_pThread = SDL_CreateThread(captureCameraThread, NULL);
+        if(g_pThread==NULL)
+        {
+            g_LogFS << "ERROR: failed to start thread" << std::endl;
+            g_runThread = false;
+            return E_FAIL;
+        }
+        else
+        {
+            g_LogFS << "Start CameraThread" << std::endl;
+        }
+	}
+    else
+    {
+        g_LogFS << "Start without threading" << std::endl;
+    }
+
 	return S_OK;
 }
 
@@ -286,12 +355,23 @@ int getCameraImage( void )
 {
 	FlyCapture2::Error error;
 
-	error = g_FC2Camera.RetrieveBuffer( &g_rawImage );
-	if(error == FlyCapture2::PGRERROR_OK)
-	{
-		memcpy(g_frameBuffer, g_rawImage.GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-		g_NewFrameAvailable = true;
-		return S_OK;
+    if(g_isThreadMode)
+    {
+        if(g_NewFrameAvailable)
+        {
+            g_NewFrameAvailable = false;
+            return S_OK;
+        }
+    }
+    else // non-threading mode
+    {
+		error = g_FC2Camera.RetrieveBuffer( &g_rawImage );
+		if(error == FlyCapture2::PGRERROR_OK)
+		{
+			memcpy(g_frameBuffer, g_rawImage.GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
+			g_NewFrameAvailable = true;
+			return S_OK;
+		}
 	}
 
 	return E_FAIL;
