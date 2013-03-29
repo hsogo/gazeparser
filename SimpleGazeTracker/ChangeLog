@@ -1,4 +1,4 @@
-2013-xx-xx Hiroyuki Sogo
+2013-03-29 Hiroyuki Sogo
 
  release: 0.6.4
   * Threading-mode is added to SimpleGazeTracker FlyCapture2 edition. Two options (USE_THREAD, SLEEP_DURATION) are added.
