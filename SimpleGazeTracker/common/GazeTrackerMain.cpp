@@ -1838,7 +1838,7 @@ This function is called from sockProcess() when sockProcess() received "getEyePo
 @date 2013/03/08 return tickdata.
 @date 2013/03/28 check error code.
 */
-HRESULT getPreviousEyePositionForward(double* pos, int offset)
+int getPreviousEyePositionForward(double* pos, int offset)
 {
 	if((g_DataCounter-1)<offset){ //One must be subtracted from g_DataCounter because it points next address.
 		return E_FAIL;
@@ -1885,7 +1885,7 @@ This function is called from sockProcess() when sockProcess() received "getEyePo
 @date 2013/03/08 newDataOnly is added, return tickdata.
 @date 2013/03/28 check error code.
 */
-HRESULT getPreviousEyePositionReverse(double* pos, int offset, bool newDataOnly)
+int getPreviousEyePositionReverse(double* pos, int offset, bool newDataOnly)
 {
 	int index = (g_DataCounter-1)-offset; //One must be subtracted from g_DataCounter because it points next address.
 
