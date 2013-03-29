@@ -499,7 +499,7 @@ class BaseController(object):
             by each call. In this case, part of samples transfered by the second 
             call is overlapped with those transfered by the first call.
             
-            ..note: setting value far below/above from zero will take long time,
+            .. note:: setting value far below/above from zero will take long time,
                resulting failure in data acquisition and/or stimulus presentation.
                 
         :param float timeout:
@@ -587,7 +587,7 @@ class BaseController(object):
         It is recommended that this method is called immediately after 
         :func:`~GazeParser.TrackingTools.BaseController.stopRecording` is called.
         
-        ..note: This method can be called during recording - but please note 
+        .. note:: This method can be called during recording - but please note 
             that this method takes tens or hundreds milliseconds. It may cause 
             failure in data acquisition and/or stimulus presentation.
         
@@ -675,7 +675,7 @@ class BaseController(object):
         It is recommended that this method is called immediately after 
         :func:`~GazeParser.TrackingTools.BaseController.stopRecording` is called.
         
-        ..note: This method can be called during recording - but please note 
+        .. note:: This method can be called during recording - but please note 
             that this method takes tens or hundreds milliseconds. It may cause 
             failure in data acquisition and/or stimulus presentation.
         
