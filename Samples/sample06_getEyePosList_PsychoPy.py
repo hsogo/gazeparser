@@ -131,7 +131,7 @@ while True:
         canvas.setImage(image)
     if 'space' in keyList:
         data = tracker.getEyePositionList(numSamples)
-        if len(data)>2:
+        if data!=None and len(data)>2:
             for i in range(len(data)-1):
                 if -win.size[0]/2>data[i,1] or win.size[0]/2<data[i,1] or -win.size[0]/2>data[i+1,1] or win.size[0]/2<data[i+1,1]:
                     continue
