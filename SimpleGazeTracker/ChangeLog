@@ -1,6 +1,7 @@
 2013-xx-xx Hiroyuki Sogo
 
  release: 0.6.4
+  * Threading-mode is added to SimpleGazeTracker FlyCapture2 edition. Two options (USE_THREAD, SLEEP_DURATION) are added.
   * "getEyePositionList" and "getWholeEyePositionList" commands are added to get a list of gaze position data.
   * "getWholeMessageList" command is added to get a list of messages with timestamp.
   * Moving-average mode is added to "getEyePosition" command.

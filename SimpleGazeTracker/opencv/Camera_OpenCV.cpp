@@ -176,6 +176,10 @@ int initCamera( void )
 				{
 					g_isThreadMode = true;
 				}
+				else
+				{
+					g_isThreadMode = false;
+				}
 			}
 			else if(strcmp(buff,"CAMERA_ID")==0)
 			{
@@ -350,8 +354,11 @@ cleanupCamera: release camera resources.
 */
 void cleanupCamera()
 {
-	g_runThread = false;
-	SDL_WaitThread(g_pThread, NULL);
+	if(g_isThreadMode && g_runThread){
+		g_runThread = false;
+		SDL_WaitThread(g_pThread, NULL);
+		g_LogFS << "Camera capture thread is stopped." << std::endl;
+	}
 }
 
 /*!

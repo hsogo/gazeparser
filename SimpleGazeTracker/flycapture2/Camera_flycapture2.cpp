@@ -52,6 +52,7 @@ const char* getEditionString(void)
 /*!
 captureCameraThread: Capture camera image using thread.
 
+@date 2013/03/29 created.
 */
 int captureCameraThread(void *unused)
 {
@@ -95,6 +96,9 @@ Read parameters from the configuration file, start camera and set callback funct
 
 @date 2013/03/15
 - Argument "ParamPath" was removed. Use g_ParamPath instead.
+@date 2013/03/29
+- Threading mode is added.
+- USE_THREAD and SLEEP_DURATION options are supported.
  */
 int initCamera( void )
 {
@@ -176,6 +180,10 @@ int initCamera( void )
 				if((int)param!=0)
 				{
 					g_isThreadMode = true;
+				}
+				else
+				{
+					g_isThreadMode = false;
 				}
 			}
 		}
@@ -350,6 +358,9 @@ getCameraImage: Get new camera image.
 @retval S_OK New frame is available.
 @retval E_FAIL There is no new frame.
 @note This function is necessary when you customize this file for your camera.
+
+@date 2013/03/29
+- Threading mode is added.
 */
 int getCameraImage( void )
 {
@@ -383,11 +394,20 @@ cleanupCamera: release camera resources.
 @return No value is returned.
 
 @note This function is necessary when you customize this file for your camera.
+
+@date 2013/03/29
+- Threading mode is added.
 */
 void cleanupCamera()
 {
 	FlyCapture2::Error error;
-
+	
+	if(g_isThreadMode && g_runThread){
+		g_runThread = false;
+		SDL_WaitThread(g_pThread, NULL);
+		g_LogFS << "Camera capture thread is stopped." << std::endl;
+	}
+	
 	error = g_FC2Camera.StopCapture();
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
