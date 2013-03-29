@@ -487,6 +487,41 @@ class BaseController(object):
                 return [None,None,None,None]
         
     def getEyePositionList(self, n, timeout=0.02, getPupil=False):
+        """
+        Get the latest N-samples of gaze position as a numpy.ndarray object.
+        
+        :param int n:
+            Number of samples. If value is negative, data that have already 
+            transfered are not transfered again. For example, suppose that this 
+            method is called twice with n=-20. If only 15 samples are obtained 
+            between the first and second call, 15 samples are transfered by 
+            the second call. On the other hand, if n=20, 20 samples are transfered
+            by each call. In this case, part of samples transfered by the second 
+            call is overlapped with those transfered by the first call.
+            
+            ..note: setting value far below/above from zero will take long time,
+               resulting failure in data acquisition and/or stimulus presentation.
+                
+        :param float timeout:
+            If the Tracker Host PC does not respond within this duration, tuple of
+            Nones are returned. Unit is second. Default value is 0.02
+        :param bool getPupil:
+            If true, pupil size is returned with gaze position.
+        :return:
+            If succeeded, an N x M shaped numpy.ndarray object is returned. N is 
+            number of transfered samples. M depends on recording mode and getPupil
+            parameter.
+            
+            * monocular/getPupil=False: t, x, y    (M=3)
+            * monocular/getPupil=True:  t, x, y, p (M=4)
+            * binocular/getPupil=False: t, lx, ly, rx, ry (M=5)
+            * binocular/getPupil=True:  t, lx, ly, rx, ry, lp, rp (M=7)
+            
+            (t=time, x=horizontal, y=vertical, l=left, r=right, p=pupil)
+            
+            If length of received data is zero or data conversion is failed, 
+            None is returned.
+        """
         if getPupil:
             getPupilFlagStr = '1'
         else:
@@ -519,11 +554,15 @@ class BaseController(object):
                     else:
                         data += newData
         if hasGotEye:
+            if len(data)==0:
+                print 'getEyePositionList: No data'
+                return None
+            
             try:
                 retval = numpy.array([float(x) for x in data.split(',')])
             except:
                 print 'getEyePositionList: non-float value is found in the received data.'
-                #print data
+                return None
             
             try:
                 if self.isMonocularRecording:
@@ -538,10 +577,40 @@ class BaseController(object):
                         return retval.reshape((-1,5))
             except:
                 print 'getEyePositionList: data was not successfully received.'
-                #print data
+                return None
         
+        return None
     
-    def getWholeEyePositionList(self, timeout=0.02, getPupil=False):
+    def getWholeEyePositionList(self, timeout=0.2, getPupil=False):
+        """
+        Transfer whole gaze position data obtained by the most recent recording.
+        It is recommended that this method is called immediately after 
+        :func:`~GazeParser.TrackingTools.BaseController.stopRecording` is called.
+        
+        ..note: This method can be called during recording - but please note 
+            that this method takes tens or hundreds milliseconds. It may cause 
+            failure in data acquisition and/or stimulus presentation.
+        
+        :param float timeout:
+            If the Tracker Host PC does not respond within this duration, tuple of
+            Nones are returned. Unit is second. Default value is 0.2
+        :param bool getPupil:
+            If true, pupil size is returned with gaze position.
+        :return:
+            If succeeded, an N x M shaped numpy.ndarray object is returned. N is 
+            number of transfered samples. M depends on recording mode and getPupil
+            parameter.
+            
+            * monocular/getPupil=False: t, x, y    (M=3)
+            * monocular/getPupil=True:  t, x, y, p (M=4)
+            * binocular/getPupil=False: t, lx, ly, rx, ry (M=5)
+            * binocular/getPupil=True:  t, lx, ly, rx, ry, lp, rp (M=7)
+            
+            (t=time, x=horizontal, y=vertical, l=left, r=right, p=pupil)
+            
+            If length of received data is zero or data conversion is failed, 
+            None is returned.
+        """
         if getPupil:
             getPupilFlagStr = '1'
         else:
@@ -574,10 +643,14 @@ class BaseController(object):
                     else:
                         data += newData
         if hasGotEye:
+            if len(data)==0:
+                print 'getWholeEyePositionList: No data'
+                return None
             try:
                 retval = numpy.array([float(x) for x in data.split(',')])
             except:
                 print 'getWholeEyePositionList: non-float value is found in the received data.'
+                return None
             
             try:
                 if self.isMonocularRecording:
@@ -592,9 +665,31 @@ class BaseController(object):
                         return retval.reshape((-1,5))
             except:
                 print 'getWholeEyePositionList: data was not successfully received.'
+                return None
         
+        return None
     
     def getWholeMessageList(self,timeout=0.2):
+        """
+        Transfer whole messages inserted during the most recent recording.
+        It is recommended that this method is called immediately after 
+        :func:`~GazeParser.TrackingTools.BaseController.stopRecording` is called.
+        
+        ..note: This method can be called during recording - but please note 
+            that this method takes tens or hundreds milliseconds. It may cause 
+            failure in data acquisition and/or stimulus presentation.
+        
+        :param float timeout:
+            If the Tracker Host PC does not respond within this duration, tuple of
+            Nones are returned. Unit is second. Default value is 0.2
+        :return:
+            A list of messages. Each message has three elements. The first one is 
+            '#MESSAGE', the second one is timestamp, and the last one is message 
+            text.
+            
+            If length of received data is zero or data conversion is failed, 
+            [] is returned.
+        """
         self.sendSock.send('getWholeMessageList'+chr(0))
         hasGotData = False
         isInLoop = True
@@ -1468,6 +1563,12 @@ class BaseController(object):
         time.sleep(0.5)
     
     def isBinocularMode(self, timeout=0.2):
+        """
+        Check SimpleGazeTracker is in monocular or binocular mode.
+        
+        :return:
+            True: binocualr mode, False: monocular mode.
+        """
         self.sendCommand('isBinocularMode'+chr(0))
         hasGot = False
         isInLoop = True
@@ -2406,6 +2507,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         #from pygame import mouse
         #self.mouse = mouse
         self.mousePosList = []
+        self.messageList = []
         self.lastMousePosIndex = 0
         self.recStartTime = 0
     
@@ -2491,11 +2593,18 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         else:
             return ml[:,:3]
     
+    def getWholeMessageList(self, timeout=0.2):
+        """
+        Dummy function for debugging. This method emurates getWholeMessageList.
+        """
+        return self.messageList
+    
     def sendMessage(self, message):
         """
-        Dummy function for debugging. This method does nothing.
+        Dummy function for debugging. This method emurates sendMessage.
         """
-        print 'sendMessage (dummy): ' + message
+        print 'sendSettings (dummy)'
+        self.messageList.append(['#MESSAGE',1000*(self.clock()-self.recStartTime),message])
     
     def sendSettings(self, configDict):
         """
@@ -2617,6 +2726,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         #from psychopy.event import Mouse
         #self.mouse = Mouse
         self.mousePosList = []
+        self.messageList = []
         self.lastMousePosIndex = 0
         self.recStartTime = 0
     
@@ -2713,11 +2823,18 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         else:
             return ml[:,:3]
     
+    def getWholeMessageList(self, timeout=0.2):
+        """
+        Dummy function for debugging. This method emurates getWholeMessageList.
+        """
+        return self.messageList
+    
     def sendMessage(self, message):
         """
-        Dummy function for debugging. This method does nothing.
+        Dummy function for debugging. This method emurates sendMessage.
         """
-        print 'sendMessage (dummy): ' + message
+        print 'sendSettings (dummy)'
+        self.messageList.append(['#MESSAGE',1000*(self.clock()-self.recStartTime),message])
     
     def sendSettings(self, configDict):
         """
