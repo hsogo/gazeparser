@@ -476,7 +476,6 @@ int sockProcess( void )
 							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",
 								pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
 						}
-						posstr[len+1]='\0';
 						SDLNet_TCP_Send(g_SockSend,posstr,len+1);
 
 						nextp = seekNextCommand(buff,nextp,2);
@@ -668,7 +667,6 @@ int sockProcess( void )
 
 						getCurrentMenuString(tmpstr,sizeof(tmpstr));
 						len = snprintf(menustr,sizeof(menustr),"%s",tmpstr);
-						menustr[len+1] = '\0';
 
 						SDLNet_TCP_Send(g_SockSend,menustr,len+1);
 
@@ -722,7 +720,6 @@ int sockProcess( void )
 						}else{
 							len = snprintf(str,sizeof(str),"0");
 						}
-						str[len+1] = '\0';
 						SDLNet_TCP_Send(g_SockSend,str,len+1);
 
 						nextp = seekNextCommand(buff,nextp,1);
