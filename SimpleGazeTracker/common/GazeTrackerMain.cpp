@@ -316,12 +316,12 @@ void saveParameters( void )
 	fname.append(PATH_SEPARATOR);
 	fname.append("CONFIG");
 
-	g_LogFS << "Saving parameters to "<< fname << "..." << std::endl;
+	g_LogFS << "Saving parameters to "<< fname << " ... ";
 
 	fs.open(fname.c_str(),std::ios::out);
 	if(!fs.is_open())
 	{
-		g_LogFS << "Error: can't open " << fname << "." << std::endl;
+		g_LogFS  << std::endl << "Error: can't open " << fname << "." << std::endl;
 		return;
 	}
 
@@ -360,6 +360,8 @@ void saveParameters( void )
 	fs << "OUTPUT_PUPILSIZE=" << g_isOutputPupilSize << std::endl;
 
 	fs.close();
+
+	g_LogFS << "OK." << std::endl;
 }
 
 /*!
@@ -462,7 +464,7 @@ cleanup: release malloced buffers.
 */
 void cleanup( void )
 {
-	g_LogFS << "Release buffers..." << std::endl;
+	g_LogFS << "Release buffers ... ";
 	
 	if( g_frameBuffer != NULL )
 	{
@@ -487,6 +489,8 @@ void cleanup( void )
         free(g_SendImageBuffer);
 		g_SendImageBuffer = NULL;
 	}
+	
+	g_LogFS << "OK." << std::endl;
 }
 
 /*!
@@ -1222,8 +1226,9 @@ int main(int argc, char** argv)
 	g_LogFS << "Saving Camera-specific parameters..." << std::endl;
 	saveCameraParameters();
 	cleanup();
-	g_LogFS << "Shutdown SDL..." << std::endl;
+	g_LogFS << "Shutdown SDL...";
 	SDL_Quit();
+	g_LogFS << "OK." << std::endl;
 	time(&t);
 	ltm = localtime(&t);
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);

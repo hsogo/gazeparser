@@ -61,7 +61,7 @@ sockClose: Close sockets.
 */
 int sockClose(void)
 {
-	g_LogFS << "Closing sockets..." << std::endl;
+	g_LogFS << "Closing sockets... ";
 
 	if(g_SockRecv){
 		SDLNet_TCP_Close(g_SockRecv);
@@ -73,6 +73,7 @@ int sockClose(void)
 	g_SockRecv = NULL;
 	g_SockSend = NULL;
 
+	g_LogFS << "OK." << std::endl;
 	return S_OK;
 }
 
@@ -90,6 +91,9 @@ sockConnect: Connect socket to the client PC to send data.
 int sockConnect(const char* host)
 {
 	IPaddress ip;
+
+	g_LogFS << "Opening sending socket... ";
+
 	if(SDLNet_ResolveHost(&ip, host, g_PortSend)==-1){
 		g_LogFS << "ERROR: failed to resolve host (" << host << ")" << std::endl;
 		return E_FAIL;
@@ -100,7 +104,8 @@ int sockConnect(const char* host)
 		g_LogFS << "ERROR: failed to open sending socket" << std::endl;
 		return E_FAIL;
 	}
-	g_LogFS << "open sending socket" << std::endl;
+	
+	g_LogFS << "OK." << std::endl;
 
     return S_OK;
 }
@@ -117,16 +122,17 @@ sockConnectIP: Connect socket to the client PC to send data.
 */
 int sockConnectIP(IPaddress* ip)
 {
-	g_LogFS << "Opening sending socket" << std::endl;
+	g_LogFS << "Open sending socket...";
 	
 	ip->port = htons(g_PortSend);
 	
 	g_SockSend= SDLNet_TCP_Open(ip);
 	if(!g_SockSend){
-		g_LogFS << "ERROR: failed to open sending socket" << std::endl;
+		g_LogFS << std::endl << "ERROR: failed to open sending socket" << std::endl;
 		return E_FAIL;
 	}
 	
+	g_LogFS << "OK." << std::endl;
     return S_OK;
 }
 
@@ -143,20 +149,33 @@ int sockAccept(void)
 {
 	IPaddress ip;
 	
-	g_LogFS << "Opening server socket..." << std::endl;
+	g_LogFS << "Opening server socket... " ;
 	
 	if(SDLNet_ResolveHost(&ip, NULL, g_PortRecv)==-1){
-		g_LogFS << "ERROR: failed to resolve host" << std::endl;
+		g_LogFS << std::endl << "ERROR: failed to resolve host" << std::endl;
 		return E_FAIL;
 	}
 
 	g_SockServ= SDLNet_TCP_Open(&ip);
 	if(!g_SockServ){
-		g_LogFS << "ERROR: failed to open server socket" << std::endl;
+		g_LogFS << std::endl << "ERROR: failed to open server socket" << std::endl;
 		return E_FAIL;
 	}
 	
+	g_LogFS << "OK." << std::endl;
     return S_OK;
+}
+
+int seekNextCommand(char* buff, int nextp, int nSkip)
+{
+	for(int i=0; i<nSkip; i++)
+	{
+		while(buff[nextp]!=0 && nextp<=g_Received) nextp++;
+		while(buff[nextp]==0 && nextp<=g_Received) nextp++;
+		if(nextp>=g_Received) break;
+	}
+
+	return nextp;
 }
 
 /*!
@@ -193,20 +212,27 @@ int sockProcess( void )
 		g_SockRecv = SDLNet_TCP_Accept(g_SockServ);
 
 		if(g_SockRecv){
-			g_LogFS << "Open receiving socket:" << g_SockRecv << std::endl;
+			g_LogFS << "Open receiving socket ... ";
 			SDLNet_TCP_AddSocket(g_SocketSet, g_SockRecv);
 			IPaddress* remote_ip;
 			remote_ip = SDLNet_TCP_GetPeerAddress(g_SockRecv);
 			if(!remote_ip){
-				g_LogFS << "ERROR: could not get remote IP address." << std::endl;
+				g_LogFS << std::endl << "ERROR: could not get remote IP address." << std::endl;
 				SDLNet_TCP_Close(g_SockRecv);
 				g_SockRecv = NULL;
 				g_LogFS << "ERROR: close receiving socket." << std::endl;
 			}else{
-				g_LogFS << "Connecting to " << remote_ip << "..." << std::endl;
+				g_LogFS << "OK." << std::endl; //continued from: "Open receiving socket..."
+				char ipaddrStr[32];
+				unsigned int rip;
+				rip = ntohl(remote_ip->host);
+				snprintf(ipaddrStr, sizeof(ipaddrStr), "%u.%u.%u.%u",
+					(rip & 0xFF000000)>>24, (rip & 0x00FF0000)>>16,
+					(rip & 0x0000FF00)>> 8, (rip & 0x000000FF)); 
+				g_LogFS << "Client IP address is " << ipaddrStr << "." << std::endl;
 				if(FAILED(sockConnectIP(remote_ip)))
 				{
-					g_LogFS << "ERROR: could not connect to " << remote_ip << std::endl;
+					g_LogFS << std::endl << "ERROR: could not connect to " << remote_ip << std::endl;
 					SDLNet_TCP_Close(g_SockRecv);
 					g_SockRecv = NULL;
 					g_LogFS << "ERROR: close receiving socket." << std::endl;
@@ -233,40 +259,40 @@ int sockProcess( void )
 						sdlEvent.type = SDL_KEYDOWN;
 						sdlEvent.key.keysym.sym = SDLK_q;
 						SDL_PushEvent(&sdlEvent);
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"key_UP")==0)
 					{
 						sdlEvent.type = SDL_KEYDOWN;
 						sdlEvent.key.keysym.sym = SDLK_UP;
 						SDL_PushEvent(&sdlEvent);
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"key_DOWN")==0)
 					{
 						sdlEvent.type = SDL_KEYDOWN;
 						sdlEvent.key.keysym.sym = SDLK_DOWN;
 						SDL_PushEvent(&sdlEvent);
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"key_LEFT")==0)
 					{
 						sdlEvent.type = SDL_KEYDOWN;
 						sdlEvent.key.keysym.sym = SDLK_LEFT;
 						SDL_PushEvent(&sdlEvent);
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"key_RIGHT")==0)
 					{
 						sdlEvent.type = SDL_KEYDOWN;
 						sdlEvent.key.keysym.sym = SDLK_RIGHT;
 						SDL_PushEvent(&sdlEvent);
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"getImageData")==0)
 					{
@@ -292,8 +318,7 @@ int sockProcess( void )
 						g_SendImageBuffer[index+1] = 0;
 						SDLNet_TCP_Send(g_SockSend, (char*)g_SendImageBuffer, g_ROIWidth*g_ROIHeight+1);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"startCal")==0)
 					{
@@ -311,10 +336,7 @@ int sockProcess( void )
 
 						startCalibration(x1,y1,x2,y2);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"getCalSample")==0)
 					{
@@ -332,17 +354,13 @@ int sockProcess( void )
 						if(samples>=MAXCALSAMPLEPERPOINT) samples = MAXCALSAMPLEPERPOINT;
 						getCalSample(x,y,samples);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"endCal")==0)
 					{
 						endCalibration();
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"startVal")==0)
 					{
@@ -360,10 +378,7 @@ int sockProcess( void )
 
 						startValidation(x1,y1,x2,y2);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"getValSample")==0)
 					{
@@ -381,17 +396,13 @@ int sockProcess( void )
 						if(samples>=MAXCALSAMPLEPERPOINT) samples=MAXCALSAMPLEPERPOINT;
 						getValSample(x,y,samples);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"endVal")==0)
 					{
 						endValidation();
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"toggleCalResult")==0)
 					{
@@ -403,30 +414,21 @@ int sockProcess( void )
 						
 						toggleCalResult(val);
 						
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"startRecording")==0)
 					{
 						char* param = buff+nextp+15;
 						startRecording(param);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"stopRecording")==0)
 					{
 						char* param = buff+nextp+14;
 						stopRecording(param);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"openDataFile")==0)
 					{
@@ -434,33 +436,25 @@ int sockProcess( void )
 						char* p;
 						int overwrite;
 						
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 						
 						overwrite =strtol(buff+nextp,&p,10);
 						openDataFile(param, overwrite);
 						
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"closeDataFile")==0)
 					{
 						closeDataFile();
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"insertMessage")==0)
 					{
 						char* param = buff+nextp+14;
 						insertMessage(param);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"getEyePosition")==0)
 					{
@@ -479,15 +473,13 @@ int sockProcess( void )
 						if(g_RecordingMode==RECORDING_MONOCULAR){
 							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f",pos[0],pos[1],pos[2]);
 						}else{
-							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
+							len = snprintf(posstr,sizeof(posstr)-1,"%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",
+								pos[0],pos[1],pos[2],pos[3],pos[4],pos[5]);
 						}
 						posstr[len+1]='\0';
 						SDLNet_TCP_Send(g_SockSend,posstr,len+1);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"getEyePositionList")==0)
 					{
@@ -522,14 +514,18 @@ int sockProcess( void )
 							if(FAILED(getPreviousEyePositionReverse(pos, offset, newDataOnly))) break;
 							if(g_RecordingMode==RECORDING_MONOCULAR){
 								if(bGetPupil)
-									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3]);
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,",
+										pos[0],pos[1],pos[2],pos[3]);
 								else
-									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2]);
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",
+										pos[0],pos[1],pos[2]);
 							}else{
 								if(bGetPupil)
-									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5],pos[6]);
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",
+										pos[0],pos[1],pos[2],pos[3],pos[4],pos[5],pos[6]);
 								else
-									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4]);
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,",
+										pos[0],pos[1],pos[2],pos[3],pos[4]);
 							}
 							numGet++;
 							dstbuf = dstbuf+len;
@@ -555,12 +551,7 @@ int sockProcess( void )
 							SDLNet_TCP_Send(g_SockSend,posstr,len);
 						}
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,3);
 					}
 					else if(strcmp(buff+nextp,"getWholeEyePositionList")==0){
 						char* param = buff+nextp+24;
@@ -585,14 +576,18 @@ int sockProcess( void )
 						while(SUCCEEDED(getPreviousEyePositionForward(pos, offset))){
 							if(g_RecordingMode==RECORDING_MONOCULAR){
 								if(bGetPupil)
-									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3]);
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,",
+										pos[0],pos[1],pos[2],pos[3]);
 								else
-									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2]);
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,",
+										pos[0],pos[1],pos[2]);
 							}else{
 								if(bGetPupil)
-									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4],pos[5],pos[6]);
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,",
+										pos[0],pos[1],pos[2],pos[3],pos[4],pos[5],pos[6]);
 								else
-									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,",pos[0],pos[1],pos[2],pos[3],pos[4]);
+									len = snprintf(dstbuf,s,"%.1f,%.1f,%.1f,%.1f,%.1f,",
+										pos[0],pos[1],pos[2],pos[3],pos[4]);
 							}
 							numGet++;
 							dstbuf = dstbuf+len;
@@ -617,10 +612,7 @@ int sockProcess( void )
 							SDLNet_TCP_Send(g_SockSend,posstr,len);
 						}
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"getWholeMessageList")==0)
 					{
@@ -630,8 +622,9 @@ int sockProcess( void )
 						len = strlen(msgp);
 						SDLNet_TCP_Send(g_SockSend,msgp,len);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
+						//while(buff[nextp]!=0) nextp++;
+						//nextp++;
 					}
 					else if(strcmp(buff+nextp,"getCalResults")==0)
 					{
@@ -642,7 +635,8 @@ int sockProcess( void )
 						getCalibrationResults(goodness,maxError,meanError);
 
 						if(g_RecordingMode==RECORDING_MONOCULAR){
-							len = snprintf(posstr,sizeof(posstr)-1,"%.2f,%.2f,%.2f,%.2f",goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
+							len = snprintf(posstr,sizeof(posstr)-1,"%.2f,%.2f,%.2f,%.2f",
+								goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
 						}else{
 							len = snprintf(posstr,sizeof(posstr)-1,"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
 								goodness[BIN_LX],goodness[BIN_LY],meanError[BIN_L],maxError[BIN_L],
@@ -652,8 +646,7 @@ int sockProcess( void )
 
 						SDLNet_TCP_Send(g_SockSend,posstr,len+1);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"getCalResultsDetail")==0)
 					{
@@ -665,8 +658,7 @@ int sockProcess( void )
 
 						SDLNet_TCP_Send(g_SockSend,errorstr,len);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"getCurrMenu")==0)
 					{
@@ -680,56 +672,45 @@ int sockProcess( void )
 
 						SDLNet_TCP_Send(g_SockSend,menustr,len+1);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"insertSettings")==0)
 					{
 						char* param = buff+nextp+15;
 						insertSettings(param);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"saveCameraImage")==0)
 					{
 						char* param = buff+nextp+16;
 						saveCameraImage((const char*)param);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,2);
 					}
 					else if(strcmp(buff+nextp,"startMeasurement")==0)
 					{
 						startMeasurement();
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"stopMeasurement")==0)
 					{
 						stopMeasurement();
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"allowRendering")==0)
 					{
 						allowRendering();
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"inhibitRendering")==0)
 					{
 						inhibitRendering();
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 					else if(strcmp(buff+nextp,"isBinocularMode")==0)
 					{
@@ -744,12 +725,12 @@ int sockProcess( void )
 						str[len+1] = '\0';
 						SDLNet_TCP_Send(g_SockSend,str,len+1);
 
-						while(buff[nextp]!=0) nextp++;
-						nextp++;
-					}				
+						nextp = seekNextCommand(buff,nextp,1);
+					}
 					else
 					{
-						return E_FAIL;
+						g_LogFS << "WARNING: Unknown command (" << buff+nextp << ")" << std::endl;
+						nextp = seekNextCommand(buff,nextp,1);
 					}
 				}
 			}
@@ -760,15 +741,9 @@ int sockProcess( void )
 				sockClose();
 			}
 		}
-		/*
-		else
-		{
-				g_LogFS << "SDLNet_SocketReady() failed. connection may be closed by peer" << std::endl;
-				connectionClosed();
-				sockClose();
-		}
-		*/
 	}
 
 	return S_OK;
 }
+
+
