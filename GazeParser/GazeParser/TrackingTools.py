@@ -784,14 +784,12 @@ class BaseController(object):
             If the Host Tracker PC does not respond within this duration, '----'
             is returned. Unit is second. Default value is 0.2
         :return:
-            a tuple representing goodness of calibration (GoC, horizontal and
-            vertical), mean error and maximum error. Larger value of GoC means
-            better recording.  Mean and maximum error are the distance between
-            calibration taget position and gaze position in screen corrdinate.
-            When recording mode is monocular, return value is (holizontal GoC,
-            vertical GoC, mean error, maximum error). When binocular, return
-            value is a tuple of 8 elements: the former 4 elements correspond to
-            left eye and the latter 4 elements correspond to right eye.
+            a tuple mean error and maximum error. Mean and maximum error are 
+            the distance between calibration taget position and gaze position
+            in screen corrdinate. When recording mode is monocular, return 
+            value is (mean error, maximum error). When binocular, return
+            value is a tuple of 4 elements: the former 2 elements correspond to
+            left eye and the latter 2 elements correspond to right eye.
             
         """
         self.sendSock.send('getCalResults'+chr(0))
@@ -829,10 +827,10 @@ class BaseController(object):
                  print 'getCalibrationResults: non-float value is found in the received data.'
             
             try:
-                if len(retval) == 4:
+                if len(retval) == 2:
                     self.isMonocularRecording = True
                     return retval
-                elif len(retval) == 8:
+                elif len(retval) == 4:
                     self.isMonocularRecording = False
                     return retval
             except:
@@ -1137,9 +1135,9 @@ class BaseController(object):
         self.calibrationResults = self.getCalibrationResults()
         try:
             if self.isMonocularRecording:
-                self.messageText='X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+                self.messageText='AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
             else:
-                self.messageText='LEFT(black) X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f / RIGHT(white) X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+                self.messageText='LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
         except:
             self.messageText='Calibration/Validation failed.'
         
@@ -1211,9 +1209,9 @@ class BaseController(object):
         self.calibrationResults = self.getCalibrationResults()
         try:
             if self.isMonocularRecording:
-                self.messageText='X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+                self.messageText='AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
             else:
-                self.messageText='LEFT X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f / RIGHT X:%.2f Y:%.2f AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+                self.messageText='LEFT AvgError:%.2f MaxError:%.2f / RIGHT AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
         except:
             self.messageText='Calibration/Validation failed.'
         

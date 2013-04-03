@@ -634,14 +634,12 @@ int sockProcess( void )
 						getCalibrationResults(goodness,maxError,meanError);
 
 						if(g_RecordingMode==RECORDING_MONOCULAR){
-							len = snprintf(posstr,sizeof(posstr)-1,"%.2f,%.2f,%.2f,%.2f",
-								goodness[MONO_X],goodness[MONO_Y],meanError[MONO_1],maxError[MONO_1]);
+							len = snprintf(posstr,sizeof(posstr)-1,"%.2f,%.2f",
+								meanError[MONO_1],maxError[MONO_1]);
 						}else{
-							len = snprintf(posstr,sizeof(posstr)-1,"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f",
-								goodness[BIN_LX],goodness[BIN_LY],meanError[BIN_L],maxError[BIN_L],
-								goodness[BIN_RX],goodness[BIN_RY],meanError[BIN_R],maxError[BIN_R]);
+							len = snprintf(posstr,sizeof(posstr)-1,"%.2f,%.2f,%.2f,%.2f",
+								meanError[BIN_L],maxError[BIN_L],meanError[BIN_R],maxError[BIN_R]);
 						}
-						posstr[len+1] = '\0';
 
 						SDLNet_TCP_Send(g_SockSend,posstr,len+1);
 
