@@ -15,6 +15,10 @@
 #include "GazeTracker.h"
 #include "FlyCapture2.h"
 
+#include "opencv2/opencv.hpp"
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
+
 #include <fstream>
 #include <string>
 
@@ -32,6 +36,10 @@ bool g_runThread;
 
 int g_SleepDuration = 0;
 bool g_isThreadMode = true;
+
+bool g_UseBlurFilter = true;
+int g_BlurFilterSize = 3;
+cv::Mat g_TmpImg;
 
 
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
@@ -57,17 +65,21 @@ captureCameraThread: Capture camera image using thread.
 int captureCameraThread(void *unused)
 {
 	FlyCapture2::Error error;
-	
+	FlyCapture2::ImageMetadata metadata;
+
 	while(g_runThread)
 	{
-		//double t;
-		//t = getCurrentTime();
 		error = g_FC2Camera.RetrieveBuffer( &g_rawImage );
-		//t = getCurrentTime()-t;
-		//g_LogFS << t << std::endl;
 		if(error == FlyCapture2::PGRERROR_OK)
 		{
+			metadata = g_rawImage.GetMetadata();
 			memcpy(g_frameBuffer, g_rawImage.GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
+			if(g_UseBlurFilter){
+				//cv::GaussianBlur takes approx 1.9ms while cv::blur takes only approx 0.9ms in i7-2600k machine.
+				//cv::GaussianBlur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize),0,0);
+				cv::blur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize));
+			}
+
 			g_NewFrameAvailable = true;
 			
             if(g_SleepDuration>0.0)
@@ -186,11 +198,25 @@ int initCamera( void )
 					g_isThreadMode = false;
 				}
 			}
+			else if(strcmp(buff,"BLUR_FILTER_SIZE")==0)
+			{
+				g_BlurFilterSize = (int)param;
+				if(g_BlurFilterSize>1) g_UseBlurFilter = true;
+				else g_UseBlurFilter = false;
+			}
 		}
 		fs.close();
 	}else{
 		g_LogFS << "ERROR: failed to open camera configuration file (" << fname << ")" << std::endl;
 		return E_FAIL;
+	}
+
+	// create cv::Mat for blurring
+	if(g_UseBlurFilter){
+		g_LogFS << "BlurFilter: use blur filter (size=" << g_BlurFilterSize << ")." << std::endl;
+		g_TmpImg = cv::Mat(g_CameraHeight,g_CameraWidth,CV_8UC1,g_frameBuffer);
+	}else{
+		g_LogFS << "BlurFilter: use raw image." << std::endl;
 	}
 
 	// get camera mode
@@ -245,6 +271,7 @@ int initCamera( void )
 	FlyCapture2::Format7PacketInfo packetInfo;
 	FlyCapture2::Property prop;
 	FlyCapture2::PropertyInfo propInfo;
+	FlyCapture2::EmbeddedImageInfo eInfo;
 	unsigned int packetSize;
 	float percentage;
 	bool settingsAreValid;
@@ -327,6 +354,15 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
+	//enable embedded GPIO pin state
+	eInfo.GPIOPinState.onOff = true;
+	error = g_FC2Camera.SetEmbeddedImageInfo(&eInfo);
+	if(error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to set embedded GPIO pin state." << std::endl;
+		return E_FAIL;
+	}
+
 	//start thread if necessary
 	if(g_isThreadMode)
 	{
@@ -380,7 +416,11 @@ int getCameraImage( void )
 		if(error == FlyCapture2::PGRERROR_OK)
 		{
 			memcpy(g_frameBuffer, g_rawImage.GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-			g_NewFrameAvailable = true;
+			if(g_UseBlurFilter){
+				//cv::GaussianBlur takes approx 1.9ms while cv::blur takes only approx 0.9ms in i7-2600k machine.
+				//cv::GaussianBlur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize),0,0);
+				cv::blur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize));
+			}
 			return S_OK;
 		}
 	}

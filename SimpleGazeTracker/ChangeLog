@@ -1,3 +1,8 @@
+2013-xx-xx Hiroyuki Sogo
+
+ release: ???
+  * add "BLUR_FILTER_SIZE" option to SimpleGazeTracker FlyCapture2 edition.
+
 2013-03-29 Hiroyuki Sogo
 
  release: 0.6.4
