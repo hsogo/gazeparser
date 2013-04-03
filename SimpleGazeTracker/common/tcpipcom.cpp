@@ -622,8 +622,6 @@ int sockProcess( void )
 						SDLNet_TCP_Send(g_SockSend,msgp,len);
 
 						nextp = seekNextCommand(buff,nextp,1);
-						//while(buff[nextp]!=0) nextp++;
-						//nextp++;
 					}
 					else if(strcmp(buff+nextp,"getCalResults")==0)
 					{

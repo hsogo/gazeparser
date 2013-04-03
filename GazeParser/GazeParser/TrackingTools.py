@@ -952,11 +952,12 @@ class BaseController(object):
                     self.showCalImage = False
                     self.doCalibration()
                 elif key == 'v':
-                    self.sendCommand('startVal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
-                                     +str(self.calArea[2])+','+str(self.calArea[3])+chr(0))
-                    self.showCameraImage = False
-                    self.showCalImage = False
-                    self.doValidation()
+                    if self.calibrationResults != None
+                        self.sendCommand('startVal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
+                                         +str(self.calArea[2])+','+str(self.calArea[3])+chr(0))
+                        self.showCameraImage = False
+                        self.showCalImage = False
+                        self.doValidation()
                 elif key == 's':
                     self.captureNo += 1
                     self.sendCommand('saveCameraImage'+chr(0)+'CAP'+str(self.captureNo).zfill(8)+'.bmp'+chr(0))
