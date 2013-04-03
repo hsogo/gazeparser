@@ -49,7 +49,7 @@ class BaseController(object):
     - setCalibrationTargetStimulus(self, stim)
     - setCalibrationTargetPositions(self, area, calposlist)
     - self.getKeys(self)
-    - self.verifyFixation(self,maxTry, permissibleError, key, message)
+    - self.verifyFixation(self,maxTry, permissibleError, key, message,...)
     """
     def __init__(self, configFile=None):
         """
@@ -499,7 +499,7 @@ class BaseController(object):
             by each call. In this case, part of samples transfered by the second 
             call is overlapped with those transfered by the first call.
             
-            ..note: setting value far below/above from zero will take long time,
+            .. note:: setting value far below/above from zero will take long time,
                resulting failure in data acquisition and/or stimulus presentation.
                 
         :param float timeout:
@@ -587,7 +587,7 @@ class BaseController(object):
         It is recommended that this method is called immediately after 
         :func:`~GazeParser.TrackingTools.BaseController.stopRecording` is called.
         
-        ..note: This method can be called during recording - but please note 
+        .. note:: This method can be called during recording - but please note 
             that this method takes tens or hundreds milliseconds. It may cause 
             failure in data acquisition and/or stimulus presentation.
         
@@ -675,7 +675,7 @@ class BaseController(object):
         It is recommended that this method is called immediately after 
         :func:`~GazeParser.TrackingTools.BaseController.stopRecording` is called.
         
-        ..note: This method can be called during recording - but please note 
+        .. note:: This method can be called during recording - but please note 
             that this method takes tens or hundreds milliseconds. It may cause 
             failure in data acquisition and/or stimulus presentation.
         
@@ -2064,6 +2064,43 @@ class ControllerPsychoPyBackend(BaseController):
     
     #Override
     def getEyePositionList(self, n, timeout=0.02, units='pix', getPupil=False):
+        """
+        Get the latest N-samples of gaze position as a numpy.ndarray object.
+        
+        :param int n:
+            Number of samples. If value is negative, data that have already 
+            transfered are not transfered again. For example, suppose that this 
+            method is called twice with n=-20. If only 15 samples are obtained 
+            between the first and second call, 15 samples are transfered by 
+            the second call. On the other hand, if n=20, 20 samples are transfered
+            by each call. In this case, part of samples transfered by the second 
+            call is overlapped with those transfered by the first call.
+            
+            .. note:: setting value far below/above from zero will take long time,
+               resulting failure in data acquisition and/or stimulus presentation.
+                
+        :param float timeout:
+            If the Tracker Host PC does not respond within this duration, tuple of
+            Nones are returned. Unit is second. Default value is 0.02
+        :param str units: units of 'position' and returned value.  'norm', 'height',
+            'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
+        :param bool getPupil:
+            If true, pupil size is returned with gaze position.
+        :return:
+            If succeeded, an N x M shaped numpy.ndarray object is returned. N is 
+            number of transfered samples. M depends on recording mode and getPupil
+            parameter.
+            
+            * monocular/getPupil=False: t, x, y    (M=3)
+            * monocular/getPupil=True:  t, x, y, p (M=4)
+            * binocular/getPupil=False: t, lx, ly, rx, ry (M=5)
+            * binocular/getPupil=True:  t, lx, ly, rx, ry, lp, rp (M=7)
+            
+            (t=time, x=horizontal, y=vertical, l=left, r=right, p=pupil)
+            
+            If length of received data is zero or data conversion is failed, 
+            None is returned.
+        """
         e = BaseController.getEyePositionList(self, n, timeout, getPupil)
         
         if units=='pix':
@@ -2080,6 +2117,37 @@ class ControllerPsychoPyBackend(BaseController):
     
     #Override
     def getWholeEyePositionList(self, timeout=0.02, units='pix', getPupil=False):
+        """
+        Transfer whole gaze position data obtained by the most recent recording.
+        It is recommended that this method is called immediately after 
+        :func:`~GazeParser.TrackingTools.BaseController.stopRecording` is called.
+        
+        .. note:: This method can be called during recording - but please note 
+            that this method takes tens or hundreds milliseconds. It may cause 
+            failure in data acquisition and/or stimulus presentation.
+        
+        :param float timeout:
+            If the Tracker Host PC does not respond within this duration, tuple of
+            Nones are returned. Unit is second. Default value is 0.2
+        :param str units: units of 'position' and returned value.  'norm', 'height',
+            'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
+        :param bool getPupil:
+            If true, pupil size is returned with gaze position.
+        :return:
+            If succeeded, an N x M shaped numpy.ndarray object is returned. N is 
+            number of transfered samples. M depends on recording mode and getPupil
+            parameter.
+            
+            * monocular/getPupil=False: t, x, y    (M=3)
+            * monocular/getPupil=True:  t, x, y, p (M=4)
+            * binocular/getPupil=False: t, lx, ly, rx, ry (M=5)
+            * binocular/getPupil=True:  t, lx, ly, rx, ry, lp, rp (M=7)
+            
+            (t=time, x=horizontal, y=vertical, l=left, r=right, p=pupil)
+            
+            If length of received data is zero or data conversion is failed, 
+            None is returned.
+        """
         e = BaseController.getWholeEyePositionList(self, timeout, getPupil)
         
         if units=='pix':
