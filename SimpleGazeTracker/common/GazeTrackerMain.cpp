@@ -903,11 +903,18 @@ int main(int argc, char** argv)
 	time_t t;
 	struct tm *ltm;
 	char datestr[256];
+	
 	//argv[0] must be copied to resolve application directory later.
 	//see getApplicationDirectoryPath() in PratformDependent.cpp 
 	g_AppDirPath.assign(argv[0]);
-	index = g_AppDirPath.find_last_of(PATH_SEPARATOR);
-	g_AppDirPath.erase(index);
+	//index = g_AppDirPath.find_last_of(PATH_SEPARATOR);
+	//printf("find_last_of, %d\n",index);
+	//if(index==-1)
+	//{
+	//	return E_FAIL;
+	//}
+	//g_AppDirPath.erase(index);
+	getApplicationDirectoryPath(&g_AppDirPath);
 
 	int nInitMessage=0;
 
@@ -935,10 +942,26 @@ int main(int argc, char** argv)
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
 	g_LogFS << datestr << std::endl;
 	
-	//if CONFIG file is not found, copy it.
+	if(FAILED(checkFile(g_AppDirPath, "CONFIG"))){
+		//try Debian directory
+		g_AppDirPath.assign("/usr/lib/simplegazetracker");
+		if(SUCCEEDED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
+			g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
+		}else{
+			g_AppDirPath.assign(".");
+			if(SUCCEEDED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
+				g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
+			}else{
+				g_LogFS << "ERROR: Could not determine AppDirPath directory to"  << std::endl;
+				return -1;
+			}
+		}
+	}
+	
+	//if CONFIG file is not found in g_ParamPath, copy it.
 	if(FAILED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
-		printf("Error: Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed.\n");
-		g_LogFS << "Error: Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+		printf("Error: \"CONFIG\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n");
+		g_LogFS << "\"CONFIG\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
 		return -1;
 	}
 	
