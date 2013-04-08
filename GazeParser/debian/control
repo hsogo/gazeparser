@@ -1,0 +1,14 @@
+Source: gazeparser
+Section: science
+Priority: extra
+Maintainer: Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
+Build-Depends: debhelper (>= 8.0.0), autotools-dev
+Standards-Version: 3.9.2
+Homepage: http://gazeparser.sourceforge.net/
+
+Package: gazeparser
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}, python-scipy, python-matplotlib, python-imaging-tk
+Recommends: psychopy
+Description: Gaze data analysis
+ Gaze data analysis package

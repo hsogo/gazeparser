@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+GenericName=SimpleGazeTracker Server
+Name=SimpleGazeTracker
+Exec=sgtsrv
+TryExec=sgtsrv
+Type=Application
+Terminal=false
+Categories=Science
+Icon=simplegazetracker.xpm
+

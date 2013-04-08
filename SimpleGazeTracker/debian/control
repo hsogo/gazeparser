@@ -1,0 +1,16 @@
+Source: simplegazetracker
+Section: science
+Priority: extra
+Maintainer: Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
+Build-Depends: debhelper (>= 8.0.0), autotools-dev
+Standards-Version: 3.9.2
+Homepage: http://gazeparser.sourceforge.net/
+#Vcs-Git: git://git.debian.org/collab-maint/simplegazetracker.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/simplegazetracker.git;a=summary
+
+Package: simplegazetracker
+Architecture: i386
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: psychopy, octave-psychtoolbox-3
+Description: Open-source eye tracker
+ Open-source eye tracking software.

@@ -27,3 +27,7 @@ aclocal.m4
 configure
 makefile.in
 
+#dpkg-buildpackage
+GazeParser/debian/gazeparser/
+SimpleGazeTracker/debian/simplegazetracker/
+
