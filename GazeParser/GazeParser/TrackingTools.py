@@ -952,7 +952,7 @@ class BaseController(object):
                     self.showCalImage = False
                     self.doCalibration()
                 elif key == 'v':
-                    if self.calibrationResults != None
+                    if self.calibrationResults != None:
                         self.sendCommand('startVal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
                                          +str(self.calArea[2])+','+str(self.calArea[3])+chr(0))
                         self.showCameraImage = False
