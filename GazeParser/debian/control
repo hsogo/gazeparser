@@ -8,7 +8,7 @@ Homepage: http://gazeparser.sourceforge.net/
 
 Package: gazeparser
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, python-scipy, python-matplotlib, python-imaging-tk
+Depends: ${misc:Depends}, ${python:Depends}, python-scipy, python-matplotlib, python-imaging-tk 
 Recommends: psychopy
 Description: Gaze data analysis
  Gaze data analysis package

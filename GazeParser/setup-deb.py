@@ -36,6 +36,5 @@ paths, calculating saccade trajectory curvature and so on.
       install_requires=[],
       packages=['GazeParser','GazeParser.app'],
       package_data={'GazeParser':['*.cfg'],'GazeParser.app':['img/*.png','img/*.ico','*.cfg']},
-      #scripts=['GazeParser_post_install.py']
-      exclude_package_data={'GazeParser':['*.txt']},
+      scripts=['gazeparser_viewer']
       )
