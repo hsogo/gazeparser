@@ -1,6 +1,9 @@
 #backup
 *~
 
+#misc
+*.log
+
 #python
 build/
 dist/
@@ -26,4 +29,8 @@ autom4te.cache/
 aclocal.m4
 configure
 makefile.in
+
+#dpkg-buildpackage
+GazeParser/debian/gazeparser/
+SimpleGazeTracker/debian/simplegazetracker/
 
