@@ -6,8 +6,13 @@ sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp\
 sgtsrv_LDADD=$(OPENCV_LIBS) $(SDL_LIBS)
 sgtsrv_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS)
 
+if FONTLESS
+freesans= 
+else !FONTLESS
+freesans=FreeSans.ttf
+endif !FONTLESS
+
 bindir=$(prefix)/bin
 datadir=$(prefix)/lib/@PACKAGE@
-dist_data_DATA=FreeSans.ttf opencv/CONFIG opencv/CONFIG_OPENCV
-
+dist_data_DATA=  opencv/CONFIG opencv/CONFIG_OPENCV $(freesans)
 

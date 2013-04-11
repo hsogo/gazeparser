@@ -6,6 +6,6 @@ Exec=sgtsrv
 TryExec=sgtsrv
 Type=Application
 Terminal=false
-Categories=Science
+Categories=Graphics;Science
 Icon=simplegazetracker.xpm
 

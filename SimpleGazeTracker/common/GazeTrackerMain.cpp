@@ -429,7 +429,17 @@ int initSDLTTF(void)
 	fontFilePath.append("FreeSans.ttf");
 	if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
 	{
-		return E_FAIL;
+		// try debian font directory
+		fontFilePath.assign("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
+		if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
+		{
+			// try current directory
+		fontFilePath.assign(".");
+			if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
+			{
+				return E_FAIL;
+			}
+		}
 	}
 
 	return S_OK;
@@ -945,21 +955,16 @@ int main(int argc, char** argv)
 	if(FAILED(checkFile(g_AppDirPath, "CONFIG"))){
 		//try Debian directory
 		g_AppDirPath.assign("/usr/lib/simplegazetracker");
-		if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
+		if(SUCCEEDED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
 			g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
 		}else{
-			//try /usr/local
-			g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
-			if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
+			//try current directory
+			g_AppDirPath.assign(".");
+			if(SUCCEEDED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
 				g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
 			}else{
-				g_AppDirPath.assign(".");
-				if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
-					g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
-				}else{
-					g_LogFS << "ERROR: Could not determine AppDirPath directory to"  << std::endl;
-					return -1;
-				}
+				g_LogFS << "ERROR: Could not determine AppDirPath directory to"  << std::endl;
+				return -1;
 			}
 		}
 	}
@@ -995,7 +1000,7 @@ int main(int argc, char** argv)
 	//TODO output timer initialization results?
 
 	if(FAILED(initSDLTTF())){
-		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) exists in the application directory. Exit.";
+		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) is properly installed.";
 		SDL_Quit();
 		return -1;
 	}
