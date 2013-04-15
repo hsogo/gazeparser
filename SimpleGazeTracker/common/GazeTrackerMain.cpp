@@ -952,19 +952,27 @@ int main(int argc, char** argv)
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
 	g_LogFS << datestr << std::endl;
 	
+	g_LogFS << "Initial AppDirPath directory: " << g_AppDirPath << "." << std::endl;
 	if(FAILED(checkFile(g_AppDirPath, "CONFIG"))){
-		//try Debian directory
-		g_AppDirPath.assign("/usr/lib/simplegazetracker");
-		if(SUCCEEDED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
+		//try /usr/local/lib/simplegazetracker
+		g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
+		if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
 			g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
 		}else{
-			//try current directory
-			g_AppDirPath.assign(".");
-			if(SUCCEEDED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
+			//try Debian directory (/usr/lib/simplegazetracker)
+			g_AppDirPath.assign("/usr/lib/simplegazetracker");
+			if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
 				g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
 			}else{
-				g_LogFS << "ERROR: Could not determine AppDirPath directory to"  << std::endl;
-				return -1;
+				//try current directory
+				g_AppDirPath.assign(".");
+				if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
+					g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
+				}else{
+					printf("ERROR: Could not determine AppDirPath directory.\n");
+					g_LogFS << "ERROR: Could not determine AppDirPath directory."  << std::endl;
+					return -1;
+				}
 			}
 		}
 	}
