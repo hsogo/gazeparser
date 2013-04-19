@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	python setup-deb.py build
+
+override_dh_auto_install:
+	python setup-deb.py install --root=debian/gazeparser --install-scripts=usr/bin
+

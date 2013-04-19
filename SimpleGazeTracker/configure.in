@@ -37,6 +37,18 @@ case $build_os in
 		AC_MSG_NOTICE([SEE http://gazeparser.sourceforge.net/ins/mac.html FOR DETAIL.]);;
 esac
 
+AC_ARG_ENABLE(
+	[fontless],
+	[  --enable-fontless if yes, FreeSans.ttf is not installed [default no]],
+	[case "${enableval}" in
+		yes) fontless=true  ;;
+		no)  fontless=false ;;
+		*) AC_MSG_ERROR(bad value ${enableval} for --enable-fontless) ;
+	esac],
+	[fontless=false]
+)
+AM_CONDITIONAL(FONTLESS, test x$fontless = xtrue)
+
 AC_CONFIG_FILES([makefile])
 AC_OUTPUT
 

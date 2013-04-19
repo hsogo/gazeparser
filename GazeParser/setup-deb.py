@@ -33,8 +33,8 @@ paths, calculating saccade trajectory curvature and so on.
       author_email='hsogo@ehime-u.ac.jp',
       url='http://sourceforge.net/p/gazeparser/',
       license='GNU GPL',
-      install_requires=['scipy', 'numpy', 'matplotlib'],
+      install_requires=[],
       packages=['GazeParser','GazeParser.app'],
-      package_data={'GazeParser':['license.txt','*.cfg'],'GazeParser.app':['img/*.png','img/*.ico','*.cfg']},
-      scripts=['GazeParser_post_install.py']
+      package_data={'GazeParser':['*.cfg'],'GazeParser.app':['img/*.png','img/*.ico','*.cfg']},
+      scripts=['gazeparser_viewer']
       )

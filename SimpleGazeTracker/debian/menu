@@ -1,0 +1,2 @@
+?package(simplegazetracker):needs="X11" section="Applications/Science/Medicine"\
+  title="SimpleGazeTracker Server (OpenCV)" command="/usr/bin/sgtsrv" icon="/usr/share/pixmaps/simplegazetracker.xpm"

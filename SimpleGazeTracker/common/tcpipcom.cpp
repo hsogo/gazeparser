@@ -619,7 +619,7 @@ int sockProcess( void )
 						size_t len;
 						msgp = getMessageBufferPointer();
 						len = strlen(msgp);
-						SDLNet_TCP_Send(g_SockSend,msgp,len);
+						SDLNet_TCP_Send(g_SockSend,msgp,len+1); //send with terminator
 
 						nextp = seekNextCommand(buff,nextp,1);
 					}
