@@ -899,7 +899,6 @@ main: Entry point of the application
 */
 int main(int argc, char** argv)
 {
-	int index;
 	time_t t;
 	struct tm *ltm;
 	char datestr[256];
@@ -907,6 +906,7 @@ int main(int argc, char** argv)
 	//argv[0] must be copied to resolve application directory later.
 	//see getApplicationDirectoryPath() in PratformDependent.cpp 
 	g_AppDirPath.assign(argv[0]);
+	//int index;
 	//index = g_AppDirPath.find_last_of(PATH_SEPARATOR);
 	//printf("find_last_of, %d\n",index);
 	//if(index==-1)
