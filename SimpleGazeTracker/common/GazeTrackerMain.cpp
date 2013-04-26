@@ -2053,8 +2053,10 @@ void getCalibrationResultsDetail( char* errorstr, int size, int* len)
 	}
 
 	*len = size-s;
-	//Overwrite last comma by '\0'
-	errorstr[*len-1] = '\0';
+	if(*len>0){
+		//Overwrite last comma by '\0'
+		errorstr[*len-1] = '\0';
+	}
 }
 
 
