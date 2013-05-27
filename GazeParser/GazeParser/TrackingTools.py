@@ -446,7 +446,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getEyePosition:', newData
+                            print 'getEyePosition: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotEye = True
@@ -545,7 +545,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getEyePositionList:', newData
+                            print 'getEyePositionList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotEye = True
@@ -634,7 +634,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getWholeEyePositionList:', newData
+                            print 'getWholeEyePositionList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotEye = True
@@ -709,7 +709,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getWholeMessageList:', newData
+                            print 'getWholeMessageList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotData = True
@@ -746,9 +746,18 @@ class BaseController(object):
         self.sendSock.send('getCurrMenu'+chr(0))
         hasGotMenu = False
         isInLoop = True
-        data = ''
+        data = self.prevBuffer
         startTime = self.clock()
         while isInLoop:
+            if '\0' in data:
+                delimiterIndex = data.index('\0')
+                if delimiterIndex+1 < len(data):
+                    print 'getCurrentMenuItem: %d bytes after \\0' % (len(data)-(delimiterIndex+1))
+                    self.prevBuffer = data[(delimiterIndex+1):]
+                data = data[:delimiterIndex]
+                hasGotMenu = True
+                isInLoop = False
+                break
             if self.clock()-startTime > timeout:
                 #print 'timeout'
                 break
@@ -760,20 +769,11 @@ class BaseController(object):
                     #print 'recv error in getCalibrationResults'
                     isInLoop = False
                 if newData:
-                    if '\0' in newData:
-                        delimiterIndex = newData.index('\0')
-                        if delimiterIndex+1 < len(newData):
-                            print 'getCurrentMenuItem:', newData
-                            self.prevBuffer = newData[(delimiterIndex+1):]
-                        data += newData[:delimiterIndex]
-                        hasGotMenu = True
-                        isInLoop = False
-                        break
-                    else:
-                        data += newData
+                    data += newData
+        
         if hasGotMenu:
             return data
-        return '----'
+        return 'WARNING: menu string was not received.'
     
     def getCalibrationResults(self,timeout=0.2):
         """
@@ -812,7 +812,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getCalibrationResults', newData
+                            print 'getCalibrationResults: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotCal = True
@@ -851,9 +851,17 @@ class BaseController(object):
         """
         self.sendSock.send('getImageData'+chr(0))
         hasGotImage = False
-        data = []
+        data = self.prevBuffer
+        imgdata = []
         startTime = self.clock()
         while not hasGotImage:
+            if '\0' in data:
+                delimiterIndex = data.index('\0')
+                if delimiterIndex+1 < len(data):
+                    print 'getCameraImage: %d bytes after \\0' % (len(data)-(delimiterIndex+1))
+                    self.prevBuffer = data[(delimiterIndex+1):]
+                imgdata = [ord(data[idx]) for idx in range(delimiterIndex)]
+                hasGotImage = True
             if self.clock()-startTime > timeout:
                 break
             [r,w,c] = select.select(self.readSockList,[],[],0)
@@ -865,17 +873,17 @@ class BaseController(object):
                     hasGotImage = True
                     continue
                 if newData:
-                    for idx in range(len(newData)):
-                        d = ord(newData[idx])
-                        if d == 0:
-                            hasGotImage = True
-                        else:
-                            data.append(d)
+                    data += newData
         
-        if len(data) == self.IMAGE_WIDTH*self.IMAGE_HEIGHT:
-            self.PILimg.putdata(data)
+        if len(imgdata) == self.IMAGE_WIDTH*self.IMAGE_HEIGHT:
+            self.PILimg.putdata(imgdata)
+        elif len(imgdata) < self.IMAGE_WIDTH*self.IMAGE_HEIGHT:
+            print 'getCameraImage: got ', len(imgdata), 'bytes /expected ', self.IMAGE_WIDTH*self.IMAGE_HEIGHT, 'bytes IMAGE_WIDTH and IMAGE_HIGHT may be wrong, otherwise trouble occurs in communication with SimpleGazeTracker.'
+            imgdata.extend([0 for i in range(self.IMAGE_WIDTH*self.IMAGE_HEIGHT-len(imgdata))])
+            self.PILimg.putdata(imgdata)
         else:
-            print 'getCameraImage: got ', len(data), ' expected ', self.IMAGE_WIDTH*self.IMAGE_HEIGHT
+            print 'getCameraImage: got ', len(imgdata), 'bytes /expected ', self.IMAGE_WIDTH*self.IMAGE_HEIGHT, 'bytes IMAGE_WIDTH and IMAGE_HIGHT may be wrong, otherwise trouble occurs in communication with SimpleGazeTracker.'
+            self.PILimg.putdata(imgdata[:self.IMAGE_WIDTH*self.IMAGE_HEIGHT])
     
     def sendCommand(self, command):
         """
@@ -952,7 +960,7 @@ class BaseController(object):
                     self.showCalImage = False
                     self.doCalibration()
                 elif key == 'v':
-                    if self.calibrationResults != None
+                    if self.calibrationResults != None:
                         self.sendCommand('startVal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
                                          +str(self.calArea[2])+','+str(self.calArea[3])+chr(0))
                         self.showCameraImage = False
@@ -1015,7 +1023,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getCalibrationResultsDetail', newData
+                            print 'getCalibrationResultsDetail: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotCal = True
@@ -1588,7 +1596,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'isBinocularMode', newData
+                            print 'isBinocularMode: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotCal = True
@@ -1962,7 +1970,10 @@ class ControllerPsychoPyBackend(BaseController):
         
         *Usually, you don't need use this method.*
         """
-        self.msgtext.setText(self.messageText, log=False)
+        try:
+            self.msgtext.setText(self.messageText, log=False)
+        except:
+            self.msgtext.setText('WARNING: menu string was not received correctly.', log=False)
         if self.showCameraImage:
             self.img.draw()
         if self.showCalImage:

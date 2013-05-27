@@ -44,6 +44,9 @@ cv::Mat g_TmpImg;
 
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
 
+// for debugging
+// FlyCapture2::TimeStamp g_timestamp[5000];
+
 
 /*!
 getEditionString: Get edition string.
@@ -67,12 +70,18 @@ int captureCameraThread(void *unused)
 	FlyCapture2::Error error;
 	FlyCapture2::ImageMetadata metadata;
 
+	// for debugging
+	//int i = 0;
+
 	while(g_runThread)
 	{
 		error = g_FC2Camera.RetrieveBuffer( &g_rawImage );
 		if(error == FlyCapture2::PGRERROR_OK)
 		{
 			metadata = g_rawImage.GetMetadata();
+			// for debugging
+			//g_timestamp[i] = g_rawImage.GetTimeStamp();
+			//i = (i+1)%5000;
 			memcpy(g_frameBuffer, g_rawImage.GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
 			if(g_UseBlurFilter){
 				//cv::GaussianBlur takes approx 1.9ms while cv::blur takes only approx 0.9ms in i7-2600k machine.
@@ -461,6 +470,11 @@ void cleanupCamera()
 		g_LogFS << "ERROR: failed to disconnect FlyCapture2 camera" << std::endl;
 		return;
 	}
+
+	// for debugging
+	//for(int i=0; i<4999; i++){
+	//	g_LogFS << g_timestamp[i+1].microSeconds - g_timestamp[i].microSeconds << std::endl;
+	//}
 
 	//need to shutdown BusManager?
 }

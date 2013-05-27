@@ -1500,6 +1500,8 @@ class mainWindow(Tkinter.Frame):
         Tkinter.Frame.__init__(self,master)
         self.master.title('GazeParser Viewer')
         self.master.protocol('WM_DELETE_WINDOW', self._exit)
+        icon = Tkinter.PhotoImage(file=os.path.join(os.path.dirname(__file__),'img','gazeparser_viewer.gif'))
+        self.winfo_toplevel().call('wm', 'iconphoto', self.winfo_toplevel(), icon)
         
         #main menu
         self.menu_bar = Tkinter.Menu(tearoff=False)

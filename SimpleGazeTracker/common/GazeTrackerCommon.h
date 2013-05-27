@@ -213,10 +213,11 @@ int initTimer(void);
 double getCurrentTime(void);
 void sleepMilliseconds(int);
 int getDataDirectoryPath(std::string* path);
-//int getApplicationDirectoryPath(std::string* path);
+int getApplicationDirectoryPath(std::string* path);
 int getParameterDirectoryPath(std::string* path);
 int getLogFilePath(std::string* path);
 int checkAndCreateDirectory(std::string path);
 int checkAndRenameFile(std::string path);
+int checkFile(std::string path, const char* filename);
 int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath);
 

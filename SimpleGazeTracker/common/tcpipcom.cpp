@@ -619,7 +619,7 @@ int sockProcess( void )
 						size_t len;
 						msgp = getMessageBufferPointer();
 						len = strlen(msgp);
-						SDLNet_TCP_Send(g_SockSend,msgp,len);
+						SDLNet_TCP_Send(g_SockSend,msgp,len+1); //send with terminator
 
 						nextp = seekNextCommand(buff,nextp,1);
 					}
@@ -650,8 +650,13 @@ int sockProcess( void )
 
 						getCalibrationResultsDetail(errorstr,sizeof(errorstr)-1,&len);
 						//'\0' is already appended at getCalibrationResultsDetail
-
-						SDLNet_TCP_Send(g_SockSend,errorstr,len);
+						if(len>0){
+							SDLNet_TCP_Send(g_SockSend,errorstr,len);
+						}else{
+							//no calibration data
+							errorstr[0]='\0';
+							SDLNet_TCP_Send(g_SockSend,errorstr,1);
+						}
 
 						nextp = seekNextCommand(buff,nextp,1);
 					}

@@ -431,7 +431,17 @@ int initSDLTTF(void)
 	fontFilePath.append("FreeSans.ttf");
 	if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
 	{
-		return E_FAIL;
+		// try debian font directory
+		fontFilePath.assign("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
+		if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
+		{
+			// try current directory
+		fontFilePath.assign(".");
+			if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
+			{
+				return E_FAIL;
+			}
+		}
 	}
 
 	return S_OK;
@@ -914,15 +924,22 @@ main: Entry point of the application
 */
 int main(int argc, char** argv)
 {
-	int index;
 	time_t t;
 	struct tm *ltm;
 	char datestr[256];
+	
 	//argv[0] must be copied to resolve application directory later.
 	//see getApplicationDirectoryPath() in PratformDependent.cpp 
 	g_AppDirPath.assign(argv[0]);
-	index = g_AppDirPath.find_last_of(PATH_SEPARATOR);
-	g_AppDirPath.erase(index);
+	//int index;
+	//index = g_AppDirPath.find_last_of(PATH_SEPARATOR);
+	//printf("find_last_of, %d\n",index);
+	//if(index==-1)
+	//{
+	//	return E_FAIL;
+	//}
+	//g_AppDirPath.erase(index);
+	getApplicationDirectoryPath(&g_AppDirPath);
 
 	int nInitMessage=0;
 
@@ -950,10 +967,35 @@ int main(int argc, char** argv)
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
 	g_LogFS << datestr << std::endl;
 	
-	//if CONFIG file is not found, copy it.
+	g_LogFS << "Initial AppDirPath directory: " << g_AppDirPath << "." << std::endl;
+	if(FAILED(checkFile(g_AppDirPath, "CONFIG"))){
+		//try /usr/local/lib/simplegazetracker
+		g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
+		if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
+			g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
+		}else{
+			//try Debian directory (/usr/lib/simplegazetracker)
+			g_AppDirPath.assign("/usr/lib/simplegazetracker");
+			if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
+				g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
+			}else{
+				//try current directory
+				g_AppDirPath.assign(".");
+				if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
+					g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
+				}else{
+					printf("ERROR: Could not determine AppDirPath directory.\n");
+					g_LogFS << "ERROR: Could not determine AppDirPath directory."  << std::endl;
+					return -1;
+				}
+			}
+		}
+	}
+	
+	//if CONFIG file is not found in g_ParamPath, copy it.
 	if(FAILED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
-		printf("Error: Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed.\n");
-		g_LogFS << "Error: Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+		printf("Error: \"CONFIG\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n");
+		g_LogFS << "\"CONFIG\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
 		return -1;
 	}
 	
@@ -981,7 +1023,7 @@ int main(int argc, char** argv)
 	//TODO output timer initialization results?
 
 	if(FAILED(initSDLTTF())){
-		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) exists in the application directory. Exit.";
+		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) is properly installed.";
 		SDL_Quit();
 		return -1;
 	}
@@ -2044,8 +2086,10 @@ void getCalibrationResultsDetail( char* errorstr, int size, int* len)
 	}
 
 	*len = size-s;
-	//Overwrite last comma by '\0'
-	errorstr[*len-1] = '\0';
+	if(*len>0){
+		//Overwrite last comma by '\0'
+		errorstr[*len-1] = '\0';
+	}
 }
 
 

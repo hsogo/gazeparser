@@ -31,6 +31,9 @@ LARGE_INTEGER g_CounterFreq;
 #include <iostream>
 #include <iterator>
 
+#ifdef __linux__
+#include <unistd.h>
+#endif
 
 int initTimer(void)
 {
@@ -97,29 +100,34 @@ int getDataDirectoryPath(std::string* path)
 	return 0;
 }
 
-/*
+
 int getApplicationDirectoryPath(std::string* path)
 {
-#ifdef _WIN32
 	char buff[1024];
-	std::string str;
 	int index;
-	
+#ifdef _WIN32
 	GetModuleFileName(NULL,buff,sizeof(buff));
 	path->assign(buff);
 	index = path->find_last_of("\\");
 	path->erase(index);
+#elif __linux__
+    if (readlink("/proc/self/exe", buff, sizeof(buff)) != -1)
+	path->assign(buff);
+	index = path->find_last_of("/");
+	path->erase(index);
 #else
-	//in Unix, application directory is resolved from argv[0]
+	//Application directory is resolved from argv[0]
 	//see main() in GazeTrackerMain.cpp
 	int index;
 	index = path->find_last_of("/");
-	path->erase(index);
+	if(index>=0){
+		path->erase(index);
+	}
 
 #endif
 	return 0;
 }
-*/
+
 
 int getParameterDirectoryPath(std::string* path)
 /*@date 2012/09/27
@@ -225,6 +233,29 @@ Check whether file exists. If the file exists, ".n" (n=0,1,2,...) is appended to
 		}
 	}
 #endif
+	return S_OK;
+}
+
+int checkFile(std::string path, const char* filename)
+{
+	std::string str(path);
+	str.append(PATH_SEPARATOR);
+	str.append(filename);
+
+#ifdef _WIN32
+	if(!PathFileExists(str.c_str())){
+		return E_FAIL;
+	}
+#else
+	int res;
+	struct stat statbuff;
+	
+	res = stat(str.c_str(),&statbuff);
+	if(res<0){
+		return E_FAIL;
+	}
+#endif
+
 	return S_OK;
 }
 

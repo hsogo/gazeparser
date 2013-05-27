@@ -1,0 +1,2 @@
+?package(gazeparser):needs="X11" section="Applications/Science/Medicine"\
+  title="GazeParser Data Viewer" command="/usr/bin/gazeparser_viewer" icon="/usr/share/pixmaps/gazeparser_viewer.xpm"
