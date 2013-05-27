@@ -1,0 +1,3 @@
+debian/gazeparser.desktop usr/share/applications
+GazeParser/app/img/gazeparser_viewer.xpm usr/share/pixmaps
+
