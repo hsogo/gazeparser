@@ -25,7 +25,7 @@ HANDLE g_CameraMemHandle; /*!< Holds camera buffer handle */
 
 unsigned char* g_TmpFrameBuffer; /*!< Temporary buffer to hold camera image until CallBackProc() is called.*/
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
-
+DWORD g_DigitalInput = 0;
 
 /*!
 getEditionString: Get edition string.
@@ -49,6 +49,9 @@ CallBackProc: Grab camera images.
 void CALLBACK CallBackProc(DWORD IntFlg, DWORD User)
 {
 	memcpy(g_frameBuffer, g_TmpFrameBuffer, g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
+	if(IFCML_ERROR_SUCCESS != CmlInputDI(g_CameraDeviceHandle, &g_DigitalInput)){
+		g_LogFS << "WARNING:DI Error" << std::endl;
+	};
 	g_NewFrameAvailable = true;
 }
 
@@ -66,9 +69,81 @@ Read parameters from the configuration file, start camera and set callback funct
 
 @date 2013/03/15
 - Argument "ParamPath" was removed. Use g_ParamPath instead.
+@date 2013/05/27 a new option, "OUTPUT_DIGITAL_INPUT", was appended.
  */
 int initCamera( void )
 {
+	std::fstream fs;
+	std::string fname;
+	char *p,*pp;
+	char buff[1024];
+	double param;
+	bool isInSection = true; //default is True to support old config file
+	
+	fname = g_ParamPath.c_str();
+	fname.append(PATH_SEPARATOR);
+	fname.append(CAMERA_CONFIG_FILE);
+
+	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+
+	fs.open(fname.c_str(),std::ios::in);
+	if(fs.is_open())
+	{
+		g_LogFS << "Open camera configuration file (" << fname << ")" << std::endl;
+		while(fs.getline(buff,sizeof(buff)-1))
+		{
+			if(buff[0]=='#') continue;
+
+			//in Section "[SimpleGazeTrackerFlyCapture2]"
+			if(buff[0]=='['){
+				if(strcmp(buff,"[SimpleGazeTrackerGPC5300]")==0){
+					isInSection = true;
+				}
+				else
+				{
+					isInSection = false;
+				}
+				continue;
+			}
+		
+			if(!isInSection) continue; //not in section
+		
+
+			//Check options.
+			//If "=" is not included, this line is not option.
+			if((p=strchr(buff,'='))==NULL) continue;
+
+			//remove space/tab
+			*p = '\0';
+			while(*(p-1)==0x09 || *(p-1)==0x20)
+			{
+				p--;
+				*p= '\0';
+			}
+			while(*(p+1)==0x09 || *(p+1)==0x20) p++;
+			param = strtod(p+1,&pp); //paramete is not int but double
+
+			if(strcmp(buff,"OUTPUT_DIGITAL_INPUT")==0)
+			{
+				if((int)param==1){
+					g_isOutputCustomData = 1;
+				}else{
+					g_isOutputCustomData = 0;
+				}
+			}
+		}
+		fs.close();
+	}else{
+		g_LogFS << "ERROR: failed to open camera configuration file (" << fname << ")" << std::endl;
+		return E_FAIL;
+	}
+
+	if(g_isOutputCustomData==1)
+	{
+		g_LogFS << "Output digital input of GPC5300" << std::endl;
+	}
+
+	// init camera unit
 	INT ret;
 	DWORD BufSize;
 	IFCMLCAPFMT     CapFmt;
@@ -87,11 +162,11 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	checkAndCopyFile(g_ParamPath, CAMERA_CONFIG_FILE, g_AppDirPath);
+	checkAndCopyFile(g_ParamPath, GPC5300_CONFIG_FILE, g_AppDirPath);
 
 	str.assign(g_ParamPath);
 	str.append(PATH_SEPARATOR);
-	str.append(CAMERA_CONFIG_FILE);
+	str.append(GPC5300_CONFIG_FILE);
 	
 	ret = CmlReadCamConfFile(g_CameraDeviceHandle,str.c_str());
 	
@@ -152,6 +227,8 @@ int initCamera( void )
 
 	ret = CmlStartCapture(g_CameraDeviceHandle, 0 ,IFCML_CAM_DMA | IFCML_CAP_ASYNC);
 	////interrupt////
+
+
 
 	return S_OK;
 }
@@ -247,4 +324,17 @@ void updateCustomMenuText( void )
 {
 	// no custom parameters for this camera
 	return;
+}
+
+/*!
+getCameraCustomData: return Camera Custom data.
+
+If your camera has input port, you can output input values using this function.
+Currently, only single value (unsigned int) can be returned.
+
+@date 2013/05/27 created.
+*/
+unsigned int getCameraCustomData( void )
+{
+	return (unsigned int)g_DigitalInput;
 }

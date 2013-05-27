@@ -89,6 +89,7 @@ double g_CalPointData[MAXCALDATA][2]; /*!< Holds where the calibration item is p
 double g_ParamX[6]; /*!< Holds calibration parameters for X coordinate. Only three elements are used when recording mode is monocular.*/
 double g_ParamY[6]; /*!< Holds calibration parameters for Y coordinate. Only three elements are used when recording mode is monocular.*/
 double g_CalibrationArea[4]; /*!< Holds calibration area. These values are used when calibration results are rendered.*/
+unsigned int g_CameraCustomData[MAXDATA]; /*!< Holds camera-specific data*/
 
 double g_CurrentEyeData[4]; /*!< Holds latest data. Only two elements are used when recording mode is monocular.*/
 double g_CurrentPupilSize[2]; /*!< Holds latest data. Only one element is used when recording mode is monocular.*/
@@ -103,6 +104,7 @@ double g_CalMeanError[2]; /*!< Holds mean calibration error. Only one element is
 int g_RecordingMode = RECORDING_BINOCULAR; /*!< Holds recording mode. @note This value is modified only when application is being initialized (i.e. in initParameters()).*/
 int g_isShowDetectionErrorMsg = 0; /*!< Holds DetectionError message visibility.*/
 int g_isOutputPupilSize = 1; /*!< Holds whether pupil size is output to datafile.*/
+int g_isOutputCustomData = 0;/*!< Holds whether camera-specific data is output to datafile.*/
 
 int g_DataCounter = 0;
 int g_LastSentDataCounter = 0;
@@ -504,6 +506,8 @@ This function is called either when recording is stopped or g_DataCounter reache
 - EOG-SimpleGazeTracker concurrent recording mode is appended
 @date 2012/09/28
 - Support for pupil size output
+@date 2013/05/27
+- Support camera custom data.
 */
 void flushGazeData(void)
 {
@@ -530,16 +534,21 @@ void flushGazeData(void)
 					fprintf(g_DataFP,"FAIL,FAIL");
 				
 				if(g_isOutputPupilSize)
-					fprintf(g_DataFP,",FAIL\n");
-				else
-					fprintf(g_DataFP,"\n");
+					fprintf(g_DataFP,",FAIL");
+
 			}else{
 				getGazePositionMono(g_EyeData[i], xy);
 				if(g_isOutputPupilSize)
-					fprintf(g_DataFP,"%.1f,%.1f,%.1f\n" ,xy[MONO_X],xy[MONO_Y],g_PupilSizeData[i][MONO_P]);
+					fprintf(g_DataFP,"%.1f,%.1f,%.1f" ,xy[MONO_X],xy[MONO_Y],g_PupilSizeData[i][MONO_P]);
 				else
-					fprintf(g_DataFP,"%.1f,%.1f\n" ,xy[MONO_X],xy[MONO_Y]);
+					fprintf(g_DataFP,"%.1f,%.1f" ,xy[MONO_X],xy[MONO_Y]);
 			}
+
+			//Camera custom data
+			if(g_isOutputCustomData)
+				fprintf(g_DataFP,",%d",g_CameraCustomData[i]);
+			//End of line
+			fprintf(g_DataFP,"\n");
 		}
 	}else{ //binocular
 		for(int i=0; i<g_DataCounter; i++){
@@ -592,13 +601,17 @@ void flushGazeData(void)
 				
 				//right
 				if(g_EyeData[i][BIN_RX]<E_PUPIL_PURKINJE_DETECTION_FAIL)
-					fprintf(g_DataFP,",FAIL\n");
+					fprintf(g_DataFP,",FAIL");
 				else
-					fprintf(g_DataFP,",%.1f\n",g_PupilSizeData[i][BIN_RP]);				
+					fprintf(g_DataFP,",%.1f",g_PupilSizeData[i][BIN_RP]);				
 				
-			}else{
-				fprintf(g_DataFP,"\n");
 			}
+
+			//Camera Custom Data
+			if(g_isOutputCustomData)
+				fprintf(g_DataFP,",%d",g_CameraCustomData[i]);
+			//End of line
+			fprintf(g_DataFP,"\n");
 		}
 
 	}
@@ -896,6 +909,8 @@ main: Entry point of the application
 - Change conditions for rendering screen (!g_isRecording -> g_isShowingCameraImage)
 @date 2013/03/26
 - Add log messages.
+@date 2013/05/27
+- Support camera custom data.
 */
 int main(int argc, char** argv)
 {
@@ -1188,6 +1203,9 @@ int main(int argc, char** argv)
 			int res;
 			double detectionResults[MAX_DETECTION_RESULTS], TimeImageAquired;
 			TimeImageAquired = getCurrentTime() - g_RecStartTime;
+			if(g_isOutputCustomData==1){
+				g_CameraCustomData[g_DataCounter] = getCameraCustomData();
+			}
 
 #ifdef __DEBUG_WITH_GPC3100
 			AdInputAD( g_debug_hDeviceHandle, 1, AD_INPUT_DIFF, &g_debug_AdSmplChReq, &g_debug_EOGDATA[g_DataCounter]);
@@ -1604,16 +1622,31 @@ void openDataFile(char* filename, int overwrite)
 	}
 
 	fprintf(g_DataFP,"#SimpleGazeTrackerDataFile\n#TRACKER_VERSION,%s\n",VERSION);
-	if(g_isOutputPupilSize)
-		if(g_RecordingMode==RECORDING_MONOCULAR)
-			fprintf(g_DataFP,"#DATAFORMAT,T,X,Y,P\n");
-		else //binocular
-			fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY,LP,RP\n");
-	else
-		if(g_RecordingMode==RECORDING_MONOCULAR)
-			fprintf(g_DataFP,"#DATAFORMAT,T,X,Y\n");
-		else //binocular
-			fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY\n");
+	if(g_isOutputCustomData)
+	{
+		if(g_isOutputPupilSize)
+			if(g_RecordingMode==RECORDING_MONOCULAR)
+				fprintf(g_DataFP,"#DATAFORMAT,T,X,Y,P,C\n");
+			else //binocular
+				fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY,LP,RP,C\n");
+		else
+			if(g_RecordingMode==RECORDING_MONOCULAR)
+				fprintf(g_DataFP,"#DATAFORMAT,T,X,Y,C\n");
+			else //binocular
+				fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY,C\n");
+	}
+	else{
+		if(g_isOutputPupilSize)
+			if(g_RecordingMode==RECORDING_MONOCULAR)
+				fprintf(g_DataFP,"#DATAFORMAT,T,X,Y,P\n");
+			else //binocular
+				fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY,LP,RP\n");
+		else
+			if(g_RecordingMode==RECORDING_MONOCULAR)
+				fprintf(g_DataFP,"#DATAFORMAT,T,X,Y\n");
+			else //binocular
+				fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY\n");
+	}
 }
 
 /*!

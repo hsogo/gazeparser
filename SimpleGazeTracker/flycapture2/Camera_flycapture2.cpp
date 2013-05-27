@@ -516,3 +516,17 @@ void updateCustomMenuText( void )
 	// no custom parameters for this camera
 	return;
 }
+
+/*!
+getCameraCustomData: return Camera Custom data.
+
+If your camera has input port, you can output input values using this function.
+Currently, only single value (unsigned int) can be returned.
+
+@date 2013/05/27 created.
+*/
+unsigned int getCameraCustomData( void )
+{
+	//no custom input
+	return 0;
+}

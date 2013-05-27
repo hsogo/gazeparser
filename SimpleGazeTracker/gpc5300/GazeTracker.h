@@ -14,14 +14,15 @@
 
 #ifdef TOSHIBA
 
-#define CAMERA_CONFIG_FILE "CAMERA_TOSHIBA.cfg"
+#define GPC5300_CONFIG_FILE "CAMERA_TOSHIBA.cfg"
 
 #elif IMPERX
 
-#define CAMERA_CONFIG_FILE "CAMERA.cfg"
+#define GPC5300_CONFIG_FILE "CAMERA.cfg"
 
 #endif
 
+#define CAMERA_CONFIG_FILE "CONFIG_GPC5300"
 
 #include "IFCml.h"
 #include "../common/GazeTrackerCommon.h"
