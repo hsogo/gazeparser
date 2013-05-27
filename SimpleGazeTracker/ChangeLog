@@ -2,6 +2,7 @@
 
  release: ???
   * add "BLUR_FILTER_SIZE" option to SimpleGazeTracker FlyCapture2 edition.
+  * Custom output is supported in GPC5300 edition. Status of digital input port of CameraLink board is output to data file.
 
 2013-03-29 Hiroyuki Sogo
 
