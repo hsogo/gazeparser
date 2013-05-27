@@ -1771,7 +1771,7 @@ class ControllerVisionEggBackend(BaseController):
 
     def getSpatialError(self, position=None, responseKey='space', message=None, responseMouseButton=None,
                         gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey=None,
-                        showMarker=False, showBackground=False):
+                        showMarker=False, showBackground=False, ma=1):
         """
         Verify measurement error at a given position on the screen.
         
@@ -1810,7 +1810,11 @@ class ControllerVisionEggBackend(BaseController):
         :param bool showBackground:
             If True, gaze marker is visible when getSpatialError is called.
             Default value is False.
-        
+        :param int ma:
+            If this value is 1, the latest position is returned. If more than 1,
+            moving average of the latest N samples is returned (N is equal to 
+            the value of this parameter). Default value is 1.
+                
         :return:
             If recording mode is monocular, a tuple of two elements is returned.
             The first element is the distance from target to measured eye position.
@@ -1863,13 +1867,13 @@ class ControllerVisionEggBackend(BaseController):
             if responseMouseButton != None:
                 if self.getMousePressed()[responseMouseButton]==1:
                     isWaitingKey = False
-                    eyepos = self.getEyePosition()
+                    eyepos = self.getEyePosition(ma=ma)
                     break
             keys = self.getKeys()
             for key in keys:
                 if key == responseKey:
                     isWaitingKey = False
-                    eyepos = self.getEyePosition()
+                    eyepos = self.getEyePosition(ma=ma)
                     break
                 if key == toggleMarkerKey:
                     isMarkerVisible = not isMarkerVisible
@@ -1879,7 +1883,7 @@ class ControllerVisionEggBackend(BaseController):
                     for s in backgroundStimuli:
                         s.parameters.on = isBackgroundVisible
             if isMarkerVisible:
-                eyepos=self.getEyePosition()
+                eyepos=self.getEyePosition(ma=ma)
                 if len(eyepos)==2:
                     if eyepos[0]!=None:
                         gazeMarker.parameters.position = eyepos
@@ -2107,7 +2111,7 @@ class ControllerPsychoPyBackend(BaseController):
     
     def getSpatialError(self, position=None, responseKey='space', message=None,  responseMouseButton=None,
                         gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey=None,
-                        showMarker=False, showBackground=False, units='pix'):
+                        showMarker=False, showBackground=False, ma=1, units='pix'):
         """
         Verify measurement error at a given position on the screen.
         
@@ -2146,6 +2150,10 @@ class ControllerPsychoPyBackend(BaseController):
         :param bool showBackground:
             If True, gaze marker is visible when getSpatialError is called.
             Default value is False.
+        :param int ma:
+            If this value is 1, the latest position is returned. If more than 1,
+            moving average of the latest N samples is returned (N is equal to 
+            the value of this parameter). Default value is 1.
         :param str units: units of 'position' and returned value.  'norm', 'height',
             'deg', 'cm' and 'pix' are accepted.  Default value is 'pix'.
         
@@ -2196,26 +2204,26 @@ class ControllerPsychoPyBackend(BaseController):
             if responseMouseButton != None:
                 if self.getMousePressed()[responseMouseButton]==1:
                     isWaitingKey = False
-                    eyepos = self.getEyePosition(units='pix')
+                    eyepos = self.getEyePosition(ma=ma, units=units)
                     break
             keys = self.getKeys()
             for key in keys:
                 if key == responseKey:
                     isWaitingKey = False
-                    eyepos = self.getEyePosition(units='pix')
+                    eyepos = self.getEyePosition(ma=ma, units=units)
                     break
                 if key == toggleMarkerKey:
                     isMarkerVisible = not isMarkerVisible
                 if key == toggleBackgroundKey:
                     isBackgroundVisible = not isBackgroundVisible
             if isMarkerVisible:
-                eyepos=self.getEyePosition()
-                if len(eyepos)==2:
+                eyepos=self.getEyePosition(ma=ma, units=units)
+                if len(eyepos)==2: #monocular
                     if eyepos[0]!=None:
-                        gazeMarker.setPos(eyepos, log=False)
-                else:
+                        gazeMarker.setPos(eyepos, units=units, log=False)
+                else: #binocular
                     if eyepos[0]!=None and eyepos[1]!=None:
-                        gazeMarker.setPos(((eyepos[0]+eyepos[2])/2.0,(eyepos[1]+eyepos[3])/2.0), log=False)
+                        gazeMarker.setPos(((eyepos[0]+eyepos[2])/2.0,(eyepos[1]+eyepos[3])/2.0), units=units, log=False)
             
             #update screen
             if isBackgroundVisible:
