@@ -668,10 +668,12 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
         idxRY = 4
         idxLP = None
         idxRP = None
+        idxC  = None
     else:
         idxX = 1
         idxY = 2
         idxP = None
+        idxC = None
     
     fid = codecs.open(inputfileFullpath,'r','utf-8')
     
@@ -686,6 +688,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
     RP = []
     HV = []
     P = []
+    C = []
     
     flgInBlock = False
     isCheckedEffectiveDigit = False
@@ -724,6 +727,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                         Plist = None
                 
                 G = GazeParser.GazeData(T,Llist,Rlist,SacList,FixList,MsgList,BlinkList,Plist,config.RECORDED_EYE,config=config)
+                G.setCameraSpecificData(numpy.array(C))
                 Data.append(G)
             
                 #prepare for new block
@@ -737,6 +741,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                 RP = []
                 HV = []
                 P = []
+                C = []
             
             elif itemList[0] == '#MESSAGE':
                 try:
@@ -748,8 +753,8 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                 if useFileParameters:
                     #SimpleGazeTracker options
                     if itemList[0] == '#DATAFORMAT':
-                        idxT = idxX = idxY = idxP = None
-                        idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = None
+                        idxT = idxX = idxY = idxP = idxC = None
+                        idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = indC = None
                         tmp = []
                         for i in range(len(itemList)-1):
                             cmd = 'idx'+itemList[i+1] + '=' + str(i)
@@ -824,7 +829,12 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                     HV.append([x,y])
                     if idxP != None:
                         P.append(p)
-    
+            if idxC != None: #data has camera-specific data
+                try:
+                    C.append(int(itemList[idxC]))
+                except:
+                    C.append(itemList[idxC])
+            
     print 'saving...'
     if os.path.exists(additionalDataFileName):
         adfp = codecs.open(additionalDataFileName,'r','utf-8')

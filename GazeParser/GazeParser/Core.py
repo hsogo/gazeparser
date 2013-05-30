@@ -433,6 +433,7 @@ class GazeData(object):
         self._Blink = numpy.array(BlinkList)
         self._recordedEye = recordedEye
         self._Pupil = PupilList
+        self._CameraSpecificData = None
         
         self._EventList = self._getEventListByTime(self.T[0],self.T[-1])[0]
         for s in self._Sac:
@@ -822,8 +823,25 @@ class GazeData(object):
                     evlist = numpy.append(evlist,m)
         return evlist,evtimelist
     
-    def findNearestIndexFromMessage(self,messageID):
-        tdifflist = abs(self.T-self.Msg[messageID].time)
+    def findNearestIndexFromMessage(self, message):
+        """
+        Return index of the timestamp of the sample that is nearest to the time of given message.
+        
+        .. note:: This method is deprecated. Use :func:`~GazeParser.Core.GazeData`findIndexFromTime` instead.
+           gazedata.findNearestIndexFromMessage(msg) is equivalent to gazedata.findIndexFromTime(msg.time)
+        """
+        return self.findNearestIndexFromTime(self.Msg[messageID].time)
+    
+    def findIndexFromTime(self, time):
+        """
+        Return index of the timestamp of the sample that is nearest to the argument value.
+        For example, 1000.0 is given as an argument and timestamp of the 251st and 252nd sample 
+        are 999.6 and 1003.4 respectively, 251 is returned.
+        
+        :param float time:
+            Time in msec.
+        """
+        tdifflist = abs(self.T-time)
         mindiff = min(tdifflist)
         return numpy.where(mindiff==tdifflist)[0][0]
     
@@ -1172,6 +1190,8 @@ class GazeData(object):
     
     Pupil = property(lambda self: self._Pupil)
     
+    CameraSpecificData = property(lambda self: self._CameraSpecificData)
+    
     EventList = property(lambda self: self._EventList)
     """List of all events (saccades, fixations, blinks and messages) in chronological order."""
     
@@ -1228,4 +1248,22 @@ class GazeData(object):
                 return r
             else: #binocular
                 return (l+r)/2.0
-
+    
+    def setCameraSpecificData(self,data):
+        """
+        Set camera specific data.
+        
+        :param data:
+            Camera specific data.
+        """
+        self._CameraSpecificData = data
+    
+    def hasCameraSpecificData(self):
+        """
+        Return True if camera specific data is included.
+        """
+        if self._CameraSpecificData != None:
+            return True
+        else:
+            return False
+    
