@@ -21,7 +21,7 @@
 
 
 
-#define VERSION "0.6.4"
+#define VERSION "0.6.5"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -145,6 +145,7 @@ extern int g_ROIHeight;
 
 extern bool g_isShowingCameraImage;
 extern int g_isShowDetectionErrorMsg;
+extern int g_isOutputCameraSpecificData;
 
 extern int g_PortRecv;
 extern int g_PortSend;
@@ -198,6 +199,7 @@ extern int getCameraImage( void );
 extern void cleanupCamera( void );
 extern void saveCameraParameters( void );
 extern const char* getEditionString( void );
+extern unsigned int getCameraSpecificData( void );
 
 //DetectEye.cpp
 extern int initBuffers(void);
@@ -213,11 +215,10 @@ int initTimer(void);
 double getCurrentTime(void);
 void sleepMilliseconds(int);
 int getDataDirectoryPath(std::string* path);
-int getApplicationDirectoryPath(std::string* path);
+//int getApplicationDirectoryPath(std::string* path);
 int getParameterDirectoryPath(std::string* path);
 int getLogFilePath(std::string* path);
 int checkAndCreateDirectory(std::string path);
 int checkAndRenameFile(std::string path);
-int checkFile(std::string path, const char* filename);
 int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath);
 

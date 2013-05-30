@@ -89,7 +89,7 @@ double g_CalPointData[MAXCALDATA][2]; /*!< Holds where the calibration item is p
 double g_ParamX[6]; /*!< Holds calibration parameters for X coordinate. Only three elements are used when recording mode is monocular.*/
 double g_ParamY[6]; /*!< Holds calibration parameters for Y coordinate. Only three elements are used when recording mode is monocular.*/
 double g_CalibrationArea[4]; /*!< Holds calibration area. These values are used when calibration results are rendered.*/
-unsigned int g_CameraCustomData[MAXDATA]; /*!< Holds camera-specific data*/
+unsigned int g_CameraSpecificData[MAXDATA]; /*!< Holds camera-specific data*/
 
 double g_CurrentEyeData[4]; /*!< Holds latest data. Only two elements are used when recording mode is monocular.*/
 double g_CurrentPupilSize[2]; /*!< Holds latest data. Only one element is used when recording mode is monocular.*/
@@ -104,7 +104,7 @@ double g_CalMeanError[2]; /*!< Holds mean calibration error. Only one element is
 int g_RecordingMode = RECORDING_BINOCULAR; /*!< Holds recording mode. @note This value is modified only when application is being initialized (i.e. in initParameters()).*/
 int g_isShowDetectionErrorMsg = 0; /*!< Holds DetectionError message visibility.*/
 int g_isOutputPupilSize = 1; /*!< Holds whether pupil size is output to datafile.*/
-int g_isOutputCustomData = 0;/*!< Holds whether camera-specific data is output to datafile.*/
+int g_isOutputCameraSpecificData = 0;/*!< Holds whether camera-specific data is output to datafile.*/
 
 int g_DataCounter = 0;
 int g_LastSentDataCounter = 0;
@@ -431,17 +431,7 @@ int initSDLTTF(void)
 	fontFilePath.append("FreeSans.ttf");
 	if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
 	{
-		// try debian font directory
-		fontFilePath.assign("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
-		if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
-		{
-			// try current directory
-		fontFilePath.assign(".");
-			if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
-			{
-				return E_FAIL;
-			}
-		}
+		return E_FAIL;
 	}
 
 	return S_OK;
@@ -555,8 +545,8 @@ void flushGazeData(void)
 			}
 
 			//Camera custom data
-			if(g_isOutputCustomData)
-				fprintf(g_DataFP,",%d",g_CameraCustomData[i]);
+			if(g_isOutputCameraSpecificData==1)
+				fprintf(g_DataFP,",%d",g_CameraSpecificData[i]);
 			//End of line
 			fprintf(g_DataFP,"\n");
 		}
@@ -618,8 +608,8 @@ void flushGazeData(void)
 			}
 
 			//Camera Custom Data
-			if(g_isOutputCustomData)
-				fprintf(g_DataFP,",%d",g_CameraCustomData[i]);
+			if(g_isOutputCameraSpecificData==1)
+				fprintf(g_DataFP,",%d",g_CameraSpecificData[i]);
 			//End of line
 			fprintf(g_DataFP,"\n");
 		}
@@ -924,22 +914,15 @@ main: Entry point of the application
 */
 int main(int argc, char** argv)
 {
+	int index;
 	time_t t;
 	struct tm *ltm;
 	char datestr[256];
-	
 	//argv[0] must be copied to resolve application directory later.
 	//see getApplicationDirectoryPath() in PratformDependent.cpp 
 	g_AppDirPath.assign(argv[0]);
-	//int index;
-	//index = g_AppDirPath.find_last_of(PATH_SEPARATOR);
-	//printf("find_last_of, %d\n",index);
-	//if(index==-1)
-	//{
-	//	return E_FAIL;
-	//}
-	//g_AppDirPath.erase(index);
-	getApplicationDirectoryPath(&g_AppDirPath);
+	index = g_AppDirPath.find_last_of(PATH_SEPARATOR);
+	g_AppDirPath.erase(index);
 
 	int nInitMessage=0;
 
@@ -967,35 +950,10 @@ int main(int argc, char** argv)
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
 	g_LogFS << datestr << std::endl;
 	
-	g_LogFS << "Initial AppDirPath directory: " << g_AppDirPath << "." << std::endl;
-	if(FAILED(checkFile(g_AppDirPath, "CONFIG"))){
-		//try /usr/local/lib/simplegazetracker
-		g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
-		if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
-			g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
-		}else{
-			//try Debian directory (/usr/lib/simplegazetracker)
-			g_AppDirPath.assign("/usr/lib/simplegazetracker");
-			if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
-				g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
-			}else{
-				//try current directory
-				g_AppDirPath.assign(".");
-				if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
-					g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
-				}else{
-					printf("ERROR: Could not determine AppDirPath directory.\n");
-					g_LogFS << "ERROR: Could not determine AppDirPath directory."  << std::endl;
-					return -1;
-				}
-			}
-		}
-	}
-	
-	//if CONFIG file is not found in g_ParamPath, copy it.
+	//if CONFIG file is not found, copy it.
 	if(FAILED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
-		printf("Error: \"CONFIG\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n");
-		g_LogFS << "\"CONFIG\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+		printf("Error: Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed.\n");
+		g_LogFS << "Error: Neither data directory nor installation directory includes \"CONFIG\" file. Confirm that SimpleGazeTracker is properly installed." << std::endl;
 		return -1;
 	}
 	
@@ -1023,7 +981,7 @@ int main(int argc, char** argv)
 	//TODO output timer initialization results?
 
 	if(FAILED(initSDLTTF())){
-		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) is properly installed.";
+		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) exists in the application directory. Exit.";
 		SDL_Quit();
 		return -1;
 	}
@@ -1245,8 +1203,8 @@ int main(int argc, char** argv)
 			int res;
 			double detectionResults[MAX_DETECTION_RESULTS], TimeImageAquired;
 			TimeImageAquired = getCurrentTime() - g_RecStartTime;
-			if(g_isOutputCustomData==1){
-				g_CameraCustomData[g_DataCounter] = getCameraCustomData();
+			if(g_isOutputCameraSpecificData==1){
+				g_CameraSpecificData[g_DataCounter] = getCameraSpecificData();
 			}
 
 #ifdef __DEBUG_WITH_GPC3100
@@ -1664,7 +1622,7 @@ void openDataFile(char* filename, int overwrite)
 	}
 
 	fprintf(g_DataFP,"#SimpleGazeTrackerDataFile\n#TRACKER_VERSION,%s\n",VERSION);
-	if(g_isOutputCustomData)
+	if(g_isOutputCameraSpecificData==1)
 	{
 		if(g_isOutputPupilSize)
 			if(g_RecordingMode==RECORDING_MONOCULAR)
@@ -2086,10 +2044,8 @@ void getCalibrationResultsDetail( char* errorstr, int size, int* len)
 	}
 
 	*len = size-s;
-	if(*len>0){
-		//Overwrite last comma by '\0'
-		errorstr[*len-1] = '\0';
-	}
+	//Overwrite last comma by '\0'
+	errorstr[*len-1] = '\0';
 }
 
 

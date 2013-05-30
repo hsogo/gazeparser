@@ -354,14 +354,14 @@ void updateCustomMenuText( void )
 }
 
 /*!
-getCameraCustomData: return Camera Custom data.
+getCameraSpecificData: return Camera specific data.
 
-If your camera has input port, you can output input values using this function.
-Currently, only single value (unsigned int) can be returned.
+If your camera has input port, you can insert its value to the SimpleGazeTracker data file
+using this function. Currently, only single value (unsigned int) can be returned.
 
 @date 2013/05/27 created.
 */
-unsigned int getCameraCustomData( void )
+unsigned int getCameraSpecificData( void )
 {
 	//no custom input
 	return 0;

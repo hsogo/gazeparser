@@ -126,9 +126,13 @@ int initCamera( void )
 			if(strcmp(buff,"OUTPUT_DIGITAL_INPUT")==0)
 			{
 				if((int)param==1){
-					g_isOutputCustomData = 1;
+					g_isOutputCameraSpecificData = 1;
+				}else if((int)param==0){
+					g_isOutputCameraSpecificData = 0;
 				}else{
-					g_isOutputCustomData = 0;
+					g_LogFS << "ERROR: OUTPUT_DIGITAL_INPUT must be 0 or 1." << std::endl;
+					fs.close();
+					return E_FAIL;
 				}
 			}
 		}
@@ -138,7 +142,7 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	if(g_isOutputCustomData==1)
+	if(g_isOutputCameraSpecificData==1)
 	{
 		g_LogFS << "Output digital input of GPC5300" << std::endl;
 	}
@@ -327,14 +331,13 @@ void updateCustomMenuText( void )
 }
 
 /*!
-getCameraCustomData: return Camera Custom data.
+getCameraSpecificData: return Camera specific data.
 
-If your camera has input port, you can output input values using this function.
-Currently, only single value (unsigned int) can be returned.
-
+If your camera has input port, you can insert its value to the SimpleGazeTracker data file
+using this function. Currently, only single value (unsigned int) can be returned.
 @date 2013/05/27 created.
 */
-unsigned int getCameraCustomData( void )
+unsigned int getCameraSpecificData( void )
 {
 	return (unsigned int)g_DigitalInput;
 }
