@@ -1,8 +1,10 @@
 2013-xx-xx Hiroyuki Sogo
 
- release: ???
+ release: 0.6.5
   * add "BLUR_FILTER_SIZE" option to SimpleGazeTracker FlyCapture2 edition.
   * Custom output is supported in GPC5300 edition. Status of digital input port of CameraLink board is output to data file.
+  * Configuration files are searched from /usr/local/lib/simplegazetracker at first, then /usr/lib/simplegazetracker, and the current directory finally (Linux).
+  * Font file is searched from the directory where configuration files were found, then /usr/share/fonts/truetype/freefont/FreeSans.ttf, and the current directory finally (Linux).
 
 2013-03-29 Hiroyuki Sogo
 
@@ -12,9 +14,6 @@
   * "getWholeMessageList" command is added to get a list of messages with timestamp.
   * Moving-average mode is added to "getEyePosition" command.
   * A bug in message initialization at the begining of recording is fixed.
-
-2013-02-21 Hiroyuki Sogo
-
   * "isBinocularMode" command is added.
   * Bug in "insertSettings" command is fixed (Command after inserteSettings was ignored).
 
