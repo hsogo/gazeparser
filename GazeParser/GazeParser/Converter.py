@@ -727,7 +727,8 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                         Plist = None
                 
                 G = GazeParser.GazeData(T,Llist,Rlist,SacList,FixList,MsgList,BlinkList,Plist,config.RECORDED_EYE,config=config)
-                G.setCameraSpecificData(numpy.array(C))
+                if idxC != None:
+                    G.setCameraSpecificData(numpy.array(C))
                 Data.append(G)
             
                 #prepare for new block
