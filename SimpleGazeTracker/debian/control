@@ -10,7 +10,8 @@ Homepage: http://gazeparser.sourceforge.net/
 
 Package: simplegazetracker
 Architecture: i386
-Depends: ${shlibs:Depends}, ${misc:Depends}, fonts-freefont-ttf 
-Recommends: psychopy, octave-psychtoolbox-3
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: gazeparser, psychopy, octave-psychtoolbox-3, fonts-freefont-ttf, ttf-freefont
 Description: Open-source eye tracker
- Open-source eye tracking software.
+ Open-source eye tracking software for experimental psychology.
+ Please see http://gazeparser.sourceforge.net/ for detail.

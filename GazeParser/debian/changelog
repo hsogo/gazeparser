@@ -1,5 +1,9 @@
-gazeparser (0.6.4) unstable; urgency=low
+gazeparser (0.6.5) unstable; urgency=low
 
-  * Initial Release.
+  * Calibration results is simplified. (GazeParser.TrackingTools)
+  * Validation can be started only afer calibration has been performed. (GazeParser.TrackingTools)
+  * Camera-specific data is supported (GazeParser.Core, GazeParser.Converter)
 
- -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thu, 04 Apr 2013 12:55:11 +0900
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Fri, 31 May 2013 17:00:00 +0900
+ 
+
