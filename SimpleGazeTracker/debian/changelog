@@ -1,5 +1,26 @@
+simplegazetracker (0.6.5) unstable; urgency=low
+
+  * add "BLUR_FILTER_SIZE" option to SimpleGazeTracker FlyCapture2 edition.
+  * Custom output is supported in GPC5300 edition. Status of digital input port of CameraLink board is output to data file.
+  * Configuration files are searched from /usr/local/lib/simplegazetracker at first, then /usr/lib/simplegazetracker, and the current directory finally (Linux).
+  * Font file is searched from the directory where configuration files were found, then /usr/share/fonts/truetype/freefont/FreeSans.ttf, and the current directory finally (Linux).
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Fri, 31 May 2013 17:00:00 +0900
+
 simplegazetracker (0.6.4) unstable; urgency=low
 
-  * Initial Release.
+  * Threading-mode is added to SimpleGazeTracker FlyCapture2 edition. Two options (USE_THREAD, SLEEP_DURATION) are added.
+  * "getEyePositionList" and "getWholeEyePositionList" commands are added to get a list of gaze position data.
+  * "getWholeMessageList" command is added to get a list of messages with timestamp.
+  * Moving-average mode is added to "getEyePosition" command.
+  * A bug in message initialization at the begining of recording is fixed.
+  * "isBinocularMode" command is added.
+  * Bug in "insertSettings" command is fixed (Command after inserteSettings was ignored).
 
- -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thu, 04 Apr 2013 12:55:11 +0900
+ release: 0.6.3
+  * SimpleGazeTracker FlyCapture2 edition is added.
+  * Detailed error message is output when CONFIG is not found in the installation directory.
+  * Camera image is visible between "startMeasurement" and "stopMeasurement" command.
+  * SimpleGazeTracker checks CONFIG and copy default CONFIG when CONFIG is not found.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thu, 04 Apr 2013 12:00:00 +0900
