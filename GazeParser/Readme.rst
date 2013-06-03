@@ -24,3 +24,7 @@ For Linux and MacOS X users
 
 .. note::
     Debian .deb packages of GazeParser and SimpleGazeTracker are testing now.
+    Please try them.
+    
+    - GazeParser-0.6.5/gazeparser_0.6.5_all.deb
+    - SimpleGazeTracker-0.6.5/simplegazetracker_0.6.5_i386.deb
