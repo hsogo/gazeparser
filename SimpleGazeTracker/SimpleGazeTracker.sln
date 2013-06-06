@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleGazeTracker_OptiTrack", "optitrack\optitrack.vcxproj", "{42A0F499-EE76-4E8E-9EAE-7EC5AF6C95B8}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup_OptiTrack", "Setup_OptiTrack\Setup_OptiTrack.vdproj", "{C6F96E95-B699-4E97-BD10-2C1142A36D84}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleGazeTracker_OpenCV", "opencv\opencv.vcxproj", "{2C28F1D3-A363-4D23-8D82-9BDD441428D1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleGazeTracker_GPC5300", "gpc5300\gpc5300.vcxproj", "{F64918EA-DD9F-4213-ABE2-28B571DC1AAB}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup_OpenCV", "Setup_OpenCV\Setup_OpenCV.vdproj", "{C0074100-7EE6-4A53-B915-122243E3AA58}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleGazeTracker_FlyCapture2", "flycapture2\flycapture2.vcxproj", "{162A91BA-84C3-4B96-8FED-A985BB6C3287}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup_FlyCapture2", "Setup_FlyCapture2\Setup_FlyCapture2.vdproj", "{34C50499-7515-44E4-B1BD-C7A1920169D3}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup_GPC5300", "Setup_GPC5300\Setup_GPC5300.vdproj", "{EA8A1831-E3AA-45EF-AE75-680296138425}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{42A0F499-EE76-4E8E-9EAE-7EC5AF6C95B8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{42A0F499-EE76-4E8E-9EAE-7EC5AF6C95B8}.Debug|Win32.Build.0 = Debug|Win32
+		{42A0F499-EE76-4E8E-9EAE-7EC5AF6C95B8}.Release|Win32.ActiveCfg = Release|Win32
+		{42A0F499-EE76-4E8E-9EAE-7EC5AF6C95B8}.Release|Win32.Build.0 = Release|Win32
+		{C6F96E95-B699-4E97-BD10-2C1142A36D84}.Debug|Win32.ActiveCfg = Debug
+		{C6F96E95-B699-4E97-BD10-2C1142A36D84}.Release|Win32.ActiveCfg = Release
+		{2C28F1D3-A363-4D23-8D82-9BDD441428D1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2C28F1D3-A363-4D23-8D82-9BDD441428D1}.Debug|Win32.Build.0 = Debug|Win32
+		{2C28F1D3-A363-4D23-8D82-9BDD441428D1}.Release|Win32.ActiveCfg = Release|Win32
+		{2C28F1D3-A363-4D23-8D82-9BDD441428D1}.Release|Win32.Build.0 = Release|Win32
+		{F64918EA-DD9F-4213-ABE2-28B571DC1AAB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F64918EA-DD9F-4213-ABE2-28B571DC1AAB}.Debug|Win32.Build.0 = Debug|Win32
+		{F64918EA-DD9F-4213-ABE2-28B571DC1AAB}.Release|Win32.ActiveCfg = Release|Win32
+		{F64918EA-DD9F-4213-ABE2-28B571DC1AAB}.Release|Win32.Build.0 = Release|Win32
+		{C0074100-7EE6-4A53-B915-122243E3AA58}.Debug|Win32.ActiveCfg = Debug
+		{C0074100-7EE6-4A53-B915-122243E3AA58}.Release|Win32.ActiveCfg = Release
+		{162A91BA-84C3-4B96-8FED-A985BB6C3287}.Debug|Win32.ActiveCfg = Debug|Win32
+		{162A91BA-84C3-4B96-8FED-A985BB6C3287}.Debug|Win32.Build.0 = Debug|Win32
+		{162A91BA-84C3-4B96-8FED-A985BB6C3287}.Release|Win32.ActiveCfg = Release|Win32
+		{162A91BA-84C3-4B96-8FED-A985BB6C3287}.Release|Win32.Build.0 = Release|Win32
+		{34C50499-7515-44E4-B1BD-C7A1920169D3}.Debug|Win32.ActiveCfg = Debug
+		{34C50499-7515-44E4-B1BD-C7A1920169D3}.Release|Win32.ActiveCfg = Release
+		{EA8A1831-E3AA-45EF-AE75-680296138425}.Debug|Win32.ActiveCfg = Debug
+		{EA8A1831-E3AA-45EF-AE75-680296138425}.Release|Win32.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
