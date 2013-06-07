@@ -17,10 +17,12 @@ simplegazetracker (0.6.4) unstable; urgency=low
   * "isBinocularMode" command is added.
   * Bug in "insertSettings" command is fixed (Command after inserteSettings was ignored).
 
- release: 0.6.3
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Fri, 29 Mar 2013 12:00:00 +0900
+
+simplegazetracker (0.6.3) unstable; urgency=low
   * SimpleGazeTracker FlyCapture2 edition is added.
   * Detailed error message is output when CONFIG is not found in the installation directory.
   * Camera image is visible between "startMeasurement" and "stopMeasurement" command.
   * SimpleGazeTracker checks CONFIG and copy default CONFIG when CONFIG is not found.
 
- -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thu, 04 Apr 2013 12:00:00 +0900
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thu, 21 Feb 2013 12:00:00 +0900
