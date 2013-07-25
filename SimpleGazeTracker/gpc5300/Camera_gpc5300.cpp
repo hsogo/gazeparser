@@ -22,6 +22,7 @@
 
 HANDLE g_CameraDeviceHandle; /*!< Holds camera device handle */
 HANDLE g_CameraMemHandle; /*!< Holds camera buffer handle */
+BOOL g_isWow64; /*!< Process is running on WOW64? */
 
 unsigned char* g_TmpFrameBuffer; /*!< Temporary buffer to hold camera image until CallBackProc() is called.*/
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
@@ -48,6 +49,16 @@ CallBackProc: Grab camera images.
  */
 void CALLBACK CallBackProc(DWORD IntFlg, DWORD User)
 {
+	//error check
+	/*
+	IFCMLCAPSTS CapSts;
+	INT ret;
+	ret = CmlGetCaptureStatus(g_CameraDeviceHandle, &CapSts);
+	if(ret != IFCML_ERROR_SUCCESS){
+		return;
+	}*/
+
+	//copy to buffer
 	memcpy(g_frameBuffer, g_TmpFrameBuffer, g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
 	if(IFCML_ERROR_SUCCESS != CmlInputDI(g_CameraDeviceHandle, &g_DigitalInput)){
 		g_LogFS << "WARNING:DI Error" << std::endl;
@@ -70,6 +81,7 @@ Read parameters from the configuration file, start camera and set callback funct
 @date 2013/03/15
 - Argument "ParamPath" was removed. Use g_ParamPath instead.
 @date 2013/05/27 a new option, "OUTPUT_DIGITAL_INPUT", was appended.
+@date 2013/07/25 support for Wow64 environment.
  */
 int initCamera( void )
 {
@@ -153,12 +165,9 @@ int initCamera( void )
 	IFCMLCAPFMT     CapFmt;
 	std::string     str;
 
-	g_TmpFrameBuffer = (unsigned char*)malloc(g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-	if(g_TmpFrameBuffer==NULL)
-	{
-		g_LogFS << "ERROR: failed to allocate working buffer" << std::endl;
-		return E_FAIL;
-	}
+	HANDLE hProc;
+	hProc = GetCurrentProcess();
+	IsWow64Process(hProc, &g_isWow64);
 
 	g_CameraDeviceHandle = CmlOpen("IFIMGCML1");
 	if(g_CameraDeviceHandle == INVALID_HANDLE_VALUE){
@@ -197,18 +206,50 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	// Allocate the buffer for storing the image data.
-	BufSize = CapFmt.FrameSize_Buf;
+	if(g_isWow64){
+		g_LogFS << "Running on WOW64... Yes" << std::endl;
+		PVOID MemoryAddress;
+		// Allocate the buffer for storing the image data.
+		BufSize = CapFmt.FrameSize_Buf;
 
-	ret =  CmlRegistMemInfo(g_CameraDeviceHandle, g_TmpFrameBuffer, BufSize, &g_CameraMemHandle);
-	if(ret != IFCML_ERROR_SUCCESS){
-		g_LogFS << "ERROR: could not allocate buffer)" << std::endl;
-		CmlClose(g_CameraDeviceHandle);
-		return E_FAIL;
+		ret =  CmlRegistMemInfo(g_CameraDeviceHandle, (PVOID)-1, BufSize, &g_CameraMemHandle);
+		if(ret != IFCML_ERROR_SUCCESS){
+			g_LogFS << "ERROR: could not register meminfo" << std::endl;
+			CmlClose(g_CameraDeviceHandle);
+			return E_FAIL;
+		}
+		CmlGetMemPtrValue(g_CameraDeviceHandle, g_CameraMemHandle, &MemoryAddress);
+		if(ret != IFCML_ERROR_SUCCESS){
+			g_LogFS << "ERROR: could not get memory pointer" << std::endl;
+			CmlClose(g_CameraDeviceHandle);
+			return E_FAIL;
+		}
+		g_TmpFrameBuffer = (unsigned char*)MemoryAddress;
+
+	}else{
+		g_LogFS << "Running on WOW64... No" << std::endl;
+		g_TmpFrameBuffer = (unsigned char*)malloc(g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
+		if(g_TmpFrameBuffer==NULL)
+		{
+			g_LogFS << "ERROR: failed to allocate working buffer" << std::endl;
+			CmlClose(g_CameraDeviceHandle);
+			return E_FAIL;
+		}
+
+		// Allocate the buffer for storing the image data.
+		BufSize = CapFmt.FrameSize_Buf;
+
+		ret =  CmlRegistMemInfo(g_CameraDeviceHandle, g_TmpFrameBuffer, BufSize, &g_CameraMemHandle);
+		if(ret != IFCML_ERROR_SUCCESS){
+			g_LogFS << "ERROR: could not allocate buffer)" << std::endl;
+			CmlClose(g_CameraDeviceHandle);
+			return E_FAIL;
+		}
 	}
 
+
 	// Set Capture Configration
-	ret = CmlSetCapConfig(g_CameraDeviceHandle,g_CameraMemHandle,&CapFmt);
+	ret = CmlSetCapConfig(g_CameraDeviceHandle, g_CameraMemHandle, &CapFmt);
 	if(ret != IFCML_ERROR_SUCCESS){
 		g_LogFS << "ERROR: could not set camera configuration)" << std::endl;
 		CmlClose(g_CameraDeviceHandle);
@@ -216,6 +257,11 @@ int initCamera( void )
 	}
 
 	CmlOutputPower(g_CameraDeviceHandle,IFCML_PWR_ON);
+	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not turn the camera on)" << std::endl;
+		CmlClose(g_CameraDeviceHandle);
+		return E_FAIL;
+	}
 	Sleep(1000);
 
 	////interrupt////
@@ -225,14 +271,25 @@ int initCamera( void )
 	Event.CallBackProc = CallBackProc;
 	Event.User = 0;
 
-	DWORD EventMask = 0x03;
-	ret = CmlSetEventMask(g_CameraDeviceHandle,EventMask);
+	ret = CmlSetEventMask(g_CameraDeviceHandle, 0x03);
+	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not set event mask)" << std::endl;
+		CmlClose(g_CameraDeviceHandle);
+		return E_FAIL;
+	}
 	ret = CmlSetEvent(g_CameraDeviceHandle,&Event);
+	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not set event)" << std::endl;
+		CmlClose(g_CameraDeviceHandle);
+		return E_FAIL;
+	}
 
 	ret = CmlStartCapture(g_CameraDeviceHandle, 0 ,IFCML_CAM_DMA | IFCML_CAP_ASYNC);
-	////interrupt////
-
-
+	if(ret != IFCML_ERROR_SUCCESS){
+		g_LogFS << "ERROR: could not start capture)" << std::endl;
+		CmlClose(g_CameraDeviceHandle);
+		return E_FAIL;
+	}
 
 	return S_OK;
 }
@@ -253,6 +310,7 @@ int getCameraImage( void )
 		return S_OK;
 	}
 
+
 	return E_FAIL;
 }
 
@@ -270,7 +328,7 @@ void cleanupCamera()
 	ret = CmlFreeMemInfo(g_CameraDeviceHandle,g_CameraMemHandle);
 	ret = CmlClose(g_CameraDeviceHandle);
 	CmlOutputPower(g_CameraDeviceHandle,IFCML_PWR_OFF);
-	if(g_TmpFrameBuffer!=NULL)
+	if(g_TmpFrameBuffer!=NULL && !g_isWow64)
 	{
 		free(g_TmpFrameBuffer);
 		g_TmpFrameBuffer = NULL;
