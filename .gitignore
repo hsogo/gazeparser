@@ -14,9 +14,6 @@ _build/
 #C++
 *.o
 
-#for SimpleGazeTracker_OpenCV
-
-FreeSans.ttf
 #simplegazetracker
 autom4te.cache/
 
@@ -34,3 +31,24 @@ makefile.in
 GazeParser/debian/gazeparser/
 SimpleGazeTracker/debian/simplegazetracker/
 
+#VisualStudio
+*.bak
+*.cache
+*.exe
+*.idb
+*.ilk
+*.manifest
+*.manifest.res
+*.manifest.rc
+*.msi
+*.obj
+*.pdb
+*.sdf
+*.suo
+*.tlh
+*.tli
+*.tlog
+*.user
+SimpleGazeTracker/ipch
+[Dd]ebug*/
+[Rr]elease*/
