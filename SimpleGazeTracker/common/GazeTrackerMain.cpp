@@ -106,8 +106,6 @@ int g_isShowDetectionErrorMsg = 0; /*!< Holds DetectionError message visibility.
 int g_isOutputPupilSize = 1; /*!< Holds whether pupil size is output to datafile.*/
 int g_isOutputCameraSpecificData = 0;/*!< Holds whether camera-specific data is output to datafile.*/
 
-char g_ServerIPAddressStr[32]; /*!< Holds server IP address as string.*/
-
 int g_DataCounter = 0;
 int g_LastSentDataCounter = 0;
 bool g_isRecording = false;
@@ -923,8 +921,6 @@ main: Entry point of the application
 - Add log messages.
 @date 2013/05/27
 - Support camera custom data.
-@date 2013/09/09
-- Serve address is printed on the title bar.
 */
 int main(int argc, char** argv)
 {
@@ -1076,13 +1072,6 @@ int main(int argc, char** argv)
 	g_LogFS << "sockAccept ... OK." << std::endl;
 	renderInitMessages(nInitMessage,"sockAccept ... OK.");
 	nInitMessage += 1;
-	
-	str.assign("SimpleGazeTracker ");
-	str.append(VERSION);
-	str.append(" (");
-	str.append(g_ServerIPAddressStr);
-	str.append(")");
-	SDL_WM_SetCaption(str.c_str(),NULL);
 
 	if(FAILED(initCamera())){
 		g_LogFS << "initCamera failed. Exit." << std::endl;

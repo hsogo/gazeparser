@@ -193,8 +193,6 @@ extern void allowRendering(void);
 extern void inhibitRendering(void);
 extern bool isBinocularMode(void);
 
-extern char g_ServerIPAddressStr[32];
-
 //Camera.cpp
 extern int initCamera( void );
 extern int getCameraImage( void );
