@@ -144,6 +144,7 @@ sockAccept: Accept connection request from the client PC.
 @retval E_FAIL
 
 @date 2013/03/25 edit log message.
+@date 2013/09/09 Serve address is resolved.
 */
 int sockAccept(void)
 {
@@ -161,8 +162,23 @@ int sockAccept(void)
 		g_LogFS << std::endl << "ERROR: failed to open server socket" << std::endl;
 		return E_FAIL;
 	}
-	
+
 	g_LogFS << "OK." << std::endl;
+
+	const char *hostName;
+	hostName=SDLNet_ResolveIP(&ip);
+	unsigned int nip;
+	if(SDLNet_ResolveHost(&ip, hostName, g_PortRecv)==-1){
+		g_LogFS << "WARNING: could not resolve server address" << std::endl;
+		snprintf(g_ServerIPAddressStr, sizeof(g_ServerIPAddressStr), "?.?.?.?");
+	}else{
+		nip = ntohl(ip.host);
+		snprintf(g_ServerIPAddressStr, sizeof(g_ServerIPAddressStr), "%u.%u.%u.%u", 
+			(nip & 0xFF000000)>>24,	(nip & 0x00FF0000)>>16,
+			(nip & 0x0000FF00)>> 8, (nip & 0x000000FF));
+		g_LogFS << "Server address:" << g_ServerIPAddressStr << std::endl;
+	}
+	
     return S_OK;
 }
 
