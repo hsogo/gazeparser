@@ -1531,13 +1531,25 @@ class mainWindow(Tkinter.Frame):
         self.menu_view.add_command(label='Next Trial',under=0,command=self._nextTrial)
         self.menu_view.add_command(label='Jump to...',under=0,command=self._jumpToTrial)
         self.menu_view.add_separator()
-        self.menu_view.add_command(label='T-XY plot',under=0, command=self._toTXYView)
-        self.menu_view.add_command(label='XY plot',under=0, command=self._toXYView)
-        self.menu_view.add_command(label='Scatter plot',under=0, command=self._toScatterView)
-        self.menu_view.add_command(label='Heatmap plot',under=0, command=self._toHeatmapView)
+        self.plotStyleMenuItem = Tkinter.StringVar()
+        self.plotStyleMenuItem.set(self.plotStyle)
+        self.menu_view.add_radiobutton(label='T-XY plot',under=0, command=self._toTXYView, variable=self.plotStyleMenuItem, value = 'TXY')
+        self.menu_view.add_radiobutton(label='XY plot',under=0, command=self._toXYView, variable=self.plotStyleMenuItem, value = 'XY')
+        self.menu_view.add_radiobutton(label='Scatter plot',under=0, command=self._toScatterView, variable=self.plotStyleMenuItem, value = 'SCATTER')
+        self.menu_view.add_radiobutton(label='Heatmap plot',under=0, command=self._toHeatmapView, variable=self.plotStyleMenuItem, value = 'HEATMAP')
         self.menu_view.add_separator()
-        self.menu_view.add_command(label='Toggle Fixation Number', under=7,command=self._toggleFixNum)
-        self.menu_view.add_command(label='Toggle Stimulus Image', under=7,command=self._toggleStimImage)
+        self.showFixationNumberItem = Tkinter.IntVar()
+        if self.conf.CANVAS_SHOW_FIXNUMBER:
+            self.showFixationNumberItem.set(1)
+        else:
+            self.showFixationNumberItem.set(0)
+        self.showStimulusImageItem = Tkinter.IntVar()
+        if self.conf.CANVAS_SHOW_STIMIMAGE:
+            self.showStimulusImageItem.set(1)
+        else:
+            self.showStimulusImageItem.set(0)
+        self.menu_view.add_radiobutton(label='Show Fixation Number', under=7, command=self._toggleFixNum, variable=self.showFixationNumberItem, value=1)
+        self.menu_view.add_radiobutton(label='Show Stimulus Image', under=7, command=self._toggleStimImage, variable=self.showStimulusImageItem, value=1)
         self.menu_view.add_separator()
         self.menu_view.add_command(label='Config grid', command=self._configGrid)
         self.menu_view.add_command(label='Config color', command=self._configColor)
@@ -1624,7 +1636,7 @@ class mainWindow(Tkinter.Frame):
         else: #XYT
             self.plotStyle = 'XY'
             self.currentPlotArea = self.plotAreaXY
-            
+        self.plotStyleMenuItem.set(self.plotStyle)
         self._plotData()
     
     def _toTXYView(self):
@@ -1650,16 +1662,20 @@ class mainWindow(Tkinter.Frame):
     def _toggleFixNum(self, event=None):
         if self.conf.CANVAS_SHOW_FIXNUMBER:
             self.conf.CANVAS_SHOW_FIXNUMBER = False
+            self.showFixationNumberItem.set(0)
         else:
             self.conf.CANVAS_SHOW_FIXNUMBER = True
+            self.showFixationNumberItem.set(1)
         
         self._plotData()
     
     def _toggleStimImage(self, event=None):
         if self.conf.CANVAS_SHOW_STIMIMAGE:
             self.conf.CANVAS_SHOW_STIMIMAGE = False
+            self.showStimulusImageItem.set(0)
         else:
             self.conf.CANVAS_SHOW_STIMIMAGE = True
+            self.showStimulusImageItem.set(1)
         
         self._plotData()
     
@@ -1784,7 +1800,9 @@ class mainWindow(Tkinter.Frame):
                 tkMessageBox.showerror('Error','Cannot open %s as StimImage.' % imageFilename)
                 return
             
+            #set extent [left,right,bottom,top] (See matplotlib.pyplot.imshow)
             if len(params) == 4:
+                #left and bottom are specified.
                 try:
                     self.stimImageExtent[0] = float(params[2])
                     self.stimImageExtent[2] = float(params[3])
@@ -1796,6 +1814,7 @@ class mainWindow(Tkinter.Frame):
                 self.stimImageExtent[1] = self.stimImageExtent[0] + self.stimImage.size[0]
                 self.stimImageExtent[3] = self.stimImageExtent[2] + self.stimImage.size[1]
             if len(params) == 6:
+                #left, right, bottom and top are specified.
                 try:
                     self.stimImageExtent[0] = float(params[2])
                     self.stimImageExtent[1] = float(params[3])
@@ -2042,7 +2061,7 @@ class mainWindow(Tkinter.Frame):
              sf = self.D[self.tr]._pix2deg
         
         if self.plotStyle in XYPLOTMODES and self.stimImage != None and self.conf.CANVAS_SHOW_STIMIMAGE:
-            self.ax.imshow(self.stimImage, extent=self.stimImageExtent, origin='lower')
+            self.ax.imshow(self.stimImage, extent=self.stimImageExtent, origin='upper')
         
         if self.plotStyle == 'XY':
             #plot fixations
