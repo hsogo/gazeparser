@@ -2275,6 +2275,7 @@ class mainWindow(Tkinter.Frame):
             
             self.ax.axis((sf[0]*self.currentPlotArea[0],sf[0]*self.currentPlotArea[1],
                           sf[1]*self.currentPlotArea[2],sf[1]*self.currentPlotArea[3]))
+            self.ax.set_aspect('equal')
         else: #TXY
             if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
                 self.ax.set_xlabel('Time (ms)')
@@ -2285,6 +2286,7 @@ class mainWindow(Tkinter.Frame):
             
             self.ax.axis((self.currentPlotArea[0],self.currentPlotArea[1],
                           sf[0]*self.currentPlotArea[2],sf[0]*self.currentPlotArea[3]))
+            self.ax.set_aspect('auto')
         
         self.ax.set_title('%s: Trial%d' % (os.path.basename(self.dataFileName), self.tr))
         self._updateGrid()
