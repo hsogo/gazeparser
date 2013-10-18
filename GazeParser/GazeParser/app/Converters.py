@@ -70,6 +70,8 @@ class Converter(Tkinter.Frame):
         self.checkOverwrite = Tkinter.IntVar()
         self.loadConfigButton = Tkinter.Button(self.sideFrame, text='Load Configuration File', command=self._loadConfig)
         self.loadConfigButton.pack(fill=Tkinter.X, padx=10, pady=2)
+        self.exportConfigButton = Tkinter.Button(self.sideFrame, text='Export current parameters to Configuration File', command=self._exportConfig)
+        self.exportConfigButton.pack(fill=Tkinter.X, padx=10, pady=2)
         Tkinter.Button(self.sideFrame,text='Convert Files',command=self._convertFiles).pack(fill=Tkinter.X, padx=10, pady=2)
         Tkinter.Checkbutton(self.sideFrame,text='Overwrite',variable=self.checkOverwrite).pack()
         
@@ -135,7 +137,42 @@ class Converter(Tkinter.Frame):
         
         for key in GazeParser.Configuration.GazeParserOptions:
             self.stringVarDict[key].set(getattr(self.configuration,key))
+    
+    def _exportConfig(self):
+        """
+        Based on: Gazeparser.app.ConfigEditor._saveas()
+        """
+        self.ftypes = [('GazeParser ConfigFile', '*.cfg')]
+        for key in GazeParser.Configuration.GazeParserOptions:
+            if self.stringVarDict[key].get() == '':
+                tkMessageBox.showerror('GazeParser.Configuration.GUI','\'%s\' is empty.\nConfiguration is not saved.' % key)
+                return
         
+        try:
+            fdir = os.path.split(self.ConfigFileName)[0]
+        except:
+            if os.path.exists(GazeParser.configDir):
+                fdir = GazeParser.configDir
+            else:
+                fdir = GazeParser.homeDir
+        fname = tkFileDialog.asksaveasfilename(filetypes=self.ftypes, initialdir=fdir)
+        
+        if fname=='':
+            return
+        
+        try:
+            fp = open(fname,'w')
+        except:
+            tkMessageBox.showerror('Error','Could not open \'%s\'' % fname)
+            return
+        
+        fp.write('[GazeParser]\n')
+        for key in GazeParser.Configuration.GazeParserOptions:
+            fp.write('%s = %s\n' % (key, self.stringVarDict[key].get()))
+        fp.close()
+        
+        tkMessageBox.showinfo('Info','Saved to \'%s\'' % fname)
+    
     def _updateParameters(self):
         for key in GazeParser.Configuration.GazeParserOptions:
             value = self.stringVarDict[key].get()
@@ -155,6 +192,7 @@ class Converter(Tkinter.Frame):
         for key in self.paramEntryDict.keys():
             self.paramEntryDict[key].configure(state=state)
         self.loadConfigButton.configure(state=state)
+        self.exportConfigButton.configure(state=state)
         
         self.filterIdentityRB.configure(state=state)
         self.filterMARB.configure(state=state)
