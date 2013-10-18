@@ -1960,7 +1960,7 @@ class ControllerPsychoPyBackend(BaseController):
         self.win = win
         (self.screenWidth, self.screenHeight) = win.size
         self.screenCenter = (0,0)
-        self.caltarget = self.PPRect(self.win,width=10,height=10,units='pix')
+        self.caltarget = self.PPRect(self.win, width=10, height=10, units='pix', lineWidth=1, fillColor=(1,1,1), lineColor=(1,1,1))
         self.PILimgCAL = Image.new('L',(self.screenWidth-self.screenWidth%4,self.screenHeight-self.screenHeight%4))
         self.img = self.PPSimpleImageStim(self.win, self.PILimg)
         self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL)
