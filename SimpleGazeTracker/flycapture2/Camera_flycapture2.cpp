@@ -120,6 +120,8 @@ Read parameters from the configuration file, start camera and set callback funct
 @date 2013/03/29
 - Threading mode is added.
 - USE_THREAD and SLEEP_DURATION options are supported.
+@date 2013/10/23
+- Camera configuration file is customizable.
  */
 int initCamera( void )
 {
@@ -132,12 +134,14 @@ int initCamera( void )
 	
 	fname = g_ParamPath.c_str();
 	fname.append(PATH_SEPARATOR);
-	fname.append(CAMERA_CONFIG_FILE);
-
+	if(g_CameraConfigFileName==""){
+		g_CameraConfigFileName = CAMERA_CONFIG_FILE;
+		checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+	}
+	fname.append(g_CameraConfigFileName.c_str());
+	
 	FlyCapture2::Error error;
 	FlyCapture2::Mode mode;
-
-	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
 
 	fs.open(fname.c_str(),std::ios::in);
 	if(fs.is_open())

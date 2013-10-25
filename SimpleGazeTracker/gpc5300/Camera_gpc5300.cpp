@@ -82,21 +82,27 @@ Read parameters from the configuration file, start camera and set callback funct
 - Argument "ParamPath" was removed. Use g_ParamPath instead.
 @date 2013/05/27 a new option, "OUTPUT_DIGITAL_INPUT", was appended.
 @date 2013/07/25 support for Wow64 environment.
+@date 2013/10/23
+- Camera configuration file is customizable.
  */
 int initCamera( void )
 {
 	std::fstream fs;
 	std::string fname;
+	std::string customCameraCFGname;
 	char *p,*pp;
 	char buff[1024];
 	double param;
 	bool isInSection = true; //default is True to support old config file
+	bool isCustomCameraCFG = false;
 	
 	fname = g_ParamPath.c_str();
 	fname.append(PATH_SEPARATOR);
-	fname.append(CAMERA_CONFIG_FILE);
-
-	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+	if(g_CameraConfigFileName==""){
+		g_CameraConfigFileName = CAMERA_CONFIG_FILE;
+		checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+	}
+	fname.append(g_CameraConfigFileName.c_str());
 
 	fs.open(fname.c_str(),std::ios::in);
 	if(fs.is_open())
@@ -133,7 +139,7 @@ int initCamera( void )
 				*p= '\0';
 			}
 			while(*(p+1)==0x09 || *(p+1)==0x20) p++;
-			param = strtod(p+1,&pp); //paramete is not int but double
+			param = strtod(p+1,&pp); //parameter is not int but double
 
 			if(strcmp(buff,"OUTPUT_DIGITAL_INPUT")==0)
 			{
@@ -147,6 +153,12 @@ int initCamera( void )
 					return E_FAIL;
 				}
 			}
+			else if(strcmp(buff,"CUSTOM_CAMERA_CFG_FILE")==0)
+			{
+				//parameter is str
+				customCameraCFGname = p+1;
+				isCustomCameraCFG = true;
+			}
 		}
 		fs.close();
 	}else{
@@ -158,12 +170,16 @@ int initCamera( void )
 	{
 		g_LogFS << "Output digital input of GPC5300" << std::endl;
 	}
+	if(isCustomCameraCFG)
+	{
+		g_LogFS << "Use custom camera CFG file(" << customCameraCFGname.c_str() << ")" << std::endl;
+	}
 
 	// init camera unit
 	INT ret;
 	DWORD BufSize;
-	IFCMLCAPFMT     CapFmt;
-	std::string     str;
+	IFCMLCAPFMT CapFmt;
+	std::string cfgfname;
 
 	HANDLE hProc;
 	hProc = GetCurrentProcess();
@@ -175,16 +191,30 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	checkAndCopyFile(g_ParamPath, GPC5300_CONFIG_FILE, g_AppDirPath);
+	if(!isCustomCameraCFG){
+		checkAndCopyFile(g_ParamPath, GPC5300_CONFIG_FILE, g_AppDirPath);
 
-	str.assign(g_ParamPath);
-	str.append(PATH_SEPARATOR);
-	str.append(GPC5300_CONFIG_FILE);
+		cfgfname.assign(g_ParamPath);
+		cfgfname.append(PATH_SEPARATOR);
+		cfgfname.append(GPC5300_CONFIG_FILE);
+
+	}else{
+		std::string::size_type index = customCameraCFGname.find(PATH_SEPARATOR);
+		if(index == std::string::npos){
+			cfgfname.assign(g_ParamPath);
+			cfgfname.append(PATH_SEPARATOR);
+			cfgfname.append(customCameraCFGname);
+		}
+		else //full path?
+		{
+			cfgfname = customCameraCFGname;
+		}
+	}
 	
-	ret = CmlReadCamConfFile(g_CameraDeviceHandle,str.c_str());
+	ret = CmlReadCamConfFile(g_CameraDeviceHandle,cfgfname.c_str());
 	
 	if(ret != IFCML_ERROR_SUCCESS){
-		g_LogFS << "ERROR: could not read camera configuration file(" << str << ")" << std::endl;
+		g_LogFS << "ERROR: could not read camera configuration file(" << cfgfname << ")" << std::endl;
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}

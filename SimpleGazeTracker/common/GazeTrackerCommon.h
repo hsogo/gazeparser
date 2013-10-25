@@ -160,6 +160,7 @@ extern std::string g_AppDirPath;
 extern std::string g_ParamPath;
 
 extern std::fstream g_LogFS;
+extern std::string g_CameraConfigFileName;
 
 extern void startCalibration(int x1, int y1, int x2, int y2);
 extern void getCalSample(double x, double y, int samples);

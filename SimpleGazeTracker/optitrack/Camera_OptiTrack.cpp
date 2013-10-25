@@ -56,9 +56,10 @@ Read parameters from the configuration file, start camera and set callback funct
 @date 2012/11/05
 - Section header [SimpleGazeTrackerOptiTrack] is supported.
 - spaces and tabs around '=' are removed.
-
 @date 2013/03/15
 - Argument "ParamPath" was removed. Use g_ParamPath instead.
+@date 2013/10/23
+- Camera configuration file is customizable.
 */
 int initCamera( void )
 {
@@ -71,9 +72,11 @@ int initCamera( void )
 
 	fname = g_ParamPath.c_str();
 	fname.append(PATH_SEPARATOR);
-	fname.append(CAMERA_CONFIG_FILE);
-
-	checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+	if(g_CameraConfigFileName==""){
+		g_CameraConfigFileName = CAMERA_CONFIG_FILE;
+		checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
+	}
+	fname.append(g_CameraConfigFileName.c_str());
 
 	fs.open(fname.c_str(),std::ios::in);
 	if(fs.is_open())

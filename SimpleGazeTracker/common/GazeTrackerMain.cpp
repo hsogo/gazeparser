@@ -43,6 +43,8 @@
 #define CURSOR_SIZE 12
 #define CURSOR_OFFSET 5
 
+#define DEFAULT_CONFIG_FILE "CONFIG"
+
 /*! Holds menu texts. 
 @attention Number of menu items (sum of original items and custom items) and 
 length of custom menu texts must be smaller than MENU_MAX_ITEMS and MENU_STRING_MAX, respectively.
@@ -121,6 +123,9 @@ double g_CalPointList[MAXCALPOINT][2];
 FILE* g_DataFP;
 std::fstream g_LogFS;
 
+std::string g_ConfigFileName;
+std::string g_CameraConfigFileName;
+
 char g_MessageBuffer[MAXMESSAGE];
 int g_MessageEnd;
 
@@ -157,7 +162,7 @@ initParameters: Read parameters from the configuration file to initialize applic
 Data directory is set to %HOMEDRIVE%%HOMEPATH%\GazeTracker.
 Configuration file directory is set to %APPDATA%\GazeTracker.
 
-Following parameters are read from a configuration file named "CONFIG".
+Following parameters are read from a configuration file (specified by g_ConfigFileName).
 
 -THRESHOLD  (g_Threshold)
 -MAXPOINTS  (g_MaxPoints)
@@ -187,6 +192,7 @@ Following parameters are read from a configuration file named "CONFIG".
 - Section header [SimpleGazeTrackerCommon] is supported.
 - spaces and tabs around '=' are removed.
 @date 2012/12/05 checkDirectory is renamed to checkAndCreateDirectory.
+@date 2013/10/22 configuration file name can be specified by g_ConfigFileName.
  */
 int initParameters( void )
 {
@@ -199,12 +205,13 @@ int initParameters( void )
 
 	fname.assign(g_ParamPath);
 	fname.append(PATH_SEPARATOR);
-	fname.append("CONFIG");
+	fname.append(g_ConfigFileName.c_str());
 	fs.open(fname.c_str(), std::ios::in);
 	if(!fs.is_open())
 	{
 		return E_FAIL;
 	}
+	g_LogFS << "Configuration file is " << fname << "." << std::endl;
 
 	while(fs.getline(buff,sizeof(buff)))
 	{
@@ -258,14 +265,14 @@ int initParameters( void )
 		else if(strcmp(buff,"OUTPUT_PUPILSIZE")==0) g_isOutputPupilSize = param;
 		else{
 			printf("Error: Unknown option (\"%s\")\n",buff);
-			g_LogFS << "Error: Unknown option in CONFIG (" << buff << ")" << std::endl;
+			g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
 			return E_FAIL; //unknown option
 		}
 	}
 	
 	if(g_CameraWidth*g_CameraHeight==0)
 	{
-		g_LogFS << "Error: Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero. Please check contents of \"CONFIG\"." << std::endl;
+		g_LogFS << "Error: Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero. Please check configration file." << std::endl;
 		return E_FAIL;
 	}
 
@@ -316,7 +323,7 @@ void saveParameters( void )
 	std::string fname(g_ParamPath);
 
 	fname.append(PATH_SEPARATOR);
-	fname.append("CONFIG");
+	fname.append(g_ConfigFileName);
 
 	g_LogFS << "Saving parameters to "<< fname << " ... ";
 
@@ -914,20 +921,23 @@ main: Entry point of the application
 
 @date 2012/07/27 Don't render screen if g_isInhibitRendering is true.
 @date 2012/07/30
-- EOG-SimpleGazeTracker concurrent recording mode is appended
+- EOG-SimpleGazeTracker concurrent recording mode is appended.
 @date 2012/12/13
 - Change conditions for rendering screen (!g_isRecording -> g_isShowingCameraImage)
 @date 2013/03/26
 - Add log messages.
 @date 2013/05/27
 - Support camera custom data.
+@date 2013/10/25
+- Support commandline option.
 */
 int main(int argc, char** argv)
 {
 	time_t t;
 	struct tm *ltm;
 	char datestr[256];
-	
+	int nInitMessage=0;
+
 	//argv[0] must be copied to resolve application directory later.
 	//see getApplicationDirectoryPath() in PratformDependent.cpp 
 	g_AppDirPath.assign(argv[0]);
@@ -941,14 +951,54 @@ int main(int argc, char** argv)
 	//g_AppDirPath.erase(index);
 	getApplicationDirectoryPath(&g_AppDirPath);
 
-	int nInitMessage=0;
+	bool useCustomParamPath = false;
+	bool useCustomDataPath = false;
+	bool useCustomConfigFile = false;
+	g_ConfigFileName.assign(DEFAULT_CONFIG_FILE);
+	g_CameraConfigFileName.assign("");
+	if(argc>0){
+		for(int i=0; i<argc; i++){
+			if(strncmp(argv[i],"-paramdir=",10)==0)
+			{
+				if(strlen(argv[i])<=10){
+					return -1;
+				}
+				g_ParamPath.assign(&argv[i][10]);
+				useCustomParamPath = true;
+			}	
+			else if(strncmp(argv[i],"-datadir=",9)==0)
+			{
+				if(strlen(argv[i])<=9){
+					return -1;
+				}
+				g_DataPath.assign(&argv[i][9]);
+				useCustomDataPath = true;
+			}
+			else if(strncmp(argv[i],"-config=",8)==0){
+				if(strlen(argv[i])<=8){
+					return -1;
+				}
+				g_ConfigFileName.assign(&argv[i][8]);
+				useCustomConfigFile = true;
+			}
+			else if(strncmp(argv[i],"-cameraconfig=",14)==0){
+				if(strlen(argv[i])<=14){
+					return -1;
+				}
+				g_CameraConfigFileName.assign(&argv[i][14]);
+			}
+		}
+	}
 
 	//check directory and crate them if necessary.
-	getDataDirectoryPath(&g_DataPath);
-	getParameterDirectoryPath(&g_ParamPath);
-
-	checkAndCreateDirectory(g_DataPath);
-	checkAndCreateDirectory(g_ParamPath);
+	if(!useCustomParamPath){
+		getParameterDirectoryPath(&g_ParamPath);
+		checkAndCreateDirectory(g_ParamPath);
+	}
+	if(!useCustomDataPath){
+		getDataDirectoryPath(&g_DataPath);
+		checkAndCreateDirectory(g_DataPath);
+	}
 
 	//open logfile and output welcome message.
 	std::string logFilePath;
@@ -967,23 +1017,21 @@ int main(int argc, char** argv)
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
 	g_LogFS << datestr << std::endl;
 	
-	g_LogFS << "Initial AppDirPath directory: " << g_AppDirPath << "." << std::endl;
-	if(FAILED(checkFile(g_AppDirPath, "CONFIG"))){
+	g_LogFS << "Searching AppDirPath directory..." << std::endl;
+	g_LogFS << "check " << g_AppDirPath << "..." << std::endl;
+	if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 		//try /usr/local/lib/simplegazetracker
 		g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
-		if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
-			g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
-		}else{
+		g_LogFS << "check " << g_AppDirPath << "..." << std::endl;
+		if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 			//try Debian directory (/usr/lib/simplegazetracker)
 			g_AppDirPath.assign("/usr/lib/simplegazetracker");
-			if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
-				g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
-			}else{
+			g_LogFS << "check " << g_AppDirPath << "..." << std::endl;
+			if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 				//try current directory
 				g_AppDirPath.assign(".");
-				if(SUCCEEDED(checkFile(g_AppDirPath, "CONFIG"))){
-					g_LogFS << "Set AppDirPath directory to " << g_AppDirPath << "." << std::endl;
-				}else{
+				g_LogFS << "check " << g_AppDirPath << "..." << std::endl;
+				if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 					printf("ERROR: Could not determine AppDirPath directory.\n");
 					g_LogFS << "ERROR: Could not determine AppDirPath directory."  << std::endl;
 					return -1;
@@ -991,12 +1039,25 @@ int main(int argc, char** argv)
 			}
 		}
 	}
+	g_LogFS << "AppDirPath directory is " << g_AppDirPath << "." << std::endl;
+	g_LogFS << "ParamPath directory is " << g_ParamPath << "." << std::endl;
+	g_LogFS << "DataPath directory is " << g_DataPath << "." << std::endl;
 	
 	//if CONFIG file is not found in g_ParamPath, copy it.
-	if(FAILED(checkAndCopyFile(g_ParamPath,"CONFIG",g_AppDirPath))){
-		printf("Error: \"CONFIG\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n");
-		g_LogFS << "\"CONFIG\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
-		return -1;
+	if(!useCustomConfigFile){
+		if(FAILED(checkAndCopyFile(g_ParamPath,DEFAULT_CONFIG_FILE,g_AppDirPath))){
+			printf("Error: \"");
+			printf(DEFAULT_CONFIG_FILE);
+			printf("\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n");
+			g_LogFS << "Error: \"" << DEFAULT_CONFIG_FILE << "\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+			return -1;
+		}
+	}else{
+		if(FAILED(checkFile(g_ParamPath,g_ConfigFileName.c_str()))){
+			printf("Error: configuration file (%s) is not found.", g_ConfigFileName.c_str());
+			g_LogFS << "Error: configuration file (" << g_ConfigFileName.c_str() << "is not found.";
+			return -1;
+		}
 	}
 	
 	//start initialization
@@ -1014,8 +1075,8 @@ int main(int argc, char** argv)
 	SDL_WM_SetCaption(str.c_str(),NULL);
 
 	if(FAILED(initParameters())){
-		printf("Error: Could not initialize parameters. Check \"CONFIG\" file.\n");
-		g_LogFS << "Error: Could not initialize parameters. Check \"CONFIG\" file." << std::endl;
+		printf("Error: Could not initialize parameters. Check configuration file.\n");
+		g_LogFS << "Error: Could not initialize parameters. Check configuration file." << std::endl;
 		SDL_Quit();
 		return -1;
 	}
