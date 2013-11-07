@@ -133,7 +133,7 @@ class getFixationsInRegionWindow(Tkinter.Frame):
         messageFrame = Tkinter.Frame(paramFrame)
         Tkinter.Label(messageFrame, text='Only trials including this message:').grid(row=0, column=0)
         Tkinter.Entry(messageFrame, textvariable=self.messageStr).grid(row=0, column=1)
-        Tkinter.Checkbutton(messageFrame, text='Regura expression', variable=self.useregexp).grid(row=0, column=2)
+        Tkinter.Checkbutton(messageFrame, text='Regular expression', variable=self.useregexp).grid(row=0, column=2)
         messageFrame.pack(fill=Tkinter.X)
         
         paramFrame.pack()

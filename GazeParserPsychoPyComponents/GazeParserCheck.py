@@ -44,7 +44,7 @@ class GazeParserCheckComponent(BaseComponent):
         self.params['mousebutton']=Param(mousebutton, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="0:left, 1:center, 2:right button",
-            label="Responce mouse button.")
+            label="Mouse button")
         self.params['units']=Param(units, valType='str', allowedVals=['deg', 'cm', 'pix', 'norm'],
             hint="Units of permissible error",
             label="Units")
