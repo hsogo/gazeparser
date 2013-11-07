@@ -185,6 +185,7 @@
     <None Include="CONFIG_FLYCAPTURE2">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="FlyCapture2_v100.dll" />
     <None Include="libiomp5md.dll">
       <DeploymentContent>true</DeploymentContent>
     </None>
