@@ -229,7 +229,7 @@ class getFixationsInRegionWindow(Tkinter.Frame):
                                 containsTime = 'all'
                                 containsTraj = 'all'
                             
-                            print region, period, useCenter, containsTime, containsTraj
+                            #print region, period, useCenter, containsTime, containsTraj
                             
                             fixlist = GazeParser.Region.getFixationsInRegion(self.D[tr], region, period, useCenter, containsTime, containsTraj)
                             fixlistTrial.extend(fixlist)
@@ -703,7 +703,7 @@ class exportToFileWindow(Tkinter.Frame):
         self.flgMsg.set(1)
         self.flgTrials = Tkinter.StringVar()
         self.flgOrder = Tkinter.StringVar()
-        self.flgTrials.set('ThisTrial')
+        self.flgTrials.set('AllTrials')
         self.flgOrder.set('ByTime')
         
         itemFrame = Tkinter.LabelFrame(self, text='Check items to export.')
@@ -738,7 +738,7 @@ class exportToFileWindow(Tkinter.Frame):
                     trlist = range(len(self.D))
                 for tr in trlist:
                     fp.write('TRIAL%d\n' % (tr+1))
-                    for e in self.D[self.tr].EventList:
+                    for e in self.D[tr].EventList:
                         if isinstance(e,GazeParser.SaccadeData) and self.flgSac.get():
                             fp.write('SAC,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f\n' % 
                                      (e.startTime, e.endTime, e.start[0], e.start[1], e.end[0], e.end[1]))
