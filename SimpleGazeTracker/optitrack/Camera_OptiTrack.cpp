@@ -1,8 +1,6 @@
 #include <SDL/SDL.h>
 #include "GazeTracker.h"
-#include <optitrack.h>
-#import  <optitrack.tlb>
-
+#include <cameralibrary.h>
 #include <atlbase.h>
 
 #include <fstream>
@@ -12,9 +10,9 @@
 int getCameraImage( void );
 void CleanupCamera( void );
 
-CComPtr<INPCameraCollection> g_cameraCollection;
-CComPtr<INPCamera>           g_camera;
-CComPtr<INPCameraFrame>		 g_frame;
+
+CameraLibrary::Camera *g_camera;
+CameraLibrary::Frame *g_frame;
 
 int g_FrameRate = 100;
 int g_Intensity = 7;
@@ -122,57 +120,41 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	CoInitialize(NULL);
-    g_cameraCollection.CoCreateInstance(CLSID_NPCameraCollection);
-	g_cameraCollection->Enum();
+	CameraLibrary::CameraManager::X().WaitForInitialization();
+	if(!CameraLibrary::CameraManager::X().AreCamerasInitialized()){
+		g_LogFS << "ERROR: failed to initialize camera(s)" << std::endl;
+		return E_FAIL;
+	}
 
-	long cameraCount  = 0;
+	g_camera = CameraLibrary::CameraManager::X().GetCamera();
 
-	g_cameraCollection->get_Count(&cameraCount);
-	
-	if(cameraCount<1)
+	if(g_camera==NULL )
 	{
 		g_LogFS << "ERROR: no camera is found" << std::endl;
 		return E_FAIL;
 	}
 	
-	g_cameraCollection->Item(0, &g_camera);
-	
-	long serial,width,height,model,revision,rate;
-
-	g_camera->get_SerialNumber(&serial);
-	g_camera->get_Width       (&width);
-	g_camera->get_Height      (&height);
-	g_camera->get_Model       (&model);
-	g_camera->get_Revision    (&revision);
-	g_camera->get_FrameRate   (&rate);
-
 	//== Set Some Camera Options ====================----
-	g_camera->SetOption(NP_OPTION_VIDEO_TYPE        , (CComVariant) 1 );
-	g_camera->SetOption(NP_OPTION_FRAME_DECIMATION  , (CComVariant) 0 );
-	g_camera->SetOption(NP_OPTION_NUMERIC_DISPLAY_OFF,(CComVariant) 0 );
-	g_camera->SetOption(NP_OPTION_TEXT_OVERLAY_OPTION,(CComVariant) 0 );
+	g_camera->SetVideoType(CameraLibrary::GrayscaleMode);
+	g_camera->SetNumeric(false,0);
+	g_camera->SetTextOverlay(false);
 
-	g_camera->SetOption(NP_OPTION_INTENSITY,(CComVariant) g_Intensity);
-	g_camera->SetOption(NP_OPTION_EXPOSURE,(CComVariant) g_Exposure);
+	g_camera->SetIntensity(g_Intensity);
+	g_camera->SetExposure(g_Exposure);
 
 	if(g_CameraWidth == 640 && g_CameraHeight == 480)
-		g_camera->SetOption(NP_OPTION_GRAYSCALE_DECIMATION,(CComVariant)0);
+		g_camera->SetFrameDecimation(0);
 	else if(g_CameraWidth == 320 && g_CameraHeight == 240)
-		g_camera->SetOption(NP_OPTION_GRAYSCALE_DECIMATION,(CComVariant)2);
+		g_camera->SetFrameDecimation(2);
 	else
 	{
 		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
 		return E_FAIL;
 	}
 
-	g_camera->SetOption(NP_OPTION_FRAME_RATE,(CComVariant) g_FrameRate );
-	g_camera->SetOption(NP_OPTION_THRESHOLD,(CComVariant) 254);
-	g_camera->SetOption(NP_OPTION_MAXIMUM_SEGMENT_LENGTH,(CComVariant) 1023);
-	g_camera->SetOption(NP_OPTION_MINIMUM_SEGMENT_LENGTH,(CComVariant) 1024);
-	g_camera->SetOption(NP_OPTION_DRAW_SCALE,(CComVariant)1.0);
+	g_camera->SetFrameRate(g_FrameRate);
+	g_camera->SetThreshold(254);
 
-	g_camera->Open();
 	g_camera->Start();
 
 	Sleep(10);
@@ -193,16 +175,14 @@ getCameraImage: Get new camera image.
 */
 int getCameraImage( void )
 {
-	g_camera->GetFrame(0, &g_frame);
+	g_frame = g_camera->GetLatestFrame();
 
-	if(g_frame!=0)
+	if(g_frame)
 	{
 		//== New Frame Has Arrived ==========================------
 		//frameCounter++;
-		g_camera->GetFrameImage(g_frame, g_CameraWidth, g_CameraHeight, g_CameraWidth, 8, (byte *) g_frameBuffer);
-		
-		g_frame->Free();
-		g_frame.Release();
+		g_frame->Rasterize(g_CameraWidth, g_CameraHeight, g_CameraWidth, 8, (byte *) g_frameBuffer);
+		g_frame->Release();
 
 		return S_OK;
 	}
@@ -220,11 +200,8 @@ void cleanupCamera()
 {
 	if(g_camera != NULL){
 		g_camera->Stop();
-		g_camera->Close();
-		g_camera.Release();
 
-		g_cameraCollection.Release();
-		CoUninitialize();
+		CameraLibrary::CameraManager::X().Shutdown();
 	}
 }
 
@@ -290,13 +267,13 @@ int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 				g_Intensity--;
 				if(g_Intensity<1)
 					g_Intensity = 1;
-				g_camera->SetOption(NP_OPTION_INTENSITY,(CComVariant) g_Intensity);
+				g_camera->SetIntensity(g_Intensity);
 				break;
 			case CUSTOMMENU_EXPOSURE:
 				g_Exposure--;
 				if(g_Exposure<0)
 					g_Exposure = 0;
-				g_camera->SetOption(NP_OPTION_EXPOSURE,(CComVariant) g_Exposure);
+				g_camera->SetExposure(g_Exposure);
 				break;
 			default:
 				break;
@@ -310,13 +287,13 @@ int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 				g_Intensity++;
 				if(g_Intensity>=12)
 					g_Intensity = 12;
-				g_camera->SetOption(NP_OPTION_INTENSITY,(CComVariant) g_Intensity);
+				g_camera->SetIntensity(g_Intensity);
 				break;
 			case CUSTOMMENU_EXPOSURE:
 				g_Exposure++;
 				if(g_Exposure>=479)
 					g_Exposure = 479;
-				g_camera->SetOption(NP_OPTION_EXPOSURE,(CComVariant) g_Exposure);
+				g_camera->SetExposure(g_Exposure);
 				break;
 			default:
 				break;
