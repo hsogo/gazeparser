@@ -102,6 +102,7 @@ class Converter(Tkinter.Frame):
         donelist = []
         errorlist = []
         for f in fnames:
+            res = 'FAILED'
             try:
                 res = GazeParser.Converter.TrackerToGazeParser(f,overwrite=overwrite,config=self.configuration,useFileParameters=usefileparameters)
             except:
@@ -111,16 +112,25 @@ class Converter(Tkinter.Frame):
                 for tbi in tbinfo:
                     errormsg += tbi
                 errormsg += '  %s' % str(info[1])
-                tkMessageBox.showerror('Error', errormsg)
+                errorlist.append(f)
+                if not tkMessageBox.askyesno('Error', errormsg + '\n\nContinue conversion?'):
+                    break
             else:
                 if res == 'SUCCESS':
                     donelist.append(f)
                 else:
-                    tkMessageBox.showerror('Info', res)
                     errorlist.append(f)
-        msg = 'Convertion done.\n'+'\n'.join(donelist)
-        if len(errorlist) > 0:
+                    if not tkMessageBox.askyesno('Error', res + '\n\nContinue conversion?'):
+                        break
+        msg = 'Convertion done.\n'
+        if len(donelist)<=16:
+            msg += '\n'.join(donelist)
+        else:
+            msg += '%d files were successfully converted.\n' % len(donelist)
+        if 0 < len(errorlist) <= 16:
             msg += '\n\nError.\n'+'\n'.join(errorlist)
+        elif len(errorlist) > 16:
+            msg += '\n\nError.\n%d files were failed to convert.' % len(errorlist)
         tkMessageBox.showinfo('info',msg)
     
     def _loadConfig(self):
