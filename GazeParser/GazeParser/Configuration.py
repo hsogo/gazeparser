@@ -26,7 +26,8 @@ GazeParserDefaults = {
 'FILTER_WN':0.2,
 'FILTER_SIZE':5,
 'FILTER_ORDER':3,
-'BLINK_MINIMUM_DURATION':50
+'BLINK_MINIMUM_DURATION':50,
+'RESAMPLING':0
 }
 
 GazeParserOptions = ['RECORDED_EYE',
@@ -43,6 +44,7 @@ GazeParserOptions = ['RECORDED_EYE',
                      'SACCADE_MINIMUM_AMPLITUDE',
                      'FIXATION_MINIMUM_DURATION',
                      'BLINK_MINIMUM_DURATION',
+                     'RESAMPLING',
                      'FILTER_TYPE',
                      'FILTER_WN',
                      'FILTER_SIZE',

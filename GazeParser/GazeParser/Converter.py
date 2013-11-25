@@ -524,7 +524,6 @@ def buildEventListMonocular(T,HV,config):
     
     return (saccadeList, fixationList, blinkList)
 
-
 def buildMsgList(M):
     msglist = []
     for i in range(len(M)):
@@ -532,8 +531,33 @@ def buildMsgList(M):
     
     return msglist
 
-def rectifyTimeStamp(tlist, threshold=None):
-    tdiff = numpy.diff(tlist)
+def rectifyData(T, HV, frequency):
+    """
+    :param T: Timestamp (N x 1)
+    :param HV: Horizontal and vertical gaze position (N x 2)
+    :param frequency: sammpling frequency in Hz.
+    """
+    if frequency <= 0:
+        raise ValueError, 'Frequency must be a positive number.'
+    interval = 1000.0/frequency
+    ti = numpy.arange(0,T[-1],interval)
+    interpolaterH = interp1d(T,HV[:,0])
+    interpolaterV = interp1d(T,HV[:,1])
+    hi = interpolaterH(ti)
+    vi = interpolaterV(ti)
+    
+    return [ti,numpy.vstack((hi,vi)).transpose()]
+
+def rectifyTimeStamp(t, threshold=None):
+    """
+    :param t: Timestamp (N x 1)
+    :param threshold: 
+    
+    .. note::
+    
+        This function is obsolete.
+    """
+    tdiff = numpy.diff(t)
     average = numpy.mean(tdiff)
     if threshold == None:
         threshold = average * 0.1 #25%
@@ -541,15 +565,19 @@ def rectifyTimeStamp(tlist, threshold=None):
         d1 = tdiff[i]-average
         d2 = tdiff[i+1]-average
         if d1*d2 < 0 and numpy.abs(d1)>threshold and numpy.abs(d2)>threshold:
-            tlist[i+1] -= tdiff[i]-average
-            tdiff[i] = tlist[i+1]-tlist[i]
-            tdiff[i+1] = tlist[i+2]-tlist[i+1]
+            t[i+1] -= tdiff[i]-average
+            tdiff[i] = t[i+1]-t[i]
+            tdiff[i+1] = t[i+2]-t[i+1]
     
-    return tlist
+    return t
 
 def linearInterpolation(t,w):
     """
+    Fill missing data by linear interpolation.
     
+    :param t: Timestamp (N x 1)
+    :param w: Data to be interpolated (N x 1)
+    :return: Filled data.
     """
     #w[0] and w[-1] must not be numpy.nan.
     if numpy.isnan(w[0]):
@@ -573,6 +601,17 @@ def linearInterpolation(t,w):
     
 
 def applyFilter(T, HV, config, decimals=2):
+    """
+    Apply filter to gaze data. Filter type is specified by
+    GazeParser.Configuration.Config object.
+    
+    :param T: Timestamp (N x 1)
+    :param HV: Horizontal and vertical gaze position (N x 2)
+    :param config: GazeParser.Configuration.Cofig object.
+    :decimals: filtered data are rounded to the given number of 
+        this parameter. Default value is 2.
+    :return: filtered data.
+    """
     if config.FILTER_TYPE == 'identity':
         return HV
     elif not config.FILTER_TYPE in ('butter','butter_filtfilt','ma'):
@@ -646,8 +685,8 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
     print 'TrackerToGazeParser start.'
     print 'source file: %s' % inputfile
     if os.path.exists(dstFileName) and (not overwrite):
-        print 'Can not open %s' % dstFileName
-        return 'CANNOT_OPEN_OUTPUT_FILE'
+        print 'Target file (%s) already exist.' % dstFileName
+        return 'TARGET_FILE_ALREADY_EXISTS'
     
     if not isinstance(config, GazeParser.Configuration.Config):
         if isinstance(config, str) or isinstance(config, unicode):
@@ -702,11 +741,18 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                 flgInBlock = True
             
             elif itemList[0] == '#STOP_REC':
-                Tlist = rectifyTimeStamp(numpy.array(T))
-                MsgList = buildMsgList(M)
                 if config.RECORDED_EYE=='B':
-                    Llist = applyFilter(Tlist, numpy.array(LHV), config, decimals=effectiveDigit)
-                    Rlist = applyFilter(Tlist, numpy.array(RHV), config, decimals=effectiveDigit)
+                    if config.RESAMPLING>0:
+                        Tlist, tmpLHV = rectifyData(numpy.array(T), numpy.array(LHV), config.RESAMPLING)
+                        Tlist, tmpRHV = rectifyData(numpy.array(T), numpy.array(LHV), config.RESAMPLING)
+                        
+                        Llist = applyFilter(tmpT, tmpLHV, config, decimals=effectiveDigit)
+                        Rlist = applyFilter(tmpT, tmpRHV, config, decimals=effectiveDigit)
+                    else:
+                        Tlist = numpy.array(T)
+                        Llist = applyFilter(Tlist, numpy.array(LHV), config, decimals=effectiveDigit)
+                        Rlist = applyFilter(Tlist, numpy.array(RHV), config, decimals=effectiveDigit)
+                        
                     (SacList,FixList,BlinkList) = buildEventListBinocular(Tlist,Llist,Rlist,config)
                     if not (idxLP==None and idxRP==None):
                         Plist = numpy.array([LP,RP]).transpose()
@@ -714,11 +760,21 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                         Plist = None
                 else: #monocular
                     if config.RECORDED_EYE == 'L':
-                        Llist = applyFilter(Tlist, numpy.array(HV), config, decimals=effectiveDigit)
+                        if config.RESAMPLING>0:
+                            Tlist, tmpHV = rectifyData(numpy.array(T), numpy.array(HV), config.RESAMPLING)
+                            Llist = applyFilter(Tlist, tmpHV, config, decimals=effectiveDigit)
+                        else:
+                            Tlist = numpy.array(T)
+                            Llist = applyFilter(Tlist, numpy.array(HV), config, decimals=effectiveDigit)
                         (SacList,FixList,BlinkList) = buildEventListMonocular(Tlist,Llist,config)
                         Rlist = None
                     elif config.RECORDED_EYE == 'R':
-                        Rlist = applyFilter(Tlist, numpy.array(HV), config, decimals=effectiveDigit)
+                        if config.RESAMPLING>0:
+                            Tlist, tmpHV = rectifyData(numpy.array(T), numpy.array(HV), config.RESAMPLING)
+                            Rlist = applyFilter(Tlist, tmpHV, config, decimals=effectiveDigit)
+                        else:
+                            Tlist = numpy.array(T)
+                            Rlist = applyFilter(Tlist, numpy.array(HV), config, decimals=effectiveDigit)
                         (SacList,FixList,BlinkList) = buildEventListMonocular(Tlist,Rlist,config)
                         Llist = None
                     if idxP != None:
@@ -726,7 +782,8 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                     else:
                         Plist = None
                 
-                G = GazeParser.GazeData(T,Llist,Rlist,SacList,FixList,MsgList,BlinkList,Plist,config.RECORDED_EYE,config=config)
+                MsgList = buildMsgList(M)
+                G = GazeParser.GazeData(Tlist,Llist,Rlist,SacList,FixList,MsgList,BlinkList,Plist,config.RECORDED_EYE,config=config)
                 if idxC != None:
                     G.setCameraSpecificData(numpy.array(C))
                 Data.append(G)
