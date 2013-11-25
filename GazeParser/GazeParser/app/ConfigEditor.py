@@ -67,6 +67,10 @@ class ConfigEditor(Tkinter.Frame):
             self._saveas()
             return
         
+        if self.ConfigFileName=='':
+            self._saveas()
+            return
+        
         for key in GazeParserOptions:
             if self.StringVarDict[key].get() == '':
                 tkMessageBox.showerror('Error','\'%s\' is empty.\nConfiguration is not saved.' % key)
