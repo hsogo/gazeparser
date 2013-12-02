@@ -70,8 +70,7 @@ class Config(object):
             if not os.path.isfile(ConfigFile):
                 ConfigFile = os.path.join(GazeParser.appDir, 'GazeParser.cfg')
                 if not os.path.isfile(ConfigFile):
-                    print ('GazeParser.Config: Warning: configuration file (%s) was not found.' % ConfigFile)
-                    print 'Default parameters were set.'
+                    print 'Warning: configuration file (%s) was not found. Default parameters were set.' % ConfigFile
                     self.ConfigFile = None
         self.ConfigFile = ConfigFile
         
@@ -94,7 +93,7 @@ class Config(object):
                     setattr(self, option, value)
                     self._optionDict[option] = value
             except:
-                print 'Warning: %s is not properly defined in GazeParser configuration file. Default value is used.' % (option)
+                print 'Warning: %s is not properly defined in GazeParser configuration file(%s). Default value is used.' % (option, self.ConfigFile)
                 setattr(self, option, GazeParserDefaults[option])
                 self._optionDict[option] = GazeParserDefaults[option]
         
