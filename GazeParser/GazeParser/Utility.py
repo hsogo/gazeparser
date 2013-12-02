@@ -11,6 +11,8 @@ import zlib
 import os
 import sys
 import shutil
+import GazeParser
+import GazeParser.Core
 
 def save(filename, data, additionalData=None):
     """
@@ -53,6 +55,12 @@ def load(filename):
     else:
         A = None
     db.close()
+    libraryVersion = map(int,GazeParser.__version__.split('.'))
+    dataVersion = map(int,D[0].__version__.split('.'))
+    if libraryVersion > dataVersion:
+        lackingattributes = checkAttributes(D[0])
+        if len(lackingattributes)>0:
+            print 'Version of the data file is older than GazeParser version. Some features may not work correctly. (lacking attributes:%s)' % ','.join(lackingattributes)
     return (D, A)
 
 def join(newFileName, fileList):
@@ -96,9 +104,9 @@ def createConfigDir(overwrite=False):
     AppDir = os.path.abspath(os.path.dirname(__file__))
     
     if sys.platform == 'win32':
-	    homeDir = os.environ['USERPROFILE']
-	    appdataDir = os.environ['APPDATA']
-	    configDir = os.path.join(appdataDir,'GazeParser')
+        homeDir = os.environ['USERPROFILE']
+        appdataDir = os.environ['APPDATA']
+        configDir = os.path.join(appdataDir,'GazeParser')
     else:
         homeDir = os.environ['HOME']
         configDir = os.path.join(homeDir,'.GazeParser')
@@ -132,6 +140,8 @@ def sortrows(d,cols,order=None):
     :param cols: a list of columns used for sorting.
     :param order: a list of boolian values.
         Set True for ascending order and False for decending order.
+    :return:
+        Indices.
     """
     if order == None:
         order = [True for i in range(len(cols))]
@@ -152,6 +162,8 @@ def splitFilenames(filenames):
     
     :param unicode filenames:
         return value of tkFileDialog.askopenfilenames.
+    :return:
+        List of filenames.
     """
     tmplist = filenames.split(' ')
     newFilenames = []
@@ -173,3 +185,87 @@ def splitFilenames(filenames):
             newFilenames.append(tmplist[i].replace('\\',''))
         i+=1
     return newFilenames
+
+def checkAttributes(gazeData):
+    """
+    Check attributes of GazeParser.Core.GazeData object and returns a list of
+    lacking attributes. This function is used to check whether data built by
+    old versions of GazeParser have all attributes defined in the current 
+    
+    :param GazeParser.Core.GazeData gazeData:
+        GazeParser.Core.GazeData object to be checked.
+    :return:
+        List of lacking attributes.
+    """
+    if not isinstance(gazeData, GazeParser.Core.GazeData):
+        raise ValueError, 'Not a GazeParser.Core.GazeData object.'
+    
+    dummyData = GazeParser.Core.GazeData(range(10),[],[],[],[],#Tlist,Llist,Rlist,SacList,FixList
+                                         [],[],[],'B')#MsgList,BlinkList,PupilList,recordingEye
+    dummyAttributes = set(dir(dummyData))
+    dataAttributes = set(dir(gazeData))
+    
+    return list(dummyAttributes-dataAttributes)
+
+def rebuildData(gazeData):
+    """
+    
+    """
+    if isinstance(gazeData, GazeParser.Core.GazeData):
+        if hasattr(gazeData, 'config'):
+            config = gazeData.config
+        else:
+            config = None
+        if hasattr(gazeData, 'recordingDate'):
+            recordingDate = gazeData.recordingDate
+        else:
+            print 'Warning: recording date can not be recovered from data. If recording date is necessary, please build GazeData object from SimpleGazeTracker CSV file.'
+            recordingDate = None
+        newdata = GazeParser.Core.GazeData(
+            gazeData.T,
+            gazeData.L,
+            gazeData.R,
+            gazeData.Sac,
+            gazeData.Fix,
+            gazeData.Msg,
+            gazeData.Blink,
+            gazeData.Pupil,
+            gazeData.recordedEye,
+            config,
+            recordingDate)
+        return newdata
+        
+    elif hasattr(gazeData, '__iter__'):
+        newdatalist = []
+        for data in gazeData:
+            if not isinstance(data, GazeParser.Core.GazeData):
+                raise ValueError, 'Non-GazeParser.Core.GazeData object is found in the list.'
+            
+            if hasattr(data, 'config'):
+                config = data.config
+            else:
+                config = None
+            if hasattr(data, 'recordingDate'):
+                recordingDate = data.recordingDate
+            else:
+                print 'Warning: recording date can not be recovered from data. If recording date is necessary, please build GazeData object from SimpleGazeTracker CSV file.'
+                recordingDate = None
+            newdata = GazeParser.Core.GazeData(
+                data.T,
+                data.L,
+                data.R,
+                data.Sac,
+                data.Fix,
+                data.Msg,
+                data.Blink,
+                data.Pupil,
+                data.recordedEye,
+                config,
+                recordingDate)
+            newdatalist.append(newdata)
+        return newdatalist
+    
+    else:
+        raise ValueError, 'Parameter must be a GazeParser.Core.GazeData object or a list of GazeParser.Core.GazeData object'
+    
+    return None
