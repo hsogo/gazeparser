@@ -738,6 +738,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
         itemList = line[:-1].rstrip().split(',')
         if itemList[0][0] == '#': #Messages
             if itemList[0] == '#START_REC':
+                startRec = map(int,itemList[1:])
                 flgInBlock = True
             
             elif itemList[0] == '#STOP_REC':
@@ -783,7 +784,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                         Plist = None
                 
                 MsgList = buildMsgList(M)
-                G = GazeParser.GazeData(Tlist,Llist,Rlist,SacList,FixList,MsgList,BlinkList,Plist,config.RECORDED_EYE,config=config)
+                G = GazeParser.GazeData(Tlist,Llist,Rlist,SacList,FixList,MsgList,BlinkList,Plist,config.RECORDED_EYE,config=config,recordingDate=startRec)
                 if idxC != None:
                     G.setCameraSpecificData(numpy.array(C))
                 Data.append(G)
