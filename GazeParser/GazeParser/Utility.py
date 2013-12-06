@@ -55,13 +55,29 @@ def load(filename):
     else:
         A = None
     db.close()
-    libraryVersion = map(int,GazeParser.__version__.split('.'))
-    dataVersion = map(int,D[0].__version__.split('.'))
-    if libraryVersion > dataVersion:
+    #if libraryVersion > dataVersion:
+    if compareVersion(D[0].__version__, GazeParser.__version__) < 0:
         lackingattributes = checkAttributes(D[0])
         if len(lackingattributes)>0:
             print 'Version of the data file is older than GazeParser version. Some features may not work correctly. (lacking attributes:%s)' % ','.join(lackingattributes)
     return (D, A)
+
+def compareVersion(testVersion, baseVersion):
+    """
+    Compare Version numbers. If testVersion is newer than baseVersion, positive 
+    number is returned. If testVersion is older than baseVersion, negative number
+    is returned. Otherwise, 0 is returned.
+    
+    """
+    baseVer = map(int,baseVersion.split('.'))
+    testVer = map(int,testVersion.split('.'))
+    if testVer > baseVer:
+        return 1
+    elif testVer < baseVer:
+        return -1
+    
+    #equal
+    return 0
 
 def join(newFileName, fileList):
     """
@@ -209,7 +225,14 @@ def checkAttributes(gazeData):
 
 def rebuildData(gazeData):
     """
+    Try to rebuild data from the data built by older versions of GazeParser.
+    Missing attributes are filled by default values. If you want to speficy
+    parameters, please rebuild data by using GazeParser.Converter module.
     
+    :param GazeParser.Core.GazeData gazeData:
+        GazeParser.Core.GazeData object to be rebuilt.
+    :return:
+        Rebuilt data.
     """
     if isinstance(gazeData, GazeParser.Core.GazeData):
         if hasattr(gazeData, 'config'):
