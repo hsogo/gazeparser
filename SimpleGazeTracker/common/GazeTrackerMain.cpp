@@ -209,6 +209,7 @@ int initParameters( void )
 	fs.open(fname.c_str(), std::ios::in);
 	if(!fs.is_open())
 	{
+		g_LogFS << "Failed to open " << fname << "." << std::endl;
 		return E_FAIL;
 	}
 	g_LogFS << "Configuration file is " << fname << "." << std::endl;
@@ -963,7 +964,7 @@ int main(int argc, char** argv)
 				if(strlen(argv[i])<=11){
 					return -1;
 				}
-				g_ParamPath.assign(&argv[i][10]);
+				g_ParamPath.assign(&argv[i][11]);
 				useCustomParamPath = true;
 			}	
 			else if(strncmp(argv[i],"-datadir=",9)==0)
@@ -1055,7 +1056,7 @@ int main(int argc, char** argv)
 	}else{
 		if(FAILED(checkFile(g_ParamPath,g_ConfigFileName.c_str()))){
 			printf("Error: configuration file (%s) is not found.", g_ConfigFileName.c_str());
-			g_LogFS << "Error: configuration file (" << g_ConfigFileName.c_str() << "is not found.";
+			g_LogFS << "Error: configuration file (" << g_ConfigFileName.c_str() << ")is not found.";
 			return -1;
 		}
 	}
