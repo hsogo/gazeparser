@@ -58,6 +58,8 @@ Read parameters from the configuration file, start camera and set callback funct
 - Argument "ParamPath" was removed. Use g_ParamPath instead.
 @date 2013/10/23
 - Camera configuration file is customizable.
+@date 2013/11/15
+- Library is changed (OptiTrack 2D SDK -> OptiTrack CameraSDK)
 */
 int initCamera( void )
 {
