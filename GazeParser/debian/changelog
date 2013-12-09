@@ -1,8 +1,17 @@
+gazeparser (0.6.6) unstable; urgency=low
+  * 'recordingDate' is added. (GazeParser.Core)
+  * 'RESAMPLING' is added (GazeParser.Configuration, GazeParser.Converter)
+  * 'compareVersion', 'checkAttributes' and 'rebuildData' are added. (GazeParser.Utility)
+  * Several improvement and bugfix in Data Viewer.
+
+  -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Mon, 09 Dec 2013 17:00:00 +0900
+
+
 gazeparser (0.6.5) unstable; urgency=low
 
   * Calibration results is simplified. (GazeParser.TrackingTools)
   * Validation can be started only afer calibration has been performed. (GazeParser.TrackingTools)
-  * Camera-specific data is supported (GazeParser.Core, GazeParser.Converter)
+  * Camera-specific data is supported. (GazeParser.Core, GazeParser.Converter)
 
  -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Fri, 31 May 2013 17:00:00 +0900
  
