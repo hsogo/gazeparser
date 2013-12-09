@@ -958,9 +958,9 @@ int main(int argc, char** argv)
 	g_CameraConfigFileName.assign("");
 	if(argc>0){
 		for(int i=0; i<argc; i++){
-			if(strncmp(argv[i],"-paramdir=",10)==0)
+			if(strncmp(argv[i],"-configdir=",11)==0)
 			{
-				if(strlen(argv[i])<=10){
+				if(strlen(argv[i])<=11){
 					return -1;
 				}
 				g_ParamPath.assign(&argv[i][10]);
