@@ -1,3 +1,12 @@
+simplegazetracker (0.6.6) unstable; urgency=low
+
+  * Parameter directory and data directory can be changed with using command line option.
+  * Source files for Windows and Linux were integrated.
+  * GPC5300 edition supports WOW64 envirionment. This means that GPC5300 edition can run on 64bit Windows7/8.
+  * OptiTrack CameraSDK is used instead of OptiTrack 2D SDK to build OptiTrack edition. Thanks to this modification, OptiTrack edition can run on 64bit Windows8.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Mon, 09 Dec 2013 17:00:00 +0900
+
 simplegazetracker (0.6.5) unstable; urgency=low
 
   * add "BLUR_FILTER_SIZE" option to SimpleGazeTracker FlyCapture2 edition.
