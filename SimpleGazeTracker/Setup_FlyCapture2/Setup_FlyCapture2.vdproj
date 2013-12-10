@@ -465,15 +465,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(FlyCapture2)"
-        "ProductCode" = "8:{6DB726AB-F169-4953-815B-5F20FEA4C1B8}"
-        "PackageCode" = "8:{0B907176-D89C-4F5A-AA38-8197D846E62C}"
+        "ProductCode" = "8:{FB018EC3-A6A3-4150-9BF1-C1D245756806}"
+        "PackageCode" = "8:{E7A16936-FA88-4739-A406-93C69037969B}"
         "UpgradeCode" = "8:{6C186834-C51A-486A-B228-9BF8956470A1}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.6.5"
+        "ProductVersion" = "8:0.6.6"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1053,7 +1053,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_C942989C5B2C4F13B1E8F453FEF276AD"
             {
-            "SourcePath" = "8:..\\Debug\\SimpleGazeTracker_FlyCapture2.exe"
+            "SourcePath" = "8:..\\Release\\SimpleGazeTracker_FlyCapture2.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"

@@ -439,15 +439,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(GPC5300)"
-        "ProductCode" = "8:{0B505CA0-8E07-4831-AD07-AD5C364F600F}"
-        "PackageCode" = "8:{01142C1F-4AF4-4A9C-A01F-24D3C56DC2D2}"
+        "ProductCode" = "8:{0F69B6E4-6EAA-4859-8A92-885AD0C10657}"
+        "PackageCode" = "8:{CC299ECC-476B-43F6-83EC-EBD00B03C166}"
         "UpgradeCode" = "8:{068A955B-6967-4CF2-BB6B-0C9F3A3D4F01}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.6.5"
+        "ProductVersion" = "8:0.6.6"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1027,7 +1027,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_EE37B383B2DD427BA1EFFCCFC3AAD9BB"
             {
-            "SourcePath" = "8:..\\Debug\\SimpleGazeTracker_GPC5300.exe"
+            "SourcePath" = "8:..\\Release\\SimpleGazeTracker_GPC5300.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_E26D0EE1F6B54F0AB5A0BF5CB42BF5DF"

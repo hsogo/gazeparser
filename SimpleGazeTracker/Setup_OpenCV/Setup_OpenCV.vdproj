@@ -439,15 +439,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(OpenCV)"
-        "ProductCode" = "8:{5419393D-EFA7-4CA4-B265-E1F401404D20}"
-        "PackageCode" = "8:{A65E906E-C101-4872-9509-FC9364EE5F24}"
+        "ProductCode" = "8:{7E994F40-C7B3-4F8D-AC82-448DEFD271EA}"
+        "PackageCode" = "8:{0877C785-AC17-43F3-995E-ECE75AAFABDC}"
         "UpgradeCode" = "8:{610C0CEF-E8C6-4EFB-A337-99E54CD03DFD}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.6.5"
+        "ProductVersion" = "8:0.6.6"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -999,7 +999,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
             {
-            "SourcePath" = "8:..\\Debug\\SimpleGazeTracker_OpenCV.exe"
+            "SourcePath" = "8:..\\Release\\SimpleGazeTracker_OpenCV.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"

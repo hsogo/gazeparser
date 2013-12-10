@@ -465,15 +465,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(OptiTrack)"
-        "ProductCode" = "8:{5AC33AE6-E18E-4C93-8415-575388E5C9D5}"
-        "PackageCode" = "8:{8552C4A6-3134-4B08-862B-03222F99D5E5}"
+        "ProductCode" = "8:{F2E11D45-45CF-40E3-9A0E-7FF858CB9DFB}"
+        "PackageCode" = "8:{91535742-4618-4854-A2EC-91AAF544C48A}"
         "UpgradeCode" = "8:{78979124-0A62-4AA8-ABAB-E9F3208CED90}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.6.5"
+        "ProductVersion" = "8:0.6.6"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1053,7 +1053,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_7575445D51284E62887C2954B3D902D3"
             {
-            "SourcePath" = "8:..\\Debug\\SimpleGazeTracker_OptiTrack.exe"
+            "SourcePath" = "8:..\\Release\\SimpleGazeTracker_OptiTrack.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
