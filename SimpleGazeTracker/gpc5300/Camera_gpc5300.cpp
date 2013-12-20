@@ -144,9 +144,9 @@ int initCamera( void )
 			if(strcmp(buff,"OUTPUT_DIGITAL_INPUT")==0)
 			{
 				if((int)param==1){
-					g_isOutputCameraSpecificData = 1;
+					g_isOutputCameraSpecificData = USE_CAMERASPECIFIC_DATA;
 				}else if((int)param==0){
-					g_isOutputCameraSpecificData = 0;
+					g_isOutputCameraSpecificData = NO_CAMERASPECIFIC_DATA;
 				}else{
 					g_LogFS << "ERROR: OUTPUT_DIGITAL_INPUT must be 0 or 1." << std::endl;
 					fs.close();
@@ -166,7 +166,7 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	if(g_isOutputCameraSpecificData==1)
+	if(g_isOutputCameraSpecificData==USE_CAMERASPECIFIC_DATA)
 	{
 		g_LogFS << "Output digital input of GPC5300" << std::endl;
 	}
