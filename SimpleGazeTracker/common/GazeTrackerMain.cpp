@@ -106,7 +106,7 @@ double g_CalMeanError[2]; /*!< Holds mean calibration error. Only one element is
 int g_RecordingMode = RECORDING_BINOCULAR; /*!< Holds recording mode. @note This value is modified only when application is being initialized (i.e. in initParameters()).*/
 int g_isShowDetectionErrorMsg = 0; /*!< Holds DetectionError message visibility.*/
 int g_isOutputPupilSize = 1; /*!< Holds whether pupil size is output to datafile.*/
-int g_isOutputCameraSpecificData = 0;/*!< Holds whether camera-specific data is output to datafile.*/
+int g_isOutputCameraSpecificData = NO_CAMERASPECIFIC_DATA;/*!< Holds whether camera-specific data is output to datafile.*/
 
 int g_DataCounter = 0;
 int g_LastSentDataCounter = 0;
@@ -134,6 +134,14 @@ int g_PortSend = PORT_SEND;
 int g_DelayCorrection = 0;
 
 bool g_isInhibitRendering = false;
+
+std::string g_USBIOBoard;
+std::string g_USBIOParamAD;
+std::string g_USBIOParamDI;
+
+DWORD* g_USBADBuffer32;
+WORD* g_USBADBuffer16;
+unsigned short* g_USBDIBuffer;
 
 #ifdef __DEBUG_WITH_GPC3100
 #include "C:\\Program Files\\Interface\\GPC3100\\include\\FbiAd.h"
@@ -180,6 +188,9 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 -PORT_SEND  (g_PortSend)
 -DELAY_CORRECTION  (g_DelayCorrection)
 -OUTPUT_PUPILSIZE (g_isOuputPupilArea)
+-USBIO_BOARD (g_USBIOBoard)
+-USBIO_AD (g_USBIOParamAD)
+-USBIO_DI (g_USBIOParamDI)
 
 @return int
 @retval S_OK Camera is successfully initialized.
@@ -193,6 +204,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 - spaces and tabs around '=' are removed.
 @date 2012/12/05 checkDirectory is renamed to checkAndCreateDirectory.
 @date 2013/10/22 configuration file name can be specified by g_ConfigFileName.
+@date 2013/12/12 USBIO_BOARD, USBIO_AD and USBIO_DI is supported.
  */
 int initParameters( void )
 {
@@ -264,6 +276,9 @@ int initParameters( void )
 		else if(strcmp(buff,"PORT_RECV")==0) g_PortRecv = param;
 		else if(strcmp(buff,"DELAY_CORRECTION")==0) g_DelayCorrection = param;
 		else if(strcmp(buff,"OUTPUT_PUPILSIZE")==0) g_isOutputPupilSize = param;
+		else if(strcmp(buff,"USBIO_BOARD")==0) g_USBIOBoard = p+1;
+		else if(strcmp(buff,"USBIO_AD")==0) g_USBIOParamAD = p+1;
+		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
 		else{
 			printf("Error: Unknown option (\"%s\")\n",buff);
 			g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
@@ -308,6 +323,9 @@ Following parameters are wrote to the configuration file.
 -PORT_SEND  (g_PortSend)
 -DELAY_CORRECTION  (g_DelayCorrection)
 -OUTPUT_PUPILSIZE  (g_isOutputPupilSize)
+-USBIO_BOARD (g_USBIOBoard)
+-USBIO_AD (g_USBIOParamAD)
+-USBIO_DI (g_USBIOParamDI)
 
 @return No value is returned.
 
@@ -317,6 +335,7 @@ Following parameters are wrote to the configuration file.
 @date 2012/09/28 OUTPUT_PUPILSIZE is supported.
 @date 2012/11/05 section name [SimpleGazeTrackerCommon] is output.
 @date 2013/03/26 Output log message.
+@date 2013/12/13 USBIO_BOARD, USBIO_AD and USBIO_DI is supported.
 */
 void saveParameters( void )
 {
@@ -368,7 +387,10 @@ void saveParameters( void )
 	fs << "PORT_RECV=" <<  g_PortRecv << std::endl;
 	fs << "DELAY_CORRECTION=" << g_DelayCorrection << std::endl;
 	fs << "OUTPUT_PUPILSIZE=" << g_isOutputPupilSize << std::endl;
-
+	fs << "USBIO_BOARD=" << g_USBIOBoard << std::endl;
+	fs << "USBIO_AD=" << g_USBIOParamAD << std::endl;
+	fs << "USBIO_DI=" << g_USBIOParamDI << std::endl;
+	
 	fs.close();
 
 	g_LogFS << "OK." << std::endl;
@@ -474,6 +496,7 @@ int initSDLSurfaces(void)
 	return S_OK;
 }
 
+
 /*!
 cleanup: release malloced buffers.
 
@@ -481,6 +504,7 @@ cleanup: release malloced buffers.
 
 @date 2012/04/06 release buffers.
 @date 2013/03/26 output log message.
+@date 2013/12/16 release buffers for USB-IO.
 */
 void cleanup( void )
 {
@@ -510,6 +534,25 @@ void cleanup( void )
 		g_SendImageBuffer = NULL;
 	}
 	
+	//USB
+    if( g_USBADBuffer32 != NULL )
+	{
+        free(g_USBADBuffer32);
+		g_USBADBuffer32 = NULL;
+	}
+
+    if( g_USBADBuffer16 != NULL )
+	{
+        free(g_USBADBuffer16);
+		g_USBADBuffer16 = NULL;
+	}
+
+    if( g_USBDIBuffer != NULL )
+	{
+        free(g_USBDIBuffer);
+		g_USBDIBuffer = NULL;
+	}
+
 	g_LogFS << "OK." << std::endl;
 }
 
@@ -530,6 +573,8 @@ This function is called either when recording is stopped or g_DataCounter reache
 void flushGazeData(void)
 {
 	double xy[4];
+	char buff[255];
+	int len=0;
 	if(g_RecordingMode==RECORDING_MONOCULAR){
 		for(int i=0; i<g_DataCounter; i++){
 			fprintf(g_DataFP,"%.3f,",g_TickData[i]);
@@ -562,9 +607,33 @@ void flushGazeData(void)
 					fprintf(g_DataFP,"%.1f,%.1f" ,xy[MONO_X],xy[MONO_Y]);
 			}
 
+			//USBIO
+			if(g_useUSBIO){
+				len=0;
+				if(g_USBADBuffer32!=NULL)
+					for(int chan=0; chan<g_numUSBADChannels; chan++)
+					{
+						len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer32[i*g_numUSBADChannels+chan]);
+					}
+				else if(g_USBADBuffer16!=NULL)
+					for(int chan=0; chan<g_numUSBADChannels; chan++)
+					{
+						len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer16[i*g_numUSBADChannels+chan]);
+					}
+				if(g_USBDIBuffer!=NULL)
+					len = snprintf(buff+len, sizeof(buff)-len, "%d",g_USBDIBuffer[i]);
+				
+				//delete ';'
+				if(len>0 && buff[len-1]==';')
+					buff[len-1]='\0';
+
+				fprintf(g_DataFP,",%s", buff);
+			}
+
 			//Camera custom data
-			if(g_isOutputCameraSpecificData==1)
+			if(g_isOutputCameraSpecificData==USE_CAMERASPECIFIC_DATA)
 				fprintf(g_DataFP,",%d",g_CameraSpecificData[i]);
+
 			//End of line
 			fprintf(g_DataFP,"\n");
 		}
@@ -625,9 +694,33 @@ void flushGazeData(void)
 				
 			}
 
+			//USBIO
+			if(g_useUSBIO){
+				len=0;
+				if(g_USBADBuffer32!=NULL)
+					for(int chan=0; chan<g_numUSBADChannels; chan++)
+					{
+						len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer32[i*g_numUSBADChannels+chan]);
+					}
+				else if(g_USBADBuffer16!=NULL)
+					for(int chan=0; chan<g_numUSBADChannels; chan++)
+					{
+						len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer16[i*g_numUSBADChannels+chan]);
+					}
+				if(g_USBDIBuffer!=NULL)
+					len = snprintf(buff+len, sizeof(buff)-len, "%d",g_USBDIBuffer[i]);
+				
+				//delete ';'
+				if(len>0 && buff[len-1]==';')
+					buff[len-1]='\0';
+
+				fprintf(g_DataFP,",%s", buff);
+			}
+
 			//Camera Custom Data
-			if(g_isOutputCameraSpecificData==1)
+			if(g_isOutputCameraSpecificData==USE_CAMERASPECIFIC_DATA)
 				fprintf(g_DataFP,",%d",g_CameraSpecificData[i]);
+
 			//End of line
 			fprintf(g_DataFP,"\n");
 		}
@@ -931,6 +1024,8 @@ main: Entry point of the application
 - Support camera custom data.
 @date 2013/10/25
 - Support commandline option.
+@date 2013/12/12
+- Support USB IO.
 */
 int main(int argc, char** argv)
 {
@@ -1167,6 +1262,21 @@ int main(int argc, char** argv)
 	renderInitMessages(nInitMessage,"initSDLSurfaces ... OK.");
 	nInitMessage += 1;
 
+	if(g_USBIOBoard.length()>0 && g_USBIOBoard!="NONE"){
+		if(FAILED(initUSBIO())){
+			g_LogFS << "initUSBIO failed. Exit." << std::endl;
+			renderInitMessages(nInitMessage,"initUSBIO failed. Exit.");
+			sleepMilliseconds(2000);
+			SDL_Quit();
+			return -1;
+		}
+		g_LogFS << "initUSBIO ... OK." << std::endl;
+		renderInitMessages(nInitMessage,"initUSBIO ... OK.");
+		nInitMessage += 1;
+	}else{
+		g_LogFS << "USBIO is not used." << std::endl;
+	}
+
 	g_LogFS << "Start." << "\n" << std::endl;
 	nInitMessage += 1;
 	renderInitMessages(nInitMessage,"Start.");
@@ -1309,7 +1419,12 @@ int main(int argc, char** argv)
 			int res;
 			double detectionResults[MAX_DETECTION_RESULTS], TimeImageAquired;
 			TimeImageAquired = getCurrentTime() - g_RecStartTime;
-			if(g_isOutputCameraSpecificData==1){
+			//USB IO
+			if(g_useUSBIO){
+				setUSBIOData(g_DataCounter);
+			}
+			//CameraSpacificData
+			if(g_isOutputCameraSpecificData==USE_CAMERASPECIFIC_DATA){
 				g_CameraSpecificData[g_DataCounter] = getCameraSpecificData();
 			}
 
@@ -1699,7 +1814,7 @@ As a result, contents of existing file is lost.
 @return No value is returned.
 @todo avoid overwriting (?)
 @date 2012/09/28 output header
-
+@date 2013/12/20 support USBIO.
 */
 void openDataFile(char* filename, int overwrite)
 {
@@ -1728,7 +1843,33 @@ void openDataFile(char* filename, int overwrite)
 	}
 
 	fprintf(g_DataFP,"#SimpleGazeTrackerDataFile\n#TRACKER_VERSION,%s\n",VERSION);
-	if(g_isOutputCameraSpecificData==1)
+
+	fprintf(g_DataFP,"#DATAFORMAT,T,");
+	if(g_RecordingMode==RECORDING_MONOCULAR){
+		if(g_isOutputPupilSize)
+			fprintf(g_DataFP,"X,Y,P");
+		else
+			fprintf(g_DataFP,"X,Y");
+	}else{
+		if(g_isOutputPupilSize)
+			fprintf(g_DataFP,"LX,LY,RX,RY,LP,RP");
+		else
+			fprintf(g_DataFP,"LX,LY,RX,RY");
+	}
+
+	if(g_useUSBIO){
+		char buff[255];
+		getUSBIODataFormatString(buff,255);
+		fprintf(g_DataFP,",USBIO;%s",buff);
+	}
+
+	if(g_isOutputCameraSpecificData==USE_CAMERASPECIFIC_DATA)
+		fprintf(g_DataFP,",C");
+	
+	fprintf(g_DataFP,"\n");
+
+	/*
+	if(g_isOutputCameraSpecificData==USE_CAMERASPECIFIC_DATA)
 	{
 		if(g_isOutputPupilSize)
 			if(g_RecordingMode==RECORDING_MONOCULAR)
@@ -1753,6 +1894,7 @@ void openDataFile(char* filename, int overwrite)
 			else //binocular
 				fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY\n");
 	}
+	*/
 }
 
 /*!

@@ -1,0 +1,307 @@
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <list>
+#include "GazeTrackerCommon.h"
+
+#include <cbw.h>
+
+#define MAX_USB_AD_CHANNELS 8
+
+int g_BoardNum = NO_USBIO;
+
+int g_USBDIPort;
+
+int g_numUSBADChannels = 0;
+int g_ADResolution = 0;
+int g_USBADChannelList[MAX_USB_AD_CHANNELS][2]; /*0: Channel number  1:AD range**/
+
+bool g_useUSBIO = false;
+bool g_useUSBThread = false;
+bool g_runUSBThread = false;
+
+int scanUSBIOThread(void *unused)
+{
+	while(g_runUSBThread)
+	{
+
+	}
+    
+    return 0;
+}
+
+int getRangeValue(const char* rangestr)
+{
+	if(strcmp(rangestr,"BIP15VOLTS")==0)
+		return BIP15VOLTS;
+	else if(strcmp(rangestr,"BIP10VOLTS")==0)
+		return BIP10VOLTS;
+	else if(strcmp(rangestr,"BIP5VOLTS")==0)
+		return BIP5VOLTS;
+	else if(strcmp(rangestr,"BIP2PT5VOLTS")==0)
+		return BIP2PT5VOLTS;
+	else if(strcmp(rangestr,"BIP1VOLTS")==0)
+		return BIP1VOLTS;
+	else if(strcmp(rangestr,"UNI10VOLTS")==0)
+		return UNI10VOLTS;
+	else if(strcmp(rangestr,"UNI5VOLTS")==0)
+		return UNI5VOLTS;
+	else if(strcmp(rangestr,"UNI2PT5VOLTS")==0)
+		return UNI2PT5VOLTS;
+	else if(strcmp(rangestr,"UNI1VOLTS")==0)
+		return UNI1VOLTS;
+
+	return BADRANGE;
+}
+
+int getPortValue(const char*portstr)
+{
+	if(strcmp(portstr,"FIRSTPORTA")==0)
+		return FIRSTPORTA;
+	else if(strcmp(portstr,"FIRSTPORTB")==0)
+		return FIRSTPORTB;
+	else if(strcmp(portstr,"FIRSTPORTCL")==0)
+		return FIRSTPORTCL;
+	else if(strcmp(portstr,"FIRSTPORTC")==0)
+		return FIRSTPORTC;
+	else if(strcmp(portstr,"FIRSTPORTCH")==0)
+		return FIRSTPORTCH;
+
+	return BADPORTNUM;
+}
+
+/*
+http://goodjob.boy.jp/chirashinoura/id/100.html
+*/
+std::list<std::string> splitString(std::string targetstr, std::string delim)
+{
+	std::list<std::string> res;
+	int idx;
+
+	while( (idx = targetstr.find_first_of(',')) != std::string::npos )
+	{
+		if(idx>0)
+		{
+			res.push_back(targetstr.substr(0, idx));
+		}
+		targetstr = targetstr.substr(idx + 1);
+	}
+	if(targetstr.length()>0)
+	{
+		res.push_back(targetstr);
+	}
+	return res;
+}
+
+int checkAD(void)
+{
+	int ULStat = 0;
+	WORD DataValue = 0;
+	DWORD DataValue32 = 0;
+	int options = 0;
+
+	cbGetConfig(BOARDINFO, g_BoardNum, 0, BIADRES, &g_ADResolution);
+	if(ULStat!=NOERRORS){
+		g_LogFS << "Could not get configuration for Boad " << g_USBIOBoard << "." << std::endl;
+		return E_FAIL;
+	}
+
+	for(int i=0; i<g_numUSBADChannels; i++)
+	{
+
+		if(g_ADResolution>16){ //HighRes
+			ULStat = cbAIn32(g_BoardNum, g_USBADChannelList[i][0], g_USBADChannelList[i][1], &DataValue32, options);
+		}else{
+			ULStat = cbAIn(g_BoardNum, g_USBADChannelList[i][0], g_USBADChannelList[i][1], &DataValue);
+		}
+		if(ULStat!=NOERRORS){
+			g_LogFS << "Could not read AD channel " << g_USBADChannelList[i][0] << "." << std::endl;
+			return E_FAIL;
+		}
+	}
+	return S_OK;
+}
+
+int checkDI(void)
+{
+	int ULStat = 0;
+	WORD DataValue = 0;
+
+	ULStat = cbDConfigPort(g_BoardNum, g_USBDIPort, DIGITALIN);
+	if(ULStat!=NOERRORS){
+		g_LogFS << "Could not configure port (" << g_USBIOParamDI << ") as Digital input." << std::endl;
+		return E_FAIL;
+	}
+
+	ULStat = cbDIn(g_BoardNum, g_USBDIPort, &DataValue);
+	if(ULStat!=NOERRORS){
+		g_LogFS << "Could not read Digital input port (" << g_USBIOParamDI << ")." << std::endl;
+		return E_FAIL;
+	}
+
+	return S_OK;
+}
+
+
+int initUSBIO(void)
+{
+	char *p;
+	std::list<std::string> params;
+	std::list<std::string>::iterator iter;
+	int chan,rangeval;
+
+	// Board number
+	g_BoardNum = strtol(g_USBIOBoard.c_str(),&p,10);
+	if( cbFlashLED(g_BoardNum) != NOERRORS ){
+		g_LogFS << "ERROR: Could not open USB IO board. Is board number (=" << g_USBIOBoard << ") bad?" << std::endl;
+		return E_FAIL;
+	}else{
+		g_LogFS << "USB IO board " << g_USBIOBoard << " is opened." << std::endl;
+	}
+
+	// AD
+	if(g_USBIOParamAD!="NONE" && g_USBIOParamAD!=""){
+		params = splitString(g_USBIOParamAD, ";");
+		g_numUSBADChannels = 0;
+		iter = params.begin();
+		while( iter != params.end())
+		{
+			if(g_numUSBADChannels>=MAX_USB_AD_CHANNELS){
+				g_LogFS << "ERROR: Too many AD channels." << std::endl;
+				return E_FAIL;
+			}
+			chan = strtol(iter->c_str(),&p,10);
+			for(int i=0; i<g_numUSBADChannels; i++){
+				if(g_USBADChannelList[i][0]==chan){
+					g_LogFS << "ERROR: USB AD channel " << chan << " is duplicate." << std::endl;
+					return E_FAIL;
+				}
+			}
+
+			iter++;
+			if(iter==params.end())
+			{
+				g_LogFS << "ERROR: USB AD channel parameter is wrong (" << g_USBIOParamAD << ")." << std::endl;
+				return E_FAIL;
+			}
+
+			if((rangeval = getRangeValue(iter->c_str())) == BADRANGE)
+			{
+				g_LogFS << "ERROR: Bad range (" << iter->c_str() << ") for channel " << chan << "." << std::endl;
+				return E_FAIL;
+			}
+
+			g_USBADChannelList[g_numUSBADChannels][0] = chan;
+			g_USBADChannelList[g_numUSBADChannels][1] = rangeval;
+			g_numUSBADChannels++;
+			iter++;
+		}
+
+		if(g_numUSBADChannels>0)
+		{
+			g_LogFS << "USB AD: ";
+			for(int i=0; i<g_numUSBADChannels; i++){
+				g_LogFS << g_USBADChannelList[i][0] << " ";
+			}
+			g_LogFS << std::endl;
+
+			//vaild channels?
+			if(FAILED(checkAD())){
+				return E_FAIL;
+			}
+
+			//allocate memory
+			if(g_ADResolution>16){
+				g_USBADBuffer32 = (DWORD*)malloc(MAXDATA*g_numUSBADChannels*sizeof(DWORD));
+				if(g_USBADBuffer32==NULL || g_pCameraTextureBuffer==NULL || g_pCalResultTextureBuffer==NULL){
+					g_LogFS << "ERROR: failed to allocate AD buffer." << std::endl;
+					return E_FAIL;
+				}
+			}else{
+				g_USBADBuffer16 = (WORD*)malloc(MAXDATA*g_numUSBADChannels*sizeof(WORD));
+				if(g_USBADBuffer16==NULL){
+					g_LogFS << "ERROR: failed to allocate AD buffer." << std::endl;
+					return E_FAIL;
+				}
+			}
+		}
+	}
+
+	// DI
+	if(g_USBIOParamDI!="NONE" && g_USBIOParamDI!=""){
+		if( (g_USBDIPort = getPortValue(g_USBIOParamDI.c_str()))==BADPORTNUM ){
+			g_LogFS << "ERROR: unsupported port (" << g_USBIOParamDI << ")." << std::endl;
+			return E_FAIL;
+		}else{
+			g_LogFS << "USB DI: " << g_USBIOParamDI << "." << std::endl;
+		}
+
+		//vaild port?
+		if(FAILED(checkDI())){
+			return E_FAIL;
+		}
+
+		//allocate memory
+		g_USBDIBuffer = (WORD*)malloc(MAXDATA*sizeof(WORD));
+		if(g_USBDIBuffer==NULL){
+			g_LogFS << "ERROR: failed to allocate DI buffer." << std::endl;
+			return E_FAIL;
+		}
+	}
+
+	if(g_USBADBuffer32==NULL && g_USBADBuffer16==NULL && g_USBDIBuffer==NULL)
+	{
+		g_LogFS << "ERROR: USBIO_BOARD is specified, but neither USBIO_AD nor USBIO_DI is specified." << std::endl;
+		return E_FAIL;
+	}
+
+	g_useUSBIO = true;
+	return S_OK;
+}
+
+
+void setUSBIOData(int dataCounter)
+{
+	int ULStat;
+	int options=0;
+
+	if(g_useUSBThread)
+	{
+
+	}
+	else
+	{
+		if(g_USBADBuffer32!=NULL)
+		{
+			for(int i=0; i<g_numUSBADChannels; i++){
+				ULStat = cbAIn32(g_BoardNum, g_USBADChannelList[i][0],
+					g_USBADChannelList[i][1], &g_USBADBuffer32[dataCounter*g_numUSBADChannels+i], options);
+			}
+		}
+		else if(g_USBADBuffer16!=NULL)
+		{
+			for(int i=0; i<g_numUSBADChannels; i++){
+				ULStat = cbAIn(g_BoardNum, g_USBADChannelList[i][0],
+					g_USBADChannelList[i][1], &g_USBADBuffer16[dataCounter*g_numUSBADChannels+i]);
+			}
+		}
+		if(g_USBDIBuffer!=NULL)
+			ULStat = cbDIn(g_BoardNum, g_USBDIPort, &g_USBDIBuffer[dataCounter]);
+	}
+
+}
+
+void getUSBIODataFormatString(char* buff, int buffsize)
+{
+	int len=0;
+	for(int i=0; i<g_numUSBADChannels; i++){
+		len += snprintf(buff+len, buffsize-len, "AD%d;", g_USBADChannelList[i][0]);
+	}
+	if(g_USBDIBuffer!=NULL)
+		len += snprintf(buff+len, buffsize-len, "DI");
+
+	//delete ';'
+	if(len>0 && buff[len-1]==';')
+		buff[len-1]='\0';
+	
+}
