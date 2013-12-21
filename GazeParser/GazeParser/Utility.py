@@ -68,6 +68,12 @@ def compareVersion(testVersion, baseVersion):
     number is returned. If testVersion is older than baseVersion, negative number
     is returned. Otherwise, 0 is returned.
     
+    :param str testVersion:
+        A string which represents version number.
+    :param str baseVersion:
+        A string which represents version number.
+    :return:
+        See above.
     """
     baseVer = map(int,baseVersion.split('.'))
     testVer = map(int,testVersion.split('.'))
