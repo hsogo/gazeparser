@@ -1,3 +1,11 @@
+/*!
+@file usbio.cpp
+@author Hiroyuki Sogo
+@copyright GNU General Public License (GPL) version 3.
+
+@brief Functions for USB-IO support.
+*/
+
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -30,6 +38,25 @@ int scanUSBIOThread(void *unused)
     return 0;
 }
 
+/*!
+getRangeValue: Convert range string to range value.
+
+Converted range value is returned.
+Following range strings are supported.
+
+- BIP15VOLTS
+- BIP10VOLTS
+- BIP5VOLTS
+- BIP2PT5VOLTS
+- BIP1VOLTS
+- UNI10VOLTS
+- UNI5VOLTS
+- UNI2PT5VOLTS
+
+@param[in] rangestr
+@return int
+@retval BADRANGE if range string is unsupported.
+*/
 int getRangeValue(const char* rangestr)
 {
 	if(strcmp(rangestr,"BIP15VOLTS")==0)
@@ -54,6 +81,22 @@ int getRangeValue(const char* rangestr)
 	return BADRANGE;
 }
 
+/*!
+getPortValue: Convert port string to port value.
+
+Converted port value is returned.
+Following port strings are supported.
+
+- FIRSTPORTA
+- FIRSTPORTB
+- FIRSTPORTCL
+- FIRSTPORTC
+- FIRSTPORTCH
+
+@param[in] portstr
+@return int
+@retval BADPORTNUM if range string is unsupported.
+*/
 int getPortValue(const char*portstr)
 {
 	if(strcmp(portstr,"FIRSTPORTA")==0)
@@ -70,8 +113,14 @@ int getPortValue(const char*portstr)
 	return BADPORTNUM;
 }
 
-/*
+/*!
+splitString: Split string.
+
 http://goodjob.boy.jp/chirashinoura/id/100.html
+
+@param[in] targetstr
+@param[in] delim
+@return std::list
 */
 std::list<std::string> splitString(std::string targetstr, std::string delim)
 {
@@ -93,6 +142,14 @@ std::list<std::string> splitString(std::string targetstr, std::string delim)
 	return res;
 }
 
+
+/*!
+checkAD: Test whether AD channels are valid.
+
+@return int
+@retval S_OK
+@retval E_FAIL
+*/
 int checkAD(void)
 {
 	int ULStat = 0;
@@ -122,6 +179,13 @@ int checkAD(void)
 	return S_OK;
 }
 
+/*!
+checkDI: Test whether DI port is valid.
+
+@return int
+@retval S_OK
+@retval E_FAIL
+*/
 int checkDI(void)
 {
 	int ULStat = 0;
@@ -143,6 +207,19 @@ int checkDI(void)
 }
 
 
+/*!
+initUSBIO: Initialize USB-IO
+
+This function do following tasks.
+
+1. Read board number, AD and DI settings from parameter strings.
+2. Poll AD and DI ports to test whether they work properly.
+3. Allocate memory buffers to record polled data.
+
+@return int
+@retval S_OK
+@retval E_FAIL
+*/
 int initUSBIO(void)
 {
 	char *p;
@@ -260,6 +337,15 @@ int initUSBIO(void)
 }
 
 
+/*!
+setUSBIOData: Read values from AD and DI ports and set them to memory buffer.
+
+Read values from AD and DI ports and set them to memory buffer.
+Ports and buffers must be initialized by initUSBIO().
+dataCounter should be equal to global data counter (g_dataCounter).
+
+@param[in] dataCounter
+*/
 void setUSBIOData(int dataCounter)
 {
 	int ULStat;
@@ -291,6 +377,16 @@ void setUSBIOData(int dataCounter)
 
 }
 
+/*!
+getUSBIODataFormatString: Return data-format string.
+
+This function sets data-format string to buff.
+Data-format string is output to SimpleGazeTracker data file.
+Size of buff must be given by buffsize.
+
+@param[out] buff
+@param[in] buffsize
+*/
 void getUSBIODataFormatString(char* buff, int buffsize)
 {
 	int len=0;
