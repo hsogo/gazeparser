@@ -176,14 +176,7 @@ int initCamera( void )
 			}
 			else if(strcmp(buff,"USE_THREAD")==0)
 			{
-				if((int)param!=0)
-				{
-					g_isThreadMode = true;
-				}
-				else
-				{
-					g_isThreadMode = false;
-				}
+				g_isThreadMode = ((int)param!=0)? true : false;
 			}
 			else if(strcmp(buff,"CAMERA_ID")==0)
 			{
@@ -278,26 +271,26 @@ int initCamera( void )
 			g_LogFS << "WARINING: tried to set EXPOSURE " << g_Exposure << ", but returned value was " << param << std::endl;
 	}
 
-    if(g_isThreadMode)
-    {
-        g_runThread = true;
-        g_pThread = SDL_CreateThread(captureCameraThread, NULL);
-        if(g_pThread==NULL)
-        {
-            g_LogFS << "ERROR: failed to start thread" << std::endl;
-            g_runThread = false;
-            return E_FAIL;
-        }
-        else
-        {
-            g_LogFS << "Start CameraThread" << std::endl;
-        }
-    }
-    else
-    {
-        g_prevCaptureTime = getCurrentTime();
-        g_LogFS << "Start without threading" << std::endl;
-    }
+	if(g_isThreadMode)
+	{
+		g_runThread = true;
+		g_pThread = SDL_CreateThread(captureCameraThread, NULL);
+		if(g_pThread==NULL)
+		{
+			g_LogFS << "ERROR: failed to start thread" << std::endl;
+			g_runThread = false;
+			return E_FAIL;
+		}
+		else
+		{
+			g_LogFS << "Start CameraThread" << std::endl;
+		}
+	}
+	else
+	{
+		g_prevCaptureTime = getCurrentTime();
+		g_LogFS << "Start without threading" << std::endl;
+	}
 
 	return S_OK;
 }
@@ -312,39 +305,39 @@ getCameraImage: Get new camera image.
 */
 int getCameraImage( void )
 {
-    if(g_isThreadMode)
-    {
-        if(g_NewFrameAvailable)
-        {
-            g_NewFrameAvailable = false;
-            return S_OK;
-        }
-    }
-    else // non-threading mode
-    {
-        double t;
-        t = getCurrentTime();
-        if(t-g_prevCaptureTime > g_SleepDuration)
-        {
-            
-            cv::Mat frame, monoFrame;
-            
-            if(g_VideoCapture.grab())
-            {
-                g_VideoCapture.retrieve(frame);
-                if(frame.channels()==3)
-                    cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
-                else
-                    monoFrame = frame;
-                for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
-                {
-                    g_frameBuffer[idx] = (unsigned char)monoFrame.data[idx];
-                }
-                g_prevCaptureTime = getCurrentTime();
-                return S_OK;
-            }
-        }
-    }
+	if(g_isThreadMode)
+	{
+		if(g_NewFrameAvailable)
+		{
+			g_NewFrameAvailable = false;
+			return S_OK;
+		}
+	}
+	else // non-threading mode
+	{
+		double t;
+		t = getCurrentTime();
+		if(t-g_prevCaptureTime > g_SleepDuration)
+		{
+			
+			cv::Mat frame, monoFrame;
+			
+			if(g_VideoCapture.grab())
+			{
+				g_VideoCapture.retrieve(frame);
+				if(frame.channels()==3)
+					cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
+				else
+					monoFrame = frame;
+				for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
+				{
+					g_frameBuffer[idx] = (unsigned char)monoFrame.data[idx];
+				}
+				g_prevCaptureTime = getCurrentTime();
+				return S_OK;
+			}
+		}
+	}
 
 	return E_FAIL;
 }
