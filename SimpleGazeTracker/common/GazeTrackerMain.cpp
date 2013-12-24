@@ -191,6 +191,8 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 -USBIO_BOARD (g_USBIOBoard)
 -USBIO_AD (g_USBIOParamAD)
 -USBIO_DI (g_USBIOParamDI)
+-USB_USE_THREAD (g_useUSBThread)
+-USB_SLEEP_DURATION (g_SleepDurationUSB)
 
 @return int
 @retval S_OK Camera is successfully initialized.
@@ -205,6 +207,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 @date 2012/12/05 checkDirectory is renamed to checkAndCreateDirectory.
 @date 2013/10/22 configuration file name can be specified by g_ConfigFileName.
 @date 2013/12/12 USBIO_BOARD, USBIO_AD and USBIO_DI is supported.
+@date 2013/12/24 USB_USE_THREAD is supported.
  */
 int initParameters( void )
 {
@@ -279,6 +282,7 @@ int initParameters( void )
 		else if(strcmp(buff,"USBIO_BOARD")==0) g_USBIOBoard = p+1;
 		else if(strcmp(buff,"USBIO_AD")==0) g_USBIOParamAD = p+1;
 		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
+		else if(strcmp(buff,"USB_USE_THREAD")==0) g_useUSBThread = (param!=0)? true: false;
 		else{
 			printf("Error: Unknown option (\"%s\")\n",buff);
 			g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
@@ -326,6 +330,8 @@ Following parameters are wrote to the configuration file.
 -USBIO_BOARD (g_USBIOBoard)
 -USBIO_AD (g_USBIOParamAD)
 -USBIO_DI (g_USBIOParamDI)
+-USB_USE_THREAD (g_useUSBThread)
+-USB_SLEEP_DURATION (g_SleepDurationUSB)
 
 @return No value is returned.
 
@@ -336,6 +342,7 @@ Following parameters are wrote to the configuration file.
 @date 2012/11/05 section name [SimpleGazeTrackerCommon] is output.
 @date 2013/03/26 Output log message.
 @date 2013/12/13 USBIO_BOARD, USBIO_AD and USBIO_DI is supported.
+@date 2013/12/24 USB_USE_THREAD is supported.
 */
 void saveParameters( void )
 {
@@ -390,6 +397,7 @@ void saveParameters( void )
 	fs << "USBIO_BOARD=" << g_USBIOBoard << std::endl;
 	fs << "USBIO_AD=" << g_USBIOParamAD << std::endl;
 	fs << "USBIO_DI=" << g_USBIOParamDI << std::endl;
+	fs << "USB_USE_THREAD=" << (g_useUSBThread? "1" : "0") << std::endl;
 	
 	fs.close();
 
@@ -535,23 +543,7 @@ void cleanup( void )
 	}
 	
 	//USB
-    if( g_USBADBuffer32 != NULL )
-	{
-        free(g_USBADBuffer32);
-		g_USBADBuffer32 = NULL;
-	}
-
-    if( g_USBADBuffer16 != NULL )
-	{
-        free(g_USBADBuffer16);
-		g_USBADBuffer16 = NULL;
-	}
-
-    if( g_USBDIBuffer != NULL )
-	{
-        free(g_USBDIBuffer);
-		g_USBDIBuffer = NULL;
-	}
+	cleanupUSBIO();
 
 	g_LogFS << "OK." << std::endl;
 }
@@ -1868,33 +1860,6 @@ void openDataFile(char* filename, int overwrite)
 	
 	fprintf(g_DataFP,"\n");
 
-	/*
-	if(g_isOutputCameraSpecificData==USE_CAMERASPECIFIC_DATA)
-	{
-		if(g_isOutputPupilSize)
-			if(g_RecordingMode==RECORDING_MONOCULAR)
-				fprintf(g_DataFP,"#DATAFORMAT,T,X,Y,P,C\n");
-			else //binocular
-				fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY,LP,RP,C\n");
-		else
-			if(g_RecordingMode==RECORDING_MONOCULAR)
-				fprintf(g_DataFP,"#DATAFORMAT,T,X,Y,C\n");
-			else //binocular
-				fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY,C\n");
-	}
-	else{
-		if(g_isOutputPupilSize)
-			if(g_RecordingMode==RECORDING_MONOCULAR)
-				fprintf(g_DataFP,"#DATAFORMAT,T,X,Y,P\n");
-			else //binocular
-				fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY,LP,RP\n");
-		else
-			if(g_RecordingMode==RECORDING_MONOCULAR)
-				fprintf(g_DataFP,"#DATAFORMAT,T,X,Y\n");
-			else //binocular
-				fprintf(g_DataFP,"#DATAFORMAT,T,LX,LY,RX,RY\n");
-	}
-	*/
 }
 
 /*!

@@ -28,14 +28,56 @@ bool g_useUSBIO = false;
 bool g_useUSBThread = false;
 bool g_runUSBThread = false;
 
-int scanUSBIOThread(void *unused)
+DWORD g_latestADValue32[MAX_USB_AD_CHANNELS];
+WORD g_latestADValue16[MAX_USB_AD_CHANNELS];
+WORD g_latestDIValue;
+
+SDL_Thread *g_pUSBThread;
+
+//debug//
+double g_debug_buffer[1000];
+int g_debug_counter=0;
+//debug//
+
+int pollUSBIOThread(void *unused)
 {
+	int ULStat;
+	int options=0;
+
+	//debug//
+	double t, prev;
+	prev = getCurrentTime();
+	//debug//
+
 	while(g_runUSBThread)
 	{
+		if(g_USBADBuffer32!=NULL)
+		{
+			for(int i=0; i<g_numUSBADChannels; i++){
+				ULStat = cbAIn32(g_BoardNum, g_USBADChannelList[i][0],
+					g_USBADChannelList[i][1], &g_latestADValue32[i], options);
+			}
+		}
+		else if(g_USBADBuffer16!=NULL)
+		{
+			for(int i=0; i<g_numUSBADChannels; i++){
+				ULStat = cbAIn(g_BoardNum, g_USBADChannelList[i][0],
+					g_USBADChannelList[i][1], &g_latestADValue16[i]);
+			}
+		}
+		if(g_USBDIBuffer!=NULL)
+			ULStat = cbDIn(g_BoardNum, g_USBDIPort, &g_latestDIValue);
 
+		//debug//
+		t = getCurrentTime();
+		g_debug_buffer[g_debug_counter] = t-prev;
+		prev = t;
+		g_debug_counter++;
+		g_debug_counter = g_debug_counter % 1000;
+		//debug//
 	}
-    
-    return 0;
+	
+	return 0;
 }
 
 /*!
@@ -206,6 +248,72 @@ int checkDI(void)
 	return S_OK;
 }
 
+/*!
+startUSBThread
+
+@return int
+@retval S_OK
+@retval E_FAIL
+*/
+int startUSBThread(void)
+{
+	g_runUSBThread = true;
+	g_pUSBThread = SDL_CreateThread(pollUSBIOThread, NULL);
+	if(g_pUSBThread==NULL)
+	{
+		g_LogFS << "ERROR: failed to start USB thread." << std::endl;
+		g_runUSBThread = false;
+		return E_FAIL;
+	}
+	else
+	{
+		g_LogFS << "Start USB polling Thread." << std::endl;
+	}
+	return S_OK;
+}
+
+/*!
+startUSBThread
+*/
+void stopUSBThread(void)
+{
+	if(g_runUSBThread){
+		g_runUSBThread = false;
+		SDL_WaitThread(g_pUSBThread, NULL);
+		g_LogFS << "USB polling thread is stopped." << std::endl;
+
+		//debug//
+		for(int i=0; i<1000; i++){
+			g_LogFS << g_debug_buffer[i] << std::endl;
+		}
+		//debug//
+	}
+}
+
+void cleanupUSBIO(void)
+{
+	if(g_useUSBThread){
+		stopUSBThread();
+	}
+
+    if( g_USBADBuffer32 != NULL )
+	{
+        free(g_USBADBuffer32);
+		g_USBADBuffer32 = NULL;
+	}
+
+    if( g_USBADBuffer16 != NULL )
+	{
+        free(g_USBADBuffer16);
+		g_USBADBuffer16 = NULL;
+	}
+
+    if( g_USBDIBuffer != NULL )
+	{
+        free(g_USBDIBuffer);
+		g_USBDIBuffer = NULL;
+	}
+}
 
 /*!
 initUSBIO: Initialize USB-IO
@@ -250,7 +358,7 @@ int initUSBIO(void)
 			chan = strtol(iter->c_str(),&p,10);
 			for(int i=0; i<g_numUSBADChannels; i++){
 				if(g_USBADChannelList[i][0]==chan){
-					g_LogFS << "ERROR: USB AD channel " << chan << " is duplicate." << std::endl;
+					g_LogFS << "ERROR: USB AD channel " << chan << " is duplicated." << std::endl;
 					return E_FAIL;
 				}
 			}
@@ -332,6 +440,13 @@ int initUSBIO(void)
 		return E_FAIL;
 	}
 
+	if(g_useUSBThread){
+		if(FAILED(startUSBThread())){
+			cleanupUSBIO();
+			return E_FAIL;
+		}
+	}
+
 	g_useUSBIO = true;
 	return S_OK;
 }
@@ -353,7 +468,20 @@ void setUSBIOData(int dataCounter)
 
 	if(g_useUSBThread)
 	{
-
+		if(g_USBADBuffer32!=NULL)
+		{
+			for(int i=0; i<g_numUSBADChannels; i++){
+				g_USBADBuffer32[dataCounter*g_numUSBADChannels+i] = g_latestADValue32[i];
+			}
+		}
+		else if(g_USBADBuffer16!=NULL)
+		{
+			for(int i=0; i<g_numUSBADChannels; i++){
+				g_USBADBuffer16[dataCounter*g_numUSBADChannels+i] = g_latestADValue16[i];
+			}
+		}
+		if(g_USBDIBuffer!=NULL)
+			g_USBDIBuffer[dataCounter] = g_latestDIValue;
 	}
 	else
 	{
@@ -401,3 +529,4 @@ void getUSBIODataFormatString(char* buff, int buffsize)
 		buff[len-1]='\0';
 	
 }
+

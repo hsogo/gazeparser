@@ -230,6 +230,7 @@ extern int checkAndCopyFile(std::string path, const char* filename, std::string 
 
 //USBIO
 extern bool g_useUSBIO;
+extern bool g_useUSBThread;
 extern int g_numUSBADChannels;
 extern int initUSBIO(void);
 extern std::string g_USBIOBoard;
@@ -240,3 +241,4 @@ extern WORD* g_USBADBuffer16;
 extern unsigned short* g_USBDIBuffer;
 extern void setUSBIOData(int dataCounter);
 extern void getUSBIODataFormatString(char* buff, int buffsize);
+extern void cleanupUSBIO(void);
