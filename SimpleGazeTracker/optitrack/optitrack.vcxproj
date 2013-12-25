@@ -90,7 +90,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\usbio.cpp" />
+    <ClCompile Include="..\common\usbioUL.cpp" />
     <ClCompile Include="Camera_OptiTrack.cpp" />
     <ClCompile Include="..\common\DetectEye.cpp" />
     <ClCompile Include="..\common\GazeTrackerMain.cpp" />

@@ -32,6 +32,11 @@ DWORD g_latestADValue32[MAX_USB_AD_CHANNELS];
 WORD g_latestADValue16[MAX_USB_AD_CHANNELS];
 WORD g_latestDIValue;
 
+DWORD* g_USBADBuffer32;
+WORD* g_USBADBuffer16;
+unsigned short* g_USBDIBuffer;
+
+
 SDL_Thread *g_pUSBThread;
 
 //debug//
@@ -530,3 +535,33 @@ void getUSBIODataFormatString(char* buff, int buffsize)
 	
 }
 
+/*!
+getUSBIODataFormatString: Return data-format string.
+
+This function outputs data as a semicolon-separated string.
+Size of buff must be given by buffsize.
+
+@param[in] index
+@param[out] buff
+@param[in] buffsize
+*/
+void getUSBIODataString(int index, char* buff, int buffsize)
+{
+	int len=0;
+	if(g_USBADBuffer32!=NULL)
+		for(int chan=0; chan<g_numUSBADChannels; chan++)
+		{
+			len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer32[index*g_numUSBADChannels+chan]);
+		}
+	else if(g_USBADBuffer16!=NULL)
+		for(int chan=0; chan<g_numUSBADChannels; chan++)
+		{
+			len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer16[index*g_numUSBADChannels+chan]);
+		}
+	if(g_USBDIBuffer!=NULL)
+		len = snprintf(buff+len, sizeof(buff)-len, "%d",g_USBDIBuffer[index]);
+				
+	//delete ';'
+	if(len>0 && buff[len-1]==';')
+		buff[len-1]='\0';
+}

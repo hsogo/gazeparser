@@ -139,10 +139,6 @@ std::string g_USBIOBoard;
 std::string g_USBIOParamAD;
 std::string g_USBIOParamDI;
 
-DWORD* g_USBADBuffer32;
-WORD* g_USBADBuffer16;
-unsigned short* g_USBDIBuffer;
-
 #ifdef __DEBUG_WITH_GPC3100
 #include "C:\\Program Files\\Interface\\GPC3100\\include\\FbiAd.h"
 #pragma comment(lib, "C:\\Program Files\\Interface\\GPC3100\\lib\\FbiAd.lib")
@@ -601,24 +597,7 @@ void flushGazeData(void)
 
 			//USBIO
 			if(g_useUSBIO){
-				len=0;
-				if(g_USBADBuffer32!=NULL)
-					for(int chan=0; chan<g_numUSBADChannels; chan++)
-					{
-						len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer32[i*g_numUSBADChannels+chan]);
-					}
-				else if(g_USBADBuffer16!=NULL)
-					for(int chan=0; chan<g_numUSBADChannels; chan++)
-					{
-						len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer16[i*g_numUSBADChannels+chan]);
-					}
-				if(g_USBDIBuffer!=NULL)
-					len = snprintf(buff+len, sizeof(buff)-len, "%d",g_USBDIBuffer[i]);
-				
-				//delete ';'
-				if(len>0 && buff[len-1]==';')
-					buff[len-1]='\0';
-
+				getUSBIODataString(i, buff, sizeof(buff));
 				fprintf(g_DataFP,",%s", buff);
 			}
 
@@ -688,24 +667,7 @@ void flushGazeData(void)
 
 			//USBIO
 			if(g_useUSBIO){
-				len=0;
-				if(g_USBADBuffer32!=NULL)
-					for(int chan=0; chan<g_numUSBADChannels; chan++)
-					{
-						len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer32[i*g_numUSBADChannels+chan]);
-					}
-				else if(g_USBADBuffer16!=NULL)
-					for(int chan=0; chan<g_numUSBADChannels; chan++)
-					{
-						len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer16[i*g_numUSBADChannels+chan]);
-					}
-				if(g_USBDIBuffer!=NULL)
-					len = snprintf(buff+len, sizeof(buff)-len, "%d",g_USBDIBuffer[i]);
-				
-				//delete ';'
-				if(len>0 && buff[len-1]==';')
-					buff[len-1]='\0';
-
+				getUSBIODataString(i, buff, sizeof(buff));
 				fprintf(g_DataFP,",%s", buff);
 			}
 

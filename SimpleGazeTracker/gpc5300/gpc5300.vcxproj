@@ -94,7 +94,7 @@
     <ClCompile Include="..\common\GazeTrackerMain.cpp" />
     <ClCompile Include="..\common\PlatformDependent.cpp" />
     <ClCompile Include="..\common\tcpipcom.cpp" />
-    <ClCompile Include="..\common\usbio.cpp" />
+    <ClCompile Include="..\common\usbioUL.cpp" />
     <ClCompile Include="Camera_gpc5300.cpp" />
   </ItemGroup>
   <ItemGroup>
