@@ -1,5 +1,5 @@
 /*!
-@file usbio.cpp
+@file usbioUL.cpp
 @author Hiroyuki Sogo
 @copyright GNU General Public License (GPL) version 3.
 
@@ -551,15 +551,15 @@ void getUSBIODataString(int index, char* buff, int buffsize)
 	if(g_USBADBuffer32!=NULL)
 		for(int chan=0; chan<g_numUSBADChannels; chan++)
 		{
-			len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer32[index*g_numUSBADChannels+chan]);
+			len += snprintf(buff+len, buffsize-len,"%d;",g_USBADBuffer32[index*g_numUSBADChannels+chan]);
 		}
 	else if(g_USBADBuffer16!=NULL)
 		for(int chan=0; chan<g_numUSBADChannels; chan++)
 		{
-			len += snprintf(buff+len, sizeof(buff)-len,"%d;",g_USBADBuffer16[index*g_numUSBADChannels+chan]);
+			len += snprintf(buff+len, buffsize-len,"%d;",g_USBADBuffer16[index*g_numUSBADChannels+chan]);
 		}
 	if(g_USBDIBuffer!=NULL)
-		len = snprintf(buff+len, sizeof(buff)-len, "%d",g_USBDIBuffer[index]);
+		len += snprintf(buff+len, buffsize-len, "%d",g_USBDIBuffer[index]);
 				
 	//delete ';'
 	if(len>0 && buff[len-1]==';')
