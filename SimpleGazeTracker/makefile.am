@@ -1,10 +1,10 @@
 bin_PROGRAMS=sgtsrv
-sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp\
+sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
     common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
     opencv/Camera_OpenCV.cpp opencv/GazeTracker.h
 
-sgtsrv_LDADD=$(OPENCV_LIBS) $(SDL_LIBS)
-sgtsrv_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS)
+sgtsrv_LDADD=$(OPENCV_LIBS) $(SDL_LIBS) $(LIBUSB_LIBS)
+sgtsrv_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS) $(LIBUSB_CFLAGS)
 
 if FONTLESS
 freesans= 

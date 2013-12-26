@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([SimpleGazeTracker], [0.6.5])
+AC_INIT([SimpleGazeTracker], [0.6.6])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
@@ -14,6 +14,7 @@ AC_PROG_CC
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([SDL],[sdl >= 1.2])
 PKG_CHECK_MODULES([OPENCV],[opencv >= 2.2])
+PKG_CHECK_MODULES([LIBUSB],[libusb-1.0 >= 1.0])
 AC_CHECK_LIB([SDL],[SDL_Init])
 AC_CHECK_LIB([SDL_ttf],[TTF_Init])
 AC_CHECK_LIB([SDL_net],[SDLNet_Init])
