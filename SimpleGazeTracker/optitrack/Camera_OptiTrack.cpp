@@ -130,7 +130,7 @@ int initCamera( void )
 
 	g_camera = CameraLibrary::CameraManager::X().GetCamera();
 
-	if(g_camera==NULL )
+	if(g_camera==NULL)
 	{
 		g_LogFS << "ERROR: no camera is found" << std::endl;
 		return E_FAIL;
@@ -145,9 +145,9 @@ int initCamera( void )
 	g_camera->SetExposure(g_Exposure);
 
 	if(g_CameraWidth == 640 && g_CameraHeight == 480)
-		g_camera->SetFrameDecimation(0);
+		g_camera->SetGrayscaleDecimation(0);
 	else if(g_CameraWidth == 320 && g_CameraHeight == 240)
-		g_camera->SetFrameDecimation(2);
+		g_camera->SetGrayscaleDecimation(2);
 	else
 	{
 		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
