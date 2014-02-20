@@ -140,6 +140,7 @@ int initCamera( void )
 	g_camera->SetVideoType(CameraLibrary::GrayscaleMode);
 	g_camera->SetNumeric(false,0);
 	g_camera->SetTextOverlay(false);
+	g_camera->SetIRFilter(true);
 
 	g_camera->SetIntensity(g_Intensity);
 	g_camera->SetExposure(g_Exposure);
