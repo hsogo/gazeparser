@@ -99,9 +99,12 @@ viewport = VisionEgg.Core.Viewport(screen=screen,stimuli=[stim,mask])
 
 maskTextureObject = mask.parameters.texture.get_texture_object()
 
+
 for tr in range(5):
-    windowSize = 6.0*(tr+1)
-    imgArray[:,:,3] = 255*(1-numpy.exp(-(meshx/windowSize)**2-(meshy/windowSize)**2))
+    maskSize = 10.0*(6-tr)
+    tmp = 512*numpy.exp(-(meshx/maskSize)**2-(meshy/maskSize)**2)
+    tmp[tmp>255] = 255
+    imgArray[:,:,3] = tmp
     maskimage = Image.fromarray(imgArray,mode='RGBA')
     maskTextureObject.put_sub_image(maskimage)
     

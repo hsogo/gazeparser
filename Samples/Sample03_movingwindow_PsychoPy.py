@@ -2,11 +2,13 @@ import psychopy.visual
 import psychopy.event
 import psychopy.core
 import sys
-import Image
-import ImageDraw
 import numpy
 import OpenGL.GL
 import os
+try:
+    import Image
+except:
+    from PIL import Image
 
 import GazeParser.TrackingTools
 
@@ -80,7 +82,6 @@ application.MainLoop()
 fname = FileWindowValues['imgfilename']
 
 dataFileName = FileWindowValues['filename']
-fp = open(dataFileName+'_local.csv','w')
 xy = FileWindowValues['imgsize'].split(',')
 cameraX = int(xy[0])
 cameraY = int(xy[1])
@@ -118,7 +119,7 @@ maskimage = Image.fromarray(imgArray,mode='RGBA')
 
 stim = psychopy.visual.SimpleImageStim(win,fname)
 mask = psychopy.visual.PatchStim(win,maskimage)
-mask.setSize((maskImageSize*4,maskImageSize*4))
+mask.setSize((max(win.size)*2,max(win.size)*2))
 
 for tr in range(5):
     windowSize = 6.0*(tr+1)
