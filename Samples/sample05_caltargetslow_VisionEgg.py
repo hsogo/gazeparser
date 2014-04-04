@@ -67,7 +67,7 @@ msgviewport = VisionEgg.Core.Viewport(screen=screen, stimuli=[msg])
 #Slow
 tracker.setCalTargetMotionParams(durationPerPos=3.0, motionDuration=2.0)
 tracker.setCalSampleAcquisitionParams(numSamplesPerPos=10, getSampleDelay=0.4) #default
-mmsg.parameters.text = 'durationPerPos=3.0, motionDuration=2.5'
+msg.parameters.text = 'durationPerPos=3.0, motionDuration=2.5'
 screen.clear()
 msgviewport.draw()
 VisionEgg.Core.swap_buffers()
