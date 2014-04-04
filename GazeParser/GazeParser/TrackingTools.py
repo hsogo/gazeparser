@@ -1985,10 +1985,10 @@ class ControllerPsychoPyBackend(BaseController):
         if self.showCalTarget:
             if isinstance(self.caltarget, tuple):
                 for s in self.caltarget:
-                    s.setPos(self.calTargetPosition,units='pix', log=False)
+                    s.setPos(self.calTargetPosition, log=False)
                     s.draw()
             else:
-                self.caltarget.setPos(self.calTargetPosition,units='pix', log=False)
+                self.caltarget.setPos(self.calTargetPosition, log=False)
                 self.caltarget.draw()
         if self.SHOW_CALDISPLAY:
             self.msgtext.draw()
@@ -2248,9 +2248,9 @@ class ControllerPsychoPyBackend(BaseController):
         
         if isinstance(self.caltarget, tuple):
             for s in self.caltarget:
-                s.setPos(posInPix, units='pix', log=False)
+                s.setPos(posInPix, log=False)
         else:
-            self.caltarget.setPos(posInPix, units='pix', log=False)
+            self.caltarget.setPos(posInPix, log=False)
         
         if message != None:
             self.msgtext.setText(message, log=False)
@@ -2288,10 +2288,10 @@ class ControllerPsychoPyBackend(BaseController):
                 eyepos=self.getEyePosition(ma=ma, units=units)
                 if len(eyepos)==2: #monocular
                     if eyepos[0]!=None:
-                        gazeMarker.setPos(eyepos, units=units, log=False)
+                        gazeMarker.setPos(eyepos, log=False)
                 else: #binocular
                     if eyepos[0]!=None and eyepos[1]!=None:
-                        gazeMarker.setPos(((eyepos[0]+eyepos[2])/2.0,(eyepos[1]+eyepos[3])/2.0), units=units, log=False)
+                        gazeMarker.setPos(((eyepos[0]+eyepos[2])/2.0,(eyepos[1]+eyepos[3])/2.0), log=False)
             
             #update screen
             if isBackgroundVisible:
