@@ -5,9 +5,12 @@
 
 """
 
-
-import Image
-import ImageDraw
+try:
+    import Image
+    import ImageDraw
+except ImportError:
+    from PIL import Image
+    from PIL import ImageDraw
 
 import socket
 import select

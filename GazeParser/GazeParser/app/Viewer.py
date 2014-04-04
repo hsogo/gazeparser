@@ -16,8 +16,12 @@ import Tkinter
 import tkFileDialog
 import tkMessageBox
 import tkColorChooser
-import Image
-import ImageTk
+try:
+    import Image
+    import ImageTk
+except ImportError:
+    from PIL import Image
+    from PIL import ImageTk
 import GazeParser
 import GazeParser.Converter
 import GazeParser.Utility
