@@ -15,6 +15,7 @@ except ImportError:
 import socket
 import select
 import time
+import datetime
 import random
 
 import os
@@ -109,6 +110,7 @@ class BaseController(object):
         self.prevBuffer = ''
         
         self.captureNo = 0
+        self.datafilename = ''
         
         if sys.platform == 'win32':
             self.clock = time.clock
@@ -302,12 +304,14 @@ class BaseController(object):
             self.sendSock.send('openDataFile'+chr(0)+filename+chr(0)+'1'+chr(0))
         else:
             self.sendSock.send('openDataFile'+chr(0)+filename+chr(0)+'0'+chr(0))
+        self.datafilename = filename
     
     def closeDataFile(self):
         """
         Send a command to close data file on the Tracker Host PC.
         """
         self.sendSock.send('closeDataFile'+chr(0))
+        self.datafilename = ''
     
     def sendMessage(self,message):
         """
@@ -971,7 +975,11 @@ class BaseController(object):
                         self.doValidation()
                 elif key == 's':
                     self.captureNo += 1
-                    self.sendCommand('saveCameraImage'+chr(0)+'CAP'+str(self.captureNo).zfill(8)+'.bmp'+chr(0))
+                    datestr = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
+                    if self.datafilename == '':
+                        self.sendCommand('saveCameraImage'+chr(0)+'CAP_'+datestr+'_'+str(self.captureNo)+'.bmp'+chr(0))
+                    else:
+                        self.sendCommand('saveCameraImage'+chr(0)+self.datafilename+'_'+datestr+'_'+str(self.captureNo)+'.bmp'+chr(0))
                 elif key == 'q':
                     self.sendCommand('key_Q'+chr(0))
                     return 'q'
@@ -2620,12 +2628,14 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         Dummy function for debugging. This method does nothing.
         """
         print 'openDataFile (dummy): ' + filename
+        self.datafilename = filename
     
     def closeDataFile(self):
         """
         Dummy function for debugging. This method does nothing.
         """
         print 'close (dummy)'
+        self.datafilename = ''
     
     def getEyePosition(self, timeout=0.02, ma=1):
         """
@@ -2692,7 +2702,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         Dummy function for debugging. This method emurates sendMessage.
         """
-        print 'sendSettings (dummy)'
+        print 'sendMessage (dummy) %s' % message
         self.messageList.append(['#MESSAGE',1000*(self.clock()-self.recStartTime),message])
     
     def sendSettings(self, configDict):
@@ -2839,12 +2849,14 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         Dummy function for debugging. This method does nothing.
         """
         print 'openDataFile (dummy): ' + filename
+        self.datafilename = filename
     
     def closeDataFile(self):
         """
         Dummy function for debugging. This method does nothing.
         """
         print 'close (dummy)'
+        self.datafilename = ''
     
     def getEyePosition(self, timeout=0.02, units='pix', ma=1):
         """
@@ -2922,7 +2934,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         Dummy function for debugging. This method emurates sendMessage.
         """
-        print 'sendSettings (dummy)'
+        print 'sendMessage (dummy) %s' % message
         self.messageList.append(['#MESSAGE',1000*(self.clock()-self.recStartTime),message])
     
     def sendSettings(self, configDict):
