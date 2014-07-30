@@ -26,12 +26,16 @@ import matplotlib.patches
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
 class Converter(Tkinter.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None, initialdir=None):
         Tkinter.Frame.__init__(self, master, srctype=None)
         self.master.title('GazeParser Data Converter')
         
         self.useParameters = Tkinter.BooleanVar()
         self.useParameters.set(True)
+        if initialdir==None:
+            self.initialDataDir = GazeParser.homeDir
+        else:
+            self.initialDataDir = initialdir
         
         self.paramFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.configuration = GazeParser.Configuration.Config()
@@ -81,7 +85,7 @@ class Converter(Tkinter.Frame):
         self._onClickChoiceFrame()
     
     def _convertFiles(self):
-        fnames = tkFileDialog.askopenfilenames(filetypes=[('SimpleGazeTracker CSV file','*.csv')],initialdir=GazeParser.homeDir)
+        fnames = tkFileDialog.askopenfilenames(filetypes=[('SimpleGazeTracker CSV file','*.csv')],initialdir=self.initialDataDir)
         
         if fnames=='':
             tkMessageBox.showinfo('info', 'No files')
@@ -89,6 +93,8 @@ class Converter(Tkinter.Frame):
         
         if isinstance(fnames, unicode):
             fnames = splitFilenames(fnames)
+        
+        self.initialDataDir = os.path.split(fnames[0])[0]
         
         if self.checkOverwrite.get()==1:
             overwrite = True
@@ -231,9 +237,14 @@ class Converter(Tkinter.Frame):
     
 
 class EyelinkConverter(Tkinter.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None, initialdir=None):
         Tkinter.Frame.__init__(self, master, srctype=None)
         self.master.title('GazeParser Data Converter (Eyelink)')
+        
+        if initialdir==None:
+            self.initialDataDir = GazeParser.homeDir
+        else:
+            self.initialDataDir = initialdir
         
         self.mainFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.configuration = GazeParser.Configuration.Config()
@@ -258,7 +269,7 @@ class EyelinkConverter(Tkinter.Frame):
         self.goFrame.pack(anchor=Tkinter.W,fill=Tkinter.X)
     
     def _convertFiles(self):
-        fnames = tkFileDialog.askopenfilenames(filetypes=[('Eyelink EDF file','*.edf')],initialdir=GazeParser.homeDir)
+        fnames = tkFileDialog.askopenfilenames(filetypes=[('Eyelink EDF file','*.edf')],initialdir=self.initialDataDir)
         
         if fnames=='':
             tkMessageBox.showinfo('info', 'No files')
@@ -266,6 +277,8 @@ class EyelinkConverter(Tkinter.Frame):
         
         if isinstance(fnames, unicode):
             fnames = splitFilenames(fnames)
+        
+        self.initialDataDir = os.path.split(fnames[0])[0]
         
         if self.checkOverwrite.get()==1:
             overwrite = True
@@ -317,9 +330,14 @@ class EyelinkConverter(Tkinter.Frame):
                 setattr(self.configuration, key, value)
     
 class TobiiConverter(Tkinter.Frame):
-    def __init__(self, master=None):
+    def __init__(self, master=None, initialdir=None):
         Tkinter.Frame.__init__(self, master, srctype=None)
         self.master.title('GazeParser Data Converter (Tobii)')
+        
+        if initialdir==None:
+            self.initialDataDir = GazeParser.homeDir
+        else:
+            self.initialDataDir = initialdir
         
         self.mainFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.configuration = GazeParser.Configuration.Config()
@@ -343,7 +361,7 @@ class TobiiConverter(Tkinter.Frame):
         self.goFrame.pack(anchor=Tkinter.W,fill=Tkinter.X)
     
     def _convertFiles(self):
-        fnames = tkFileDialog.askopenfilenames(filetypes=[('Tobii TSV file','*.tsv')],initialdir=GazeParser.homeDir)
+        fnames = tkFileDialog.askopenfilenames(filetypes=[('Tobii TSV file','*.tsv')],initialdir=self.initialDataDir)
         
         if fnames=='':
             tkMessageBox.showinfo('info', 'No files')
@@ -351,6 +369,8 @@ class TobiiConverter(Tkinter.Frame):
         
         if isinstance(fnames, unicode):
             fnames = splitFilenames(fnames)
+        
+        self.initialDataDir = os.path.split(fnames[0])[0]
         
         if self.checkOverwrite.get()==1:
             overwrite = True

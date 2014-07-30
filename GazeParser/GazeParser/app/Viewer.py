@@ -2369,7 +2369,7 @@ class mainWindow(Tkinter.Frame):
     def _convertGT(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.Converter(master=dlg)
+        GazeParser.app.Converters.Converter(master=dlg, initialdir=self.initialDataDir)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -2381,7 +2381,7 @@ class mainWindow(Tkinter.Frame):
     def _convertEL(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.EyelinkConverter(master=dlg)
+        GazeParser.app.Converters.EyelinkConverter(master=dlg, initialdir=self.initialDataDir)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -2393,7 +2393,7 @@ class mainWindow(Tkinter.Frame):
     def _convertTSV(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.TobiiConverter(master=dlg)
+        GazeParser.app.Converters.TobiiConverter(master=dlg, initialdir=self.initialDataDir)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
