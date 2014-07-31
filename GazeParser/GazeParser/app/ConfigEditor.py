@@ -15,7 +15,7 @@ import GazeParser
 from GazeParser.Configuration import GazeParserDefaults, GazeParserOptions, Config
 
 class ConfigEditor(Tkinter.Frame):
-    def __init__(self, master = None, configObject=None):
+    def __init__(self, master = None, configObject=None, showExit=True):
         Tkinter.Frame.__init__(self, master)
         self.master.title('GazeParser Configuration')
         self.ftypes = [('GazeParser ConfigFile', '*.cfg')]
@@ -34,7 +34,8 @@ class ConfigEditor(Tkinter.Frame):
         self.menu_file.add_command(label='Open',under=0,command=self._openfile)
         self.menu_file.add_command(label='Save',under=0,command=self._save)
         self.menu_file.add_command(label='Save as...',under=0,command=self._saveas)
-        self.menu_file.add_command(label='Exit',under=0,command=self._quitfunc)
+        if showExit:
+            self.menu_file.add_command(label='Exit',under=0,command=self._quitfunc)
         self.master.configure(menu = self.menu_bar)
         
         self.pack()
