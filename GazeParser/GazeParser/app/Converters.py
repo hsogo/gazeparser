@@ -26,16 +26,21 @@ import matplotlib.patches
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 
 class Converter(Tkinter.Frame):
-    def __init__(self, master=None, initialdir=None):
+    def __init__(self, master=None, initialdir=None, mainWindow=None):
         Tkinter.Frame.__init__(self, master, srctype=None)
         self.master.title('GazeParser Data Converter')
         
         self.useParameters = Tkinter.BooleanVar()
         self.useParameters.set(True)
-        if initialdir==None:
-            self.initialDataDir = GazeParser.homeDir
+        
+        self.mainWindow = mainWindow
+        if self.mainWindow == None:
+            if initialdir==None:
+                self.initialDataDir = GazeParser.homeDir
+            else:
+                self.initialDataDir = initialdir
         else:
-            self.initialDataDir = initialdir
+            self.initialDataDir = self.mainWindow.initialDataDir
         
         self.paramFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.configuration = GazeParser.Configuration.Config()
@@ -95,6 +100,8 @@ class Converter(Tkinter.Frame):
             fnames = splitFilenames(fnames)
         
         self.initialDataDir = os.path.split(fnames[0])[0]
+        if self.mainWindow != None:
+            self.mainWindow.initialDataDir = self.initialDataDir
         
         if self.checkOverwrite.get()==1:
             overwrite = True
@@ -119,14 +126,14 @@ class Converter(Tkinter.Frame):
                     errormsg += tbi
                 errormsg += '  %s' % str(info[1])
                 errorlist.append(f)
-                if not tkMessageBox.askyesno('Error', errormsg + '\n\nContinue conversion?'):
+                if not tkMessageBox.askyesno('Error', errormsg + '\n\nConvert remaining files?'):
                     break
             else:
                 if res == 'SUCCESS':
                     donelist.append(f)
                 else:
                     errorlist.append(f)
-                    if not tkMessageBox.askyesno('Error', res + '\n\nContinue conversion?'):
+                    if not tkMessageBox.askyesno('Error', res + '\n\nConvert remaining files?'):
                         break
         msg = 'Convertion done.\n'
         if len(donelist)<=16:
@@ -145,11 +152,14 @@ class Converter(Tkinter.Frame):
             initialdir = GazeParser.configDir
         else:
             initialdir = GazeParser.homeDir
-        self.configFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes, initialdir=initialdir)
+        self.configFileName = tkFileDialog.askopenfilename(filetypes=self.ftypes, initialdir=self.initialDataDir)
         try:
             self.configuration = GazeParser.Configuration.Config(self.configFileName)
         except:
             tkMessageBox.showerror('GazeParser.Configuration.GUI','Cannot read %s.\nThis file may not be a GazeParser ConfigFile' % self.configFileName)
+        
+        if self.mainWindow != None:
+            self.mainWindow.initialDataDir = self.initialDataDir
         
         for key in GazeParser.Configuration.GazeParserOptions:
             self.stringVarDict[key].set(getattr(self.configuration,key))
@@ -188,6 +198,7 @@ class Converter(Tkinter.Frame):
         fp.close()
         
         tkMessageBox.showinfo('Info','Saved to \'%s\'' % fname)
+        
     
     def _updateParameters(self):
         for key in GazeParser.Configuration.GazeParserOptions:
@@ -238,13 +249,17 @@ class Converter(Tkinter.Frame):
 
 class EyelinkConverter(Tkinter.Frame):
     def __init__(self, master=None, initialdir=None):
-        Tkinter.Frame.__init__(self, master, srctype=None)
+        Tkinter.Frame.__init__(self, master, srctype=None, mainWindow=None)
         self.master.title('GazeParser Data Converter (Eyelink)')
         
-        if initialdir==None:
-            self.initialDataDir = GazeParser.homeDir
+        self.mainWindow = mainWindow
+        if self.mainWindow == None:
+            if initialdir==None:
+                self.initialDataDir = GazeParser.homeDir
+            else:
+                self.initialDataDir = initialdir
         else:
-            self.initialDataDir = initialdir
+            self.initialDataDir = self.mainWindow.initialDataDir
         
         self.mainFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.configuration = GazeParser.Configuration.Config()
@@ -279,6 +294,8 @@ class EyelinkConverter(Tkinter.Frame):
             fnames = splitFilenames(fnames)
         
         self.initialDataDir = os.path.split(fnames[0])[0]
+        if self.mainWindow != None:
+            self.mainWindow.initialDataDir = self.initialDataDir
         
         if self.checkOverwrite.get()==1:
             overwrite = True
@@ -334,10 +351,14 @@ class TobiiConverter(Tkinter.Frame):
         Tkinter.Frame.__init__(self, master, srctype=None)
         self.master.title('GazeParser Data Converter (Tobii)')
         
-        if initialdir==None:
-            self.initialDataDir = GazeParser.homeDir
+        self.mainWindow = mainWindow
+        if self.mainWindow == None:
+            if initialdir==None:
+                self.initialDataDir = GazeParser.homeDir
+            else:
+                self.initialDataDir = initialdir
         else:
-            self.initialDataDir = initialdir
+            self.initialDataDir = self.mainWindow.initialDataDir
         
         self.mainFrame = Tkinter.Frame(master, bd=2, relief=Tkinter.GROOVE)
         self.configuration = GazeParser.Configuration.Config()
@@ -371,6 +392,8 @@ class TobiiConverter(Tkinter.Frame):
             fnames = splitFilenames(fnames)
         
         self.initialDataDir = os.path.split(fnames[0])[0]
+        if self.mainWindow != None:
+            self.mainWindow.initialDataDir = self.initialDataDir
         
         if self.checkOverwrite.get()==1:
             overwrite = True

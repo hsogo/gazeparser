@@ -48,11 +48,15 @@ PLOT_OFFSET = 10
 XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
 
 class getFixationsInRegionWindow(Tkinter.Frame):
-    def __init__(self, data, additional, conf, master=None):
+    def __init__(self, data, additional, conf, master=None, initialdir=None):
         Tkinter.Frame.__init__(self,master)
         self.D = data
         self.C = additional
         self.conf = conf
+        if initialdir == None:
+            self.initialDataDir = GazeParser.homeDir
+        else:
+            self.initialDataDir = initialdir
         
         self.commandChoice = Tkinter.StringVar()
         self.commandChoice.set('embedded')
@@ -326,7 +330,7 @@ class getFixationsInRegionWindow(Tkinter.Frame):
         #output data
         ans = tkMessageBox.askyesno('Info','%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList),nTrial))
         if ans:
-            fname = tkFileDialog.asksaveasfilename()
+            fname = tkFileDialog.asksaveasfilename(initialdir=self.initialDataDir)
             if fname!='':
                 fp = open(fname, 'w')
                 fp.write('Trial\tLabel\tStarting\tFinish\tDuration\tCenterX\tCenterY\n')
@@ -399,6 +403,8 @@ class combineDataFileWindow(Tkinter.Frame):
         if isinstance(fnames, unicode):
             fnames = GazeParser.Utility.splitFilenames(fnames)
         
+        self.mainWindow.initialDataDir = os.path.split(fnames[0])[0]
+        
         for fname in fnames:
             self.filelistbox.insert(Tkinter.END, fname)
     
@@ -429,9 +435,11 @@ class combineDataFileWindow(Tkinter.Frame):
             if fnames[index][:14] == 'Current Data (':
                 fnames[index] = fnames[index][14:-1]
         
-        combinedFilename = tkFileDialog.asksaveasfilename(filetypes=self.mainWindow.datafiletype)
+        combinedFilename = tkFileDialog.asksaveasfilename(filetypes=self.mainWindow.datafiletype, initialdir=self.mainWindow.initialDataDir)
         if combinedFilename=='':
             return
+        
+        self.mainWindow.initialDataDir = os.path.split(combineFilename)[0]
         
         try:
             GazeParser.Utility.join(combinedFilename, fnames)
@@ -692,10 +700,14 @@ class jumpToTrialWindow(Tkinter.Frame):
         self.mainWindow._updateMsgBox()
 
 class exportToFileWindow(Tkinter.Frame):
-    def __init__(self, data, additional, trial, master=None):
+    def __init__(self, data, additional, trial, master=None, initialdir=None):
         Tkinter.Frame.__init__(self,master)
         self.D = data
         self.tr = trial
+        if initialdir == None:
+            self.initialDataDir = GazeParser.homeDir
+        else:
+            self.initialDataDir = initialdir
         
         self.flgSac = Tkinter.BooleanVar()
         self.flgFix = Tkinter.BooleanVar()
@@ -732,7 +744,7 @@ class exportToFileWindow(Tkinter.Frame):
         
     def export(self, event=None):
         if self.flgSac.get() or self.flgFix.get() or self.flgBlk.get() or self.flgMsg.get():
-            exportFileName = tkFileDialog.asksaveasfilename(initialdir=GazeParser.homeDir)
+            exportFileName = tkFileDialog.asksaveasfilename(initialdir=self.initialDataDir)
             fp = open(exportFileName, 'w')
             
             if self.flgOrder.get()=='ByTime':
@@ -784,11 +796,15 @@ class exportToFileWindow(Tkinter.Frame):
             tkMessageBox.showinfo('Info','No items were selected.')
 
 class getSaccadeLatencyWindow(Tkinter.Frame):
-    def __init__(self, data, additional, conf, master=None):
+    def __init__(self, data, additional, conf, master=None, initialdir=None):
         Tkinter.Frame.__init__(self,master)
         self.D = data
         self.C = additional
         self.conf = conf
+        if initialdir == None:
+            self.initialDataDir = GazeParser.homeDir
+        else:
+            self.initialDataDir = initialdir
         
         self.messageStr = Tkinter.StringVar()
         self.useRegexp = Tkinter.BooleanVar()
@@ -895,7 +911,7 @@ class getSaccadeLatencyWindow(Tkinter.Frame):
                 self.fig.canvas.draw()
                 ans = tkMessageBox.askyesno('Export','%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
                 if ans:
-                    fname = tkFileDialog.asksaveasfilename()
+                    fname = tkFileDialog.asksaveasfilename(initialdir=self.initialDataDir)
                     if fname!='':
                         fp = open(fname, 'w')
                         fp.write('Trial\tMessageTime\tMessageText\tLatency\tAmplitude\n')
@@ -1866,7 +1882,7 @@ class mainWindow(Tkinter.Frame):
             return
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        exportToFileWindow(master=dlg, data=self.D, additional=self.C, trial=self.tr)
+        exportToFileWindow(master=dlg, data=self.D, additional=self.C, trial=self.tr, initialdir=self.initialDataDir)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -2356,7 +2372,7 @@ class mainWindow(Tkinter.Frame):
     def _configEditor(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GazeParser.app.ConfigEditor.ConfigEditor(master=dlg)
+        GazeParser.app.ConfigEditor.ConfigEditor(master=dlg, showExit=False)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -2369,7 +2385,7 @@ class mainWindow(Tkinter.Frame):
     def _convertGT(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.Converter(master=dlg, initialdir=self.initialDataDir)
+        obj = GazeParser.app.Converters.Converter(master=dlg, mainWindow=self)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -2381,7 +2397,7 @@ class mainWindow(Tkinter.Frame):
     def _convertEL(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.EyelinkConverter(master=dlg, initialdir=self.initialDataDir)
+        GazeParser.app.Converters.EyelinkConverter(master=dlg, mainWindow=self)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -2393,7 +2409,7 @@ class mainWindow(Tkinter.Frame):
     def _convertTSV(self):
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        GazeParser.app.Converters.TobiiConverter(master=dlg, initialdir=self.initialDataDir)
+        GazeParser.app.Converters.TobiiConverter(master=dlg, mainWindow=self)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -2423,7 +2439,7 @@ class mainWindow(Tkinter.Frame):
             return
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        getSaccadeLatencyWindow(master=dlg, data=self.D, additional=self.C, conf=self.conf)
+        getSaccadeLatencyWindow(master=dlg, data=self.D, additional=self.C, conf=self.conf, initialdir=self.initialDataDir)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
@@ -2438,7 +2454,7 @@ class mainWindow(Tkinter.Frame):
             return
         geoMaster = parsegeometry(self.master.winfo_geometry())
         dlg = Tkinter.Toplevel(self)
-        getFixationsInRegionWindow(master=dlg, data=self.D, additional=self.C, conf=self.conf)
+        getFixationsInRegionWindow(master=dlg, data=self.D, additional=self.C, conf=self.conf, initialdir=self.initialDataDir)
         dlg.focus_set()
         dlg.grab_set()
         dlg.transient(self)
