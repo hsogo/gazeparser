@@ -118,6 +118,10 @@
 #define MENU_MAX_ITEMS 12
 #define MENU_STRING_MAX 24
 
+#define USE_CAMERASPECIFIC_DATA 1
+#define NO_CAMERASPECIFIC_DATA 0
+#define NO_USBIO -1
+
 extern int detectPupilPurkinjeMono( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS] );
 extern int detectPupilPurkinjeBin( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS] );
 extern void estimateParametersMono(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
@@ -212,15 +216,27 @@ extern void updateCustomMenuText( void );
 extern std::string g_MenuString[MENU_MAX_ITEMS];
 
 //Platform dependent
-int initTimer(void);
-double getCurrentTime(void);
-void sleepMilliseconds(int);
-int getDataDirectoryPath(std::string* path);
-int getApplicationDirectoryPath(std::string* path);
-int getParameterDirectoryPath(std::string* path);
-int getLogFilePath(std::string* path);
-int checkAndCreateDirectory(std::string path);
-int checkAndRenameFile(std::string path);
-int checkFile(std::string path, const char* filename);
-int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath);
+extern int initTimer(void);
+extern double getCurrentTime(void);
+extern void sleepMilliseconds(int);
+extern int getDataDirectoryPath(std::string* path);
+extern int getApplicationDirectoryPath(std::string* path);
+extern int getParameterDirectoryPath(std::string* path);
+extern int getLogFilePath(std::string* path);
+extern int checkAndCreateDirectory(std::string path);
+extern int checkAndRenameFile(std::string path);
+extern int checkFile(std::string path, const char* filename);
+extern int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath);
 
+//USBIO
+extern bool g_useUSBIO;
+extern bool g_useUSBThread;
+extern int g_numUSBADChannels;
+extern int initUSBIO(void);
+extern std::string g_USBIOBoard;
+extern std::string g_USBIOParamAD;
+extern std::string g_USBIOParamDI;
+extern void setUSBIOData(int dataCounter);
+extern void getUSBIODataFormatString(char* buff, int buffsize);
+extern void getUSBIODataString(int index, char* buff, int buffsize);
+extern void cleanupUSBIO(void);

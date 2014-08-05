@@ -154,10 +154,9 @@ int initCamera( void )
 		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
 		return E_FAIL;
 	}
-
 	g_camera->SetFrameRate(g_FrameRate);
 	g_camera->SetThreshold(254);
-
+	
 	g_camera->Start();
 
 	Sleep(10);
