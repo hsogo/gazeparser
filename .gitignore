@@ -26,6 +26,7 @@ autom4te.cache/
 aclocal.m4
 configure
 makefile.in
+compile
 
 #dpkg-buildpackage
 GazeParser/debian/gazeparser/
