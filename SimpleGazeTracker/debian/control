@@ -9,7 +9,7 @@ Homepage: http://gazeparser.sourceforge.net/
 #Vcs-Browser: http://git.debian.org/?p=collab-maint/simplegazetracker.git;a=summary
 
 Package: simplegazetracker
-Architecture: i386
+Architecture: amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: gazeparser, psychopy, octave-psychtoolbox-3, fonts-freefont-ttf, ttf-freefont
 Description: Open-source eye tracker

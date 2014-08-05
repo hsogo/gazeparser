@@ -1,3 +1,12 @@
+gazeparser (0.7.0) unstable; urgency=medium
+
+  * remove units='pix' from ControllerPsychoPyBackend.
+  * support Pillow.
+  * name of camera capture file includes timestamp.
+  * Several improvement in Data Viewer.
+
+ -- Hiroyuki Sogo <hsogo@14>  Tue, 05 Aug 2014 17:12:04 +0900
+
 gazeparser (0.6.6) unstable; urgency=low
 
   * 'recordingDate' is added. (GazeParser.Core)
