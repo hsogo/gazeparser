@@ -680,6 +680,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
     inputfileFullpath = os.path.join(workDir, srcFilename)
     dstFileName = os.path.join(workDir, filenameRoot+'.db')
     additionalDataFileName = os.path.join(workDir, filenameRoot+'.txt')
+    usbioFormat = None
     
     print '------------------------------------------------------------'
     print 'TrackerToGazeParser start.'
@@ -708,11 +709,13 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
         idxLP = None
         idxRP = None
         idxC  = None
+        idxUSBIO = None
     else:
         idxX = 1
         idxY = 2
         idxP = None
         idxC = None
+        idxUSBIO = None
     
     fid = codecs.open(inputfileFullpath,'r','utf-8')
     
@@ -728,6 +731,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
     HV = []
     P = []
     C = []
+    USBIO = []
     
     flgInBlock = False
     isCheckedEffectiveDigit = False
@@ -787,6 +791,8 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                 G = GazeParser.GazeData(Tlist,Llist,Rlist,SacList,FixList,MsgList,BlinkList,Plist,config.RECORDED_EYE,config=config,recordingDate=startRec)
                 if idxC != None:
                     G.setCameraSpecificData(numpy.array(C))
+                if idxUSBIO != None:
+                    G.setUSBIOData(numpy.array(USBIO))
                 Data.append(G)
             
                 #prepare for new block
@@ -801,6 +807,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                 HV = []
                 P = []
                 C = []
+                USBIO = []
             
             elif itemList[0] == '#MESSAGE':
                 try:
@@ -812,11 +819,17 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                 if useFileParameters:
                     #SimpleGazeTracker options
                     if itemList[0] == '#DATAFORMAT':
-                        idxT = idxX = idxY = idxP = idxC = None
+                        idxT = idxX = idxY = idxP = idxC = idxUSBIO = None
                         idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = indC = None
                         tmp = []
                         for i in range(len(itemList)-1):
-                            cmd = 'idx'+itemList[i+1] + '=' + str(i)
+                            if itemList[i+1].find('USBIO;') == 0: #support USBIO
+                                cmd = 'idxUSBIO=' + str(i)
+                                usbioFormat = itemList[i+1][6:].split(';')
+                                if len(usbioFormat[-1])==0: # remove last item if empty
+                                    usbioFormat.pop(-1)
+                            else:
+                                cmd = 'idx'+itemList[i+1] + '=' + str(i)
                             exec cmd
                             tmp.append(cmd)
                         print 'DATAFORMAT: %s' % (','.join(tmp))
@@ -888,11 +901,20 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                     HV.append([x,y])
                     if idxP != None:
                         P.append(p)
-            if idxC != None: #data has camera-specific data
+            if idxC != None: #datafile has camera-specific data
                 try:
                     C.append(int(itemList[idxC]))
                 except:
                     C.append(itemList[idxC])
+            if idxUSBIO != None: #datafile has USBIO data
+                try:
+                    tmp = itemList[idxUSBIO].split(';')
+                    if len(tmp[-1])==0:
+                        tmp.pop(-1)
+                    tmp = map(int,tmp)
+                    USBIO.append(tmp)
+                except:
+                    C.append(itemList[idxUSBIO])
             
     print 'saving...'
     if os.path.exists(additionalDataFileName):

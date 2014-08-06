@@ -434,6 +434,7 @@ class GazeData(object):
         self._recordedEye = recordedEye
         self._Pupil = PupilList
         self._CameraSpecificData = None
+        self._USBIOData = None
         self._recordingDate = recordingDate
         
         self._EventList = self._getEventListByTime(self.T[0],self.T[-1])[0]
@@ -1193,6 +1194,8 @@ class GazeData(object):
     
     CameraSpecificData = property(lambda self: self._CameraSpecificData)
     
+    USBIOData = property(lambda self: self._USBIOData)
+    
     recordingDate = property(lambda self: self._recordingDate)
     
     EventList = property(lambda self: self._EventList)
@@ -1266,6 +1269,24 @@ class GazeData(object):
         Return True if camera specific data is included.
         """
         if self._CameraSpecificData != None:
+            return True
+        else:
+            return False
+    
+    def setUSBIOData(self,data):
+        """
+        Set USBIO data.
+        
+        :param data:
+            USBIO data.
+        """
+        self._USBIOData = data
+    
+    def hasUSBIOData(self):
+        """
+        Return True if USBIO data is included.
+        """
+        if self._USBIOData != None:
             return True
         else:
             return False
