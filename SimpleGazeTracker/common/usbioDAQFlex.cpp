@@ -217,7 +217,7 @@ std::list<std::string> splitString(std::string targetstr, std::string delim)
 	std::list<std::string> res;
 	int idx;
 
-	while( (idx = targetstr.find_first_of(',')) != std::string::npos )
+	while( (idx = targetstr.find_first_of(delim)) != std::string::npos )
 	{
 		if(idx>0)
 		{
@@ -261,9 +261,10 @@ int checkAD(void)
 			g_LogFS << "Could not set AD Range " << g_USBADChannelList[i] << " (" << g_USBADRangeList[i] << ")." << std::endl;
 			return E_FAIL;
 		}
-		
+
 		ss << "?AI{" << g_USBADChannelList[i] << "}:VALUE" ;
 		cmdstr = ss.str();
+		ss.str("");
 		resstr = sendMessage(cmdstr);
 		pos = resstr.find("=");
 		if(pos == std::string::npos){
