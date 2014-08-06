@@ -174,7 +174,7 @@ std::list<std::string> splitString(std::string targetstr, std::string delim)
 	std::list<std::string> res;
 	int idx;
 
-	while( (idx = targetstr.find_first_of(',')) != std::string::npos )
+	while( (idx = targetstr.find_first_of(delim)) != std::string::npos )
 	{
 		if(idx>0)
 		{
