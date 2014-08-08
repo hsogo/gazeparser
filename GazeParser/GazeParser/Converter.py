@@ -792,7 +792,7 @@ def TrackerToGazeParser(inputfile,overwrite=False,config=None,useFileParameters=
                 if idxC != None:
                     G.setCameraSpecificData(numpy.array(C))
                 if idxUSBIO != None:
-                    G.setUSBIOData(numpy.array(USBIO))
+                    G.setUSBIOData(usbioFormat, numpy.array(USBIO))
                 Data.append(G)
             
                 #prepare for new block

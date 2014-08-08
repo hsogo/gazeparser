@@ -434,6 +434,7 @@ class GazeData(object):
         self._recordedEye = recordedEye
         self._Pupil = PupilList
         self._CameraSpecificData = None
+        self._USBIOChannels = None
         self._USBIOData = None
         self._recordingDate = recordingDate
         
@@ -1194,6 +1195,8 @@ class GazeData(object):
     
     CameraSpecificData = property(lambda self: self._CameraSpecificData)
     
+    USBIOChannels = property(lambda self: self._USBIOChannels)
+    
     USBIOData = property(lambda self: self._USBIOData)
     
     recordingDate = property(lambda self: self._recordingDate)
@@ -1273,13 +1276,16 @@ class GazeData(object):
         else:
             return False
     
-    def setUSBIOData(self,data):
+    def setUSBIOData(self,channels, data):
         """
         Set USBIO data.
         
+        :param channels:
+            List of USBIO channels.
         :param data:
             USBIO data.
         """
+        self._USBIOChannels = channels
         self._USBIOData = data
     
     def hasUSBIOData(self):
