@@ -1,2 +1,2 @@
-shlibs:Depends=libc6 (>= 2.17), libgcc1 (>= 1:4.1.1), libopencv-core2.4, libopencv-highgui2.4, libopencv-imgproc2.4, libsdl-net1.2, libsdl-ttf2.0-0, libsdl1.2debian (>= 1.2.11), libstdc++6 (>= 4.4.0)
+shlibs:Depends=libc6 (>= 2.17), libgcc1 (>= 1:4.1.1), libopencv-core2.4, libopencv-highgui2.4, libopencv-imgproc2.4, libsdl-net1.2, libsdl-ttf2.0-0, libsdl1.2debian (>= 1.2.11), libstdc++6 (>= 4.6), libusb-1.0-0 (>= 2:1.0.8)
 misc:Depends=
