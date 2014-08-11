@@ -1,3 +1,8 @@
+New in 0.7.0
+
+  * USBIO support (Windows & Linux)
+  * Fix image-size setting in OptiTrack edition
+
 New in 0.6.6
   
 * Parameter directory and data directory can be changed with using command line option.
