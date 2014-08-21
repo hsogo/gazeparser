@@ -35,13 +35,13 @@ class SaccadeData(object):
 
         idx = numpy.where(Tlist == t[0])[0]
         if len(idx) != 1:
-            raise ValueError, 'SaccadeData: could not find index.'
+            raise ValueError('SaccadeData: could not find index.')
         else:
             self._startIndex = idx[0]
 
         idx = numpy.where(Tlist == t[1])[0]
         if len(idx) != 1:
-            raise ValueError, 'SaccadeData: could not find index.'
+            raise ValueError('SaccadeData: could not find index.')
         else:
             self._endIndex = idx[0]
 
@@ -112,7 +112,7 @@ class SaccadeData(object):
         if self in obj._Sac:
             self._parent = obj
         else:
-            raise ValueError, 'Argument does not include this saccade.'
+            raise ValueError('Argument does not include this saccade.')
 
     def getTraj(self, eye=None):
         """
@@ -136,7 +136,7 @@ class SaccadeData(object):
         elif eye == 'B':
             return (self._parent.L[s:e + 1], self._parent.R[s:e + 1])
         else:
-            raise ValueError, 'Eye must be \'L\', \'R\', \'B\' or None'
+            raise ValueError('Eye must be \'L\', \'R\', \'B\' or None.')
 
     def getNextEvent(self, step=1, eventType=None):
         return self._parent.getNextEvent(self, step=step, eventType=eventType)
@@ -165,13 +165,13 @@ class FixationData(object):
 
         idx = numpy.where(Tlist == t[0])[0]
         if len(idx) != 1:
-            raise ValueError, 'FixationData: could not find index.'
+            raise ValueError('FixationData: could not find index.')
         else:
             self._startIndex = idx[0]
 
         idx = numpy.where(Tlist == t[1])[0]
         if len(idx) != 1:
-            raise ValueError, 'FixationData: could not find index.'
+            raise ValueError('FixationData: could not find index.')
         else:
             self._endIndex = idx[0]
 
@@ -234,7 +234,7 @@ class FixationData(object):
         if self in obj._Fix:
             self._parent = obj
         else:
-            raise ValueError, 'Argument does not include this fixation.'
+            raise ValueError('Argument does not include this fixation.')
 
     def getTraj(self, eye=None):
         """
@@ -291,7 +291,7 @@ class MessageData(object):
         if self in obj._Msg:
             self._parent = obj
         else:
-            raise ValueError, 'Argument does not include this message.'
+            raise ValueError('Argument does not include this message.')
 
     def getNextEvent(self, step=1, eventType=None):
         return self._parent.getNextEvent(self, step=step, eventType=eventType)
@@ -337,13 +337,13 @@ class BlinkData(object):
         self._parent = None
         idx = numpy.where(Tlist == t[0])[0]
         if len(idx) != 1:
-            raise ValueError, 'BlinkData: could not find index.'
+            raise ValueError('BlinkData: could not find index.')
         else:
             self._startIndex = idx[0]
 
         idx = numpy.where(Tlist == t[1])[0]
         if len(idx) != 1:
-            raise ValueError, 'BlinkData: could not find index.'
+            raise ValueError('BlinkData: could not find index.')
         else:
             self._endIndex = idx[0]
 
@@ -399,7 +399,7 @@ class BlinkData(object):
         if self in obj._Blink:
             self._parent = obj
         else:
-            raise ValueError, 'Argument does not include this blink.'
+            raise ValueError('Argument does not include this blink.')
 
     def getNextEvent(self, step=1, eventType=None):
         return self._parent.getNextEvent(self, step=step, eventType=eventType)
@@ -477,7 +477,7 @@ class GazeData(object):
             None (recorded eye). Default value is None.
         """
         if not (0 <= index < self.nFix):
-            raise ValueError, 'Index is out of range.'
+            raise ValueError('Index is out of range.')
         s = self._Fix[index]._startIndex
         e = self._Fix[index]._endIndex
         if eye == 'L':
@@ -487,7 +487,7 @@ class GazeData(object):
         elif eye == 'B':
             return (self._L[s:e + 1], self._R[s:e + 1])
         else:
-            raise ValueError, 'Eye must be \'L\', \'R\', \'B\' or None'
+            raise ValueError('Eye must be \'L\', \'R\', \'B\' or None.')
 
     def getFixDur(self, index=None):
         """
@@ -510,7 +510,7 @@ class GazeData(object):
             return l
         elif isinstance(index, int):
             if not (0 <= index < self.nFix):
-                raise ValueError, 'Index is out of range.'
+                raise ValueError('Index is out of range.')
             return self.Fix[index].duration
         else:  # list
             l = numpy.zeros([len(index), 1])
@@ -540,7 +540,7 @@ class GazeData(object):
             return l
         elif isinstance(index, int):
             if not (0 <= index < self.nFix):
-                raise ValueError, 'Index is out of range.'
+                raise ValueError('Index is out of range.')
             return self.Fix[index].center
         else:
             l = numpy.zeros([len(index), 2])
@@ -570,7 +570,7 @@ class GazeData(object):
             return l
         elif isinstance(index, int):
             if not (0 <= index < self.nFix):
-                raise ValueError, 'Index is out of range.'
+                raise ValueError('Index is out of range.')
             return (self.Fix[index].startTime, self.Fix[index].endTime)
         else:
             l = numpy.zeros([len(index), 2])
@@ -600,7 +600,7 @@ class GazeData(object):
             return l
         elif isinstance(index, int):
             if not (0 <= index < self.nBlink):
-                raise ValueError, 'Index is out of range.'
+                raise ValueError('Index is out of range.')
             return (self.Blink[index].startTime, self.Blink[index].endTime)
         else:
             l = numpy.zeros([len(index), 2])
@@ -629,7 +629,7 @@ class GazeData(object):
             return l
         elif isinstance(index, int):
             if not (0 <= index < self.nMsg):
-                raise ValueError, 'Index is out of range.'
+                raise ValueError('Index is out of range.')
             return self.Msg[index].time
         else:
             l = numpy.zeros([len(index), 1])
@@ -649,7 +649,7 @@ class GazeData(object):
             None (recorded eye). Default value is None.
         """
         if not (0 <= index < self.nSac):
-            raise ValueError, 'Index is out of range.'
+            raise ValueError('Index is out of range.')
 
         if eye == None:
             eye = self._recordedEye
@@ -663,7 +663,7 @@ class GazeData(object):
         elif eye == 'B':
             return (self._L[s:e + 1], self._R[s:e + 1])
         else:
-            raise ValueError, 'Eye must be \'L\', \'R\', \'B\' or None'
+            raise ValueError('Eye must be \'L\', \'R\', \'B\' or None.')
 
     def getSacLen(self, index=None):
         """
@@ -686,7 +686,7 @@ class GazeData(object):
             return l
         elif isinstance(index, int):
             if not (0 <= index < self.nSac):
-                raise ValueError, 'Index is out of range.'
+                raise ValueError('Index is out of range.')
             return self.Sac[index].length
         else:
             l = numpy.zeros([len(index), 1])
@@ -715,7 +715,7 @@ class GazeData(object):
             return l
         elif isinstance(index, int):
             if not (0 <= index < self.nSac):
-                raise ValueError, 'Index is out of range.'
+                raise ValueError('Index is out of range.')
             return self.Sac[index].amplitude
         else:
             l = numpy.zeros([len(index), 1])
@@ -744,7 +744,7 @@ class GazeData(object):
             return l
         elif isinstance(index, int):
             if not (0 <= index < self.nSac):
-                raise ValueError, 'Index is out of range.'
+                raise ValueError('Index is out of range.')
             return self.Sac[Idx].duration
         else:
             l = numpy.zeros([len(index), 1])
@@ -774,7 +774,7 @@ class GazeData(object):
             return l
         elif isinstance(index, int):
             if not (0 <= index < self.nSac):
-                raise ValueError, 'Index is out of range.'
+                raise ValueError('Index is out of range.')
             return (self.Sac[index].startTime, self.Sac[index].endTime)
         else:
             l = numpy.zeros([len(index), 2])
