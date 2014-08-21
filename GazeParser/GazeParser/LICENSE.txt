@@ -1,4 +1,4 @@
-Copyright (c) 2012-2013, Hiroyuki Sogo.
+Copyright (c) 2012-2014, Hiroyuki Sogo.
 All rights reserved.
 
 GazeParser is licensed under the GNU eneral Public License Version 3.
