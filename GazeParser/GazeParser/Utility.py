@@ -35,7 +35,7 @@ def save(filename, data, additionalData=None):
     db.close()
 
 
-def load(filename):
+def load(filename, checkVersion=True):
     """
     Load GazeParser data from a file.  A return value is a tuple of two elements.
     The first element is a list of GazeParser.GazeData objects.  The second
@@ -44,6 +44,10 @@ def load(filename):
 
     :param str filename:
         Filename.
+    :param bool checkVersion:
+        If True, version of data file is checked.  If the file is generated 
+        in an old version of GazeParser, warning message is shown. To suppress
+        warning, set False to this option.  Default value is True.
     """
     if not os.path.isfile(filename):
         raise ValueError('%s is not exist.' % filename)
@@ -58,7 +62,7 @@ def load(filename):
         A = None
     db.close()
     # if libraryVersion > dataVersion:
-    if compareVersion(D[0].__version__, GazeParser.__version__) < 0:
+    if compareVersion(D[0].__version__, GazeParser.__version__) < 0 and checkVersion:
         lackingattributes = checkAttributes(D[0])
         if len(lackingattributes) > 0:
             print 'Version of the data file is older than GazeParser version. Some features may not work correctly. (lacking attributes:%s)' % ','.join(lackingattributes)
