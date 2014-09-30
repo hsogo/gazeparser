@@ -3158,4 +3158,4 @@ def cameraDelayEstimationHelper(screen, tracker):
         tracker.sendCommand('allowRendering'+chr(0))
 
     else:
-        raise ValueError
+        raise ValueError('Unknown controller.')

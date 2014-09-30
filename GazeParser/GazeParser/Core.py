@@ -918,9 +918,10 @@ class GazeData(object):
             try:
                 idxMsg = numpy.where(self._Msg == message)[0]
             except:
-                raise ValueError
+                print 'Could not find message.'
+                raise
         else:
-            raise ValueError
+            raise ValueError('\'message\' must be an index or an instance of MessgeData object.')
 
         idxEvent = numpy.where(self._EventList == self.Msg[idxMsg])[0]
 
@@ -1018,7 +1019,7 @@ class GazeData(object):
                 elif eventType.lower() == 'blink':
                     eventClass = GazeParser.Core.BlinkData
                 else:
-                    raise ValueError
+                    raise ValueError('Event must be saccade, fixation, message or blink.')
 
                 i = index - 1
                 count = 0
@@ -1058,7 +1059,7 @@ class GazeData(object):
                     targetList = self._Blink
                     diffList = self.getBlinkTime()[:, 1] - event
                 else:
-                    raise ValueError
+                    raise ValueError('Event must be saccade, fixation, message or blink.')
 
                 prevIndices = numpy.where(diffList < 0)[0]
                 if len(prevIndices) == 0:
@@ -1100,7 +1101,7 @@ class GazeData(object):
                 elif eventType.lower() == 'blink':
                     eventClass = GazeParser.Core.BlinkData
                 else:
-                    raise ValueError
+                    raise ValueError('Event must be saccade, fixation, message or blink.')
 
                 i = index + 1
                 count = 0
@@ -1139,7 +1140,7 @@ class GazeData(object):
                     targetList = self._Blink
                     diffList = self.getBlinkTime()[:, 0] - event
                 else:
-                    raise ValueError
+                    raise ValueError('Event must be saccade, fixation, message or blink.')
 
                 prevIndices = numpy.where(diffList > 0)[0]
                 if len(prevIndices) == 0:
