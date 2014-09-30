@@ -411,16 +411,18 @@ class combineDataFileWindow(Tkinter.Frame):
 
     def removefiles(self, event=None):
         selected = self.filelistbox.curselection()
-        print self.filelistbox.size(), selected[0]
+        # print self.filelistbox.size(), selected[0]
         if len(selected) > 0:
             self.filelistbox.delete(selected)
-            print self.filelistbox.size(), selected[0]
+            # print self.filelistbox.size(), selected[0]
             if self.filelistbox.size() <= int(selected[0]):
-                print 'select '+selected[0]+'-1'
+                # print 'select '+selected[0]+'-1'
                 self.filelistbox.selection_set(int(selected[0])-1)
             else:
-                print 'select '+selected[0]
+                # print 'select '+selected[0]
                 self.filelistbox.selection_set(selected)
+        else:
+            tkMessageBox.showinfo('Info', 'Select files to delete.')
 
     def removeAll(self, event=None):
         if self.filelistbox.size() > 0:
@@ -439,7 +441,7 @@ class combineDataFileWindow(Tkinter.Frame):
         if combinedFilename == '':
             return
 
-        self.mainWindow.initialDataDir = os.path.split(combineFilename)[0]
+        self.mainWindow.initialDataDir = os.path.split(combinedFilename)[0]
 
         try:
             GazeParser.Utility.join(combinedFilename, fnames)
