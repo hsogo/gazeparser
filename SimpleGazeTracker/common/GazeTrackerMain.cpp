@@ -119,6 +119,8 @@ bool g_isShowingCalResult = false;
 double g_RecStartTime;
 
 double g_CalPointList[MAXCALPOINT][2];
+double g_CalPointPrecision[MAXCALPOINT][4];
+double g_CalPointAccuracy[MAXCALPOINT][4];
 
 FILE* g_DataFP;
 std::fstream g_LogFS;
@@ -718,6 +720,10 @@ void getGazeMono( double detectionResults[8], double TimeImageAquired )
 			g_CalPointData[g_DataCounter][MONO_Y] = g_CurrentCalPoint[MONO_Y];
 			g_EyeData[g_DataCounter][MONO_X] = detectionResults[MONO_PUPIL_X]-detectionResults[MONO_PURKINJE_X];
 			g_EyeData[g_DataCounter][MONO_Y] = detectionResults[MONO_PUPIL_Y]-detectionResults[MONO_PURKINJE_Y];
+			if(g_isOutputPupilSize)
+			{
+				g_PupilSizeData[g_DataCounter][MONO_P] = detectionResults[MONO_PUPILSIZE];
+			}
 			g_DataCounter++;
 			if(g_DataCounter>=MAXCALDATA){
 				g_LogFS << "Warning: number of calibration data exceeded its maximum (" << MAXCALDATA << ")" << std::endl;
@@ -787,6 +793,7 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 - Support for recording pupil size
 @date 2012/10/25 output warning when g_DataCounter > MAXCAldata during calibration/validation
 @date 2012/10/26 record current pupil size.
+@date 2015/03/05 record pupil size during calibration/validation
 */
 void getGazeBin( double detectionResults[8], double TimeImageAquired )
 {
@@ -805,6 +812,11 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 			g_EyeData[g_DataCounter][BIN_LY] = detectionResults[BIN_PUPIL_LY]-detectionResults[BIN_PURKINJE_LY];
 			g_EyeData[g_DataCounter][BIN_RX] = detectionResults[BIN_PUPIL_RX]-detectionResults[BIN_PURKINJE_RX];
 			g_EyeData[g_DataCounter][BIN_RY] = detectionResults[BIN_PUPIL_RY]-detectionResults[BIN_PURKINJE_RY];
+			if(g_isOutputPupilSize)
+			{
+				g_PupilSizeData[g_DataCounter][BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
+				g_PupilSizeData[g_DataCounter][BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
+			}
 			g_DataCounter++;
 			if(g_DataCounter>=MAXCALDATA){
 				g_LogFS << "Warning: number of calibration data exceeded its maximum (" << MAXCALDATA << ")" << std::endl;
@@ -1506,7 +1518,7 @@ void startCalibration(int x1, int y1, int x2, int y2)
 }
 
 /*!
-startCalibration: finish calibration procedures.
+endCalibration: finish calibration procedures.
 
 This function must be called when terminating calibration.
 
@@ -1522,7 +1534,8 @@ void endCalibration(void)
 		estimateParametersBin( g_DataCounter, g_EyeData, g_CalPointData );
 	}
 	setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
-
+	setCalibrationError( g_DataCounter, g_EyeData, g_CalPointData, g_NumCalPoint, g_CalPointList, g_CalPointAccuracy, g_CalPointPrecision);
+	
 	g_isCalibrating=false;
 	g_isCalibrated = true;
 	g_isShowingCalResult = true;
@@ -1646,6 +1659,52 @@ void toggleCalResult(int param)
 
 
 /*!
+saveCalResultsDetail
+
+@return No value is returned.
+@date 2015/03/05 created.
+*/
+void saveCalResultsDetail(void)
+{
+	if(g_isRecording || g_isCalibrating || g_isValidating) return;
+	if(!g_isCalibrated) return;
+
+	if(g_DataFP!=NULL)
+	{
+		time_t t;
+		struct tm *ltm;
+		time(&t);
+		ltm = localtime(&t);
+		double pos[4];
+		fprintf(g_DataFP,"#START_DETAIL_CALDATA,%d,%d,%d,%d,%d,%d\n",ltm->tm_year+1900,ltm->tm_mon+1,ltm->tm_mday,ltm->tm_hour,ltm->tm_min,ltm->tm_sec);
+		for(int i=0; i<g_DataCounter; i++)
+		{
+			if(g_RecordingMode==RECORDING_MONOCULAR){
+				fprintf(g_DataFP,"#CALDATA,%.1f,%.1f,%.2f,%.2f,",g_CalPointData[i][0],g_CalPointData[i][1],g_EyeData[i][MONO_X],g_EyeData[i][MONO_Y]);
+				getGazePositionMono(g_EyeData[i], pos);
+				fprintf(g_DataFP,"%.2f,%.2f",pos[0],pos[1]);
+				if(g_isOutputPupilSize){
+					fprintf(g_DataFP,",%.2f\n",g_PupilSizeData[i][MONO_P]);
+				}else				{
+					fprintf(g_DataFP,"\n");
+				}
+			}else{
+				fprintf(g_DataFP,"#CALDATA,%.1f,%.1f,%.2f,%.2f,%.2f,%.2f,",g_CalPointData[i][0],g_CalPointData[i][1],g_EyeData[i][BIN_LX],g_EyeData[i][BIN_LY],g_EyeData[i][BIN_RX],g_EyeData[i][BIN_RY]);
+				getGazePositionBin(g_EyeData[i], pos);
+				fprintf(g_DataFP,"%.2f,%.2f,%.2f,%.2f",pos[0],pos[1],pos[2],pos[3]);
+				if(g_isOutputPupilSize){
+					fprintf(g_DataFP,",%.2f,%f2\n",g_PupilSizeData[i][BIN_LP],g_PupilSizeData[i][BIN_RP]);
+				}else{
+					fprintf(g_DataFP,"\n");
+				}
+			}
+		}
+		fprintf(g_DataFP,"#END_DETAIL_CALDATA\n");
+	}
+}
+
+
+/*!
 startRecording: initialize recording procedures.
 
 This function must be called when starting recording.
@@ -1687,7 +1746,10 @@ void startRecording(const char* message)
 				fprintf(g_DataFP,"#YPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamY[0],g_ParamY[1],g_ParamY[2],g_ParamY[3],g_ParamY[4],g_ParamY[5]);
 			}
 			for(int i=0; i<g_NumCalPoint; i++){
-				fprintf(g_DataFP,"#CALPOINT,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1]);
+				if(g_RecordingMode == RECORDING_BINOCULAR)
+					fprintf(g_DataFP,"#CALPOINT,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1],g_CalPointAccuracy[i][BIN_LX],g_CalPointAccuracy[i][BIN_LY],g_CalPointAccuracy[i][BIN_RX],g_CalPointAccuracy[i][BIN_RY],g_CalPointPrecision[i][BIN_LX],g_CalPointPrecision[i][BIN_LY],g_CalPointPrecision[i][BIN_RX],g_CalPointPrecision[i][BIN_RY]);
+				else
+					fprintf(g_DataFP,"#CALPOINT,%f,%f,%f,%f,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1],g_CalPointAccuracy[i][MONO_X],g_CalPointAccuracy[i][MONO_Y],g_CalPointPrecision[i][MONO_X],g_CalPointPrecision[i][MONO_Y]);
 			}
 
 			g_LogFS << "StartRecording " << message << std::endl;

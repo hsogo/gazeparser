@@ -64,6 +64,7 @@
 #define E_MULTIPLE_PURKINJE_CANDIDATES  -10004
 #define E_NO_FINE_PUPIL_CANDIDATE       -10005
 #define E_NAN_IN_MOVING_AVERAGE         -10006
+#define E_NO_CALIBRATION_DATA			-11001
 #define S_PUPIL_PURKINJE                     0
 #define E_NO_PUPILSIZE                       0
 
@@ -130,6 +131,7 @@ extern void getGazePositionMono(double* im, double* xy);
 extern void getGazePositionBin(double* im, double* xy);
 extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], double calArea[4]);
 extern void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], double Goodness[4], double MaxError[2], double MeanError[2] );
+extern void setCalibrationError( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALPOINT][2], double calPointAccuracy[MAXCALPOINT][4], double calPointPrecision[MAXCALPOINT][4] );
 extern void drawRecordingMessage( void );
 
 extern int sockInit(void);
@@ -178,6 +180,7 @@ extern void getCalibrationResultsDetail( char* errorstr, int size, int* len);
 extern void getCurrentMenuString(char *p, int maxlen);
 
 extern void toggleCalResult(int param);
+extern void saveCalResultsDetail(void);
 
 extern void startRecording(const char* message);
 extern void stopRecording(const char* message);

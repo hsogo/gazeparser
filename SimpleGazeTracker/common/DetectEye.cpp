@@ -878,6 +878,108 @@ void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double 
 }
 
 /*!
+setCalibrationResults: Calculate error for each calibration point.
+
+@param[in] dataCounter Number of calibration data.
+@param[in] eyeData Relative Purkinje image position aquired during calibration procedure.
+@param[in] calPointData Calibraition target positions when data is aquired.
+@param[in] numCalPoint Length of calPointList.
+@param[in] calPointList Localition of calibration points.
+@param[out] calPointAccuracy Accuracy at each calibration point.
+@param[out] calPointPrecision Precision at each calibration point.
+@return No value is returned.
+*/
+void setCalibrationError( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALPOINT][2], double calPointAccuracy[MAXCALPOINT][4], double calPointPrecision[MAXCALPOINT][4] )
+{
+	int idx, idxp, numDataInPoint[MAXCALPOINT][2];
+	double xy[4];
+
+	for(idx=0; idx<MAXCALPOINT; idx++){
+		numDataInPoint[idx][0] = numDataInPoint[idx][1] = 0;
+		calPointAccuracy[idx][0] = calPointAccuracy[idx][1] = calPointAccuracy[idx][2] = calPointAccuracy[idx][3] = 0;
+		calPointPrecision[idx][0] = calPointPrecision[idx][1] = calPointPrecision[idx][2] = calPointPrecision[idx][3] = 0;
+	}
+
+	if(g_RecordingMode==RECORDING_MONOCULAR){ //monocular
+		for(idx=0; idx<dataCounter; idx++){
+			getGazePositionMono(eyeData[idx], xy);
+			for(idxp=0; idxp<numCalPoint; idxp++){
+				if(calPointData[idx][0]==calPointList[idxp][0] && calPointData[idx][1]==calPointList[idxp][1])
+					break;
+			}
+			numDataInPoint[idxp][MONO_1]++;
+			calPointAccuracy[idxp][MONO_X] += xy[MONO_X]-calPointList[idxp][0];
+			calPointAccuracy[idxp][MONO_Y] += xy[MONO_Y]-calPointList[idxp][1];
+			calPointPrecision[idxp][MONO_X] += pow(xy[MONO_X]-calPointList[idxp][0],2);
+			calPointPrecision[idxp][MONO_Y] += pow(xy[MONO_Y]-calPointList[idxp][1],2);
+		}
+		//get average (accuracy) and sd (precision)
+		for(idxp=0; idxp<numCalPoint; idxp++){
+			if(numDataInPoint[idxp]==0){
+				calPointAccuracy[idxp][MONO_X] = calPointAccuracy[idxp][MONO_Y] = E_NO_CALIBRATION_DATA;
+				calPointPrecision[idxp][MONO_X] = calPointPrecision[idxp][MONO_Y] = E_NO_CALIBRATION_DATA;
+			}else{
+				//average
+				calPointAccuracy[idxp][MONO_X] /= numDataInPoint[idxp][MONO_1];
+				calPointAccuracy[idxp][MONO_Y] /= numDataInPoint[idxp][MONO_1];
+				//sd
+				calPointPrecision[idxp][MONO_X] = sqrt(calPointPrecision[idxp][MONO_X]/numDataInPoint[idxp][MONO_1]-calPointAccuracy[idxp][MONO_X]);
+				calPointPrecision[idxp][MONO_Y] = sqrt(calPointPrecision[idxp][MONO_Y]/numDataInPoint[idxp][MONO_1]-calPointAccuracy[idxp][MONO_Y]);
+			}
+		}
+
+	}else{ //binocular
+		for(idx=0; idx<dataCounter; idx++){
+			getGazePositionBin(eyeData[idx], xy);
+			for(idxp=0; idxp<numCalPoint; idxp++){
+				if(calPointData[idx][0]==calPointList[idxp][0] && calPointData[idx][1]==calPointList[idxp][1])
+					break;
+			}
+			if(xy[BIN_LX]>E_FIRST_ERROR_CODE){
+				numDataInPoint[idxp][BIN_L]++;
+				calPointAccuracy[idxp][BIN_LX] += xy[BIN_LX]-calPointList[idxp][0];
+				calPointAccuracy[idxp][BIN_LY] += xy[BIN_LY]-calPointList[idxp][1];
+				calPointPrecision[idxp][BIN_LX] += pow(xy[BIN_LX]-calPointList[idxp][0],2);
+				calPointPrecision[idxp][BIN_LY] += pow(xy[BIN_LY]-calPointList[idxp][1],2);
+			}
+			if(xy[BIN_RX]>E_FIRST_ERROR_CODE){
+				numDataInPoint[idxp][BIN_R]++;
+				calPointAccuracy[idxp][BIN_RX] += xy[BIN_RX]-calPointList[idxp][0];
+				calPointAccuracy[idxp][BIN_RY] += xy[BIN_RY]-calPointList[idxp][1];
+				calPointPrecision[idxp][BIN_RX] += pow(xy[BIN_RX]-calPointList[idxp][0],2);
+				calPointPrecision[idxp][BIN_RY] += pow(xy[BIN_RY]-calPointList[idxp][1],2);
+			}
+		}
+		//get average (accuracy)
+		for(idxp=0; idxp<numCalPoint; idxp++){
+			if(numDataInPoint[idxp][BIN_L]==0){
+				calPointAccuracy[idxp][BIN_LX] = calPointAccuracy[idxp][BIN_LY] = E_NO_CALIBRATION_DATA;
+				calPointPrecision[idxp][BIN_LX] = calPointPrecision[idxp][BIN_LY] = E_NO_CALIBRATION_DATA;
+			}else{
+				//average
+				calPointAccuracy[idxp][BIN_LX] /= numDataInPoint[idxp][BIN_L];
+				calPointAccuracy[idxp][BIN_LY] /= numDataInPoint[idxp][BIN_L];
+				//sd
+				calPointPrecision[idxp][BIN_LX] = sqrt(calPointPrecision[idxp][BIN_LX]/numDataInPoint[idxp][BIN_L]-calPointAccuracy[idxp][BIN_LX]);
+				calPointPrecision[idxp][BIN_LY] = sqrt(calPointPrecision[idxp][BIN_LY]/numDataInPoint[idxp][BIN_L]-calPointAccuracy[idxp][BIN_LY]);
+			}
+
+			if(numDataInPoint[idxp][BIN_R]==0){
+				calPointAccuracy[idxp][BIN_RX] = calPointAccuracy[idxp][BIN_RY] = E_NO_CALIBRATION_DATA;
+				calPointPrecision[idxp][BIN_RX] = calPointPrecision[idxp][BIN_RY] = E_NO_CALIBRATION_DATA;
+			}else{
+				//average
+				calPointAccuracy[idxp][BIN_RX] /= numDataInPoint[idxp][BIN_R];
+				calPointAccuracy[idxp][BIN_RY] /= numDataInPoint[idxp][BIN_R];
+				//sd
+				calPointPrecision[idxp][BIN_RX] = sqrt(calPointPrecision[idxp][BIN_RX]/numDataInPoint[idxp][BIN_R]-calPointAccuracy[idxp][BIN_RX]);
+				calPointPrecision[idxp][BIN_RY] = sqrt(calPointPrecision[idxp][BIN_RY]/numDataInPoint[idxp][BIN_R]-calPointAccuracy[idxp][BIN_RY]);
+			}
+		}
+	}
+}
+
+/*!
 saveCameraImage: save current camera image.
 
 This function is called from sockProcess() when sockProcess() received "saveCameraImage" command.
