@@ -1746,10 +1746,36 @@ void startRecording(const char* message)
 				fprintf(g_DataFP,"#YPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamY[0],g_ParamY[1],g_ParamY[2],g_ParamY[3],g_ParamY[4],g_ParamY[5]);
 			}
 			for(int i=0; i<g_NumCalPoint; i++){
-				if(g_RecordingMode == RECORDING_BINOCULAR)
-					fprintf(g_DataFP,"#CALPOINT,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1],g_CalPointAccuracy[i][BIN_LX],g_CalPointAccuracy[i][BIN_LY],g_CalPointAccuracy[i][BIN_RX],g_CalPointAccuracy[i][BIN_RY],g_CalPointPrecision[i][BIN_LX],g_CalPointPrecision[i][BIN_LY],g_CalPointPrecision[i][BIN_RX],g_CalPointPrecision[i][BIN_RY]);
-				else
-					fprintf(g_DataFP,"#CALPOINT,%f,%f,%f,%f,%f,%f\n",g_CalPointList[i][0],g_CalPointList[i][1],g_CalPointAccuracy[i][MONO_X],g_CalPointAccuracy[i][MONO_Y],g_CalPointPrecision[i][MONO_X],g_CalPointPrecision[i][MONO_Y]);
+				fprintf(g_DataFP,"#CALPOINT,%f,%f,",g_CalPointList[i][0],g_CalPointList[i][1]);
+				if(g_RecordingMode == RECORDING_BINOCULAR){ //binocular
+					if(g_CalPointAccuracy[i][BIN_LX]==E_NO_CALIBRATION_DATA)
+						fprintf(g_DataFP,"NO_CALIBRATION_DATA,NO_CALIBRATION_DATA,");
+					else
+						fprintf(g_DataFP,"%f,%f,",g_CalPointAccuracy[i][BIN_LX],g_CalPointAccuracy[i][BIN_LY]);
+
+					if(g_CalPointAccuracy[i][BIN_RX]==E_NO_CALIBRATION_DATA)
+						fprintf(g_DataFP,"NO_CALIBRATION_DATA,NO_CALIBRATION_DATA,");
+					else
+						fprintf(g_DataFP,"%f,%f,",g_CalPointAccuracy[i][BIN_RX],g_CalPointAccuracy[i][BIN_RY]);
+
+					if(g_CalPointPrecision[i][BIN_LX]==E_NO_CALIBRATION_DATA)
+						fprintf(g_DataFP,"NO_CALIBRATION_DATA,NO_CALIBRATION_DATA,");
+					else
+						fprintf(g_DataFP,"%f,%f,",g_CalPointPrecision[i][BIN_LX],g_CalPointPrecision[i][BIN_LY]);
+
+					if(g_CalPointAccuracy[i][BIN_RX]==E_NO_CALIBRATION_DATA)
+						fprintf(g_DataFP,"NO_CALIBRATION_DATA,NO_CALIBRATION_DATA\n");
+					else
+						fprintf(g_DataFP,"%f,%f\n",g_CalPointPrecision[i][BIN_RX],g_CalPointPrecision[i][BIN_RY]);
+				}else{ //monocular
+					if(g_CalPointAccuracy[i][MONO_X]==E_NO_CALIBRATION_DATA){
+						fprintf(g_DataFP,"NO_CALIBRATION_DATA,NO_CALIBRATION_DATA,");
+						fprintf(g_DataFP,"NO_CALIBRATION_DATA,NO_CALIBRATION_DATA\n");
+					}else{
+						fprintf(g_DataFP,"%f,%f,",g_CalPointAccuracy[i][MONO_X],g_CalPointAccuracy[i][MONO_Y]);
+						fprintf(g_DataFP,"%f,%f\n",g_CalPointPrecision[i][MONO_X],g_CalPointPrecision[i][MONO_Y]);
+					}
+				}
 			}
 
 			g_LogFS << "StartRecording " << message << std::endl;
