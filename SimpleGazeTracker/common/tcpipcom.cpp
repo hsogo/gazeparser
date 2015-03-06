@@ -202,7 +202,7 @@ This function parses commands sent from the Client PC and call appropriate funct
 @date 2013/03/08
 - "getWholeEyePositionList" command is added.
 @date 2015/03/05
-- "saveCalResultsDetail" command is added.
+- "saveCalValResultsDetail" command is added.
 */
 int sockProcess( void )
 {
@@ -419,9 +419,9 @@ int sockProcess( void )
 						
 						nextp = seekNextCommand(buff,nextp,2);
 					}
-					else if(strcmp(buff+nextp,"saveCalResultsDetail")==0)
+					else if(strcmp(buff+nextp,"saveCalValResultsDetail")==0)
 					{
-						saveCalResultsDetail();
+						saveCalValResultsDetail();
 
 						nextp = seekNextCommand(buff,nextp,1);
 					}

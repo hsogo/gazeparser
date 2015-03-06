@@ -115,6 +115,7 @@ bool g_isCalibrating = false;
 bool g_isValidating = false;
 bool g_isCalibrated = false;
 bool g_isShowingCalResult = false;
+int g_lastCalValType = TYPE_CALIBRATION;
 
 double g_RecStartTime;
 
@@ -1539,6 +1540,7 @@ void endCalibration(void)
 	g_isCalibrating=false;
 	g_isCalibrated = true;
 	g_isShowingCalResult = true;
+	g_lastCalValType = TYPE_CALIBRATION;
 }
 
 /*!
@@ -1612,6 +1614,7 @@ void endValidation(void)
 
 	g_isValidating=false;
 	g_isShowingCalResult = true;
+	g_lastCalValType = TYPE_VALIDATION;
 }
 
 /*!
@@ -1659,12 +1662,12 @@ void toggleCalResult(int param)
 
 
 /*!
-saveCalResultsDetail
+saveCalValResultsDetail
 
 @return No value is returned.
 @date 2015/03/05 created.
 */
-void saveCalResultsDetail(void)
+void saveCalValResultsDetail(void)
 {
 	if(g_isRecording || g_isCalibrating || g_isValidating) return;
 	if(!g_isCalibrated) return;
@@ -1676,7 +1679,12 @@ void saveCalResultsDetail(void)
 		time(&t);
 		ltm = localtime(&t);
 		double pos[4];
-		fprintf(g_DataFP,"#START_DETAIL_CALDATA,%d,%d,%d,%d,%d,%d\n",ltm->tm_year+1900,ltm->tm_mon+1,ltm->tm_mday,ltm->tm_hour,ltm->tm_min,ltm->tm_sec);
+		if(g_lastCalValType == TYPE_CALIBRATION)
+			fprintf(g_DataFP,"#START_DETAIL_CALDATA,%d,%d,%d,%d,%d,%d\n",ltm->tm_year+1900,ltm->tm_mon+1,ltm->tm_mday,ltm->tm_hour,ltm->tm_min,ltm->tm_sec);
+		else if(g_lastCalValType == TYPE_VALIDATION)
+			fprintf(g_DataFP,"#START_DETAIL_VALDATA,%d,%d,%d,%d,%d,%d\n",ltm->tm_year+1900,ltm->tm_mon+1,ltm->tm_mday,ltm->tm_hour,ltm->tm_min,ltm->tm_sec);
+		else
+			return;
 		for(int i=0; i<g_DataCounter; i++)
 		{
 			if(g_RecordingMode==RECORDING_MONOCULAR){
@@ -1699,7 +1707,12 @@ void saveCalResultsDetail(void)
 				}
 			}
 		}
-		fprintf(g_DataFP,"#END_DETAIL_CALDATA\n");
+		if(g_lastCalValType == TYPE_CALIBRATION)
+			fprintf(g_DataFP,"#END_DETAIL_CALDATA\n");
+		else if(g_lastCalValType == TYPE_VALIDATION)
+			fprintf(g_DataFP,"#END_DETAIL_VALDATA\n");
+
+		fflush(g_DataFP);
 	}
 }
 

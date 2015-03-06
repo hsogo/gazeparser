@@ -123,6 +123,9 @@
 #define NO_CAMERASPECIFIC_DATA 0
 #define NO_USBIO -1
 
+#define TYPE_CALIBRATION 0
+#define TYPE_VALIDATION 1
+
 extern int detectPupilPurkinjeMono( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS] );
 extern int detectPupilPurkinjeBin( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS] );
 extern void estimateParametersMono(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
@@ -180,7 +183,7 @@ extern void getCalibrationResultsDetail( char* errorstr, int size, int* len);
 extern void getCurrentMenuString(char *p, int maxlen);
 
 extern void toggleCalResult(int param);
-extern void saveCalResultsDetail(void);
+extern void saveCalValResultsDetail(void);
 
 extern void startRecording(const char* message);
 extern void stopRecording(const char* message);
