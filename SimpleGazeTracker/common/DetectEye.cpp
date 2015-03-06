@@ -915,7 +915,7 @@ void setCalibrationError( int dataCounter, double eyeData[MAXDATA][4], double ca
 		}
 		//get average (accuracy) and sd (precision)
 		for(idxp=0; idxp<numCalPoint; idxp++){
-			if(numDataInPoint[idxp]==0){
+			if(numDataInPoint[idxp][MONO_1]==0){
 				calPointAccuracy[idxp][MONO_X] = calPointAccuracy[idxp][MONO_Y] = E_NO_CALIBRATION_DATA;
 				calPointPrecision[idxp][MONO_X] = calPointPrecision[idxp][MONO_Y] = E_NO_CALIBRATION_DATA;
 			}else{
