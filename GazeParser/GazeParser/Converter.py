@@ -733,6 +733,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     P = []
     C = []
     USBIO = []
+    CALPOINT = []
 
     flgInBlock = False
     isCheckedEffectiveDigit = False
@@ -794,6 +795,8 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                     G.setCameraSpecificData(numpy.array(C))
                 if idxUSBIO is not None:
                     G.setUSBIOData(usbioFormat, numpy.array(USBIO))
+                if len(CALPOINT)>0:
+                    G.setCalPointData(CALPOINT)
                 Data.append(G)
 
                 # prepare for new block
@@ -809,13 +812,42 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 P = []
                 C = []
                 USBIO = []
+                CALPOINT = []
 
             elif itemList[0] == '#MESSAGE':
                 try:
                     M.append([float(itemList[1]), ' '.join(itemList[2:])])
                 except:
                     pass
-
+            
+            elif itemList[0] == '#CALPOINT':
+                for idx in range(len(itemList)):
+                    if idx==0:
+                        print itemList[idx]
+                        continue
+                    try:
+                        itemList[idx] = float(itemList[idx])
+                    except:
+                        itemList[idx] = numpy.NaN
+                if config.RECORDED_EYE == 'L':
+                    accuracy = itemList[3:5]
+                    precision = itemList[5:7]
+                    accuracy.extend([numpy.NaN,numpy.NaN])
+                    precision.extend([numpy.NaN,numpy.NaN])
+                elif config.RECORDED_EYE == 'R':
+                    accuracy = [numpy.NaN,numpy.NaN]
+                    precision = [numpy.NaN,numpy.NaN]
+                    accuracy.extend(itemList[3:5])
+                    precision.extend(itemList[5:7])
+                else:
+                    accuracy = itemList[3:7]
+                    precision = itemList[7:11]
+                print itemList, config.RECORDED_EYE, itemList[1:3], accuracy, precision
+                CALPOINT.append(GazeParser.CalPointData(itemList[1:3],accuracy,precision,config.RECORDED_EYE))
+                
+            elif itemList[0] == '#CALDATA':
+                pass
+            
             if not flgInBlock:
                 if useFileParameters:
                     # SimpleGazeTracker options

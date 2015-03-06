@@ -408,6 +408,75 @@ class BlinkData(object):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
 
 
+class CalPointData(object):
+    """
+    Holds accuracy and precision at calibration points.
+    """
+    def __init__(self, point, accuracy, precision, recordedEye):
+        self._point = numpy.array(point)
+        self._accuracy = numpy.array(accuracy)
+        self._precision = numpy.array(precision)
+        self._recordedEye = recordedEye
+    
+    point = property(lambda self: self._point)
+    """Location of calibration target in screen coordinate (x,y)"""
+    
+    accuracy = property(lambda self: self._accuracy)
+    """
+    Accuracy in screen coordinate (Lelt-X, Left-Y, Right-X, Right-Y).
+    None if not available.
+    """
+    
+    precision = property(lambda self: self._precision)
+    """Precision in screen coordinate (Lelt-X, Left-Y, Right-X, Right-Y).
+    None if not available.
+    """
+    
+    recordedEye = property(lambda self: self._precision)
+    """Precision in screen coordinate (Lelt-X, Left-Y, Right-X, Right-Y).
+    None if not available.
+    """
+    def getAccuracy(self, eye=None):
+        """
+        Get accuracy. If data is binocular, 4 values (LX, LY, RX, RY) are 
+        returned.  If monocular, 2 values (X, Y) are returned. If the value
+        is numpy.NaN, no data is available at this calibration point.
+
+        :param str eye:
+            Output both-eye ('B'), left-eye ('L'), right-eye ('R') data or
+            None (recorded eye). Default value is None.
+        """
+        if eye is None:
+            eye = self._recordedEye
+        
+        if eye=='L':
+            return self._accuracy[0:2]
+        elif eye=='R':
+            return self._accuracy[2:4]
+        else: # B
+            return self._accuracy[0:4]    
+
+    def getPrecision(self, eye=None):
+        """
+        Get precision. If data is binocular, 4 values (LX, LY, RX, RY) are 
+        returned.  If monocular, 2 values (X, Y) are returned. If the value
+        is numpy.NaN, no data is available at this calibration point.
+
+        :param str eye:
+            Output both-eye ('B'), left-eye ('L'), right-eye ('R') data or
+            None (recorded eye). Default value is None.
+        """
+        if eye is None:
+            eye = self._recordedEye
+        
+        if eye=='L':
+            return self._precision[0:2]
+        elif eye=='R':
+            return self._precision[2:4]
+        else: # B
+            return self._precision[0:4]
+
+
 class GazeData(object):
     """
     Holds saccades, fixations, blinks, messages, timestamps and gaze
@@ -440,6 +509,7 @@ class GazeData(object):
         self._CameraSpecificData = None
         self._USBIOChannels = None
         self._USBIOData = None
+        self._CalPointData = None
         self._recordingDate = recordingDate
 
         self._EventList = self._getEventListByTime(self.T[0], self.T[-1])[0]
@@ -476,10 +546,14 @@ class GazeData(object):
             Output both-eye ('B'), left-eye ('L'), right-eye ('R') data or
             None (recorded eye). Default value is None.
         """
+        if eye is None:
+            eye = self._parent._recordedEye
+
         if not (0 <= index < self.nFix):
             raise ValueError('Index is out of range.')
         s = self._Fix[index]._startIndex
         e = self._Fix[index]._endIndex
+
         if eye == 'L':
             return self._L[s:e+1]
         elif eye == 'R':
@@ -1209,6 +1283,8 @@ class GazeData(object):
 
     USBIOData = property(lambda self: self._USBIOData)
 
+    CalPointData = property(lambda self: self._CalPointData)
+
     recordingDate = property(lambda self: self._recordingDate)
 
     EventList = property(lambda self: self._EventList)
@@ -1312,3 +1388,43 @@ class GazeData(object):
             return True
         else:
             return False
+
+    def setCalPointData(self, calpointdata):
+        """
+        Set calibration point data.
+
+        :param calpointdata:
+            A list of calibration point location, accuracy and precision.
+        """
+        self._CalPointData = calpointdata
+    
+    def hasCalPointData(self):
+        """
+        Return True if calibration point data is included.
+        """
+        if self._CalPointData is not None:
+            return True
+        else:
+            return False
+
+    def getCalPointDataByList(self, contents='all'):
+        """
+        Get calibration point data by numpy.ndarray.
+        
+        :param contents:
+            Contents of the list. 'point', 'accuracy', 'precision' and 'all'
+            are supported. Default value is 'all'.
+        """
+        
+        c = contents.lower()
+        if c == 'point':
+            return numpy.array([data._point for data in self._CalPointData])
+        elif c == 'accuracy':
+            return numpy.array([data._accuracy for data in self._CalPointData])
+        elif c == 'precision':
+            return numpy.array([data._precision for data in self._CalPointData])
+        elif c == 'all':
+            a = numpy.array([numpy.hstack([data._point, data._accuracy, data._precision]) for data in self._CalPointData])
+            return a
+        else:
+            raise ValueError('contents must be \'point\', \'accuracy\', \'precision\' or \'All\'.')
