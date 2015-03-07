@@ -912,6 +912,9 @@ class BaseController(object):
         X        Toggle calibration results display.
         C        Start calibration (call doCalibration() method)
         V        Start validation (call doValidation() method)
+        A        Toggle on/off of Z key functions.
+        S        Save the latest calibration/validation data to
+                 SimpleGazeTracker data file.
         ESC or Q Exit calibration
         ======== ================================================
 
@@ -975,6 +978,8 @@ class BaseController(object):
                         self.showCalImage = False
                         self.doValidation()
                 elif key == 's':
+                    self.sendCommand('saveCalValResultsDetail'+chr(0))
+                elif key == 'i':
                     self.captureNo += 1
                     datestr = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
                     if self.datafilename == '':
@@ -1620,6 +1625,12 @@ class BaseController(object):
                 return False
         except:
             raise RuntimeError
+
+    def saveCalValResultsDetail(self):
+        """
+        Save last calibration/validation results to SimpleGazeTracker data file.
+        """
+        self.sendCommand('saveCalValResultsDetail'+chr(0))
 
 
 class ControllerVisionEggBackend(BaseController):
