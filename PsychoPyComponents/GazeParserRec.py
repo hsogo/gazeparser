@@ -40,7 +40,7 @@ class GazeParserRecComponent(BaseComponent):
 
     def writeRoutineStartCode(self,buff):
         buff.writeIndented('GazeParserTracker.startRecording(%(startmsg)s)\n' % (self.params))
-        buff.writeIndented(self.parentName+'Clock.reset()\n')
+        buff.writeIndented(self.parentName+'Clock.reset() # clock must be reset because startRecording() takes hundreds of milliseconds\n')
 
     def writeRoutineEndCode(self,buff):
         buff.writeIndented('GazeParserTracker.stopRecording(%(stopmsg)s)\n' % (self.params))
