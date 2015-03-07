@@ -1,7 +1,11 @@
+"""
+.. Part of GazeParser package.
+.. Copyright (C) 2012-2015 Hiroyuki Sogo.
+.. Distributed under the terms of the GNU General Public License (GPL).
+"""
 
-from _base import *
+from _visual import VisualComponent, Param
 from os import path
-from psychopy.app.builder.experiment import Param
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'GazeParserCheck.png')
@@ -11,20 +15,17 @@ tooltip = 'GazeParserCheck: Checking fixation with GazeParser.TrackingTools'
 paramNames = ['pos', 'maxtry', 'permerror', 'key', 'mousebutton', 'units', 'mode', 'message1', 'message2', 'message3']
 
 
-class GazeParserCheckComponent(BaseComponent):
+class GazeParserCheckComponent(VisualComponent):
     """Checking fixation with GazeParser.TrackingTools"""
     categories = ['Custom']
-    def __init__(self, exp, parentName, name='GazeParserCheck', pos=[0,0], maxtry=3, permerror=48, key="'space'", mousebutton=0, units="pix", mode='check', message1="", message2="", message3=""):
+    def __init__(self, exp, parentName, name='GazeParserCheck', pos=[0,0], maxtry=3, permerror=48, key="'space'",
+                 mousebutton=0, units="pix", mode='check', message1="", message2="", message3=""):
+        super(GazeParserCheckComponent, self).__init__(exp, parentName, name)
         self.type='GazeParserCheck'
         self.url="http://gazeparser.sourceforge.net/"
-        self.exp=exp#so we can access the experiment if necess
+
         #params
-        self.categories=['misc']
         self.order = ['name'] + paramNames[:] # want a copy, else codeParamNames list gets mutated
-        self.params={}
-        self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint="",
-            label="Name")
         self.params['pos']=Param(pos, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Center of target position.",
@@ -45,24 +46,26 @@ class GazeParserCheckComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="0:left, 1:center, 2:right button",
             label="Mouse button")
-        self.params['units']=Param(units, valType='str', allowedVals=['deg', 'cm', 'pix', 'norm'],
-            hint="Units of permissible error",
-            label="Units")
         self.params['mode']=Param(mode, valType='str', allowedVals=['check', 'cal+check', 'cal'],
             hint="check: perfom verifyFixation() only, cal+check: perform verifyFixation() after calibrationloop(), cal: perform calibrationloop() only.",
             label="Calibration mode")
         self.params['message1']=Param(message1, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Initial message. If all of message1-3 are empty, default messages are used.",
-            label="Message1")
+            label="Message1", categ="Advanced")
         self.params['message2']=Param(message2, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Message prompting retry. If all of message1-3 are empty, default messages are used.",
-            label="Message2")
+            label="Message2", categ="Advanced")
         self.params['message3']=Param(message3, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="Message prompting to call experimenter. If all of message1-3 are empty, default messages are used.",
-            label="Message3")
+            label="Message3", categ="Advanced")
+        # these inherited params are harmless but might as well trim:
+        for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType', 'durationEstim']:
+            del self.params[p]
+        for p in ['color','opacity','colorSpace','pos','size','ori']:
+            del self.params[p]
     def writeRoutineStartCode(self,buff):
         task = self.params['mode'].val
         if task in ['cal', 'cal+check']:
@@ -85,4 +88,5 @@ class GazeParserCheckComponent(BaseComponent):
             else:
                 buff.writeIndented('    message=[%(message1)s, %(message2)s, %(message3)s])\n\n' % (self.params))
             buff.writeIndented('routineTimer.reset()\n')
-        
+    def writeFrameCode(self,buff):
+        pass
