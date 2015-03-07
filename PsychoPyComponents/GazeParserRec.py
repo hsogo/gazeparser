@@ -1,6 +1,11 @@
+"""
+.. Part of GazeParser package.
+.. Copyright (C) 2012-2015 Hiroyuki Sogo.
+.. Distributed under the terms of the GNU General Public License (GPL).
+"""
+
 from _base import * #to get the template visual component
 from os import path
-from psychopy.app.builder.experiment import Param
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
 iconFile = path.join(thisFolder,'GazeParserRec.png')
@@ -13,16 +18,14 @@ class GazeParserRecComponent(BaseComponent):
     """Recording with GazeParser.TrackingTools"""
     categories = ['Custom']
     def __init__(self, exp, parentName, name='GazeParserRec', startmsg='routine start', stopmsg='routine end', msglist=[], units='time (s)'):
+        super(GazeParserRecComponent, self).__init__(exp, parentName, name)
+        
         self.type='GazeParserRec'
         self.url="http://gazeparser.sourceforge.net/"
         self.exp=exp#so we can access the experiment if necess
+        
         #params
-        self.categories=['misc']
         self.order = ['name'] + paramNames[:] # want a copy, else codeParamNames list gets mutated
-        self.params={}
-        self.params['name']=Param(name, valType='code', allowedTypes=[],
-            hint="",
-            label="Name")
         self.params['startmsg']=Param(startmsg, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=[],
             hint="The message sent when recording is started.",
@@ -31,8 +34,13 @@ class GazeParserRecComponent(BaseComponent):
             updates='constant', allowedUpdates=[],
             hint="The message sent when recording is stopped.",
             label="Message (End)")
+        # these inherited params are harmless but might as well trim:
+        for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType', 'durationEstim']:
+            del self.params[p]
+
     def writeRoutineStartCode(self,buff):
         buff.writeIndented('GazeParserTracker.startRecording(%(startmsg)s)\n' % (self.params))
+        buff.writeIndented(self.parentName+'Clock.reset()\n')
 
     def writeRoutineEndCode(self,buff):
         buff.writeIndented('GazeParserTracker.stopRecording(%(stopmsg)s)\n' % (self.params))
