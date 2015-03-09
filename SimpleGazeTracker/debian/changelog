@@ -1,3 +1,10 @@
+simplegazetracker (0.8.0) unstable; urgency=medium
+
+  * Calibration results are output to data file.
+  * add "saveCalValResultsDetail" command is added to save raw calibration data.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Tue, 05 Aug 2014 16:48:31 +0900
+
 simplegazetracker (0.7.0) unstable; urgency=medium
 
   * USBIO support (Windows & Linux)
