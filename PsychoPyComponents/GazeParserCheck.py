@@ -17,7 +17,7 @@ paramNames = ['pos', 'maxtry', 'permerror', 'key', 'mousebutton', 'units', 'mode
 
 class GazeParserCheckComponent(VisualComponent):
     """Checking fixation with GazeParser.TrackingTools"""
-    categories = ['Custom']
+    categories = ['GazeParser']
     def __init__(self, exp, parentName, name='GazeParserCheck', pos=[0,0], maxtry=3, permerror=48, key="'space'",
                  mousebutton=0, units="pix", mode='check', message1="", message2="", message3=""):
         super(GazeParserCheckComponent, self).__init__(exp, parentName, name)

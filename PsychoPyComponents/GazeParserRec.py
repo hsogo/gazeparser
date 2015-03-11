@@ -16,7 +16,7 @@ paramNames = ['startmsg', 'stopmsg']
 
 class GazeParserRecComponent(BaseComponent):
     """Recording with GazeParser.TrackingTools"""
-    categories = ['Custom']
+    categories = ['GazeParser']
     def __init__(self, exp, parentName, name='GazeParserRec', startmsg='routine start', stopmsg='routine end', msglist=[], units='time (s)'):
         super(GazeParserRecComponent, self).__init__(exp, parentName, name)
         

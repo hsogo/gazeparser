@@ -23,7 +23,7 @@ paramNames = ['time','timeType','text']
 
 class GazeParserMessageComponent(BaseComponent):
     """Recording with GazeParser.TrackingTools"""
-    categories = ['Custom']
+    categories = ['GazeParser']
     def __init__(self, exp, parentName, name='GazeParserMessage', timeType='time (s)', time=0.0, text='message'):
         self.type='GazeParserMessage'
         self.url="http://gazeparser.sourceforge.net/"

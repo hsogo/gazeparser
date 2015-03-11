@@ -17,7 +17,7 @@ paramNames = ['gpconfigfile', 'trconfigfile', 'ipaddress', 'calarea', 'caltarget
 
 class GazeParserInitComponent(VisualComponent):
     """Initialize GazeParser.TrackingTools"""
-    categories = ['Custom']
+    categories = ['GazeParser']
     def __init__(self, exp, parentName, name='GazeParserInit',gpconfigfile="",trconfigfile="",ipaddress="",calarea="[-400,-300,400,300]",
                  caltargetpos="[[0,0],[-350,-250],[-350,0],[-350,250],\n[0,-250],[0,0],[0,250],\n[350,-250],[350,0],[350,250]]",
                  datafile="data.csv",mode='Normal',modevar='',units="pix",calibration=True):
