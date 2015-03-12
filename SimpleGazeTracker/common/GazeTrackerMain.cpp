@@ -68,8 +68,8 @@ int g_ROIWidth;
 int g_ROIHeight;
 
 int g_Threshold = 55;  /*!< Pupil candidates are sought from image areas darker than this value. */
-int g_MaxPoints = 500; /*!< Dark areas whose contour is longer than this value is removed from pupil candidates. */
-int g_MinPoints = 200; /*!< Dark areas whose contour is shorter than this value is removed from pupil candidates. */
+int g_MaxPupilWidth = 30; /*!< Dark areas wider than this value is removed from pupil candidates. */
+int g_MinPupilWidth = 10; /*!< Dark areas narrower than this value is removed from pupil candidates. */
 int g_PurkinjeThreshold = 240;  /*!<  */
 int g_PurkinjeSearchArea = 60;  /*!<  */
 int g_PurkinjeExcludeArea = 20; /*!<  */
@@ -172,8 +172,8 @@ Configuration file directory is set to %APPDATA%\GazeTracker.
 Following parameters are read from a configuration file (specified by g_ConfigFileName).
 
 -THRESHOLD  (g_Threshold)
--MAXPOINTS  (g_MaxPoints)
--MINPOINTS  (g_MinPoints)
+-MAX_PUPIL_WIDTH  (g_MaxPupilWidth)
+-MIN_PUPIL_WIDTH  (g_MinPupilWidth)
 -PURKINJE_THRESHOLD  (g_PurkinjeThreshold)
 -PURKINJE_SEARCHAREA  (g_PurkinjeSearchArea)
 -PURKINJE_EXCLUDEAREA  (g_PurkinjeExcludeArea)
@@ -207,6 +207,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 @date 2013/10/22 configuration file name can be specified by g_ConfigFileName.
 @date 2013/12/12 USBIO_BOARD, USBIO_AD and USBIO_DI is supported.
 @date 2013/12/24 USB_USE_THREAD is supported.
+@date 2015/03/12 MAXPOINTS and MINPOINTS are changed to MAXWIDTH and MINWIDTH.
  */
 int initParameters( void )
 {
@@ -261,8 +262,8 @@ int initParameters( void )
 		param = strtol(p+1,&pp,10);
 
 		if(strcmp(buff,"THRESHOLD")==0) g_Threshold = param;
-		else if(strcmp(buff,"MAXPOINTS")==0) g_MaxPoints = param;
-		else if(strcmp(buff,"MINPOINTS")==0) g_MinPoints = param;
+		else if(strcmp(buff,"MAX_PUPIL_WIDTH")==0) g_MaxPupilWidth = param;
+		else if(strcmp(buff,"MIN_PUPIL_WIDTH")==0) g_MinPupilWidth = param;
 		else if(strcmp(buff,"PURKINJE_THRESHOLD")==0) g_PurkinjeThreshold = param;
 		else if(strcmp(buff,"PURKINJE_SEARCHAREA")==0) g_PurkinjeSearchArea = param;
 		else if(strcmp(buff,"PURKINJE_EXCLUDEAREA")==0) g_PurkinjeExcludeArea = param;
@@ -282,6 +283,16 @@ int initParameters( void )
 		else if(strcmp(buff,"USBIO_AD")==0) g_USBIOParamAD = p+1;
 		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
 		else if(strcmp(buff,"USB_USE_THREAD")==0) g_useUSBThread = (param!=0)? true: false;
+		else if(strcmp(buff,"MAXPOINTS")==0){
+			printf("Error: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.",buff);
+			g_LogFS << "Error: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead." << std::endl;
+			return E_FAIL; //unknown option
+		}
+		else if(strcmp(buff,"MINPOINTS")==0){
+			printf("Error: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead.",buff);
+			g_LogFS << "Error: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead." << std::endl;
+			return E_FAIL; //unknown option
+		}
 		else{
 			printf("Error: Unknown option (\"%s\")\n",buff);
 			g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
@@ -309,8 +320,8 @@ saveParameters: Save current parameters to the configuration file.
 Following parameters are wrote to the configuration file.
 
 -THRESHOLD  (g_Threshold)
--MAXPOINTS  (g_MaxPoints)
--MINPOINTS  (g_MinPoints)
+-MAX_PUPIL_WIDTH  (g_MaxPupilWidht)
+-MIN_PUPIL_WIDTH  (g_MinPupilWidth)
 -PURKINJE_THRESHOLD  (g_PurkinjeThreshold)
 -PURKINJE_SEARCHAREA  (g_PurkinjeSearchArea)
 -PURKINJE_EXCLUDEAREA  (g_PurkinjeExcludeArea)
@@ -342,6 +353,7 @@ Following parameters are wrote to the configuration file.
 @date 2013/03/26 Output log message.
 @date 2013/12/13 USBIO_BOARD, USBIO_AD and USBIO_DI is supported.
 @date 2013/12/24 USB_USE_THREAD is supported.
+@date 2015/03/12 MAXPOINTS and MINPOINTS are changed to MAXWIDTH and MINWIDTH.
 */
 void saveParameters( void )
 {
@@ -363,8 +375,8 @@ void saveParameters( void )
 	fs << "#If you want to recover original settings, delete this file and start eye tracker program." << std::endl;
 	fs << "[SimpleGazeTrackerCommon]" << std::endl;
 	fs << "THRESHOLD=" << g_Threshold << std::endl;
-	fs << "MAXPOINTS=" << g_MaxPoints << std::endl;
-	fs << "MINPOINTS=" << g_MinPoints << std::endl;
+	fs << "MAX_PUPIL_WIDTH=" << g_MaxPupilWidth << std::endl;
+	fs << "MIN_PUPIL_WIDTH=" << g_MinPupilWidth << std::endl;
 	fs << "PURKINJE_THRESHOLD=" << g_PurkinjeThreshold << std::endl;
 	fs << "PURKINJE_SEARCHAREA=" << g_PurkinjeSearchArea << std::endl;
 	fs << "PURKINJE_EXCLUDEAREA=" << g_PurkinjeExcludeArea << std::endl;
@@ -407,6 +419,8 @@ void saveParameters( void )
 updateMenuText: update menu text.
 
 @return No value is returned.
+@date 2015/03/12
+- Support MaxPupilWidth and MinPupilWidth
 */
 void updateMenuText( void )
 {
@@ -417,11 +431,11 @@ void updateMenuText( void )
 	ss << "PurkinjeThreshold(" << g_PurkinjeThreshold << ")";
 	g_MenuString[MENU_THRESH_PURKINJE] = ss.str();
 	ss.str("");
-	ss << "MinPoints(" << g_MinPoints << ")";
-	g_MenuString[MENU_MINPOINTS] = ss.str();
+	ss << "MinPupilWidth(" << g_MinPupilWidth << ")";
+	g_MenuString[MENU_MIN_PUPILWIDTH] = ss.str();
 	ss.str("");
-	ss << "MaxPoints(" << g_MaxPoints << ")";
-	g_MenuString[MENU_MAXPOINTS] = ss.str();
+	ss << "MaxPupilWidth(" << g_MaxPupilWidth << ")";
+	g_MenuString[MENU_MAX_PUPILWIDTH] = ss.str();
 	ss.str("");
 	ss  << "PurkinjeSearchArea(" << g_PurkinjeSearchArea << ")";
 	g_MenuString[MENU_SEARCHAREA] = ss.str();
@@ -993,6 +1007,8 @@ main: Entry point of the application
 - Support commandline option.
 @date 2013/12/12
 - Support USB IO.
+@date 2015/03/12
+- Support MaxPupilWidth and MinPupilWidth
 */
 int main(int argc, char** argv)
 {
@@ -1293,15 +1309,15 @@ int main(int argc, char** argv)
 						if(g_PurkinjeThreshold<1)
 							g_PurkinjeThreshold = 1;
 						break;
-					case MENU_MINPOINTS:
-						g_MinPoints--;
-						if(g_MinPoints<1)
-							g_MinPoints = 1;
+					case MENU_MIN_PUPILWIDTH:
+						g_MinPupilWidth--;
+						if(g_MinPupilWidth<0)
+							g_MinPupilWidth = 0;
 						break;
-					case MENU_MAXPOINTS:
-						g_MaxPoints--;
-						if(g_MaxPoints<=g_MinPoints)
-							g_MaxPoints = g_MinPoints+1;
+					case MENU_MAX_PUPILWIDTH:
+						g_MaxPupilWidth--;
+						if(g_MaxPupilWidth<=g_MinPupilWidth)
+							g_MaxPupilWidth = g_MinPupilWidth+1;
 						break;
 					case MENU_SEARCHAREA:
 						g_PurkinjeSearchArea--;
@@ -1335,15 +1351,15 @@ int main(int argc, char** argv)
 						if(g_PurkinjeThreshold>255)
 							g_PurkinjeThreshold = 255;
 						break;
-					case MENU_MINPOINTS:
-						g_MinPoints++;
-						if(g_MinPoints>=g_MaxPoints)
-							g_MinPoints = g_MaxPoints-1;
+					case MENU_MIN_PUPILWIDTH:
+						g_MinPupilWidth++;
+						if(g_MinPupilWidth>=g_MaxPupilWidth)
+							g_MinPupilWidth = g_MaxPupilWidth-1;
 						break;
-					case MENU_MAXPOINTS:
-						g_MaxPoints++;
-						if(g_MaxPoints>1000)
-							g_MaxPoints = 1000;
+					case MENU_MAX_PUPILWIDTH:
+						g_MaxPupilWidth++;
+						if(g_MaxPupilWidth>100)
+							g_MaxPupilWidth = 100;
 						break;
 					case MENU_SEARCHAREA:
 						g_PurkinjeSearchArea++;
@@ -1399,7 +1415,7 @@ int main(int argc, char** argv)
 			AdInputAD( g_debug_hDeviceHandle, 1, AD_INPUT_DIFF, &g_debug_AdSmplChReq, &g_debug_EOGDATA[g_DataCounter]);
 #endif
 			if(g_RecordingMode==RECORDING_MONOCULAR){
-				res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPoints, g_MaxPoints, detectionResults);
+				res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
 				if(res!=S_PUPIL_PURKINJE)
 				{
 					detectionResults[MONO_PUPIL_X] = detectionResults[MONO_PUPIL_Y] = res;
@@ -1407,7 +1423,7 @@ int main(int argc, char** argv)
 				}
 				getGazeMono(detectionResults, TimeImageAquired);
 			}else{
-				res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPoints, g_MaxPoints, detectionResults);
+				res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
 				if(res!=S_PUPIL_PURKINJE)
 				{
 					detectionResults[BIN_PUPIL_LX] = detectionResults[BIN_PUPIL_LY] = res;
