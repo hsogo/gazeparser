@@ -29,7 +29,7 @@ static cv::Rect g_ROI;
 #define OBLATENESS_HIGH 1.50
 #define MAX_FIRST_CANDIDATES 5
 
-
+static const double PI = 6*asin( 0.5 );
 
 /*!
 Allocate buffers for receiving, processing and sending camera image.
@@ -91,10 +91,10 @@ detectPupilPurkinjeMono: Detect pupil and purkinje image (monocular recording)
     @arg BYTE
 @param[in] PurkinjeExclude 
     @arg Positive integer
-@param[in] PointMin Dark areas whose contour is shorter than this value is removed from pupil candidates.
-    @arg Positive integer.  This value must be smaller than PointMax.
-@param[in] PointMax Dark areas whose contour is longer than this value is removed from pupil candidates.
-    @arg Positive integer.  This value must be larger than PointMin.
+@param[in] MinWidth Dark areas wider than this value is removed from pupil candidates (percentage of g_ROI width).
+    @arg Positive integer.  This value must be smaller than MaxWidth.
+@param[in] MaxWidth Dark areas narrower than this value is removed from pupil candidates (percentage of g_ROI width).
+    @arg Positive integer.  This value must be larger than MinWidth.
 @param[out] results 
 
 @return int
@@ -109,7 +109,7 @@ detectPupilPurkinjeMono: Detect pupil and purkinje image (monocular recording)
 @date 2012/09/28
 - Return Pupil area.
 */
-int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS])
+int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double results[MAX_DETECTION_RESULTS])
 {
 	cv::Mat tmp;
 	cv::Mat roi;
@@ -152,8 +152,15 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 
 	//Find a pupil candidate.
 	for(it=contours.begin(); it!=contours.end(); it++){
-		if((int)(*it).size()<PointMin || (int)(*it).size()>PointMax){
-			//Contour of the area is too short or too long.
+		if((int)(*it).size()<6){
+			continue;
+		}
+
+		cv::Rect rr;
+		rr = cv::boundingRect(*it);
+		double minw = (double)MinWidth/100*g_ROI.width;
+		double maxw = (double)MaxWidth/100*g_ROI.width;
+		if(rr.width < minw || rr.width > maxw || rr.height < minw || rr.height > maxw){
 			continue;
 		}
 
@@ -161,36 +168,62 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		cv::Mat points(*it);
 		cv::RotatedRect r;
 		r = cv::fitEllipse(points);
-
+		
+		//Is Center of the ellipse in g_ROI? 
 		if(r.center.x<=g_ROI.x || r.center.y<=g_ROI.y || r.center.x>=g_ROI.x+g_ROI.width || r.center.y>=g_ROI.y+g_ROI.height){
-			//Center of the ellipse is not in g_ROI 
-			continue;
-		}
-
-		//Is the center of ellipse in dark area?
-		unsigned char* p = tmp.ptr<unsigned char>((int)(r.center.y)-g_ROI.y);
-		if(p[(int)(r.center.x)-g_ROI.x]>0){
-			//The center is NOT in dark area.
 			continue;
 		}
 
 		//Check the shape of the ellipse
-		if( OBLATENESS_LOW < r.size.height/r.size.width && r.size.height/r.size.width < OBLATENESS_HIGH &&
-			//This may be a pupil
-			r.center.x>PurkinjeSearchArea && r.center.y>PurkinjeSearchArea && 
-			r.center.x<g_CameraWidth-PurkinjeSearchArea && r.center.y<g_CameraHeight-PurkinjeSearchArea){
-				//If g_isShowingCameraImage is true, draw ellipse with thick line and draw cross.
-				if(g_isShowingCameraImage){
-					cv::ellipse(g_DstImg,r,CV_RGB(0,255,0));
-					cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-20),cv::Point2f(r.center.x,r.center.y+20),CV_RGB(0,255,0));
-					cv::line(g_DstImg,cv::Point2f(r.center.x-20,r.center.y),cv::Point2f(r.center.x+20,r.center.y),CV_RGB(0,255,0));
-				}
-			firstCandidateRects[numCandidates] = r;
-			firstCandidatePoints[numCandidates] = *it;
-			numCandidates++;
-			if(numCandidates>=MAX_FIRST_CANDIDATES)
-				break;
+		if( OBLATENESS_LOW > r.size.height/r.size.width || r.size.height/r.size.width > OBLATENESS_HIGH ){
+			continue;
 		}
+
+		//Is PurkinjeSearchArea in CameraImage?
+		if( r.center.x<PurkinjeSearchArea || r.center.y<PurkinjeSearchArea || 
+			r.center.x>g_CameraWidth-PurkinjeSearchArea || r.center.y>g_CameraHeight-PurkinjeSearchArea){
+			continue;
+		}
+
+		//Count dark pixels within the ellipse
+		double areac=0;
+		for(int ix=(int)(-r.size.width)/2; ix<(int)r.size.width/2; ix++){
+			for(int iy=(int)(-r.size.height)/2; iy<(int)r.size.height/2; iy++){
+				int xp;
+				int yp;
+				double rad;
+				rad = r.angle*PI/180;
+				xp = (int)(ix*cos(rad)-iy*sin(rad)+r.center.x);
+				yp = (int)(ix*sin(rad)+iy*cos(rad)+r.center.y);
+
+				if(xp>=g_ROI.width || yp>=g_ROI.height || xp<0 || yp<0) continue;
+				
+				unsigned char* p = tmp.ptr<unsigned char>(yp);
+				if(p[xp]==0){
+					areac += 1;
+				}
+			}
+		}
+		areac /= (r.size.width*r.size.height*PI/4);
+		g_LogFS << areac << std::endl;
+
+		//Dark area occupies more than 75% of ellipse?
+		if( areac < 0.75 ){
+			continue;
+		}
+		
+		//This may be a pupil
+		//If g_isShowingCameraImage is true, draw ellipse with thick line and draw cross.
+		if(g_isShowingCameraImage){
+			cv::ellipse(g_DstImg,r,CV_RGB(0,255,0));
+			cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-20),cv::Point2f(r.center.x,r.center.y+20),CV_RGB(0,255,0));
+			cv::line(g_DstImg,cv::Point2f(r.center.x-20,r.center.y),cv::Point2f(r.center.x+20,r.center.y),CV_RGB(0,255,0));
+		}
+		firstCandidateRects[numCandidates] = r;
+		firstCandidatePoints[numCandidates] = *it;
+		numCandidates++;
+		if(numCandidates>=MAX_FIRST_CANDIDATES)
+			break;
 	}
 
 	if(numCandidates>=MAX_FIRST_CANDIDATES){
@@ -322,10 +355,10 @@ detectPupilPurkinjeBin: Detect pupil and purkinje image (Binocular recording)
     @arg BYTE
 @param[in] PurkinjeExclude 
     @arg Positive integer
-@param[in] PointMin Dark areas whose contour is shorter than this value is removed from pupil candidates.
-    @arg Positive integer.  This value must be smaller than PointMax.
-@param[in] PointMax Dark areas whose contour is longer than this value is removed from pupil candidates.
-    @arg Positive integer.  This value must be larger than PointMin.
+@param[in] MinWidth Dark areas wider than this value is removed from pupil candidates (percentage of g_ROI width).
+    @arg Positive integer.  This value must be smaller than MaxWidth.
+@param[in] MaxWidth Dark areas narrower than this value is removed from pupil candidates (percentage of g_ROI width).
+    @arg Positive integer.  This value must be larger than MinWidth.
 @param[out] results 
 
 @return int
@@ -340,7 +373,7 @@ detectPupilPurkinjeBin: Detect pupil and purkinje image (Binocular recording)
 @date 2012/09/28
 - Return Pupil area.
 */
-int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS])
+int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double results[MAX_DETECTION_RESULTS])
 {
 	cv::Mat tmp;
 	cv::Mat roi;
@@ -382,8 +415,15 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 
 	//Find a pupil candidate.
 	for(it=contours.begin(); it!=contours.end(); it++){
-		if((int)(*it).size()<PointMin || (int)(*it).size()>PointMax){
-			//Contour of the area is too short or too long.
+		if((int)(*it).size()<6){
+			continue;
+		}
+
+		cv::Rect rr;
+		rr = cv::boundingRect(*it);
+		double minw = (double)MinWidth/100*g_ROI.width;
+		double maxw = (double)MaxWidth/100*g_ROI.width;
+		if(rr.width < minw || rr.width > maxw || rr.height < minw || rr.height > maxw){
 			continue;
 		}
 
@@ -392,35 +432,61 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 		cv::RotatedRect r;
 		r = cv::fitEllipse(points);
 
+		//Is Center of the ellipse in g_ROI? 
 		if(r.center.x<=g_ROI.x || r.center.y<=g_ROI.y || r.center.x>=g_ROI.x+g_ROI.width || r.center.y>=g_ROI.y+g_ROI.height){
-			//Center of the ellipse is not in g_ROI 
-			continue;
-		}
-
-		//Is the center of ellipse in dark area?
-		unsigned char* p = tmp.ptr<unsigned char>((int)(r.center.y)-g_ROI.y);
-		if(p[(int)(r.center.x)-g_ROI.x]>0){
-			//The center is NOT in dark area.
 			continue;
 		}
 
 		//Check the shape of the ellipse
-		if( OBLATENESS_LOW < r.size.height/r.size.width && r.size.height/r.size.width < OBLATENESS_HIGH &&
-			//This may be a pupil
-			r.center.x>PurkinjeSearchArea && r.center.y>PurkinjeSearchArea && 
-			r.center.x<g_CameraWidth-PurkinjeSearchArea && r.center.y<g_CameraHeight-PurkinjeSearchArea){
-				//If g_isShowingCameraImage is true, draw ellipse with thick line and draw cross.
-				if(g_isShowingCameraImage){
-					cv::ellipse(g_DstImg,r,CV_RGB(0,255,0));
-					cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-20),cv::Point2f(r.center.x,r.center.y+20),CV_RGB(0,255,0));
-					cv::line(g_DstImg,cv::Point2f(r.center.x-20,r.center.y),cv::Point2f(r.center.x+20,r.center.y),CV_RGB(0,255,0));
-				}
-			firstCandidateRects[numCandidates] = r;
-			firstCandidatePoints[numCandidates] = *it;
-			numCandidates++;
-			if(numCandidates>=MAX_FIRST_CANDIDATES)
-				break;
+		if( OBLATENESS_LOW > r.size.height/r.size.width || r.size.height/r.size.width > OBLATENESS_HIGH ){
+			continue;
 		}
+
+		//Is PurkinjeSearchArea in CameraImage?
+		if( r.center.x<PurkinjeSearchArea || r.center.y<PurkinjeSearchArea || 
+			r.center.x>g_CameraWidth-PurkinjeSearchArea || r.center.y>g_CameraHeight-PurkinjeSearchArea){
+			continue;
+		}
+
+		//Count dark pixels within the ellipse
+		double areac=0;
+		for(int ix=(int)(-r.size.width)/2; ix<(int)r.size.width/2; ix++){
+			for(int iy=(int)(-r.size.height)/2; iy<(int)r.size.height/2; iy++){
+				int xp;
+				int yp;
+				double rad;
+				rad = r.angle*PI/180;
+				xp = (int)(ix*cos(rad)-iy*sin(rad)+r.center.x);
+				yp = (int)(ix*sin(rad)+iy*cos(rad)+r.center.y);
+
+				if(xp>=g_ROI.width || yp>=g_ROI.height || xp<0 || yp<0) continue;
+				
+				unsigned char* p = tmp.ptr<unsigned char>(yp);
+				if(p[xp]==0){
+					areac += 1;
+				}
+			}
+		}
+		areac /= (r.size.width*r.size.height*PI/4);
+		g_LogFS << areac << std::endl;
+
+		//Dark area occupies more than 75% of ellipse?
+		if( areac < 0.75 ){
+			continue;
+		}
+
+		//This may be a pupil
+		//If g_isShowingCameraImage is true, draw ellipse with thick line and draw cross.
+		if(g_isShowingCameraImage){
+			cv::ellipse(g_DstImg,r,CV_RGB(0,255,0));
+			cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-20),cv::Point2f(r.center.x,r.center.y+20),CV_RGB(0,255,0));
+			cv::line(g_DstImg,cv::Point2f(r.center.x-20,r.center.y),cv::Point2f(r.center.x+20,r.center.y),CV_RGB(0,255,0));
+		}
+		firstCandidateRects[numCandidates] = r;
+		firstCandidatePoints[numCandidates] = *it;
+		numCandidates++;
+		if(numCandidates>=MAX_FIRST_CANDIDATES)
+			break;
 	}
 
 	if(numCandidates>=MAX_FIRST_CANDIDATES){
