@@ -123,6 +123,9 @@ double g_CalPointList[MAXCALPOINT][2];
 double g_CalPointPrecision[MAXCALPOINT][4];
 double g_CalPointAccuracy[MAXCALPOINT][4];
 
+double g_LastCalPointList[MAXCALPOINT][2];
+int g_LastNumCalPoint;
+
 FILE* g_DataFP;
 std::fstream g_LogFS;
 
@@ -1540,6 +1543,8 @@ endCalibration: finish calibration procedures.
 This function must be called when terminating calibration.
 
 @return No value is returned.
+@date 2015/03/05 setCalibrationError() is called from this function.
+@date 2015/03/13 last calibration data is preserved.
 */
 void endCalibration(void)
 {
@@ -1552,6 +1557,13 @@ void endCalibration(void)
 	}
 	setCalibrationResults( g_DataCounter, g_EyeData, g_CalPointData, g_CalGoodness, g_CalMaxError, g_CalMeanError);
 	setCalibrationError( g_DataCounter, g_EyeData, g_CalPointData, g_NumCalPoint, g_CalPointList, g_CalPointAccuracy, g_CalPointPrecision);
+	//hold calibration data
+	g_LastNumCalPoint = g_NumCalPoint;
+	for(int j=0; j<2; j++){
+		for(int i=0; i<MAXCALPOINT; i++){
+			g_LastCalPointList[i][j] = g_CalPointList[i][j];
+		}
+	}
 	
 	g_isCalibrating=false;
 	g_isCalibrated = true;
@@ -1747,6 +1759,8 @@ This function is called from sockProcess() when sockProcess() received "startRec
 -Tracker version is output when datafile is opened.
 @date 2012/12/05 output message to log file.
 @date 2013/03/27 clear g_MessageBuffer.
+@date 2015/03/05 output accuracy and precision at each calibration point.
+@date 2015/03/13 use preserved calibration points
 */
 void startRecording(const char* message)
 {
@@ -1774,8 +1788,8 @@ void startRecording(const char* message)
 				fprintf(g_DataFP,"#XPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamX[0],g_ParamX[1],g_ParamX[2],g_ParamX[3],g_ParamX[4],g_ParamX[5]);
 				fprintf(g_DataFP,"#YPARAM,%f,%f,%f,%f,%f,%f\n",g_ParamY[0],g_ParamY[1],g_ParamY[2],g_ParamY[3],g_ParamY[4],g_ParamY[5]);
 			}
-			for(int i=0; i<g_NumCalPoint; i++){
-				fprintf(g_DataFP,"#CALPOINT,%f,%f,",g_CalPointList[i][0],g_CalPointList[i][1]);
+			for(int i=0; i<g_LastNumCalPoint; i++){
+				fprintf(g_DataFP,"#CALPOINT,%f,%f,",g_LastCalPointList[i][0],g_LastCalPointList[i][1]);
 				if(g_RecordingMode == RECORDING_BINOCULAR){ //binocular
 					if(g_CalPointAccuracy[i][BIN_LX]==E_NO_CALIBRATION_DATA)
 						fprintf(g_DataFP,"NO_CALIBRATION_DATA,NO_CALIBRATION_DATA,");
