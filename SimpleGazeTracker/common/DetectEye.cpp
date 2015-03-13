@@ -205,7 +205,6 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 			}
 		}
 		areac /= (r.size.width*r.size.height*PI/4);
-		g_LogFS << areac << std::endl;
 
 		//Dark area occupies more than 75% of ellipse?
 		if( areac < 0.75 ){
