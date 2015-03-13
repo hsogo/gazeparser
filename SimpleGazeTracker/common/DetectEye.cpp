@@ -989,8 +989,8 @@ void setCalibrationError( int dataCounter, double eyeData[MAXDATA][4], double ca
 				calPointAccuracy[idxp][MONO_X] /= numDataInPoint[idxp][MONO_1];
 				calPointAccuracy[idxp][MONO_Y] /= numDataInPoint[idxp][MONO_1];
 				//sd
-				calPointPrecision[idxp][MONO_X] = sqrt(calPointPrecision[idxp][MONO_X]/numDataInPoint[idxp][MONO_1]-calPointAccuracy[idxp][MONO_X]);
-				calPointPrecision[idxp][MONO_Y] = sqrt(calPointPrecision[idxp][MONO_Y]/numDataInPoint[idxp][MONO_1]-calPointAccuracy[idxp][MONO_Y]);
+				calPointPrecision[idxp][MONO_X] = sqrt(calPointPrecision[idxp][MONO_X]/numDataInPoint[idxp][MONO_1]-pow(calPointAccuracy[idxp][MONO_X],2));
+				calPointPrecision[idxp][MONO_Y] = sqrt(calPointPrecision[idxp][MONO_Y]/numDataInPoint[idxp][MONO_1]-pow(calPointAccuracy[idxp][MONO_Y],2));
 			}
 		}
 
@@ -1026,8 +1026,8 @@ void setCalibrationError( int dataCounter, double eyeData[MAXDATA][4], double ca
 				calPointAccuracy[idxp][BIN_LX] /= numDataInPoint[idxp][BIN_L];
 				calPointAccuracy[idxp][BIN_LY] /= numDataInPoint[idxp][BIN_L];
 				//sd
-				calPointPrecision[idxp][BIN_LX] = sqrt(calPointPrecision[idxp][BIN_LX]/numDataInPoint[idxp][BIN_L]-calPointAccuracy[idxp][BIN_LX]);
-				calPointPrecision[idxp][BIN_LY] = sqrt(calPointPrecision[idxp][BIN_LY]/numDataInPoint[idxp][BIN_L]-calPointAccuracy[idxp][BIN_LY]);
+				calPointPrecision[idxp][BIN_LX] = sqrt(calPointPrecision[idxp][BIN_LX]/numDataInPoint[idxp][BIN_L]-pow(calPointAccuracy[idxp][BIN_LX],2));
+				calPointPrecision[idxp][BIN_LY] = sqrt(calPointPrecision[idxp][BIN_LY]/numDataInPoint[idxp][BIN_L]-pow(calPointAccuracy[idxp][BIN_LY],2));
 			}
 
 			if(numDataInPoint[idxp][BIN_R]==0){
@@ -1038,8 +1038,8 @@ void setCalibrationError( int dataCounter, double eyeData[MAXDATA][4], double ca
 				calPointAccuracy[idxp][BIN_RX] /= numDataInPoint[idxp][BIN_R];
 				calPointAccuracy[idxp][BIN_RY] /= numDataInPoint[idxp][BIN_R];
 				//sd
-				calPointPrecision[idxp][BIN_RX] = sqrt(calPointPrecision[idxp][BIN_RX]/numDataInPoint[idxp][BIN_R]-calPointAccuracy[idxp][BIN_RX]);
-				calPointPrecision[idxp][BIN_RY] = sqrt(calPointPrecision[idxp][BIN_RY]/numDataInPoint[idxp][BIN_R]-calPointAccuracy[idxp][BIN_RY]);
+				calPointPrecision[idxp][BIN_RX] = sqrt(calPointPrecision[idxp][BIN_RX]/numDataInPoint[idxp][BIN_R]-pow(calPointAccuracy[idxp][BIN_RX],2));
+				calPointPrecision[idxp][BIN_RY] = sqrt(calPointPrecision[idxp][BIN_RY]/numDataInPoint[idxp][BIN_R]-pow(calPointAccuracy[idxp][BIN_RY],2));
 			}
 		}
 	}
