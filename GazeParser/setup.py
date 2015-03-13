@@ -39,6 +39,7 @@ paths, calculating saccade trajectory curvature and so on.
       packages=['GazeParser', 'GazeParser.app'],
       package_data={'GazeParser': ['LICENSE.txt', '*.cfg'],
                     'GazeParser.app': ['img/*.png', 'img/*.ico',
-                                       'img/*.gif', '*.cfg']},
+                                       'img/*.gif', '*.cfg'],
+                    'GazeParser.PsychoPyComponents': ['*.png']},
       scripts=['GazeParser_post_install.py']
       )
