@@ -287,12 +287,12 @@ int initParameters( void )
 		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
 		else if(strcmp(buff,"USB_USE_THREAD")==0) g_useUSBThread = (param!=0)? true: false;
 		else if(strcmp(buff,"MAXPOINTS")==0){
-			printf("Error: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.",buff);
+			printf("Error: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
 			g_LogFS << "Error: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead." << std::endl;
 			return E_FAIL; //unknown option
 		}
 		else if(strcmp(buff,"MINPOINTS")==0){
-			printf("Error: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead.",buff);
+			printf("Error: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead.");
 			g_LogFS << "Error: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead." << std::endl;
 			return E_FAIL; //unknown option
 		}
