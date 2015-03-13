@@ -1,3 +1,13 @@
+gazeparser (0.8.0) unstable; urgency=medium
+
+  * add checkVersion option to GazeParser.Utility.load.
+  * GazeParser.Converte.TrackerToGazeParser supports calibration precision/accuracy data of SimpleGazeTracker 0.8.0.
+  * Raw calibration/validation data can be saved to SimpleGazeTracker data file (GazeParser.TrackingTools).
+  * Custom components for PsychoPy Builder are created.
+  * fix error in combining data files (Viewer.py).
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Tue, 05 Aug 2014 17:12:04 +0900
+
 gazeparser (0.7.0) unstable; urgency=medium
 
   * remove units='pix' from ControllerPsychoPyBackend.
