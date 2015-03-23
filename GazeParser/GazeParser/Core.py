@@ -271,7 +271,8 @@ class MessageData(object):
     """
     def __init__(self, m):
         """
-        :param m: A tuple of 2 elements. The 1st element is timestamp (in msec).
+        :param m:
+            A tuple of 2 elements. The 1st element is timestamp (in msec).
             The 2nd element is received text.
         """
         self._time = m[0]

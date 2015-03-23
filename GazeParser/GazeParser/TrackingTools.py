@@ -1950,8 +1950,9 @@ class ControllerPsychoPyBackend(BaseController):
     """
     def __init__(self, configFile=None):
         """
-        :param str configFile: Controller configuration file. If None, default
-            configurations are used.
+        :param str configFile:
+            Controller configuration file. If None, default configurations
+            are used.
         """
         from psychopy.visual import TextStim, SimpleImageStim, Rect, Circle
         from psychopy.event import getKeys, Mouse
