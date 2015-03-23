@@ -64,7 +64,7 @@ class GazeParserCheckComponent(VisualComponent):
         # these inherited params are harmless but might as well trim:
         for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType', 'durationEstim']:
             del self.params[p]
-        for p in ['color','opacity','colorSpace','pos','size','ori']:
+        for p in ['color','opacity','colorSpace','size','ori']:
             del self.params[p]
     def writeRoutineStartCode(self,buff):
         task = self.params['mode'].val
@@ -82,7 +82,11 @@ class GazeParserCheckComponent(VisualComponent):
             buff.setIndentLevel(-2, relative=True)
         if task in ['check', 'cal+check']:
             buff.writeIndented('GazeParserTracker.verifyFixation(maxTry=%(maxtry)s, permissibleError=%(permerror)s ,key=%(key)s, \n' % (self.params))
-            buff.writeIndented('    position=%(pos)s, mouseButton=%(mousebutton)s, units=%(units)s,\n' % (self.params))
+            buff.writeIndented('    position=%(pos)s, mouseButton=%(mousebutton)s, \n' % (self.params))
+            if self.params['units'].val=='from exp settings':
+                buff.writeIndented('    units=win.units, \n')
+            else:
+                buff.writeIndented('    units=%(units)s, \n' % (self.params))
             if self.params['message1'].val == self.params['message2'].val == self.params['message3'].val == '':
                 buff.writeIndented('    message=None)\n\n')
             else:

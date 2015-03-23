@@ -88,7 +88,10 @@ class GazeParserInitComponent(VisualComponent):
             buff.writeIndented('GazeParserTracker.openDataFile(%(datafile)s)\n' % (self.params))
         buff.writeIndented('GazeParserTracker.sendSettings(GazeParser.config.getParametersAsDict())\n')
         buff.writeIndented('GazeParserTracker.setCalibrationScreen(win)\n')
-        buff.writeIndented('GazeParserTracker.setCalibrationTargetPositions(%(calarea)s, %(caltargetpos)s, %(units)s)\n' % (self.params))
+        if self.params['units'].val=='from exp settings':
+            buff.writeIndented('GazeParserTracker.setCalibrationTargetPositions(%(calarea)s, %(caltargetpos)s, win.units)\n' % (self.params))
+        else:
+            buff.writeIndented('GazeParserTracker.setCalibrationTargetPositions(%(calarea)s, %(caltargetpos)s, %(units)s)\n' % (self.params))
         if self.params['calibration'].val:
             buff.writeIndented('while True:\n')
             buff.setIndentLevel(+1, relative=True)
