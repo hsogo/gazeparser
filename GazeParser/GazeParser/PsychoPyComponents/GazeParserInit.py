@@ -14,13 +14,27 @@ tooltip = 'GazeParserInit: initialize GazeParser.TrackingTools'
 # want a complete, ordered list of codeParams in Builder._BaseParamsDlg, best to define once:
 paramNames = ['gpconfigfile', 'trconfigfile', 'ipaddress', 'calarea', 'caltargetpos', 'datafile', 'calibration', 'units', 'mode', 'modevar']
 
+useMonitorInfoCode = """import psychopy.misc
+if GazeParser.config.SCREEN_ORIGIN != 'center':
+    GazeParser.config.SCREEN_ORIGIN = 'center'
+    logging.warn('GazeParser.config.SCREEN_ORIGIN is set to \\'center\\'')
+if GazeParser.config.DOTS_PER_CENTIMETER_H == GazeParser.config.DOTS_PER_CENTIMETER_V == psychopy.misc.cm2pix(1.0, win.monitor):
+    GazeParser.config.DOTS_PER_CENTIMETER_H = GazeParser.config.DOTS_PER_CENTIMETER_V = psychopy.misc.cm2pix(1.0, win.monitor)
+    logging.warn('GazeParser.config.DOTS_PER_CENTIMETER_H and _V are set to %f' % psychopy.misc.cm2pix(1.0, win.monitor))
+if GazeParser.config.SCREEN_WIDTH != win.size[0]:
+    GazeParser.config.SCREEN_WIDTH = win.size[0]
+    logging.warn('GazeParser.config.SCREEN_WIDTH is set to %d' % win.size[0])
+if GazeParser.config.SCREEN_HEIGHT != win.size[1]:
+    GazeParser.config.SCREEN_HEIGHT = win.size[1]
+    logging.warn('GazeParser.config.SCREEN_HEIGHT is set to %d' % win.size[1])
+"""
 
 class GazeParserInitComponent(VisualComponent):
     """Initialize GazeParser.TrackingTools"""
     categories = ['GazeParser']
     def __init__(self, exp, parentName, name='GazeParserInit',gpconfigfile="",trconfigfile="",ipaddress="",calarea="[-400,-300,400,300]",
                  caltargetpos="[[0,0],[-350,-250],[-350,0],[-350,250],\n[0,-250],[0,0],[0,250],\n[350,-250],[350,0],[350,250]]",
-                 datafile="data.csv",mode='Normal',modevar='',units="pix",calibration=True):
+                 datafile="data.csv",mode='Normal',modevar='',units="pix",calibration=True,useMonitorInfo=True):
         super(GazeParserInitComponent, self).__init__(exp, parentName, name)
         self.type='GazeParserInit'
         self.url="http://gazeparser.sourceforge.net/"
@@ -63,6 +77,10 @@ class GazeParserInitComponent(VisualComponent):
             updates='constant', allowedUpdates=[],
             hint="Set name of the variable. This parameter is effective only if 'Mode' is 'Follow the variable'\nThe experiment run in dummy mode if value of the variable is True. Otherwise, run in normal mode.",
             label="Mode Variable", categ="Advanced")
+        self.params['useMonitorInfo']=Param(useMonitorInfo, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="If true, monitor infomation is used to send screen width, screen height, cm/deg and screen directions to SimpleGazeTracker.",
+            label="Use Monitor Info", categ="Advanced")
         # these inherited params are harmless but might as well trim:
         for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType', 'durationEstim']:
             del self.params[p]
@@ -78,6 +96,8 @@ class GazeParserInitComponent(VisualComponent):
         buff.writeIndented('import GazeParser\nimport GazeParser.Configuration\nimport GazeParser.TrackingTools\n')
         if self.params['gpconfigfile'].val != '':
             buff.writeIndented('GazeParser.config=GazeParser.Configuration.Config(%(gpconfigfile)s)\n' % (self.params))
+        if self.params['useMonitorInfo'].val:
+            buff.writeIndented(useMonitorInfoCode)
         getControllerCommand = 'GazeParserTracker = GazeParser.TrackingTools.getController(backend="PsychoPy", '
         if self.params['trconfigfile'].val != '':
             getControllerCommand += 'configFile=%(trconfigfile)s, ' % (self.params)
@@ -98,7 +118,7 @@ class GazeParserInitComponent(VisualComponent):
             buff.writeIndented('GazeParserRes = GazeParserTracker.calibrationLoop()\n')
             buff.writeIndented('if GazeParserRes=="q":\n')
             buff.setIndentLevel(+1, relative=True)
-            buff.writeIndented('core.quit(0)\n')
+            buff.writeIndented('core.quit()\n')
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('if GazeParserTracker.isCalibrationFinished():\n')
             buff.setIndentLevel(+1, relative=True)
