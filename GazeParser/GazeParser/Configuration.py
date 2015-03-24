@@ -76,7 +76,7 @@ class Config(object):
         self.ConfigFile = ConfigFile
 
         cfgp.read(ConfigFile)
-        self._optionDict = {}
+        optionDict = {}
         for option in GazeParserDefaults:
             try:
                 value = cfgp.get('GazeParser', option)
@@ -86,17 +86,17 @@ class Config(object):
                     elif value == 'False':
                         value = True
                     setattr(self, option, int(value))
-                    self._optionDict[option] = int(value)
+                    optionDict[option] = int(value)
                 elif isinstance(GazeParserDefaults[option], float):
                     setattr(self, option, float(value))
-                    self._optionDict[option] = float(value)
+                    optionDict[option] = float(value)
                 else:
                     setattr(self, option, value)
-                    self._optionDict[option] = value
+                    optionDict[option] = value
             except:
                 print 'Warning: %s is not properly defined in GazeParser configuration file(%s). Default value is used.' % (option, self.ConfigFile)
                 setattr(self, option, GazeParserDefaults[option])
-                self._optionDict[option] = GazeParserDefaults[option]
+                optionDict[option] = GazeParserDefaults[option]
 
     def save(self, ConfigFile=None):
         """
@@ -126,4 +126,10 @@ class Config(object):
             print '%s = %s' % (key, getattr(self, key))
 
     def getParametersAsDict(self):
-        return self._optionDict
+        """
+        Get parameters as a dict object.
+        """
+        optionDict = {}
+        for key in GazeParserOptions:
+            optionDict[key] = getattr(self, key)
+        return optionDict
