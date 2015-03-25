@@ -113,6 +113,9 @@ class GazeParserInitComponent(VisualComponent):
         else:
             buff.writeIndented('GazeParserTracker.setCalibrationTargetPositions(%(calarea)s, %(caltargetpos)s, %(units)s)\n' % (self.params))
         if self.params['calibration'].val:
+            buff.writeIndented('logging.exp(\'Start GazeParser calibration\')\n')
+            buff.writeIndented('tmpGazeParserLogLevel = logFile.level\n')
+            buff.writeIndented('logFile.setLevel(logging.WARNING)\n')
             buff.writeIndented('while True:\n')
             buff.setIndentLevel(+1, relative=True)
             buff.writeIndented('GazeParserRes = GazeParserTracker.calibrationLoop()\n')
@@ -122,8 +125,10 @@ class GazeParserInitComponent(VisualComponent):
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('if GazeParserTracker.isCalibrationFinished():\n')
             buff.setIndentLevel(+1, relative=True)
-            buff.writeIndented('break\n\n')
+            buff.writeIndented('break\n')
             buff.setIndentLevel(-2, relative=True)
+            buff.writeIndented('logFile.setLevel(tmpGazeParserLogLevel)\n')
+            buff.writeIndented('logging.exp(\'End GazeParser calibration\')\n\n')
     def writeFrameCode(self,buff):
         pass
     def writeExperimentEndCode(self,buff):

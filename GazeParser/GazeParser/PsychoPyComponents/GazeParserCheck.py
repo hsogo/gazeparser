@@ -69,6 +69,9 @@ class GazeParserCheckComponent(VisualComponent):
     def writeRoutineStartCode(self,buff):
         task = self.params['mode'].val
         if task in ['cal', 'cal+check']:
+            buff.writeIndented('logging.exp(\'Start GazeParser calibration\')\n')
+            buff.writeIndented('tmpGazeParserLogLevel = logFile.level\n')
+            buff.writeIndented('logFile.setLevel(logging.WARNING)\n')
             buff.writeIndented('while True:\n')
             buff.setIndentLevel(+1, relative=True)
             buff.writeIndented('GazeParserRes = GazeParserTracker.calibrationLoop()\n')
@@ -78,9 +81,14 @@ class GazeParserCheckComponent(VisualComponent):
             buff.setIndentLevel(-1, relative=True)
             buff.writeIndented('if GazeParserTracker.isCalibrationFinished():\n')
             buff.setIndentLevel(+1, relative=True)
-            buff.writeIndented('break\n\n')
+            buff.writeIndented('break\n')
             buff.setIndentLevel(-2, relative=True)
+            buff.writeIndented('logFile.setLevel(tmpGazeParserLogLevel)\n')
+            buff.writeIndented('logging.exp(\'End GazeParser calibration\')\n\n')
         if task in ['check', 'cal+check']:
+            buff.writeIndented('logging.exp(\'Start GazeParser verifyFixation\')\n')
+            buff.writeIndented('tmpGazeParserLogLevel = logFile.level\n')
+            buff.writeIndented('logFile.setLevel(logging.WARNING)\n')
             buff.writeIndented('GazeParserTracker.verifyFixation(maxTry=%(maxtry)s, permissibleError=%(permerror)s ,key=%(key)s, \n' % (self.params))
             buff.writeIndented('    position=%(pos)s, mouseButton=%(mousebutton)s, \n' % (self.params))
             if self.params['units'].val=='from exp settings':
@@ -90,7 +98,9 @@ class GazeParserCheckComponent(VisualComponent):
             if self.params['message1'].val == self.params['message2'].val == self.params['message3'].val == '':
                 buff.writeIndented('    message=None)\n\n')
             else:
-                buff.writeIndented('    message=[%(message1)s, %(message2)s, %(message3)s])\n\n' % (self.params))
-            buff.writeIndented('routineTimer.reset()\n')
+                buff.writeIndented('    message=[%(message1)s, %(message2)s, %(message3)s])\n' % (self.params))
+            buff.writeIndented('logFile.setLevel(tmpGazeParserLogLevel)\n')
+            buff.writeIndented('logging.exp(\'End GazeParser verifyFixation\')\n')
+            buff.writeIndented('routineTimer.reset()\n\n')
     def writeFrameCode(self,buff):
         pass
