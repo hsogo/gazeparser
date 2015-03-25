@@ -2265,8 +2265,8 @@ class ControllerPsychoPyBackend(BaseController):
         if position is not None:
             posInPix = self.convertToPix(position, units)
         else:
-            position = (0, 0)
-            posInPix = (0, 0)
+            position = (0.0, 0.0)
+            posInPix = (0.0, 0.0)
 
         if isinstance(self.caltarget, tuple):
             for s in self.caltarget:
@@ -2310,10 +2310,10 @@ class ControllerPsychoPyBackend(BaseController):
                 eyepos = self.getEyePosition(ma=ma, units=units)
                 if len(eyepos) == 2:  # monocular
                     if eyepos[0] is not None:
-                        gazeMarker.setPos(eyepos, log=False)
+                        gazeMarker.setPos(self.convertToPix(eyepos, units), log=False)
                 else:  # binocular
                     if (eyepos[0] is not None) and (eyepos[1] is not None):
-                        gazeMarker.setPos(((eyepos[0]+eyepos[2])/2.0, (eyepos[1]+eyepos[3])/2.0), log=False)
+                        gazeMarker.setPos(self.convertToPix(((eyepos[0]+eyepos[2])/2.0, (eyepos[1]+eyepos[3])/2.0), units), log=False)
 
             # update screen
             if isBackgroundVisible:
