@@ -1982,11 +1982,11 @@ class ControllerPsychoPyBackend(BaseController):
         self.win = win
         (self.screenWidth, self.screenHeight) = win.size
         self.screenCenter = (0, 0)
-        self.caltarget = self.PPRect(self.win, width=10, height=10, units='pix', lineWidth=1, fillColor=(1, 1, 1), lineColor=(1, 1, 1))
+        self.caltarget = self.PPRect(self.win, width=10, height=10, units='pix', lineWidth=1, fillColor=(1, 1, 1), lineColor=(1, 1, 1), name='GazeParserCalTarget')
         self.PILimgCAL = Image.new('L', (self.screenWidth-self.screenWidth % 4, self.screenHeight-self.screenHeight % 4))
-        self.img = self.PPSimpleImageStim(self.win, self.PILimg)
-        self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL)
-        self.msgtext = self.PPTextStim(self.win, pos=(0, -self.PREVIEW_HEIGHT/2-12), units='pix', text=self.getCurrentMenuItem(), font=font)
+        self.img = self.PPSimpleImageStim(self.win, self.PILimg, name='GazeParserCameraImage')
+        self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL, name='GazeParserCalibrationImage')
+        self.msgtext = self.PPTextStim(self.win, pos=(0, -self.PREVIEW_HEIGHT/2-12), units='pix', text=self.getCurrentMenuItem(), font=font, name='GazeParserMenuText')
         self.calResultScreenOrigin = (self.screenWidth/2, self.screenHeight/2)
         self.mouse = self.PPmouse(win=self.win)
 
@@ -2283,9 +2283,9 @@ class ControllerPsychoPyBackend(BaseController):
         isMarkerVisible = showMarker
         isBackgroundVisible = showBackground
         if gazeMarker is None:
-            gazeMarker = self.PPRect(self.win, width=3, height=3, units='pix', lineWidth=1, fillColor=(1, 1, 0), lineColor=(1, 1, 0))
+            gazeMarker = self.PPRect(self.win, width=3, height=3, units='pix', lineWidth=1, fillColor=(1, 1, 0), lineColor=(1, 1, 0), name='GazeParserGazeMarker')
         if backgroundStimuli is None:
-            backgroundStimuli = [self.PPCircle(self.win, radius=100, units='pix', lineWidth=1, lineColor=(0.5, 0.5, 0.5))]
+            backgroundStimuli = [self.PPCircle(self.win, radius=100, units='pix', lineWidth=1, lineColor=(0.5, 0.5, 0.5), name='GazeParserFPCircle')]
 
         self.startMeasurement()
 
@@ -2564,7 +2564,7 @@ class ControllerPsychoPyBackend(BaseController):
         if backgroundStimuli is None:
             if position is None:
                 position = self.screenCenter
-            backgroundStimuli = [self.PPCircle(self.win, radius=permissibleError, units=units, lineWidth=1, lineColor=(0.5, 0.5, 0.5))]
+            backgroundStimuli = [self.PPCircle(self.win, radius=permissibleError, units=units, lineWidth=1, lineColor=(0.5, 0.5, 0.5), name='GazeParserFPCircle')]
 
         numTry = 0
         error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton, position=None,
