@@ -1,3 +1,14 @@
+gazeparser (0.8.1) unstable; urgency=medium
+
+  * A new option is added to GazeParserInit to toggle sending PsychcoPy's monitor settings to SimpleGazeTracker.
+  * Better synchronization between PsychoPy Builder experiment and SimpleGazeTracker.
+  * Log messages by PsychoPy Components are improved.
+  * Default parameters of PsychoPy Components are 
+  * Several bugs in PsychoPy Components are fixed.
+  * Several bugs in TrackingTools are fixed.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Wed, 25 Mar 2015 18:00:00 +0900
+
 gazeparser (0.8.0) unstable; urgency=medium
 
   * add checkVersion option to GazeParser.Utility.load.
@@ -6,7 +17,7 @@ gazeparser (0.8.0) unstable; urgency=medium
   * Custom components for PsychoPy Builder are created.
   * fix error in combining data files (Viewer.py).
 
- -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Tue, 05 Aug 2014 17:12:04 +0900
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thr, 12 Mar 2015 19:48:31 +0900
 
 gazeparser (0.7.0) unstable; urgency=medium
 

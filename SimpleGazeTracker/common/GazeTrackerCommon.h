@@ -17,11 +17,14 @@
 - change version number
 @date 2013/03/06
 - added: getPreviousEyePositionForward, getPreviousEyePositionReverse
+@date 2015/03/12
+- changed: MENU_MIN_PUPILWIDTH and MENU_MAX_PUPILWIDTH
+- 
 */
 
 
 
-#define VERSION "0.8.0"
+#define VERSION "0.8.1"
 
 #ifdef _WIN32
 #include <windows.h>

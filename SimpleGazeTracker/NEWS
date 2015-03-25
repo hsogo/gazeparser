@@ -1,3 +1,7 @@
+New in 0.8.1
+
+  * SimpleGazeTracker does not stop if "MINPOINTS" and "MAXPOINTS" are in the CONFIG file. They are automatically removed.
+
 New in 0.8.0
 
   * Calibration results are output to data file.
