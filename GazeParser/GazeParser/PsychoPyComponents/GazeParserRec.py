@@ -27,11 +27,11 @@ class GazeParserRecComponent(BaseComponent):
         #params
         self.order = ['name'] + paramNames[:] # want a copy, else codeParamNames list gets mutated
         self.params['startmsg']=Param(startmsg, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="The message sent when recording is started.",
             label="Message (Start)")
         self.params['stopmsg']=Param(stopmsg, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="The message sent when recording is stopped.",
             label="Message (End)")
         # these inherited params are harmless but might as well trim:
