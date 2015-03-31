@@ -3,7 +3,7 @@ gazeparser (0.8.1) unstable; urgency=medium
   * A new option is added to GazeParserInit to toggle sending PsychcoPy's monitor settings to SimpleGazeTracker.
   * Better synchronization between PsychoPy Builder experiment and SimpleGazeTracker.
   * Log messages by PsychoPy Components are improved.
-  * Default parameters of PsychoPy Components are 
+  * Default parameters of PsychoPy Components are modified.
   * Several bugs in PsychoPy Components are fixed.
   * Several bugs in TrackingTools are fixed.
 
