@@ -75,7 +75,7 @@ class GazeParserInitComponent(VisualComponent):
             label="Mode", categ="Advanced")
         self.params['modevar']=Param(modevar, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=[],
-            hint="Set name of the variable. This parameter is effective only if 'Mode' is 'Follow the variable'\nThe experiment run in dummy mode if value of the variable is True. Otherwise, run in normal mode.",
+            hint="Set name of the variable. This parameter is effective only if 'Mode' is 'Follow the variable'\nThe experiment run in dummy mode if value of the variable is 'True' or 'Dummy'. Otherwise, run in normal mode.",
             label="Mode Variable", categ="Advanced")
         self.params['useMonitorInfo']=Param(useMonitorInfo, valType='bool', allowedTypes=[],
             updates='constant', allowedUpdates=[],
@@ -92,7 +92,16 @@ class GazeParserInitComponent(VisualComponent):
         elif self.params['mode'].val == 'Dummy':
             isDummyMode = True
         else: # Follow the variable
-            isDummyMode = self.params['modevar'].val
+            if self.params['modevar'].val == '':
+                raise ValueError('GazeParserInit: ModeVar must not be empty when "Mode" property is "Follow the variable"')
+            buff.writeIndented('if %(modevar)s in [\'True\', \'Dummy\']:\n' % (self.params))
+            buff.setIndentLevel(+1, relative=True)
+            buff.writeIndented('GazeParser_isDummyMode = True\n')
+            buff.setIndentLevel(-1, relative=True)
+            buff.writeIndented('else:\n')
+            buff.setIndentLevel(+1, relative=True)
+            buff.writeIndented('GazeParser_isDummyMode = False\n')
+            buff.setIndentLevel(-1, relative=True)
         buff.writeIndented('import GazeParser\nimport GazeParser.Configuration\nimport GazeParser.TrackingTools\n')
         if self.params['gpconfigfile'].val != '':
             buff.writeIndented('GazeParser.config=GazeParser.Configuration.Config(%(gpconfigfile)s)\n' % (self.params))
@@ -101,7 +110,10 @@ class GazeParserInitComponent(VisualComponent):
         getControllerCommand = 'GazeParserTracker = GazeParser.TrackingTools.getController(backend="PsychoPy", '
         if self.params['trconfigfile'].val != '':
             getControllerCommand += 'configFile=%(trconfigfile)s, ' % (self.params)
-        getControllerCommand += 'dummy=%s)\n' % (isDummyMode)
+        if self.params['mode'].val in ['Normal', 'Dummy']:
+            getControllerCommand += 'dummy=%s)\n' % (isDummyMode)
+        else: # Follow the variable
+            getControllerCommand += 'dummy=GazeParser_isDummyMode)\n'
         buff.writeIndented(getControllerCommand)
         buff.writeIndented('GazeParserTracker.connect(%(ipaddress)s)\n' % (self.params))
         if self.params['datafile'].val != '':

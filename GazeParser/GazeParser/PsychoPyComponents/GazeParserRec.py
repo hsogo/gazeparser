@@ -27,11 +27,11 @@ class GazeParserRecComponent(BaseComponent):
         #params
         self.order = ['name'] + paramNames[:] # want a copy, else codeParamNames list gets mutated
         self.params['startmsg']=Param(startmsg, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="The message sent when recording is started.",
             label="Message (Start)")
         self.params['stopmsg']=Param(stopmsg, valType='str', allowedTypes=[],
-            updates='constant', allowedUpdates=[],
+            updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="The message sent when recording is stopped.",
             label="Message (End)")
         # these inherited params are harmless but might as well trim:
@@ -43,6 +43,7 @@ class GazeParserRecComponent(BaseComponent):
         buff.writeIndented('routineTimer.add('+self.parentName+'Clock.getTime())\n')
         buff.writeIndented(self.parentName+'Clock.reset() # clock must be reset because startRecording() takes hundreds of milliseconds\n')
         buff.writeIndented('GazeParserTracker.sendMessage(\'rec_sync\')\n' % (self.params))
+        buff.writeIndented('logging.exp(\'GazeParser rec_sync\')\n' % (self.params))
 
     def writeRoutineEndCode(self,buff):
         buff.writeIndented('GazeParserTracker.stopRecording(%(stopmsg)s)\n' % (self.params))
