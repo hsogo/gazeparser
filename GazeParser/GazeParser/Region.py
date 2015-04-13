@@ -34,7 +34,6 @@ class CircleRegion(object):
                     return False
 
         else:  # point
-            print numpy.linalg.norm((data[0]-self.x, data[1]-self.y)) < self.r
             if numpy.linalg.norm((data[0]-self.x, data[1]-self.y)) < self.r:
                 return True
             else:

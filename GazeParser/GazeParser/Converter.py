@@ -823,7 +823,6 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
             elif itemList[0] == '#CALPOINT':
                 for idx in range(len(itemList)):
                     if idx==0:
-                        print itemList[idx]
                         continue
                     try:
                         itemList[idx] = float(itemList[idx])
