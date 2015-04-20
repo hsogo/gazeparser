@@ -36,6 +36,7 @@ import matplotlib.figure
 import matplotlib.font_manager
 import matplotlib.patches
 import matplotlib.cm
+import matplotlib.animation
 import GazeParser.app.ConfigEditor
 import GazeParser.app.Converters
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
@@ -70,12 +71,17 @@ ID_CONF_GRID = wx.NewId()
 ID_CONF_COLOR = wx.NewId()
 ID_CONF_FONT = wx.NewId()
 ID_CONF_STIMIMAGE = wx.NewId()
-ID_CNV_CONVERT = wx.NewId()
-ID_CNV_EDITCONFIG = wx.NewId()
-ID_ANA_GETLATENCY = wx.NewId()
-ID_ANA_GETFIXREG = wx.NewId()
+ID_TOOL_CONVERT = wx.NewId()
+ID_TOOL_EDITCONFIG = wx.NewId()
+ID_TOOL_GETLATENCY = wx.NewId()
+ID_TOOL_GETFIXREG = wx.NewId()
+ID_TOOL_ANIMATION = wx.NewId()
+ID_JUMPLIST_CURRENT = wx.NewId()
+ID_JUMPLIST_REGISTERED = wx.NewId()
+ID_JUMPLIST_EVENT = wx.NewId()
+ID_JUMP_TO = wx.NewId()
 
-def askyesno(caption, message, parent=None):
+def messageDialogAskyesno(parent=None, caption='Ask Yes/No', message='Ask Yes/No'):
     dlg = wx.MessageDialog(parent, message=message, caption=caption, style=wx.YES_NO)
     response = dlg.ShowModal()
     dlg.Destroy()
@@ -84,17 +90,17 @@ def askyesno(caption, message, parent=None):
     else:
         return False
 
-def showinfo(caption, message, parent=None):
+def messageDialogShowinfo(parent=None, caption='Show Info', message='Show Info'):
     dlg = wx.MessageDialog(parent, message=message, caption=caption, style=wx.ICON_INFORMATION|wx.OK)
     dlg.ShowModal()
     dlg.Destroy()
 
-def showerror(caption, message, parent=None):
+def messageDialogShowerror(parent=None, caption='Show Error', message='Show Error'):
     dlg = wx.MessageDialog(parent, message=message, caption=caption, style=wx.ICON_ERROR|wx.OK)
     dlg.ShowModal()
     dlg.Destroy()
 
-def askopenfilename(filetypes='', initialdir='', parent=None):
+def messageDialogAskopenfilename(parent=None, filetypes='', initialdir=''):
     dlg = wx.FileDialog(parent, defaultDir=initialdir, wildcard=filetypes, style=wx.FD_OPEN)
     if dlg.ShowModal() == wx.ID_OK:
         d = dlg.GetDirectory()
@@ -105,7 +111,7 @@ def askopenfilename(filetypes='', initialdir='', parent=None):
         dlg.Destroy()
         return ''
 
-def askopenfilenames(filetypes='', initialdir='', parent=None):
+def messageDialogAskopenfilenames(parent=None, filetypes='', initialdir=''):
     dlg = wx.FileDialog(parent, defaultDir=initialdir, wildcard=filetypes, style=wx.FD_OPEN|wx.FD_MULTIPLE)
     if dlg.ShowModal() == wx.ID_OK:
         d = dlg.GetDirectory()
@@ -116,7 +122,7 @@ def askopenfilenames(filetypes='', initialdir='', parent=None):
         dlg.Destroy()
         return ''
 
-def asksaveasfilename(filetypes='', initialdir='', initialfile='', parent=None):
+def messageDialogAsksaveasfilename(parent=None, filetypes='', initialdir='', initialfile=''):
     dlg = wx.FileDialog(parent, defaultDir=initialdir, defaultFile=initialfile, wildcard=filetypes, style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
     if dlg.ShowModal() == wx.ID_OK:
         d = dlg.GetDirectory()
@@ -126,6 +132,54 @@ def asksaveasfilename(filetypes='', initialdir='', initialfile='', parent=None):
     else:
         dlg.Destroy()
         return ''
+
+class messageDialogAsk3buttonDialog(wx.Dialog):
+    def __init__(self, parent, id=wx.ID_ANY, message='message', buttons=['yes','no','cancel']):
+        super(messageDialogAsk3buttonDialog, self).__init__(parent=parent, id=id)
+        
+        self.selectedButton = -1
+        self.buttons = buttons
+        
+        buttonPanel = wx.Panel(self, wx.ID_ANY)
+        button0 = wx.Button(buttonPanel, wx.ID_ANY, buttons[0])
+        button1 = wx.Button(buttonPanel, wx.ID_ANY, buttons[1])
+        button2 = wx.Button(buttonPanel, wx.ID_ANY, buttons[2])
+        box = wx.BoxSizer(wx.HORIZONTAL)
+        box.Add(button0)
+        box.Add(button1)
+        box.Add(button2)
+        buttonPanel.SetSizer(box)
+        
+        button0.Bind(wx.EVT_BUTTON, self.onButton0)
+        button1.Bind(wx.EVT_BUTTON, self.onButton1)
+        button2.Bind(wx.EVT_BUTTON, self.onButton2)
+        
+        box = wx.BoxSizer(wx.VERTICAL)
+        box.Add(wx.StaticText(self, wx.ID_ANY, message), flag=wx.EXPAND|wx.ALL, border=30)
+        box.Add(buttonPanel, flag=wx.ALIGN_RIGHT)
+        
+        self.SetSizerAndFit(box)
+    
+    def onButton0(self, event=None):
+        self.selectedButton = 0
+        self.Close()
+    
+    def onButton1(self, event=None):
+        self.selectedButton = 1
+        self.Close()
+    
+    def onButton2(self, event=None):
+        self.selectedButton = 2
+        self.Close()
+    
+    def GetSelection(self, event=None):
+        return self.selectedButton
+    
+    def GetStringSelection(self, event=None):
+        if self.selectedButton == -1:
+            return 'NOT SELECTED'
+        else:
+            return self.buttons[self.selectedButton]
 
 def getComplementaryColorStr(col):
     """
@@ -141,9 +195,288 @@ def getTextColor(backgroundColor, thresh=0.3):
     else:
         return '#000000'
 
+
+class animationDialog(wx.Dialog):
+    def __init__(self, parent, id=wx.ID_ANY):
+        super(animationDialog, self).__init__(parent=parent, id=id, title='Animation')
+        self.parent = parent
+        self.D = parent.D
+        self.tr = parent.tr
+        self.conf = parent.conf
+        self.plotAreaXY = parent.plotAreaXY
+        self.fontPlotText = parent.fontPlotText
+        self.dataFileName = parent.dataFileName
+        self.hasLData = parent.hasLData
+        self.hasRData = parent.hasRData
+
+
+        if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+            self.sf = (1.0, 1.0)
+        elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+            self.sf = self.D[self.tr]._pix2deg
+        
+        self.ID_STARTSLIDER = wx.NewId()
+        self.ID_STOPSLIDER = wx.NewId()
+        self.ID_STARTCTRL = wx.NewId()
+        self.ID_STOPCTRL = wx.NewId()
+        
+        TIMER_ID = wx.NewId()
+        self.timer = wx.Timer(self, TIMER_ID)
+        wx.EVT_TIMER(self, TIMER_ID, self.onTimer) 
+        
+        self.saveMovie = False
+        
+        viewPanel = wx.Panel(self, wx.ID_ANY)
+        self.fig = matplotlib.figure.Figure( None )
+        self.canvas = FigureCanvasWxAgg( viewPanel, wx.ID_ANY, self.fig )
+        self.ax = self.fig.add_axes([80.0/self.conf.CANVAS_WIDTH,  # 80px
+                                     60.0/self.conf.CANVAS_HEIGHT,  # 60px
+                                     1.0-2*80.0/self.conf.CANVAS_WIDTH,
+                                     1.0-2*60.0/self.conf.CANVAS_HEIGHT])
+        self.ax.axis(self.plotAreaXY)
+        self.ax.set_aspect('equal')
+        self.toolbar = NavigationToolbar2WxAgg(self.canvas)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(self.canvas, flag=wx.EXPAND, proportion=1)
+        vbox.Add(self.toolbar, flag=wx.EXPAND, proportion=0)
+        viewPanel.SetSizerAndFit(vbox)
+
+        self.rangePanel = wx.Panel(self, wx.ID_ANY)
+        self.startSlider = wx.Slider(self.rangePanel, self.ID_STARTSLIDER, style=wx.SL_HORIZONTAL, 
+                                     value=1, minValue=1, maxValue=len(self.D[self.tr].T))
+        self.stopSlider = wx.Slider(self.rangePanel, self.ID_STOPSLIDER, style=wx.SL_HORIZONTAL, 
+                                     value=len(self.D[self.tr].T), minValue=1, maxValue=len(self.D[self.tr].T))
+        self.tcStart = wx.TextCtrl(self.rangePanel, self.ID_STARTCTRL, '1', style=wx.TE_PROCESS_ENTER|wx.TE_RIGHT)
+        self.tcStop = wx.TextCtrl(self.rangePanel, self.ID_STOPCTRL, str(len(self.D[self.tr].T)), style=wx.TE_PROCESS_ENTER|wx.TE_RIGHT)
+        self.tcStartTime = wx.TextCtrl(self.rangePanel, wx.ID_ANY, '%.1f'%(self.D[self.tr].T[0]), style=wx.TE_RIGHT)
+        self.tcStopTime = wx.TextCtrl(self.rangePanel, wx.ID_ANY, '%.1f'%(self.D[self.tr].T[-1]), style=wx.TE_RIGHT)
+        self.startSlider.Bind(wx.EVT_SLIDER, self.updateRangeSlider)
+        self.stopSlider.Bind(wx.EVT_SLIDER, self.updateRangeSlider)
+        self.tcStart.Bind(wx.EVT_TEXT_ENTER, self.updateRangeCtrl)
+        self.tcStop.Bind(wx.EVT_TEXT_ENTER, self.updateRangeCtrl)
+        self.tcStartTime.Enable(False)
+        self.tcStopTime.Enable(False)
+        box = wx.FlexGridSizer(2,3)
+        box.Add(self.startSlider, flag=wx.EXPAND)
+        box.Add(self.tcStart)
+        box.Add(self.tcStartTime)
+        box.Add(self.stopSlider, flag=wx.EXPAND)
+        box.Add(self.tcStop)
+        box.Add(self.tcStopTime)
+        box.AddGrowableCol(0)
+        self.rangePanel.SetSizerAndFit(box)
+
+        self.fpsPanel = wx.Panel(self, wx.ID_ANY)
+        stFPS = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'FPS:')
+        self.tcFPS = wx.TextCtrl(self.fpsPanel, wx.ID_ANY, '15', style=wx.TE_PROCESS_ENTER|wx.TE_RIGHT)
+        stSkip = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'Skip:')
+        self.tcSkip = wx.TextCtrl(self.fpsPanel, wx.ID_ANY, '1', style=wx.TE_PROCESS_ENTER|wx.TE_RIGHT)
+        estimDur = float(len(self.D[self.tr].T))/(15*1)
+        self.stEstimate = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'Estimated movie duration: %.1f sec' % (estimDur))
+        self.tcFPS.Bind(wx.EVT_TEXT_ENTER, self.updateEstimation)
+        self.tcSkip.Bind(wx.EVT_TEXT_ENTER, self.updateEstimation)
+        box = wx.BoxSizer(wx.HORIZONTAL)
+        box.Add(stFPS, flag=wx.LEFT, border=5)
+        box.Add(self.tcFPS)
+        box.Add(stSkip, flag=wx.LEFT, border=5)
+        box.Add(self.tcSkip)
+        box.Add(self.stEstimate, flag=wx.LEFT, border=5)
+        self.fpsPanel.SetSizer(box)
+
+        buttonPanel = wx.Panel(self, wx.ID_ANY)
+        self.startButton = wx.Button(buttonPanel, wx.ID_ANY, 'Start animation')
+        self.stopButton = wx.Button(buttonPanel, wx.ID_ANY, 'Stop animation')
+        self.stopButton.Enable(False)
+        self.cbSaveToFile = wx.CheckBox(buttonPanel, wx.ID_ANY, 'Save to file')
+        self.cancelButton = wx.Button(buttonPanel, wx.ID_ANY, 'Close')
+        self.startButton.Bind(wx.EVT_BUTTON, self.startAnimation)
+        self.stopButton.Bind(wx.EVT_BUTTON, self.stopAnimation)
+        self.cancelButton.Bind(wx.EVT_BUTTON, self.cancel)
+        
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.startButton)
+        hbox.Add(self.stopButton)
+        hbox.Add(self.cbSaveToFile)
+        hbox.Add(self.cancelButton)
+        buttonPanel.SetSizerAndFit(hbox)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(viewPanel)
+        vbox.Add(self.rangePanel, flag=wx.EXPAND)
+        vbox.Add(self.fpsPanel, flag=wx.EXPAND)
+        vbox.Add(buttonPanel, flag=wx.ALIGN_RIGHT)
+        self.SetSizerAndFit(vbox)
+        
+        self.plotData()
+
+        self.Show()
+        
+        #TODO: fps skip res *bitrate
+
+    def updateRangeSlider(self, event=None):
+        st = self.startSlider.GetValue()
+        e = self.stopSlider.GetValue()
+        if event.Id == self.ID_STARTSLIDER:
+            if st>=e:
+                st = e-1
+                self.startSlider.SetValue(st)
+            self.tcStart.SetValue(str(st))
+            self.tcStartTime.SetValue('%.1f'%(self.D[self.tr].T[st-1]))
+        elif event.Id == self.ID_STOPSLIDER:
+            if st>=e:
+                e = st+1
+                self.stopSlider.SetValue(e)
+            self.tcStop.SetValue(str(e))
+            self.tcStopTime.SetValue('%.1f'%(self.D[self.tr].T[e-1]))
+
+        self.plotData()
+        self.updateEstimation()
+
+    def updateRangeCtrl(self, event=None):
+        try:
+            st = int(self.tcStart.GetValue())
+        except:
+            self.tcStart.SetVaue(str(self.startSlider.GetValue()))
+        try:
+            e = int(self.tcStop.GetValue())
+        except:
+            self.tcStop.SetVaue(str(self.stopSlider.GetValue()))
+        if event.Id == self.ID_STARTCTRL:
+            if st>=e:
+                st = e-1
+                self.tcStart.SetValue(str(st))
+            self.startSlider.SetValue(st)
+            self.tcStartTime.SetValue('%.1f'%(self.D[self.tr].T[st-1]))
+        elif event.Id == self.ID_STOPCTRL:
+            if st>=e:
+                e = st+1
+                self.tcStop.SetValue(str(e))
+            self.stopSlider.SetValue(e)
+            self.tcStopTime.SetValue('%.1f'%(self.D[self.tr].T[e-1]))
+
+        self.plotData()
+        self.updateEstimation()
+
+    def updateEstimation(self, event=None):
+        try:
+            fps = int(self.tcFPS.GetValue())
+        except:
+            self.tcFPS.GetValue('15')
+        try:
+            skip = int(self.tcSkip.GetValue())
+        except:
+            self.tcSkip.GetValue('1')
+        if fps<=0:
+            self.tcFPS.GetValue('15')
+            fps = 15
+        if skip<=0:
+            self.tcFPS.GetValue('1')
+            skip=1
+        st = int(self.tcStart.GetValue())
+        e = int(self.tcStop.GetValue())
+        estimDur = float(e-st)/(fps*skip)
+        self.stEstimate.SetLabel('Estimated movie duration: %.1f sec' % (estimDur))
+
+    def startAnimation(self, event=None):
+        self.saveMovie = self.cbSaveToFile.GetValue()
+        self.skip = int(self.tcSkip.GetValue())
+        if self.saveMovie:
+            fps = int(self.tcFPS.GetValue())
+            FFMpegWriter = matplotlib.animation.writers['ffmpeg']
+            metadata = dict(title=self.parent.dataFileName, artist='GazeParser Data Viewer', comment='Trial %d' % (self.tr))
+            self.writer = FFMpegWriter(fps=fps, bitrate=-1, metadata=metadata)
+            fname = messageDialogAsksaveasfilename(self, initialdir=self.parent.initialDataDir, filetypes='mp4 file (*.mp4)|*.mp4')
+            if fname == '':
+                return
+            self.writer.setup(self.fig, fname, dpi=100)
+        self.index = self.startSlider.GetValue()-1
+        self.stopindex = self.stopSlider.GetValue()
+        xlim = self.ax.get_xlim()
+        ylim = self.ax.get_ylim()
+        self.ax.clear()
+        self.ax.set_xlim(xlim)
+        self.ax.set_ylim(ylim)
+        # set plotrange and axis labels
+        if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+            self.ax.set_xlabel('Vertical gaze position (pix)', fontproperties=self.fontPlotText)
+            self.ax.set_ylabel('Horizontal gaze position (pix)', fontproperties=self.fontPlotText)
+        elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+            self.ax.set_xlabel('Vertical gaze position (deg)', fontproperties=self.fontPlotText)
+            self.ax.set_ylabel('Horizontal gaze position (deg)', fontproperties=self.fontPlotText)
+        if self.hasLData:
+            self.l, = self.ax.plot([],[],'-o', color=self.conf.COLOR_TRAJECTORY_L_X)
+        if self.hasLData:
+            self.r, = self.ax.plot([],[],'-o', color=self.conf.COLOR_TRAJECTORY_R_X)
+        self.startButton.Enable(False)
+        self.stopButton.Enable(True)
+        self.cancelButton.Enable(False)
+        self.rangePanel.Enable(False)
+
+        self.timer.Start(100)
+
+    def stopAnimation(self, event=None):
+        if self.saveMovie:
+            self.writer.finish()
+        self.timer.Stop()
+        self.startButton.Enable(True)
+        self.stopButton.Enable(False)
+        self.cancelButton.Enable(True)
+        self.rangePanel.Enable(True)
+        
+        if event is None:
+            messageDialogShowinfo(self, 'Info', 'Finished')
+
+    def onTimer(self, event=None):
+        if self.index < self.stopindex:
+            self.ax.set_title('time: %.1f' % self.D[self.tr].T[self.index])
+            if self.hasLData:
+                self.l.set_data(self.sf[0]*self.D[self.tr].L[self.index][0], self.sf[1]*self.D[self.tr].L[self.index][1])
+            if self.hasRData:
+                self.r.set_data(self.sf[0]*self.D[self.tr].R[self.index][0], self.sf[1]*self.D[self.tr].R[self.index][1])
+            self.index += self.skip
+            self.canvas.draw()
+            if self.saveMovie:
+                self.writer.grab_frame()
+        else:
+            self.stopAnimation(event=None)
+
+    def cancel(self, event=None):
+        self.Close()
+
+    def plotData(self, event=None):
+        xlim = self.ax.get_xlim()
+        ylim = self.ax.get_ylim()
+        self.ax.clear()
+        self.ax.set_xlim(xlim)
+        self.ax.set_ylim(ylim)
+
+        st = self.startSlider.GetValue()-1 # 1 must be subtracted
+        e = self.stopSlider.GetValue()
+
+        # ---- xy plot ----
+        # plot fixations
+        if self.hasLData:
+            self.ax.plot(self.sf[0]*self.D[self.tr].L[st:e,0], self.sf[1]*self.D[self.tr].L[st:e,1], '-', color=self.conf.COLOR_TRAJECTORY_L_X)
+        if self.hasRData:
+            self.ax.plot(self.sf[0]*self.D[self.tr].R[st:e,0], self.sf[1]*self.D[self.tr].R[st:e,1], '-', color=self.conf.COLOR_TRAJECTORY_R_X)
+        # ---- xy plot ----
+
+        # set plotrange and axis labels
+        if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+            self.ax.set_xlabel('Vertical gaze position (pix)', fontproperties=self.fontPlotText)
+            self.ax.set_ylabel('Horizontal gaze position (pix)', fontproperties=self.fontPlotText)
+        elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+            self.ax.set_xlabel('Vertical gaze position (deg)', fontproperties=self.fontPlotText)
+            self.ax.set_ylabel('Horizontal gaze position (deg)', fontproperties=self.fontPlotText)
+
+        self.ax.set_title('%s: Trial %d / %d' % (os.path.basename(self.dataFileName), self.tr+1, len(self.D)), fontproperties=self.fontPlotText)
+        self.fig.canvas.draw()
+
+
 class convertSGTDialog(wx.Dialog):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(convertSGTDialog, self).__init__(parent=parent, id=id)
+        super(convertSGTDialog, self).__init__(parent=parent, id=id, title='SimpleGazeTracker csv converter')
 
         self.mainWindow = parent
         if self.mainWindow is None:
@@ -207,9 +540,9 @@ class convertSGTDialog(wx.Dialog):
         self.Show()
 
     def convertFiles(self, event=None):
-        fnames = askopenfilenames(filetypes='SimpleGazeTracker CSV file (*.csv)|*.csv', initialdir=self.initialDataDir)
+        fnames = messageDialogAskopenfilenames(self, filetypes='SimpleGazeTracker CSV file (*.csv)|*.csv', initialdir=self.initialDataDir)
         if fnames == []:
-            showinfo('info', 'No files')
+            messageDialogShowinfo(self, 'info', 'No files')
             return
 
         self.initialDataDir = os.path.split(fnames[0])[0]
@@ -239,14 +572,14 @@ class convertSGTDialog(wx.Dialog):
                     errormsg += tbi
                 errormsg += '  %s' % str(info[1])
                 errorlist.append(f)
-                if not askyesno('Error', errormsg + '\n\nConvert remaining files?'):
+                if not messageDialogAskyesno(self, 'Error', errormsg + '\n\nConvert remaining files?'):
                     break
             else:
                 if res == 'SUCCESS':
                     donelist.append(f)
                 else:
                     errorlist.append(f)
-                    if not askyesno('Error', res + '\n\nConvert remaining files?'):
+                    if not messageDialogAskyesno(self, 'Error', res + '\n\nConvert remaining files?'):
                         break
         msg = 'Convertion done.\n'
         if len(donelist) <= 16:
@@ -257,7 +590,7 @@ class convertSGTDialog(wx.Dialog):
             msg += '\n\nError.\n'+'\n'.join(errorlist)
         elif len(errorlist) > 16:
             msg += '\n\nError.\n%d files were failed to convert.' % len(errorlist)
-        showinfo('info', msg)
+        messageDialogShowinfo(self, 'info', msg)
 
     def loadConfig(self, event=None):
         # self.ftypes = [('GazeParser ConfigFile', '*.cfg')]
@@ -266,11 +599,11 @@ class convertSGTDialog(wx.Dialog):
             initialdir = GazeParser.configDir
         else:
             initialdir = GazeParser.homeDir
-        self.configFileName = askopenfilename(filetypes=self.ftypes, initialdir=self.initialDataDir)
+        self.configFileName = messageDialogAskopenfilename(self, filetypes=self.ftypes, initialdir=self.initialDataDir)
         try:
             self.configuration = GazeParser.Configuration.Config(self.configFileName)
         except:
-            showerror('GazeParser.Configuration.GUI', 'Cannot read %s.\nThis file may not be a GazeParser ConfigFile' % self.configFileName)
+            messageDialogShowerror(self, 'GazeParser.Configuration.GUI', 'Cannot read %s.\nThis file may not be a GazeParser ConfigFile' % self.configFileName)
 
         if self.mainWindow is not None:
             self.mainWindow.initialDataDir = self.initialDataDir
@@ -286,7 +619,7 @@ class convertSGTDialog(wx.Dialog):
         self.ftypes = 'GazeParser ConfigFile (*.cfg)|*.cfg'
         for key in GazeParser.Configuration.GazeParserOptions:
             if self.paramEntryDict[key].GetValue() == '':
-                showerror('GazeParser.Configuration.GUI', '\'%s\' is empty.\nConfiguration is not saved.' % key)
+                messageDialogShowerror(self, 'GazeParser.Configuration.GUI', '\'%s\' is empty.\nConfiguration is not saved.' % key)
                 return
 
         try:
@@ -296,7 +629,7 @@ class convertSGTDialog(wx.Dialog):
                 fdir = GazeParser.configDir
             else:
                 fdir = GazeParser.homeDir
-        fname = asksaveasfilename(filetypes=self.ftypes, initialdir=fdir)
+        fname = messageDialogAsksaveasfilename(self, filetypes=self.ftypes, initialdir=fdir)
 
         if fname == '':
             return
@@ -304,7 +637,7 @@ class convertSGTDialog(wx.Dialog):
         try:
             fp = open(fname, 'w')
         except:
-            showerror('Error', 'Could not open \'%s\'' % fname)
+            messageDialogShowerror(self, 'Error', 'Could not open \'%s\'' % fname)
             return
 
         fp.write('[GazeParser]\n')
@@ -312,7 +645,7 @@ class convertSGTDialog(wx.Dialog):
             fp.write('%s = %s\n' % (key, self.paramEntryDict[key].GetValue()))
         fp.close()
 
-        showinfo('Info', 'Saved to \'%s\'' % fname)
+        messageDialogShowinfo(self, 'Info', 'Saved to \'%s\'' % fname)
 
     def updateParameters(self, event=None):
         for key in GazeParser.Configuration.GazeParserOptions:
@@ -351,10 +684,10 @@ class convertSGTDialog(wx.Dialog):
 
 class interactiveConfigFrame(wx.Frame):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(interactiveConfigFrame, self).__init__(parent=parent, id=id)
+        super(interactiveConfigFrame, self).__init__(parent=parent, id=id, title='GazeParser configuration file editor')
         self.configtypes = 'GazeParser Configuration File (*.cfg)|*.cfg'
         if parent.D is None:
-            showerror('Error', 'No data')
+            messageDialogShowerror(self, 'Error', 'No data')
             return
 
         self.D = parent.D
@@ -498,7 +831,7 @@ class interactiveConfigFrame(wx.Frame):
 
     def prevTrial(self, event=None):
         if self.D is None:
-            showerror('Error', 'No Data', parent=self)
+            messageDialogShowerror(self, 'Error', 'No Data')
             return
         if self.tr > 0:
             self.tr -= 1
@@ -514,7 +847,7 @@ class interactiveConfigFrame(wx.Frame):
 
     def nextTrial(self, event=None):
         if self.D is None:
-            showerror('Error', 'No Data', parent=self)
+            messageDialogShowerror(self, 'Error', 'No Data')
             return
         if self.tr < len(self.D)-1:
             self.tr += 1
@@ -572,7 +905,7 @@ class interactiveConfigFrame(wx.Frame):
 
     def updateParameters(self, event=None):
         if self.D is None:
-            showerror('Error', 'No data!', parent=self)
+            messageDialogShowerror(self, 'Error', 'No data!')
             return
 
         try:
@@ -585,7 +918,7 @@ class interactiveConfigFrame(wx.Frame):
                 else:
                     setattr(self.newConfig, key, value)
         except:
-            showerror('Error', 'Illeagal value in '+key, parent=self)
+            messageDialogShowerror(self, 'Error', 'Illeagal value in '+key)
             return
 
         offset = PLOT_OFFSET
@@ -614,7 +947,7 @@ class interactiveConfigFrame(wx.Frame):
             for tbi in tbinfo:
                 errormsg += tbi
             errormsg += '  %s' % str(info[1])
-            showerror('Error', errormsg, parent=self)
+            messageDialogShowerror(self, 'Error', errormsg)
             self.newSacList = None
             self.newFixList = None
         else:
@@ -631,24 +964,25 @@ class interactiveConfigFrame(wx.Frame):
                 else:
                     setattr(self.newConfig, key, value)
         except:
-            showerror('Error', 'Illeagal value in '+key, parent=self)
+            messageDialogShowerror(self, 'Error', 'Illeagal value in '+key)
             return
 
         fname = ''
         try:
-            fname = asksaveasfilename(filetypes=self.configtypes, initialdir=GazeParser.configDir, parent=self)
+            fname = messageDialogAsksaveasfilename(self, filetypes=self.configtypes, initialdir=GazeParser.configDir)
             if fname == '':
                 return
             self.newConfig.save(fname)
         except:
             if fname == '':
-                showerror('Error', 'Could not get filename.', parent=self)
+                messageDialogShowerror(self, 'Error', 'Could not get filename.')
             else:
-                showerror('Error', 'Could not write configuration to \'' + fname + '\'', parent=self)
+                messageDialogShowerror(self, 'Error', 'Could not write configuration to \'' + fname + '\'')
 
 class getFixationsInRegionDialog(wx.Dialog):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(getFixationsInRegionDialog, self).__init__(parent=parent, id=id)
+        super(getFixationsInRegionDialog, self).__init__(parent=parent, id=id, title='Fxations in region')
+        self.parent = parent
         self.D = parent.D
         self.C = parent.C
         self.conf = parent.conf
@@ -851,7 +1185,7 @@ class getFixationsInRegionDialog(wx.Dialog):
                             for tbi in tbinfo:
                                 errormsg += tbi
                             errormsg += '  %s' % str(info[1])
-                            showerror('Error', msg.text+'\n\n'+errormsg)
+                            messageDialogShowerror(self, 'Error', msg.text+'\n\n'+errormsg)
                     data.append(fixlistTrial)
                     labels.append(labelsTrial)
                     nFixList.append(len(fixlistTrial))
@@ -861,14 +1195,14 @@ class getFixationsInRegionDialog(wx.Dialog):
                     labels.append([])
                     nFixList.append(0)
 
-        else:  # use dualog parameters
+        else:  # use dialog parameters
             if self.rbCircleRegion.GetValue(): # circle
                 try:
                     x = float(self.tcCircleRegionX.GetValue())
                     y = float(self.tcCircleRegionY.GetValue())
                     r = float(self.tcCircleRegionR.GetValue())
                 except:
-                    showerror('Error', 'non-float values in x, y, and/or r')
+                    messageDialogShowerror(self, 'Error', 'non-float values in x, y, and/or r')
                     return
                 region = GazeParser.Region.CircleRegion(x, y, r)
 
@@ -879,7 +1213,7 @@ class getFixationsInRegionDialog(wx.Dialog):
                     y1 = float(self.tcRectRegionX2.GetValue())
                     y2 = float(self.tcRectRegionY2.GetValue())
                 except:
-                    showerror('Error', 'non-float values in x1, x2, y1 and/or y2')
+                    messageDialogShowerror(self, 'Error', 'non-float values in x1, x2, y1 and/or y2')
                     return
 
                 region = GazeParser.Region.RectRegion(x1, x2, y1, y2)
@@ -894,7 +1228,7 @@ class getFixationsInRegionDialog(wx.Dialog):
                 if toStr != '':
                     period[1] = float(toStr)
             except:
-                showerror('Error', 'From and To must be empty or float value.')
+                messageDialogShowerror(self, 'Error', 'From and To must be empty or float value.')
                 return
 
             if self.cbTemporalCriterion.GetValue():
@@ -929,9 +1263,14 @@ class getFixationsInRegionDialog(wx.Dialog):
                 nTrial += 1
 
         # output data
-        ans = askyesno('Info', '%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList), nTrial))
-        if ans:
-            fname = asksaveasfilename(initialdir=self.initialDataDir)
+        #ans = messageDialogAskyesno('Info', '%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList), nTrial))
+        dlg = messageDialogAsk3buttonDialog(self, message='%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList), nTrial), buttons=['Export to file', 'Register with jump list', 'Cancel'])
+        dlg.ShowModal()
+        ans = dlg.GetSelection()
+        dlg.Destroy()
+        
+        if ans == 0: # export to file
+            fname = messageDialogAsksaveasfilename(self, initialdir=self.initialDataDir)
             if fname != '':
                 fp = open(fname, 'w')
                 fp.write('Trial\tLabel\tStarting\tFinish\tDuration\tCenterX\tCenterY\n')
@@ -944,16 +1283,35 @@ class getFixationsInRegionDialog(wx.Dialog):
                                                                              data[i][fi].center[0],
                                                                              data[i][fi].center[1]))
                 fp.close()
-                showinfo('Info', 'Done.')
+                messageDialogShowinfo(self, 'Info', 'Done.')
             else:
-                showinfo('Info', 'Canceled.')
-
+                messageDialogShowinfo(self, 'Info', 'Canceled.')
+        elif ans == 1: # register with jump list
+                self.parent.jumplistbox.ClearAll()
+                self.parent.jumplistbox.InsertColumn(0, 'Trial', width=-1)
+                self.parent.jumplistbox.InsertColumn(1, 'Time', width=-1)
+                self.parent.jumplistbox.InsertColumn(2, 'Label', width=-1)
+                self.parent.jumplistbox.InsertColumn(3, 'Center', width=-1)
+                self.parent.jumplistbox.InsertColumn(4, 'Duration', width=-1)
+                line = 0
+                for i in range(len(data)):
+                    for fi in range(len(data[i])):
+                        self.parent.jumplistbox.InsertStringItem(line, str(i+1), wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.SetStringItem(line, 1, '%10.1f' % data[i][fi].startTime, wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.SetStringItem(line, 2, labels[i][fi])
+                        self.parent.jumplistbox.SetStringItem(line, 3, '%.1f,%.1f' % tuple(data[i][fi].center), wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.SetStringItem(line, 4, '%10.1f' % data[i][fi].duration, wx.LIST_FORMAT_RIGHT)
+                        line += 1
+                self.jumplistSortAscend = True
+                self.jumplistSortColumn = 0
+        
     def cancel(self, event=None):
         self.Close()
 
 class getSaccadeLatencyDialog(wx.Dialog):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(getSaccadeLatencyDialog, self).__init__(parent=parent, id=id)
+        super(getSaccadeLatencyDialog, self).__init__(parent=parent, id=id, title='Saccade latency')
+        self.parent = parent
         self.D = parent.D
         self.C = parent.C
         self.conf = parent.conf
@@ -1048,10 +1406,10 @@ class getSaccadeLatencyDialog(wx.Dialog):
             if self.tcMaxLatency.GetValue() != '':
                 maxlat = float(self.tcMaxLatency.GetValue())
         except:
-            showerror('Error', 'Invalid values are found in amplitude/latency.')
+            messageDialogShowerror(self, 'Error', 'Invalid values are found in amplitude/latency.')
         for value in (minamp, maxamp, minlat, maxlat):
             if value is not None and value < 0:
-                showerror('Error', 'latency and amplitude must be zero or positive.')
+                messageDialogShowerror(self, 'Error', 'latency and amplitude must be zero or positive.')
                 return
 
         nMsg = 0
@@ -1081,7 +1439,7 @@ class getSaccadeLatencyDialog(wx.Dialog):
                 if isSaccadeFound:
                     nSac += 1
                     trdata.append([tr, self.D[tr].Msg[msgidx].time, self.D[tr].Msg[msgidx].text])
-                    sacdata.append([tmplatency, tmpamplitude])
+                    sacdata.append([tmplatency, tmpamplitude, sac.start[0], sac.start[1]])
 
         if nMsg > 0:
             if nSac > 0:
@@ -1089,30 +1447,53 @@ class getSaccadeLatencyDialog(wx.Dialog):
                 latdata = numpy.array(sacdata)[:, 0]
                 self.ax.hist(latdata)
                 self.fig.canvas.draw()
-                ans = askyesno('Export', '%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
-                if ans:
-                    fname = asksaveasfilename(initialdir=self.initialDataDir)
+                #ans = messageDialogAskyesno('Export', '%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
+                dlg = messageDialogAsk3buttonDialog(self, message='%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg), buttons=['Export to file', 'Register with jump list', 'Cancel'])
+                dlg.ShowModal()
+                ans = dlg.GetSelection()
+                dlg.Destroy()
+                
+                if ans==0: # export to file
+                    fname = messageDialogAsksaveasfilename(self, initialdir=self.initialDataDir)
                     if fname != '':
                         fp = open(fname, 'w')
                         fp.write('Trial\tMessageTime\tMessageText\tLatency\tAmplitude\n')
                         for n in range(nSac):
                             fp.write('%d\t%.2f\t%s\t' % tuple(trdata[n]))
-                            fp.write('%.2f\t%.2f\n' % tuple(sacdata[n]))
+                            fp.write('%.2f\t%.2f\n' % tuple(sacdata[n][0:2]))
                         fp.close()
-                        showinfo('Info', 'Done.')
+                        messageDialogShowinfo(self, 'Info', 'Done.')
                     else:
-                        showinfo('Info', 'Canceled.')
+                        messageDialogShowinfo(self, 'Info', 'Canceled.')
+                elif ans==1: # register with jump list
+                    self.parent.jumplistbox.ClearAll()
+                    self.parent.jumplistbox.InsertColumn(0, 'Trial', width=-1)
+                    self.parent.jumplistbox.InsertColumn(1, 'Time', width=-1)
+                    self.parent.jumplistbox.InsertColumn(2, 'Message', width=-1)
+                    self.parent.jumplistbox.InsertColumn(3, 'Start', width=-1)
+                    self.parent.jumplistbox.InsertColumn(4, 'Latency', width=-1)
+                    self.parent.jumplistbox.InsertColumn(5, 'Amplitude', width=-1)
+                    for n in range(nSac):
+                        self.parent.jumplistbox.InsertStringItem(n, str(trdata[n][0]+1), wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.SetStringItem(n, 1, '%10.1f' % trdata[n][1], wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.SetStringItem(n, 2, trdata[n][2])
+                        self.parent.jumplistbox.SetStringItem(n, 3, '%.1f,%.1f' % tuple(sacdata[n][2:4]), wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.SetStringItem(n, 4, '%10.1f' % sacdata[n][0], wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.SetStringItem(n, 5, '%.1f' % sacdata[n][1], wx.LIST_FORMAT_RIGHT)
+                    self.jumplistSortAscend = True
+                    self.jumplistSortColumn = 0
+
             else:
-                showinfo('Info', 'No saccades are detected')
+                messageDialogShowinfo(self, 'Info', 'No saccades are detected')
         else:
-            showinfo('Info', 'No messages are found')
+            messageDialogShowinfo(self, 'Info', 'No messages are found')
 
     def cancel(self, event=None):
         self.Close()
 
 class combineDataFileDialog(wx.Dialog):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(combineDataFileDialog, self).__init__(parent=parent, id=id)
+        super(combineDataFileDialog, self).__init__(parent=parent, id=id, title='Combining GazeParser datafiles')
         self.mainWindow = parent
 
         self.lbFileList = wx.ListBox(self, wx.ID_ANY, size=(600,-1))
@@ -1175,7 +1556,7 @@ class combineDataFileDialog(wx.Dialog):
         self.lbFileList.SetSelection(selected+1)
 
     def addFiles(self, event=None):
-        fnames = askopenfilenames(filetypes=self.mainWindow.datafiletype, initialdir=self.mainWindow.initialDataDir)
+        fnames = messageDialogAskopenfilenames(self, filetypes=self.mainWindow.datafiletype, initialdir=self.mainWindow.initialDataDir)
         if fnames == []:
             return
 
@@ -1193,7 +1574,7 @@ class combineDataFileDialog(wx.Dialog):
             else:
                 self.lbFileList.SetSelection(selected)
         else:
-            showinfo('Info', 'Select files to delete.')
+            messageDialogShowinfo(self, 'Info', 'Select files to delete.')
 
     def removeAll(self, event=None):
         n = self.lbFileList.GetCount()
@@ -1202,14 +1583,14 @@ class combineDataFileDialog(wx.Dialog):
 
     def combine(self, event=None):
         if self.lbFileList.GetCount() <= 1:
-            showinfo('Info', 'At least two data files must be added.')
+            messageDialogShowinfo(self, 'Info', 'At least two data files must be added.')
             return
         fnames = [self.lbFileList.GetString(idx) for idx in range(self.lbFileList.GetCount())]
         for index in range(len(fnames)):
             if fnames[index][:16] == '* Current Data (':
                 fnames[index] = fnames[index][16:-1]
 
-        combinedFilename = asksaveasfilename(filetypes=self.mainWindow.datafiletype, initialdir=self.mainWindow.initialDataDir)
+        combinedFilename = messageDialogAsksaveasfilename(self, filetypes=self.mainWindow.datafiletype, initialdir=self.mainWindow.initialDataDir)
         if combinedFilename == '':
             return
 
@@ -1224,9 +1605,9 @@ class combineDataFileDialog(wx.Dialog):
             for tbi in tbinfo:
                 errormsg += tbi
             errormsg += '  %s' % str(info[1])
-            showerror('Error', errormsg)
+            messageDialogShowerror(self, 'Error', errormsg)
         else:
-            showinfo('Info', 'Done')
+            messageDialogShowinfo(self, 'Info', 'Done')
         self.Close()
 
     def cancel(self, event=None):
@@ -1235,7 +1616,7 @@ class combineDataFileDialog(wx.Dialog):
 
 class configStimImageDialog(wx.Dialog):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(configStimImageDialog, self).__init__(parent=parent, id=id)
+        super(configStimImageDialog, self).__init__(parent=parent, id=id, title='Setting stimulus image directory')
         self.mainWindow = parent
 
         editPanel = wx.Panel(self, wx.ID_ANY)
@@ -1275,7 +1656,7 @@ class configStimImageDialog(wx.Dialog):
 
 class fontSelectDialog(wx.Dialog):
     def __init__(self, parent, id=None):
-        super(fontSelectDialog, self).__init__(parent=parent, id=id)
+        super(fontSelectDialog, self).__init__(parent=parent, id=id, title='Fong settings')
         self.mainWindow = parent
 
         self.fontnamelist = []
@@ -1349,7 +1730,7 @@ class fontSelectDialog(wx.Dialog):
     def setFont(self, event=None):
         idx = self.lbFontList.GetSelection()
         if idx < 0:
-            showerror('Error', 'No font is selected')
+            messageDialogShowerror(self, 'Error', 'No font is selected')
             return
         self.mainWindow.conf.CANVAS_FONT_FILE = self.fontfilelist[self.sortedIndex[idx]]
         self.mainWindow.fontPlotText = matplotlib.font_manager.FontProperties(fname=self.mainWindow.conf.CANVAS_FONT_FILE)
@@ -1369,7 +1750,7 @@ class fontSelectDialog(wx.Dialog):
 
 class insertNewMessageDialog(wx.Dialog):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(insertNewMessageDialog, self).__init__(parent=parent, id=id, title='Edit message')
+        super(insertNewMessageDialog, self).__init__(parent=parent, id=id, title='Inserting new message')
         self.mainWindow = parent
 
         editPanel = wx.Panel(self, id=wx.ID_ANY)
@@ -1404,7 +1785,7 @@ class insertNewMessageDialog(wx.Dialog):
         try:
             newTime = float(self.tcTime.GetValue())
         except:
-            showerror('Error', 'Invalid time value')
+            messageDialogShowerror(self, 'Error', 'Invalid time value')
             return
 
         newText = self.tcText.GetValue()
@@ -1412,7 +1793,7 @@ class insertNewMessageDialog(wx.Dialog):
         try:
             self.mainWindow.D[self.mainWindow.tr].insertNewMessage(newTime, newText)
         except:
-            showerror('Error', 'Invalid time value')
+            messageDialogShowerror(self, 'Error', 'Invalid time value')
             return
 
         self.mainWindow.updateMsgBox()
@@ -1427,7 +1808,7 @@ class insertNewMessageDialog(wx.Dialog):
 
 class editMessageDialog(wx.Dialog):
     def __init__(self, parent, message, id=wx.ID_ANY):
-        super(editMessageDialog, self).__init__(parent=parent, id=id, title='Edit message')
+        super(editMessageDialog, self).__init__(parent=parent, id=id, title='Editing message')
         self.mainWindow = parent
 
         self.message = message
@@ -1478,7 +1859,7 @@ class editMessageDialog(wx.Dialog):
         try:
             newTime = float(self.tcTime.GetValue())
         except:
-            showerror('Error', 'Invalid time value')
+            messageDialogShowerror(self, 'Error', 'Invalid time value')
             return
 
         newText = self.tcText.GetValue()
@@ -1486,7 +1867,7 @@ class editMessageDialog(wx.Dialog):
         try:
             self.message.updateMessage(newTime, newText)
         except:
-            showerror('Error', 'Message cannot be updated.\n\n'+str(newTime)+'\n'+newText)
+            messageDialogShowerror(self, 'Error', 'Message cannot be updated.\n\n'+str(newTime)+'\n'+newText)
             return
 
         self.mainWindow.updateMsgBox()
@@ -1499,42 +1880,6 @@ class editMessageDialog(wx.Dialog):
     def cancel(self, event=None):
         self.Close()
 
-"""
-class jumpToTrialDialog(wx.Dialog):
-    def __init__(self, parent=None, id=wx.ID_ANY):
-        super(jumpToTrialDialog, self).__init__(parent=parent, id=id, title='Jump to...')
-        self.mainWindow = parent
-
-        jumpPanel = wx.Panel(self, id=wx.ID_ANY)
-        label = wx.StaticText(jumpPanel, wx.ID_ANY, 'Jump to... (1-%s)' % (len(parent.D)))
-        self.newTr = wx.TextCtrl(jumpPanel, wx.ID_ANY)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(label, flag=wx.ALL, border=10)
-        hbox.Add(self.newTr, flag=wx.ALL, border=10)
-        jumpPanel.SetSizer(hbox)
-        
-        buttonPanel = wx.Panel(self, wx.ID_ANY)
-        okButton = wx.Button(buttonPanel, wx.ID_ANY, 'Ok')
-        cancelButton = wx.Button(buttonPanel, wx.ID_ANY, 'Cancel')
-        okButton.Bind(wx.EVT_BUTTON, self.jump)
-        cancelButton.Bind(wx.EVT_BUTTON, self.cancel)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(okButton)
-        hbox.Add(cancelButton)
-        buttonPanel.SetSizer(hbox)
-
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(jumpPanel, flag=wx.EXPAND)
-        vbox.Add(buttonPanel, flag=wx.ALIGN_RIGHT)
-        self.SetSizerAndFit(vbox)
-        self.Show()
-
-    def jump(self, event=None):
-
-
-    def cancel(self, event=None):
-        self.Close()
-"""
 
 class exportToFileDialog(wx.Dialog):
     def __init__(self, parent, id, data, additional, trial, master=None, initialdir=None):
@@ -1591,7 +1936,7 @@ class exportToFileDialog(wx.Dialog):
 
     def export(self, event=None):
         if self.cbSaccade.GetValue() or self.cbFixation.GetValue() or self.cbBlink.GetValue() or self.cbMessage.GetValue():
-            exportFileName = asksaveasfilename(initialdir=self.initialDataDir)
+            exportFileName = messageDialogAsksaveasfilename(self, initialdir=self.initialDataDir)
             if exportFileName == '':
                 return
             fp = open(exportFileName, 'w')
@@ -1639,10 +1984,10 @@ class exportToFileDialog(wx.Dialog):
 
             fp.close()
 
-            showinfo('Info', 'Done.')
+            messageDialogShowinfo(self, 'Info', 'Done.')
 
         else:
-            showinfo('Info', 'No items were selected.')
+            messageDialogShowinfo(self, 'Info', 'No items were selected.')
         
         self.Close()
 
@@ -1651,7 +1996,7 @@ class exportToFileDialog(wx.Dialog):
 
 class configColorDialog(wx.Dialog):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(configColorDialog, self).__init__(parent=parent, id=id)
+        super(configColorDialog, self).__init__(parent=parent, id=id, title='Color settings')
         self.mainWindow = parent
         
         nParam = 0
@@ -1734,7 +2079,7 @@ class configColorDialog(wx.Dialog):
 
 class configGridDialog(wx.Dialog):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(configGridDialog, self).__init__(parent=parent, id=id)
+        super(configGridDialog, self).__init__(parent=parent, id=id, title='Grid settings')
         self.mainWindow = parent
         
         self.choices = ['No grid', 'Show grid on current ticks', 'Set interval ticks', 'Set custom ticks']
@@ -1903,7 +2248,7 @@ class ViewerOptions(object):
         try:
             self.VIEWER_VERSION = appConf.get('Version', 'VIEWER_VERSION')
         except:
-            ans = askyesno('Error', 'No VIEWER_VERSION option in configuration file (%s). Backup current file and then initialize configuration file?\n' % (self.viewerConfigFile))
+            ans = messageDialogAskyesno(None, 'Error', 'No VIEWER_VERSION option in configuration file (%s). Backup current file and then initialize configuration file?\n' % (self.viewerConfigFile))
             if ans:
                 shutil.copyfile(self.viewerConfigFile, self.viewerConfigFile+'.bak')
                 shutil.copyfile(initialConfigFile, self.viewerConfigFile)
@@ -1912,17 +2257,17 @@ class ViewerOptions(object):
                 appConf.read(self.viewerConfigFile)
                 self.VIEWER_VERSION = appConf.get('Version', 'VIEWER_VERSION')
             else:
-                showinfo('info', 'Please correct configuration file manually.')
+                messageDialogShowinfo(None, 'info', 'Please correct configuration file manually.')
                 sys.exit()
 
         doMerge = False
         if self.VIEWER_VERSION != GazeParser.__version__:
-            ans = askyesno('Warning', 'VIEWER_VERSION of configuration file (%s) disagree with GazeParser version (%s). Backup current configuration file and build new configuration file?' % (self.VIEWER_VERSION, GazeParser.__version__))
+            ans = messageDialogAskyesno(None, 'Warning', 'VIEWER_VERSION of configuration file (%s) disagree with GazeParser version (%s). Backup current configuration file and build new configuration file?' % (self.VIEWER_VERSION, GazeParser.__version__))
             if ans:
                 shutil.copyfile(self.viewerConfigFile, self.viewerConfigFile+'.bak')
                 doMerge = True
             else:
-                showinfo('info', 'Please update configuration file manually.')
+                messageDialogShowinfo(None, 'info', 'Please update configuration file manually.')
                 sys.exit()
 
         if doMerge:
@@ -1941,7 +2286,7 @@ class ViewerOptions(object):
                         setattr(self, optName, optType(appNewConf.get(section, optName)))
                         newOpts.append(' * '+optName)
             # new version number
-            showinfo('info', 'Added:\n'+'\n'.join(newOpts))
+            messageDialogShowinfo(None, 'info', 'Added:\n'+'\n'.join(newOpts))
 
         else:
             for section, params in self.options:
@@ -2065,15 +2410,18 @@ class mainFrame(wx.Frame):
         wx.EVT_MENU(self, ID_CONF_COLOR, self.configColor)
         wx.EVT_MENU(self, ID_CONF_FONT, self.configFont)
         wx.EVT_MENU(self, ID_CONF_STIMIMAGE, self.configStimImage)
-        self.menu_tools.Append(ID_CNV_CONVERT, 'Convert  SimpleGazeTracker CSV')
-        self.menu_tools.Append(ID_CNV_EDITCONFIG, 'Edit GazeParser Configuration File')
+        self.menu_tools.Append(ID_TOOL_CONVERT, 'Convert  SimpleGazeTracker CSV')
+        self.menu_tools.Append(ID_TOOL_EDITCONFIG, 'Edit GazeParser Configuration File')
         self.menu_tools.AppendSeparator()
-        self.menu_tools.Append(ID_ANA_GETLATENCY, 'Saccade latency')
-        self.menu_tools.Append(ID_ANA_GETFIXREG, 'Fixations in region')
-        wx.EVT_MENU(self, ID_CNV_CONVERT, self.convertSGT)
-        wx.EVT_MENU(self, ID_CNV_EDITCONFIG, self.interactiveConfig)
-        wx.EVT_MENU(self, ID_ANA_GETLATENCY, self.getLatency)
-        wx.EVT_MENU(self, ID_ANA_GETFIXREG, self.getFixationsInRegion)
+        self.menu_tools.Append(ID_TOOL_GETLATENCY, 'Saccade latency')
+        self.menu_tools.Append(ID_TOOL_GETFIXREG, 'Fixations in region')
+        self.menu_tools.AppendSeparator()
+        self.menu_tools.Append(ID_TOOL_ANIMATION, 'Animation')
+        wx.EVT_MENU(self, ID_TOOL_CONVERT, self.convertSGT)
+        wx.EVT_MENU(self, ID_TOOL_EDITCONFIG, self.interactiveConfig)
+        wx.EVT_MENU(self, ID_TOOL_GETLATENCY, self.getLatency)
+        wx.EVT_MENU(self, ID_TOOL_GETFIXREG, self.getFixationsInRegion)
+        wx.EVT_MENU(self, ID_TOOL_ANIMATION, self.animation)
         
         # toolbar
         self.mainToolbar = self.CreateToolBar()
@@ -2084,7 +2432,7 @@ class mainFrame(wx.Frame):
         self.mainToolbar.AddLabelTool(ID_PREV_TR, 'Prev', wx.Bitmap('img/previous.png'), wx.Bitmap('img/previous_disabled.png'))
         self.tcNTrials = wx.TextCtrl(self.mainToolbar, wx.ID_ANY, '(no data)', style=wx.TE_RIGHT)
         self.tcNTrials.Enable(False)
-        self.tcJumpTo = wx.TextCtrl(self.mainToolbar, wx.ID_ANY, style=wx.TE_RIGHT)
+        self.tcJumpTo = wx.TextCtrl(self.mainToolbar, ID_JUMP_TO, style=wx.TE_RIGHT)
         self.tcJumpTo.Bind(wx.EVT_TEXT_ENTER, self.jumpToTrial)
         self.mainToolbar.AddControl(self.tcNTrials)
         self.mainToolbar.AddControl(self.tcJumpTo)
@@ -2113,10 +2461,13 @@ class mainFrame(wx.Frame):
         vbox.Add(self.toolbar, flag=wx.EXPAND, proportion=0)
         self.viewPanel.SetSizer(vbox)
         
-        self.eventPanel = wx.Panel(self, wx.ID_ANY)
+        self.sidePane = wx.Notebook(self, wx.ID_ANY)
+        
+        self.eventPanel = wx.Panel(self.sidePane, wx.ID_ANY)
         self.selectradiobox = wx.RadioBox(self.eventPanel,wx.ID_ANY,'Selection',choices=SELECTMODES,style=wx.RA_VERTICAL)
         self.selectradiobox.SetSelection(SELECTMODES.index(self.selectiontype))
-        self.msglistbox = wx.ListCtrl(self.eventPanel,wx.ID_ANY,style=wx.LC_REPORT)
+        self.msglistbox = wx.ListCtrl(self.eventPanel,ID_JUMPLIST_EVENT,style=wx.LC_REPORT)
+        self.msglistbox.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.jumpToTime)
         self.msglistbox.InsertColumn(0, 'Time')
         self.msglistbox.InsertColumn(1, 'Event')
         
@@ -2135,7 +2486,22 @@ class mainFrame(wx.Frame):
         vbox.Add(buttonPanel, flag=wx.EXPAND, proportion=0)
         vbox.Add(self.msglistbox, flag=wx.EXPAND, proportion=1)
         self.eventPanel.SetSizerAndFit(vbox)
+
+        self.trialPanel = wx.Panel(self.sidePane, wx.ID_ANY)
+        self.jumplistbox = wx.ListCtrl(self.trialPanel,ID_JUMPLIST_REGISTERED,style=wx.LC_REPORT)
+        self.jumplistbox.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.jumpToTrial)
+        self.jumplistbox.Bind(wx.EVT_LIST_COL_CLICK, self.sortJumpList)
+        self.jumplistSortAscend = True
+        self.jumplistSortColumn = 0
+        self.jumplistbox.InsertColumn(0, 'Trial')
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(self.jumplistbox, flag=wx.EXPAND, proportion=1)
+        self.trialPanel.SetSizerAndFit(vbox)
         
+        self.sidePane.InsertPage(0, self.eventPanel, 'Current Trial')
+        self.sidePane.InsertPage(1, self.trialPanel, 'Registered')
+        
+
         # popup menu
         menus = (('Edit selected message',self.editMessage),
                 ('Insert new message',self.insertNewMessage),
@@ -2146,14 +2512,14 @@ class mainFrame(wx.Frame):
             item.Enable(False)
             self.Bind(wx.EVT_MENU, menu[1], item)
         self.msglistbox.Bind(wx.EVT_CONTEXT_MENU, self.showPopupMsglistbox)
-        self.msglistbox.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.jumpToTime)
+
         
         self._mgr = wx.aui.AuiManager(self)
         self._mgr.AddPane(self.viewPanel, wx.aui.AuiPaneInfo().Name("DataView").
             Caption("Data View").CenterPane().CloseButton(False).MaximizeButton(True))
-        self._mgr.AddPane(self.eventPanel, wx.aui.AuiPaneInfo().Name("EventList").
-            Caption("Event List").RightDockable(True).LeftDockable(True).CloseButton(False).
-            Right().MinSize(wx.Size(150,300)))
+        self._mgr.AddPane(self.sidePane, wx.aui.AuiPaneInfo().Name("JumpList").
+            Caption("Jump List").RightDockable(True).LeftDockable(True).CloseButton(False).
+            Right().MinSize(wx.Size(200,300)))
         self._mgr.Update()
         
         ac = []
@@ -2167,7 +2533,7 @@ class mainFrame(wx.Frame):
         tbl = wx.AcceleratorTable(ac)
         self.SetAcceleratorTable(tbl)
         
-        self.SetSize(wx.Size(self.conf.CANVAS_WIDTH+150,self.conf.CANVAS_HEIGHT+64))
+        self.SetSize(wx.Size(self.conf.CANVAS_WIDTH+220,self.conf.CANVAS_HEIGHT+64))
         self.SetAutoLayout(True)
         self.Show()
 
@@ -2229,11 +2595,11 @@ class mainFrame(wx.Frame):
 
     def openfile(self, event=None):
         if self.dataModified:
-            doSave = askyesno('Warning', 'Your changes have not been saved. Do you want to save the changes?')
+            doSave = messageDialogAskyesno(self, 'Warning', 'Your changes have not been saved. Do you want to save the changes?')
             if doSave:
                 self.savefile()
 
-        fname = askopenfilename(filetypes=self.ftypes, initialdir=self.initialDataDir)
+        fname = messageDialogAskopenfilename(self, filetypes=self.ftypes, initialdir=self.initialDataDir)
         if fname == '':
             return
         self.dataFileName = fname
@@ -2256,21 +2622,21 @@ class mainFrame(wx.Frame):
             dbFileName = os.path.splitext(self.dataFileName)[0]+'.db'
             print dbFileName
             if os.path.isfile(dbFileName):
-                doOverwrite = askyesno('Overwrite?', dbFileName+' already exists. Overwrite?')
+                doOverwrite = messageDialogAskyesno(self, 'Overwrite?', dbFileName+' already exists. Overwrite?')
                 if not doOverwrite:
-                    showinfo('Info', 'Conversion canceled.')
+                    messageDialogShowinfo(self, 'Info', 'Conversion canceled.')
                     return
             ret = GazeParser.Converter.TrackerToGazeParser(self.dataFileName, overwrite=True)
             if ret == 'SUCCESS':
-                showinfo('Info', 'Conversion succeeded.\nOpen converted data file.')
+                messageDialogShowinfo(self, 'Info', 'Conversion succeeded.\nOpen converted data file.')
                 self.dataFileName = dbFileName
             else:
-                showinfo('Conversion error', 'Failed to convert %s to GazeParser .db file' % (self.dataFileName))
+                messageDialogShowinfo(self, 'Conversion error', 'Failed to convert %s to GazeParser .db file' % (self.dataFileName))
                 return
 
         [self.D, self.C] = GazeParser.load(self.dataFileName)
         if len(self.D) == 0:
-            showerror('Error', 'File contains no data. (%s)' % (self.dataFileName))
+            messageDialogShowerror(self, 'Error', 'File contains no data. (%s)' % (self.dataFileName))
             self.D = None
             self.C = None
             return
@@ -2280,13 +2646,13 @@ class mainFrame(wx.Frame):
         if GazeParser.Utility.compareVersion(self.D[0].__version__, GazeParser.__version__) < 0:
             lackingattributes = GazeParser.Utility.checkAttributes(self.D[0])
             if len(lackingattributes) > 0:
-                ans = askyesno('Info', 'This data is generated by Version %s and lacks some data attributes newly appended in the later version. Try to append new attributes automatically? If you answered \'no\', some features may not work correctly.' % (self.D[0].__version__))
+                ans = messageDialogAskyesno(self, 'Info', 'This data is generated by Version %s and lacks some data attributes newly appended in the later version. Try to append new attributes automatically? If you answered \'no\', some features may not work correctly.' % (self.D[0].__version__))
                 if ans:
                     self.D = GazeParser.Utility.rebuildData(self.D)
                     self.dataModified = True
-                    showinfo('Info', 'Automatic rebuild is finished.\nIf automatic rebuild seems to work as expected, please rebuild data from SimpleGazeTracker CSV file to add new attributes manually.')
+                    messageDialogShowinfo(self, 'Info', 'Automatic rebuild is finished.\nIf automatic rebuild seems to work as expected, please rebuild data from SimpleGazeTracker CSV file to add new attributes manually.')
                 else:
-                    showinfo('Info', 'Ok, Data file is opened without adding missing attributes.\nPlease rebuild data from SimpleGazeTracker CSV file to add new attributes manually.')
+                    messageDialogShowinfo(self, 'Info', 'Ok, Data file is opened without adding missing attributes.\nPlease rebuild data from SimpleGazeTracker CSV file to add new attributes manually.')
 
         self.block = 0
         self.tr = 0
@@ -2329,13 +2695,15 @@ class mainFrame(wx.Frame):
             self.mainToolbar.EnableTool(ID_NEXT_TR, True)
         self.tcNTrials.SetValue('trials: 1-%d'%(len(self.D)))
         self.tcJumpTo.SetValue('1')
-        
-
 
         self.loadStimImage()
 
         self.plotData()
         self.updateMsgBox()
+        
+        #clear jumplist
+        self.jumplistbox.ClearAll()
+        self.jumplistbox.InsertColumn(0, 'Trial', width=-1)
 
         # enabel message-edit popup
         for item in self.popup_msglistbox.GetMenuItems():
@@ -2344,7 +2712,7 @@ class mainFrame(wx.Frame):
     def openrecent(self, event=None):
         idx = recentIDList.index(event.Id)
         if not os.path.exists(self.conf.RecentDir[idx]):
-            if askyesno('Info', self.conf.RecentDir[idx] + ' does not exist. Remove it from "Recent Dir"?'):
+            if messageDialogAskyesno(self, 'Info', self.conf.RecentDir[idx] + ' does not exist. Remove it from "Recent Dir"?'):
                 self.conf.RecentDir.pop(idx)
                 self.conf.RecentDir.append('')
                 # update menu recent_dir
@@ -2369,18 +2737,18 @@ class mainFrame(wx.Frame):
         if len(msg) == 0:
             return False
         elif len(msg) > 1:
-            showerror('Error', 'Multiple !STIMIMAGE commands in this trial.')
+            messageDialogShowerror(self, 'Error', 'Multiple !STIMIMAGE commands in this trial.')
             return False
         else:
             params = msg[0].text.split(sep)
             if params[0] != '!STIMIMAGE':
-                showerror('Error', '!STIMIMAGE command must be at the beginning of message text.')
+                messageDialogShowerror(self, 'Error', '!STIMIMAGE command must be at the beginning of message text.')
                 return False
             try:
                 imageFilename = os.path.join(imagePath, params[1])
                 self.stimImage = Image.open(imageFilename)
             except:
-                showerror('Error', 'Cannot open %s as StimImage.' % imageFilename)
+                messageDialogShowerror(self, 'Error', 'Cannot open %s as StimImage.' % imageFilename)
                 return
 
             # set extent [left, right, bottom, top] (See matplotlib.pyplot.imshow)
@@ -2390,7 +2758,7 @@ class mainFrame(wx.Frame):
                     self.stimImageExtent[0] = float(params[2])
                     self.stimImageExtent[2] = float(params[3])
                 except:
-                    showerror('Error', 'Invalid extent: %s' % sep.join(params[2:]))
+                    messageDialogShowerror(self, 'Error', 'Invalid extent: %s' % sep.join(params[2:]))
                     self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
                     return False
 
@@ -2404,7 +2772,7 @@ class mainFrame(wx.Frame):
                     self.stimImageExtent[2] = float(params[4])
                     self.stimImageExtent[3] = float(params[5])
                 except:
-                    showerror('Error', 'Invalid extent: %s' % sep.join(params[2:]))
+                    messageDialogShowerror(self, 'Error', 'Invalid extent: %s' % sep.join(params[2:]))
                     self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
                     return False
 
@@ -2412,17 +2780,17 @@ class mainFrame(wx.Frame):
 
     def savefile(self, event=None):
         if self.D is None:
-            showinfo('info', 'No data')
+            messageDialogShowinfo(self, 'info', 'No data')
             return
 
-        filename = asksaveasfilename(filetypes=self.datafiletype, initialfile=self.dataFileName, initialdir=self.initialDataDir)
+        filename = messageDialogAsksaveasfilename(self, filetypes=self.datafiletype, initialfile=self.dataFileName, initialdir=self.initialDataDir)
         if filename == '':
             return
 
         try:
             GazeParser.save(filename, self.D, self.C)
         except:
-            showinfo('Error', 'Cannot save data as %s' % (filename))
+            messageDialogShowinfo(self, 'Error', 'Cannot save data as %s' % (filename))
             return
 
         self.dataModified = False
@@ -2430,7 +2798,7 @@ class mainFrame(wx.Frame):
 
     def exportfile(self, event=None):
         if self.D is None:
-            showinfo('info', 'Data must be loaded before export')
+            messageDialogShowinfo(self, 'info', 'Data must be loaded before export')
             return
         dlg = exportToFileDialog(parent=self, id=wx.ID_ANY, data=self.D, additional=self.C, trial=self.tr, initialdir=self.initialDataDir)
         dlg.ShowModal()
@@ -2443,7 +2811,7 @@ class mainFrame(wx.Frame):
 
     def exit(self, event=None):
         if self.dataModified:
-            doSave = askyesno('Warning', 'Your changes have not been saved. Do you want to save the changes?')
+            doSave = messageDialogAskyesno(self, 'Warning', 'Your changes have not been saved. Do you want to save the changes?')
             if doSave:
                 self.savefile()
         self.conf._write()
@@ -2453,7 +2821,7 @@ class mainFrame(wx.Frame):
 
     def prevTrial(self, event=None):
         if self.D is None:
-            showerror('Error', 'No Data')
+            messageDialogShowerror(self, 'Error', 'No Data')
             return
         if self.tr > 0:
             self.tr -= 1
@@ -2478,7 +2846,7 @@ class mainFrame(wx.Frame):
 
     def nextTrial(self, event=None):
         if self.D is None:
-            showerror('Error', 'No Data')
+            messageDialogShowerror(self, 'Error', 'No Data')
             return
         if self.tr < len(self.D)-1:
             self.tr += 1
@@ -2502,44 +2870,73 @@ class mainFrame(wx.Frame):
         self.updateMsgBox()
 
     def jumpToTrial(self, event=None):
-        print event.Id
+        if event.Id == ID_JUMPLIST_REGISTERED:
+            newtr = int(event.GetText())-1
+            self.tcJumpTo.SetValue(str(newtr+1))
+        elif event.Id == ID_JUMP_TO:
+            try:
+                newtr = int(self.tcJumpTo.GetValue())-1
+            except:
+                messageDialogShowerror(self, 'Error', 'Value must be an integer')
+                return
+
+            if newtr < 0 or newtr >= len(self.D):
+                messageDialogShowerror(self, 'Error', 'Invalid trial number')
+                return
+        else:
+            messageDialogShowerror(self, 'Erro', 'Invalid event ID')
+        
         if self.D is None:
-            showerror('Error', 'No Data')
-            return
-
-        try:
-            newtr = int(self.tcJumpTo.GetValue())-1
-        except:
-            showerror('Error', 'Value must be an integer')
-            return
-
-        if newtr < 0 or newtr >= len(self.D):
-            showerror('Error', 'Invalid trial number')
+            messageDialogShowerror(self, 'Error', 'No Data')
             return
 
         self.tr = newtr
         if self.tr == 0:
             self.menu_view.FindItemById(ID_PREV_TR).Enable(False)
+            self.mainToolbar.EnableTool(ID_PREV_TR, False)
         else:
             self.menu_view.FindItemById(ID_PREV_TR).Enable(True)
+            self.mainToolbar.EnableTool(ID_PREV_TR, True)
         if self.tr == len(self.D)-1:
             self.menu_view.FindItemById(ID_NEXT_TR).Enable(False)
+            self.mainToolbar.EnableTool(ID_NEXT_TR, False)
         else:
             self.menu_view.FindItemById(ID_NEXT_TR).Enable(True)
+            self.mainToolbar.EnableTool(ID_NEXT_TR, True)
         self.selectionlist = {'Sac': [], 'Fix': [], 'Msg': [], 'Blink': []}
         self.selectiontype = 'Emphasize'
-        self.plotData()
         self.updateMsgBox()
+        
+        if event.Id == ID_JUMPLIST_REGISTERED:
+            # save current plot range before plotting new trial
+            xlim = self.ax.get_xlim()
+            ylim = self.ax.get_ylim()
 
+            # plot new trial widthout drawing
+            self.plotData(draw=False)
+
+            # restor polot range
+            self.ax.set_xlim(xlim)
+            self.ax.set_ylim(ylim)
+
+            # then jump to time
+            self.jumpToTime(event)
+        else:
+            self.plotData()
+        
     def jumpToTime(self, event=None):
         if self.plotStyle in XYPLOTMODES:
-            i = event.GetIndex()
-            if isinstance(self.D[self.tr].EventList[i], GazeParser.Core.SaccadeData):
-                pos = (self.D[self.tr].EventList[i].start + self.D[self.tr].EventList[i].end)/2.0
-            elif isinstance(self.D[self.tr].EventList[i], GazeParser.Core.FixationData):
-                pos = self.D[self.tr].EventList[i].center
-            else:
-                return
+            if event.Id == ID_JUMPLIST_EVENT:
+                i = event.GetIndex()
+                if isinstance(self.D[self.tr].EventList[i], GazeParser.Core.SaccadeData):
+                    pos = (self.D[self.tr].EventList[i].start + self.D[self.tr].EventList[i].end)/2.0
+                elif isinstance(self.D[self.tr].EventList[i], GazeParser.Core.FixationData):
+                    pos = self.D[self.tr].EventList[i].center
+                else:
+                    return
+            elif event.Id == ID_JUMPLIST_REGISTERED:
+                posstr = self.jumplistbox.GetItem(event.GetIndex(),3).GetText()
+                pos = map(float, posstr.split(','))
 
             xlim = self.ax.get_xlim()
             ylim = self.ax.get_ylim()
@@ -2550,11 +2947,40 @@ class mainFrame(wx.Frame):
             self.fig.canvas.draw()
 
         else:
-            time = float(event.GetText())  # time
+            if event.Id == ID_JUMPLIST_EVENT:
+                time = float(event.GetText())  # time
+            elif event.Id == ID_JUMPLIST_REGISTERED:
+                time = float(self.jumplistbox.GetItem(event.GetIndex(), 1).GetText())
             xlim = self.ax.get_xlim()
             halfXrange = (xlim[1]-xlim[0])/2.0
             self.ax.set_xlim((time-halfXrange, time+halfXrange))
             self.fig.canvas.draw()
+
+    def sortJumpList(self, event=None):
+        targetCol = event.GetColumn()
+        if targetCol == self.jumplistSortColumn:
+            self.jumplistSortAscend = not self.jumplistSortAscend
+        else:
+            self.jumplistSortColumn = targetCol
+        
+        items = []
+        targetColItems = []
+        rows = self.jumplistbox.GetItemCount()
+        cols = self.jumplistbox.GetColumnCount()
+        for row in range(rows):
+            item = [self.jumplistbox.GetItem(itemId=row, col=col).GetText() for col in range(cols)]
+            items.append(item)
+            itemStr = self.jumplistbox.GetItem(itemId=row, col=targetCol).GetText()
+            try:
+                targetColItems.append(float(itemStr))
+            except:
+                targetColItems.append(itemStr)
+        indexList = numpy.array(targetColItems).argsort(kind='mergesort')
+        if not self.jumplistSortAscend:
+            indexList = indexList[-1::-1] # reverse
+        for row in range(rows):
+            for col in range(cols):
+                self.jumplistbox.SetStringItem(row, col, items[indexList[row]][col])
 
     def showPopupMsglistbox(self, event=None):
         pos = event.GetPosition()
@@ -2584,7 +3010,7 @@ class mainFrame(wx.Frame):
             try:
                 interval = float(params[1])
             except:
-                showerror('Error', '"%s" is not a float number.', (params[1]))
+                messageDialogShowerror(self, 'Error', '"%s" is not a float number.', (params[1]))
                 return
             self.ax.xaxis.grid(True)
             self.ax.xaxis.set_major_locator(MultipleLocator(interval))
@@ -2592,7 +3018,7 @@ class mainFrame(wx.Frame):
             try:
                 format = eval(params[1])
             except:
-                showerror('Error', '"%s" is not a python statement.' % (params[1]))
+                messageDialogShowerror(self, 'Error', '"%s" is not a python statement.' % (params[1]))
                 return
 
             self.ax.xaxis.grid(True)
@@ -2609,7 +3035,7 @@ class mainFrame(wx.Frame):
             try:
                 interval = float(params[1])
             except:
-                showerror('Error', '"%s" is not a float number.' % (params[1]))
+                messageDialogShowerror(self, 'Error', '"%s" is not a float number.' % (params[1]))
                 return
             self.ax.yaxis.grid(True)
             self.ax.yaxis.set_major_locator(MultipleLocator(interval))
@@ -2617,14 +3043,14 @@ class mainFrame(wx.Frame):
             try:
                 format = eval(params[1])
             except:
-                showerror('Error', '"%s" is not a python statement.' % (params[1]))
+                messageDialogShowerror(self, 'Error', '"%s" is not a python statement.' % (params[1]))
                 return
             self.ax.yaxis.grid(True)
             self.ax.yaxis.set_ticks(format)
         else:
             raise ValueError('Unknown ordinate grid type (%s)' % (params[0]))
 
-    def plotData(self):
+    def plotData(self, draw=True):
         if self.D is None:
             return
 
@@ -2865,7 +3291,8 @@ class mainFrame(wx.Frame):
 
         self.ax.set_title('%s: Trial %d / %d' % (os.path.basename(self.dataFileName), self.tr+1, len(self.D)), fontproperties=self.fontPlotText)
         self.updateGrid()
-        self.fig.canvas.draw()
+        if draw:
+            self.fig.canvas.draw()
 
     def updateMsgBox(self):
         self.msglistbox.DeleteAllItems()
@@ -2931,14 +3358,14 @@ class mainFrame(wx.Frame):
 
     def interactiveConfig(self, event=None):
         if self.D is None:
-            showinfo('info', 'Data must be loaded before\nusing interactive configuration.')
+            messageDialogShowinfo(self, 'info', 'Data must be loaded before\nusing interactive configuration.')
             return
         frame = interactiveConfigFrame(parent=self)
         frame.Destroy()
 
     def getLatency(self, event=None):
         if self.D is None:
-            showinfo('info', 'Data must be loaded before getting saccade latency')
+            messageDialogShowinfo(self, 'info', 'Data must be loaded before getting saccade latency')
             return
         dlg = getSaccadeLatencyDialog(parent=self)
         dlg.ShowModal()
@@ -2946,7 +3373,7 @@ class mainFrame(wx.Frame):
 
     def getFixationsInRegion(self, event=None):
         if self.D is None:
-            showinfo('info', 'Data must be loaded before getting fixations in region')
+            messageDialogShowinfo(self, 'info', 'Data must be loaded before getting fixations in region')
             return
         dlg = getFixationsInRegionDialog(parent=self)
         dlg.ShowModal()
@@ -2954,7 +3381,7 @@ class mainFrame(wx.Frame):
 
     def editMessage(self, event=None):
         if self.D is None:
-            showinfo('info', 'Data must be loaded before editing message')
+            messageDialogShowinfo(self, 'info', 'Data must be loaded before editing message')
             return
 
         selected = []
@@ -2967,11 +3394,11 @@ class mainFrame(wx.Frame):
             if isinstance(e, GazeParser.MessageData):
                 numSelectedMessages += 1
                 if numSelectedMessages > 1:
-                    showerror('Error', 'More than two messages are selected.')
+                    messageDialogShowerror(self, 'Error', 'More than two messages are selected.')
                     return
 
         if numSelectedMessages == 0:
-            showerror('Error', 'No messages are selected.')
+            messageDialogShowerror(self, 'Error', 'No messages are selected.')
             return
 
         dlg = editMessageDialog(parent=self, id=wx.ID_ANY, message=self.D[self.tr].EventList[int(selected[0])])
@@ -2981,7 +3408,7 @@ class mainFrame(wx.Frame):
 
     def insertNewMessage(self, event=None):
         if self.D is None:
-            showinfo('info', 'Data must be loaded before inserting new message')
+            messageDialogShowinfo(self, 'info', 'Data must be loaded before inserting new message')
             return
             
         dlg = insertNewMessageDialog(parent=self, id=wx.ID_ANY)
@@ -3004,7 +3431,7 @@ class mainFrame(wx.Frame):
                     msgtext = msgtext[:27]+'...'
                 selectedMessagesText += '%10.1f, %s\n' % (e.time, msgtext)
 
-        ans = askyesno('Warning', 'You cannot undo this operation. Are you sure to delete following message(s)?\n\n'+selectedMessagesText)
+        ans = messageDialogAskyesno(self, 'Warning', 'You cannot undo this operation. Are you sure to delete following message(s)?\n\n'+selectedMessagesText)
         if ans:
             for m in selectedMessages:
                 m.delete()
@@ -3027,6 +3454,11 @@ class mainFrame(wx.Frame):
 
     def combinefiles(self, event=None):
         dlg = combineDataFileDialog(parent=self, id=wx.ID_ANY)
+        dlg.ShowModal()
+        dlg.Destroy()
+
+    def animation(self, event=None):
+        dlg = animationDialog(parent=self, id=wx.ID_ANY)
         dlg.ShowModal()
         dlg.Destroy()
 
