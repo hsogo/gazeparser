@@ -51,10 +51,11 @@ class BaseController(object):
     - self.updateScreen(self)
     - self.setCameraImage(self)
     - self.drawCalibrationResults(self)
-    - setCalibrationTargetStimulus(self, stim)
-    - setCalibrationTargetPositions(self, area, calposlist)
+    - self.setCalibrationTargetStimulus(self, stim)
+    - self.setCalibrationTargetPositions(self, area, calposlist)
     - self.getKeys(self)
     - self.verifyFixation(self, maxTry, permissibleError, key, message, ...)
+    - self.setCurrentScreenParamsToConfig(self)
     """
     def __init__(self, configFile=None):
         """
@@ -333,7 +334,7 @@ class BaseController(object):
         """
         Send a command to insert recording settings to data file.
 
-        :param dict config: a dictionary object which holds recording settings.
+        :param dict configDict: a dictionary object which holds recording settings.
         """
         configlist = []
         # for key in configDict.keys():
@@ -1679,20 +1680,28 @@ class BaseController(object):
         return tuple(size)
 
     def fitImageBufferToTracker(self):
-       """
-       Do getCameraImageSize() and setReceiveImageSize() to fit image buffer
-       to image size of the SimpleGazeTracker's camera unit.
-       
-        :return:
-            A tuple of two elements which represents new width and hight of 
-            the image buffer.  None if failed.
-       """
-       size = self.getCameraImageSize()
-       if size is None:
-           return None
-       
-       self.setReceiveImageSize(size)
-       return size
+        """
+        Do getCameraImageSize() and setReceiveImageSize() to fit image buffer
+        to image size of the SimpleGazeTracker's camera unit.
+        
+         :return:
+             A tuple of two elements which represents new width and hight of 
+             the image buffer.  None if failed.
+        """
+        size = self.getCameraImageSize()
+        if size is None:
+            return None
+        
+        self.setReceiveImageSize(size)
+        return size
+
+    def setCurrentScreenParamsToConfig(self, config, screenSize, distance):
+        """
+        This method simply returns "config" parameter.
+        This method must be overridden.
+        """
+        return config
+
 
 class ControllerVisionEggBackend(BaseController):
     """
@@ -2003,6 +2012,59 @@ class ControllerVisionEggBackend(BaseController):
             retval = (error, errorL, errorR, eyepos)
 
         return retval
+
+    # Override
+    def setCurrentScreenParamsToConfig(self, config, screenSize, distance):
+        """
+        Set current screen parameters to GazeParser.Configuration.Config object.
+        Following parameters will be updated.
+        
+        * SCREEN_ORIGIN
+        * TRACKER_ORIGIN
+        * SCREEN_WIDTH
+        * SCREEN_HEIGHT
+        * DOTS_PER_CENTIMETER_H
+        * DOTS_PER_CENTIMETER_V
+        * VIEWING_DISTANCE
+
+        :param GazeParser.Configuration.Config config: instance of 
+            GazeParser.Configuration.Config config object.
+        :param sequence screenSize: Size (width, height) of screen in 
+            **centimeters**.
+        :param float distance:  Viewing distance in **centimeter**.
+
+        :return:
+            Updated configuration object.
+        """
+        
+        try:
+            (w, h) = self.screen.size
+        except:
+            raise ValueError('Screen size is not available. Call setCalibrationScreen() first.')
+        
+        try:
+            d = float(distance)
+        except:
+            raise ValueError('distance must be a real number.')
+
+        try:
+            sw = float(screenSize[0])
+            sh = float(screenSize[1])
+        except:
+            raise ValueError('Screen width and height must be real numbers.')
+
+        dpcH = w/sw
+        dpcV = h/sh
+        
+        config.SCREEN_ORIGIN = 'BottomLeft'
+        config.TRACKER_ORIGIN = 'BottomLeft'
+        config.SCREEN_WIDTH = w
+        config.SCREEN_HEIGHT = h
+        config.VIEWING_DISTANCE = d
+        config.DOTS_PER_CENTIMETER_H = dpcH
+        config.DOTS_PER_CENTIMETER_V = dpcV
+        
+        return config
 
 
 class ControllerPsychoPyBackend(BaseController):
@@ -2667,6 +2729,70 @@ class ControllerPsychoPyBackend(BaseController):
 
         time.sleep(0.5)
 
+    # Override
+    def setCurrentScreenParamsToConfig(self, config, screenSize=None, distance=None):
+        """
+        Set current screen parameters to GazeParser.Configuration.Config object.
+        Following parameters will be updated.
+        
+        * SCREEN_ORIGIN
+        * TRACKER_ORIGIN
+        * SCREEN_WIDTH
+        * SCREEN_HEIGHT
+        * DOTS_PER_CENTIMETER_H
+        * DOTS_PER_CENTIMETER_V
+        * VIEWING_DISTANCE
+        
+
+        :param GazeParser.Configuration.Config config: instance of 
+            GazeParser.Configuration.Config config object.
+        :param sequence screenSize: Size (width, height) of screen in 
+            **centimeters**. If None, PsychoPy's monitor settings are 
+            used.
+        :param float distance:  Viewing distance in **centimeter**.
+            If None, PsychoPy's monitor settings are used.
+        :return:
+            Updated configuration object.
+        """
+        
+        try:
+            (w, h) = self.win.size
+        except:
+            raise ValueError('Screen size is not available. Call setCalibrationScreen() first.')
+        
+        if distance is None:
+            d = self.win.monitor.getDistance()
+            if d is None:
+                raise ValueError('Distance is not available in the current PsychoPy MonitorInfo.'
+        else:
+            try:
+                d = float(distance)
+            except:
+                raise ValueError('Distance must be a real number.')
+            
+        if screenSize is None:
+            dpcH = dpcV = self.cm2pix(1.0, self.win.monitor)
+            if dpcH is None:
+                raise ValueError('Requisite parameters are not available in the current PsychoPy MonitorInfo.'
+        else:
+            try:
+                sw = float(screenSize[0])
+                sh = float(screenSize[1])
+            except:
+                raise ValueError('Screen width and height must be real numbers.')
+
+            dpcH = w/sw
+            dpcV = h/sh
+        
+        config.SCREEN_ORIGIN = 'Center'
+        config.TRACKER_ORIGIN = 'Center'
+        config.SCREEN_WIDTH = w
+        config.SCREEN_HEIGHT = h
+        config.VIEWING_DISTANCE = d
+        config.DOTS_PER_CENTIMETER_H = dpcH
+        config.DOTS_PER_CENTIMETER_V = dpcV
+        
+        return config
 
 class DummyVisionEggBackend(ControllerVisionEggBackend):
     """
