@@ -1633,7 +1633,7 @@ class BaseController(object):
         """
         self.sendCommand('saveCalValResultsDetail'+chr(0))
 
-    def getCameraImageSize(self):
+    def getCameraImageSize(self, timeout=0.2):
         """
         Get image size of SimpleGazeTracker's camera unit.
 
@@ -1654,7 +1654,7 @@ class BaseController(object):
                 try:
                     newData = x.recv(4096)
                 except:
-                    print 'recv error in isBinocularMode'
+                    print 'recv error in getCameraImageSize'
                     isInLoop = False
                 if newData:
                     if '\0' in newData:
@@ -1670,7 +1670,7 @@ class BaseController(object):
                         data += newData
         
         try:
-            size = map(int,split(data,','))
+            size = map(int,data.split(','))
         except:
             return None
 
@@ -2763,7 +2763,7 @@ class ControllerPsychoPyBackend(BaseController):
         if distance is None:
             d = self.win.monitor.getDistance()
             if d is None:
-                raise ValueError('Distance is not available in the current PsychoPy MonitorInfo.'
+                raise ValueError('Distance is not available in the current PsychoPy MonitorInfo.')
         else:
             try:
                 d = float(distance)
@@ -2773,7 +2773,7 @@ class ControllerPsychoPyBackend(BaseController):
         if screenSize is None:
             dpcH = dpcV = self.cm2pix(1.0, self.win.monitor)
             if dpcH is None:
-                raise ValueError('Requisite parameters are not available in the current PsychoPy MonitorInfo.'
+                raise ValueError('Requisite parameters are not available in the current PsychoPy MonitorInfo.')
         else:
             try:
                 sw = float(screenSize[0])
