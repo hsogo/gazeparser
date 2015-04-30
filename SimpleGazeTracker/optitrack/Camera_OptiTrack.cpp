@@ -137,7 +137,8 @@ int initCamera( void )
 	}
 	
 	//== Set Some Camera Options ====================----
-	g_camera->SetVideoType(Core::eVideoMode::GrayscaleMode);
+	//g_camera->SetVideoType(Core::eVideoMode::GrayscaleMode);
+	g_camera->SetVideoType(Core::MJPEGMode);
 	g_camera->SetNumeric(false,0);
 	g_camera->SetTextOverlay(false);
 	g_camera->SetIRFilter(true);
