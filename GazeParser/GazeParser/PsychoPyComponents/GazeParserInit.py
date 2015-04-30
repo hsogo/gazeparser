@@ -30,7 +30,7 @@ if GazeParser.config.SCREEN_WIDTH != win.size[0]:
 if GazeParser.config.SCREEN_HEIGHT != win.size[1]:
     GazeParser.config.SCREEN_HEIGHT = win.size[1]
     logging.warn('GazeParser.config.SCREEN_HEIGHT is set to %d' % win.size[1])
-if GazeParser.config.VIEWING_DISTANCE != win.monitor.getDistance()
+if GazeParser.config.VIEWING_DISTANCE != win.monitor.getDistance():
     GazeParser.config.VIEWING_DISTANCE = win.monitor.getDistance()
     logging.warn('GazeParser.config.VIEWING_DISTANCE is set to %.f' % win.monitor.getDistance())
 """
@@ -40,7 +40,7 @@ class GazeParserInitComponent(VisualComponent):
     categories = ['GazeParser']
     def __init__(self, exp, parentName, name='GazeParserInit',gpconfigfile="",trconfigfile="",ipaddress="",calarea="[-1.0,-1.0,1.0,1.0]",
                  caltargetpos="[[0.0,0.0],[-0.8,-0.8],[-0.8,0.0],[-0.8,0.8],\n[0.0,-0.8],[0.0,0.0],[0.0,0.8],\n[0.8,-0.8],[0.8,0.0],[0.8,0.8]]",
-                 datafile="data.csv",mode='Normal',modevar='',units="pix",calibration=True,useMonitorInfo=True):
+                 datafile="data.csv",mode='Normal',modevar='',units="pix",calibration=True,useMonitorInfo=True,fitImageBuffer=True):
         super(GazeParserInitComponent, self).__init__(exp, parentName, name)
         self.type='GazeParserInit'
         self.url="http://gazeparser.sourceforge.net/"
@@ -87,6 +87,10 @@ class GazeParserInitComponent(VisualComponent):
             updates='constant', allowedUpdates=[],
             hint="If true, monitor infomation is used to send screen width, screen height, cm/deg and screen directions to SimpleGazeTracker.",
             label="Use Monitor Info", categ="Advanced")
+        self.params['fitImageBuffer']=Param(fitImageBuffer, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint="If true, size of the Preview Image Buffer to SimpleGazeTracker's camera image size.",
+            label="Fit Preview Buffer", categ="Advanced")
         # these inherited params are harmless but might as well trim:
         for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType', 'durationEstim']:
             del self.params[p]
@@ -126,6 +130,8 @@ class GazeParserInitComponent(VisualComponent):
             buff.writeIndented('GazeParserTracker.openDataFile(%(datafile)s)\n' % (self.params))
         buff.writeIndented('GazeParserTracker.sendSettings(GazeParser.config.getParametersAsDict())\n')
         buff.writeIndented('GazeParserTracker.setCalibrationScreen(win)\n')
+        if self.params['fitImageBuffer'].val:
+            buff.writeIndented('GazeParserTracker.fitImageBufferToTracker()\n')
         if self.params['units'].val=='from exp settings':
             buff.writeIndented('GazeParserTracker.setCalibrationTargetPositions(%(calarea)s, %(caltargetpos)s, win.units)\n' % (self.params))
         else:
