@@ -18,7 +18,10 @@ useMonitorInfoCode = """import psychopy.misc
 if GazeParser.config.SCREEN_ORIGIN != 'center':
     GazeParser.config.SCREEN_ORIGIN = 'center'
     logging.warn('GazeParser.config.SCREEN_ORIGIN is set to \\'center\\'')
-if GazeParser.config.DOTS_PER_CENTIMETER_H == GazeParser.config.DOTS_PER_CENTIMETER_V == psychopy.misc.cm2pix(1.0, win.monitor):
+if GazeParser.config.TRACKER_ORIGIN != 'center':
+    GazeParser.config.TRACKER_ORIGIN = 'center'
+    logging.warn('GazeParser.config.TRACKER_ORIGIN is set to \\'center\\'')
+if not (GazeParser.config.DOTS_PER_CENTIMETER_H == GazeParser.config.DOTS_PER_CENTIMETER_V == psychopy.misc.cm2pix(1.0, win.monitor)):
     GazeParser.config.DOTS_PER_CENTIMETER_H = GazeParser.config.DOTS_PER_CENTIMETER_V = psychopy.misc.cm2pix(1.0, win.monitor)
     logging.warn('GazeParser.config.DOTS_PER_CENTIMETER_H and _V are set to %f' % psychopy.misc.cm2pix(1.0, win.monitor))
 if GazeParser.config.SCREEN_WIDTH != win.size[0]:
@@ -27,6 +30,9 @@ if GazeParser.config.SCREEN_WIDTH != win.size[0]:
 if GazeParser.config.SCREEN_HEIGHT != win.size[1]:
     GazeParser.config.SCREEN_HEIGHT = win.size[1]
     logging.warn('GazeParser.config.SCREEN_HEIGHT is set to %d' % win.size[1])
+if GazeParser.config.VIEWING_DISTANCE != win.monitor.getDistance()
+    GazeParser.config.VIEWING_DISTANCE = win.monitor.getDistance()
+    logging.warn('GazeParser.config.VIEWING_DISTANCE is set to %.f' % win.monitor.getDistance())
 """
 
 class GazeParserInitComponent(VisualComponent):
