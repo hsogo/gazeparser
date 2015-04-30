@@ -1288,19 +1288,19 @@ class getFixationsInRegionDialog(wx.Dialog):
                 messageDialogShowinfo(self, 'Info', 'Canceled.')
         elif ans == 1: # register with jump list
                 self.parent.jumplistbox.ClearAll()
-                self.parent.jumplistbox.InsertColumn(0, 'Trial', width=-1)
-                self.parent.jumplistbox.InsertColumn(1, 'Time', width=-1)
-                self.parent.jumplistbox.InsertColumn(2, 'Label', width=-1)
-                self.parent.jumplistbox.InsertColumn(3, 'Center', width=-1)
-                self.parent.jumplistbox.InsertColumn(4, 'Duration', width=-1)
+                self.parent.jumplistbox.InsertColumn(0, 'Trial', width=40)
+                self.parent.jumplistbox.InsertColumn(1, 'Time', width=wx.LIST_AUTOSIZE)
+                self.parent.jumplistbox.InsertColumn(2, 'Label', width=wx.LIST_AUTOSIZE)
+                self.parent.jumplistbox.InsertColumn(3, 'Center', width=wx.LIST_AUTOSIZE)
+                self.parent.jumplistbox.InsertColumn(4, 'Duration', width=wx.LIST_AUTOSIZE)
                 line = 0
                 for i in range(len(data)):
                     for fi in range(len(data[i])):
-                        self.parent.jumplistbox.InsertStringItem(line, str(i+1), wx.LIST_FORMAT_RIGHT)
-                        self.parent.jumplistbox.SetStringItem(line, 1, '%10.1f' % data[i][fi].startTime, wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.InsertStringItem(line, str(i+1))
+                        self.parent.jumplistbox.SetStringItem(line, 1, '%10.1f' % data[i][fi].startTime)
                         self.parent.jumplistbox.SetStringItem(line, 2, labels[i][fi])
-                        self.parent.jumplistbox.SetStringItem(line, 3, '%.1f,%.1f' % tuple(data[i][fi].center), wx.LIST_FORMAT_RIGHT)
-                        self.parent.jumplistbox.SetStringItem(line, 4, '%10.1f' % data[i][fi].duration, wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.SetStringItem(line, 3, '%.1f,%.1f' % tuple(data[i][fi].center))
+                        self.parent.jumplistbox.SetStringItem(line, 4, '%10.1f' % data[i][fi].duration)
                         line += 1
                 self.jumplistSortAscend = True
                 self.jumplistSortColumn = 0
@@ -1467,19 +1467,19 @@ class getSaccadeLatencyDialog(wx.Dialog):
                         messageDialogShowinfo(self, 'Info', 'Canceled.')
                 elif ans==1: # register with jump list
                     self.parent.jumplistbox.ClearAll()
-                    self.parent.jumplistbox.InsertColumn(0, 'Trial', width=-1)
-                    self.parent.jumplistbox.InsertColumn(1, 'Time', width=-1)
-                    self.parent.jumplistbox.InsertColumn(2, 'Message', width=-1)
-                    self.parent.jumplistbox.InsertColumn(3, 'Start', width=-1)
-                    self.parent.jumplistbox.InsertColumn(4, 'Latency', width=-1)
-                    self.parent.jumplistbox.InsertColumn(5, 'Amplitude', width=-1)
+                    self.parent.jumplistbox.InsertColumn(0, 'Trial', width=40)
+                    self.parent.jumplistbox.InsertColumn(1, 'Time', width=wx.LIST_AUTOSIZE)
+                    self.parent.jumplistbox.InsertColumn(2, 'Message', width=wx.LIST_AUTOSIZE)
+                    self.parent.jumplistbox.InsertColumn(3, 'Start', width=wx.LIST_AUTOSIZE)
+                    self.parent.jumplistbox.InsertColumn(4, 'Latency', width=wx.LIST_AUTOSIZE)
+                    self.parent.jumplistbox.InsertColumn(5, 'Amplitude', width=wx.LIST_AUTOSIZE)
                     for n in range(nSac):
-                        self.parent.jumplistbox.InsertStringItem(n, str(trdata[n][0]+1), wx.LIST_FORMAT_RIGHT)
-                        self.parent.jumplistbox.SetStringItem(n, 1, '%10.1f' % trdata[n][1], wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.InsertStringItem(n, str(trdata[n][0]+1))
+                        self.parent.jumplistbox.SetStringItem(n, 1, '%10.1f' % trdata[n][1])
                         self.parent.jumplistbox.SetStringItem(n, 2, trdata[n][2])
-                        self.parent.jumplistbox.SetStringItem(n, 3, '%.1f,%.1f' % tuple(sacdata[n][2:4]), wx.LIST_FORMAT_RIGHT)
-                        self.parent.jumplistbox.SetStringItem(n, 4, '%10.1f' % sacdata[n][0], wx.LIST_FORMAT_RIGHT)
-                        self.parent.jumplistbox.SetStringItem(n, 5, '%.1f' % sacdata[n][1], wx.LIST_FORMAT_RIGHT)
+                        self.parent.jumplistbox.SetStringItem(n, 3, '%.1f,%.1f' % tuple(sacdata[n][2:4]))
+                        self.parent.jumplistbox.SetStringItem(n, 4, '%10.1f' % sacdata[n][0])
+                        self.parent.jumplistbox.SetStringItem(n, 5, '%.1f' % sacdata[n][1])
                     self.jumplistSortAscend = True
                     self.jumplistSortColumn = 0
 
@@ -2703,7 +2703,7 @@ class mainFrame(wx.Frame):
         
         #clear jumplist
         self.jumplistbox.ClearAll()
-        self.jumplistbox.InsertColumn(0, 'Trial', width=-1)
+        self.jumplistbox.InsertColumn(0, 'Trial', width=40)
 
         # enabel message-edit popup
         for item in self.popup_msglistbox.GetMenuItems():
