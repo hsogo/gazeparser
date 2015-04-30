@@ -1632,6 +1632,67 @@ class BaseController(object):
         """
         self.sendCommand('saveCalValResultsDetail'+chr(0))
 
+    def getCameraImageSize(self):
+        """
+        Get image size of SimpleGazeTracker's camera unit.
+
+        :return:
+            A tuple of two elements (width, height).  None if failed.
+        """
+        self.sendCommand('getCameraImageSize'+chr(0))
+        hasGot = False
+        isInLoop = True
+        data = ''
+        startTime = self.clock()
+        while isInLoop:
+            if self.clock()-startTime > timeout:
+                print 'timeout'
+                break
+            [r, w, c] = select.select(self.readSockList, [], [], 0)
+            for x in r:
+                try:
+                    newData = x.recv(4096)
+                except:
+                    print 'recv error in isBinocularMode'
+                    isInLoop = False
+                if newData:
+                    if '\0' in newData:
+                        delimiterIndex = newData.index('\0')
+                        if delimiterIndex+1 < len(newData):
+                            print 'getCameraImageSize: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
+                        hasGotCal = True
+                        isInLoop = False
+                        break
+                    else:
+                        data += newData
+        
+        try:
+            size = map(int,split(data,','))
+        except:
+            return None
+
+        if len(size) != 2:
+            return None
+
+        return tuple(size)
+
+    def fitImageBufferToTracker(self):
+       """
+       Do getCameraImageSize() and setReceiveImageSize() to fit image buffer
+       to image size of the SimpleGazeTracker's camera unit.
+       
+        :return:
+            A tuple of two elements which represents new width and hight of 
+            the image buffer.  None if failed.
+       """
+       size = self.getCameraImageSize()
+       if size is None:
+           return None
+       
+       self.setReceiveImageSize(size)
+       return size
 
 class ControllerVisionEggBackend(BaseController):
     """
