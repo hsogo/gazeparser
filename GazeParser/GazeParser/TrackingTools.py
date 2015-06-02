@@ -1699,6 +1699,9 @@ class BaseController(object):
         """
         This method simply returns "config" parameter.
         This method must be overridden.
+        
+        See also :func:`ControllerVisionEggBackend.setCurrentScreenParamsToConfig`
+        and :func:`ControllerPsychoPyBackend.setCurrentScreenParamsToConfig`.
         """
         return config
 
