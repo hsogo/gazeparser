@@ -1,9 +1,15 @@
+simplegazetracker (0.8.2) unstable; urgency=medium
+
+  * A new command "getCameraImageSize" is added.
+  * Camera mode is changed from "GrayscaleMode" to "MJPEGMode" in order to improve performance on V120slim camera (OptiTrack edition).
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Wed, 3 Jun 2015 18:00:00 +0900
+
 simplegazetracker (0.8.1) unstable; urgency=medium
 
   * SimpleGazeTracker does not stop if "MINPOINTS" and "MAXPOINTS" are in the CONFIG file. They are automatically removed.
 
  -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Wed, 25 Mar 2015 18:00:00 +0900
-
 
 simplegazetracker (0.8.0) unstable; urgency=medium
 

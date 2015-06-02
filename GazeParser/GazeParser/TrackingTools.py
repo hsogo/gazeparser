@@ -3018,6 +3018,11 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         return False
 
+    def getCameraImageSize(self, timeout=0.2):
+        """
+        This dummy method simply returns current IMAGE_WIDTH and IMAGE_HEIGHT
+        """
+        return (self.IMAGE_WIDTH, self.IMAGE_HEIGHT)
 
 class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     """
@@ -3251,6 +3256,11 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         return False
 
+    def getCameraImageSize(self, timeout=0.2):
+        """
+        This dummy method simply returns current IMAGE_WIDTH and IMAGE_HEIGHT
+        """
+        return (self.IMAGE_WIDTH, self.IMAGE_HEIGHT)
 
 def getController(backend, configFile=None, dummy=False):
     """

@@ -1,3 +1,17 @@
+gazeparser (0.8.2) unstable; urgency=medium
+
+  * getCameraImageSize(), fitImageBuffer() and setCurrentScreenParamsToConfig() are added to TrackingTools.
+  * GazeParserGetPos component is added.
+  * A new option "Fit Preview Buffer" is added to GazeParserInit component.
+  * TRACKER_ORIGIN, VIEWING_DISTANCE, DOTS_PER_CENTIMETER_H and DOTS_PER_CENTIMETER_V are supported by "Use Monitor Info" option of GazeParserInit component.
+  * GazeParserRec component sends "sync_rec" message to PsychoPy's log file.
+  * GazeParserMessage component outputs event log.
+  * "set every repeat" option is added to "Message (Start)" and "Message (End)" of GazeParserRec component.
+  * Bugs in "Mode" option of GazeParserInit component is fixed.
+  * A prototype version of wxPython based data viewer is added.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Wed, 2 Jun 2015 18:00:00 +0900
+
 gazeparser (0.8.1) unstable; urgency=medium
 
   * A new option is added to GazeParserInit to toggle sending PsychcoPy's monitor settings to SimpleGazeTracker.

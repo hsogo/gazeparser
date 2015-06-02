@@ -203,6 +203,8 @@ This function parses commands sent from the Client PC and call appropriate funct
 - "getWholeEyePositionList" command is added.
 @date 2015/03/05
 - "saveCalValResultsDetail" command is added.
+@date 2015/04/30
+- "getCameraImageSize" command is added.
 */
 int sockProcess( void )
 {

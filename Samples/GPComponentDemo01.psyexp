@@ -1,0 +1,129 @@
+<PsychoPy2experiment version="1.82.01" encoding="utf-8">
+  <Settings>
+    <Param name="Show mouse" val="False" valType="bool" updates="None"/>
+    <Param name="Data filename" val="'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])" valType="code" updates="None"/>
+    <Param name="Monitor" val="testMonitor" valType="str" updates="None"/>
+    <Param name="Enable Escape" val="True" valType="bool" updates="None"/>
+    <Param name="color" val="$[0,0,0]" valType="str" updates="None"/>
+    <Param name="Window size (pixels)" val="[1024, 768]" valType="code" updates="None"/>
+    <Param name="Full-screen window" val="False" valType="bool" updates="None"/>
+    <Param name="colorSpace" val="rgb" valType="str" updates="None"/>
+    <Param name="Experiment info" val="{u'session': u'001', u'participant': u'participant01', u'tracker address': u'localhost', u'dummy mode': u'False'}" valType="code" updates="None"/>
+    <Param name="Save csv file" val="False" valType="bool" updates="None"/>
+    <Param name="Show info dlg" val="True" valType="bool" updates="None"/>
+    <Param name="Save wide csv file" val="True" valType="bool" updates="None"/>
+    <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="expName" val="GPComponentDemo01" valType="str" updates="None"/>
+    <Param name="logging level" val="exp" valType="code" updates="None"/>
+    <Param name="blendMode" val="avg" valType="str" updates="None"/>
+    <Param name="Save excel file" val="False" valType="bool" updates="None"/>
+    <Param name="Units" val="norm" valType="str" updates="None"/>
+    <Param name="Save log file" val="True" valType="bool" updates="None"/>
+    <Param name="Screen" val="1" valType="num" updates="None"/>
+  </Settings>
+  <Routines>
+    <Routine name="ready">
+      <GazeParserCheckComponent name="GazeParserCheck">
+        <Param name="permerror" val="0.1" valType="code" updates="constant"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="message3" val="" valType="str" updates="constant"/>
+        <Param name="message2" val="" valType="str" updates="constant"/>
+        <Param name="message1" val="" valType="str" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="mousebutton" val="0" valType="code" updates="constant"/>
+        <Param name="key" val="'space'" valType="code" updates="constant"/>
+        <Param name="maxtry" val="3" valType="code" updates="constant"/>
+        <Param name="name" val="GazeParserCheck" valType="code" updates="None"/>
+        <Param name="mode" val="check" valType="str" updates="None"/>
+      </GazeParserCheckComponent>
+    </Routine>
+    <Routine name="trial">
+      <GazeParserRecComponent name="GazeParserRec">
+        <Param name="stopmsg" val="End" valType="str" updates="constant"/>
+        <Param name="name" val="GazeParserRec" valType="code" updates="None"/>
+        <Param name="startmsg" val="$'Trial %d' % (trials.thisN+1)" valType="str" updates="set every repeat"/>
+      </GazeParserRecComponent>
+      <GazeParserGetPosComponent name="CurrentGazePos">
+        <Param name="ma" val="3" valType="code" updates="constant"/>
+        <Param name="name" val="CurrentGazePos" valType="code" updates="None"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="" valType="code" updates="None"/>
+        <Param name="filler" val="-10000" valType="code" updates="constant"/>
+        <Param name="binocular" val="Average" valType="str" updates="constant"/>
+      </GazeParserGetPosComponent>
+      <GazeParserMessageComponent name="Message1">
+        <Param name="name" val="Message1" valType="code" updates="None"/>
+        <Param name="text" val="Message1 (5sec)" valType="str" updates="constant"/>
+        <Param name="timeType" val="time (s)" valType="str" updates="constant"/>
+        <Param name="time" val="5" valType="code" updates="constant"/>
+      </GazeParserMessageComponent>
+      <GazeParserMessageComponent name="Message2">
+        <Param name="name" val="Message2" valType="code" updates="None"/>
+        <Param name="text" val="message2 (frame 100)" valType="str" updates="constant"/>
+        <Param name="timeType" val="frame N" valType="str" updates="constant"/>
+        <Param name="time" val="100" valType="code" updates="constant"/>
+      </GazeParserMessageComponent>
+      <GratingComponent name="grating">
+        <Param name="opacity" val="1" valType="code" updates="constant"/>
+        <Param name="tex" val="sin" valType="str" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="name" val="grating" valType="code" updates="None"/>
+        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
+        <Param name="stopVal" val="10" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="mask" val="gauss" valType="str" updates="constant"/>
+        <Param name="pos" val="CurrentGazePos" valType="code" updates="set every frame"/>
+        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="texture resolution" val="128" valType="code" updates="constant"/>
+        <Param name="phase" val="2*t" valType="code" updates="set every frame"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="sf" val="trials.thisN+1" valType="code" updates="set every repeat"/>
+        <Param name="size" val="[0.5, 0.5]" valType="code" updates="constant"/>
+      </GratingComponent>
+    </Routine>
+    <Routine name="init">
+      <GazeParserInitComponent name="GazeParserInit">
+        <Param name="gpconfigfile" val="" valType="str" updates="constant"/>
+        <Param name="calarea" val="[-1.0,-1.0,1.0,1.0]" valType="code" updates="constant"/>
+        <Param name="useMonitorInfo" val="True" valType="bool" updates="constant"/>
+        <Param name="calibration" val="True" valType="bool" updates="constant"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="fitImageBuffer" val="True" valType="bool" updates="constant"/>
+        <Param name="caltargetpos" val="[[0.0,0.0],[-0.8,-0.8],[-0.8,0.0],[-0.8,0.8],&#10;[0.0,-0.8],[0.0,0.0],[0.0,0.8],&#10;[0.8,-0.8],[0.8,0.0],[0.8,0.8]]" valType="code" updates="constant"/>
+        <Param name="ipaddress" val="$expInfo['tracker address']" valType="str" updates="constant"/>
+        <Param name="modevar" val="$expInfo['dummy mode']" valType="code" updates="constant"/>
+        <Param name="datafile" val="$expInfo['participant']+'.csv'" valType="str" updates="constant"/>
+        <Param name="name" val="GazeParserInit" valType="code" updates="None"/>
+        <Param name="trconfigfile" val="" valType="str" updates="constant"/>
+        <Param name="mode" val="Follow the variable" valType="str" updates="constant"/>
+      </GazeParserInitComponent>
+    </Routine>
+  </Routines>
+  <Flow>
+    <Routine name="init"/>
+    <LoopInitiator loopType="TrialHandler" name="trials">
+      <Param name="conditionsFile" val="" valType="str" updates="None"/>
+      <Param name="name" val="trials" valType="code" updates="None"/>
+      <Param name="isTrials" val="True" valType="bool" updates="None"/>
+      <Param name="random seed" val="" valType="code" updates="None"/>
+      <Param name="loopType" val="random" valType="str" updates="None"/>
+      <Param name="nReps" val="5" valType="code" updates="None"/>
+      <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
+      <Param name="conditions" val="None" valType="str" updates="None"/>
+      <Param name="Selected rows" val="" valType="code" updates="None"/>
+    </LoopInitiator>
+    <Routine name="ready"/>
+    <Routine name="trial"/>
+    <LoopTerminator name="trials"/>
+  </Flow>
+</PsychoPy2experiment>
