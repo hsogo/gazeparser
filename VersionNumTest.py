@@ -3,7 +3,7 @@ import re
 s = re.compile('\d+\.\d+\.\d')
 files = ['GazeParser/GazeParser/__init__.py',
          'GazeParser/Readme.rst',
-         'GazeParser/GazeParser/app/Viewer.cfg',
+         'GazeParser/GazeParser/app/viewer.cfg',
          'GazeParser/debian/changelog',
          'SimpleGazeTracker/configure.in',
          'SimpleGazeTracker/NEWS',
