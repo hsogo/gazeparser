@@ -15,7 +15,25 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_27E9DDFDBB95C54D5320536A57B88768"
+        "MsmKey" = "8:_022F26717855DF7B1CB8598947D55C49"
+        "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_183BED64D1B186B635861BCC46766B8B"
+        "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_32F5028ABADF2B3C39A792A6D8DC2E41"
+        "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3C5C66C78B28E20B3BBA029322F5A51D"
         "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -27,14 +45,14 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_4CDAA8D3B6E93C94D8DD134D9B9DE577"
-        "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
+        "MsmKey" = "8:_7575445D51284E62887C2954B3D902D3"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_7575445D51284E62887C2954B3D902D3"
-        "OwnerKey" = "8:_UNDEFINED"
+        "MsmKey" = "8:_7B354E5F7EA68DB31D0D2ACA61C80D05"
+        "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -45,7 +63,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_81B798CDED88BF053086E3DE40BAB3FC"
+        "MsmKey" = "8:_8CA18BEE6050CB677412CC00FB1D4181"
         "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -57,25 +75,25 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_992E7F1ED107A500D88443D2B0DB5E70"
+        "MsmKey" = "8:_90026F211E8B4180B2BFAE26495E6B41"
         "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_B3B89D73E245987150257802277025F0"
+        "MsmKey" = "8:_E423B401CCC878F33C9E598973C15C59"
         "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_C500B5C2E6504F85EB2522473E29F32C"
+        "MsmKey" = "8:_EBCF8253B033532C88C0DF412A34515E"
         "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_F8CAE28DD4F2C9002C092102D7CC3326"
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_7575445D51284E62887C2954B3D902D3"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -172,14 +190,82 @@
         {
             "LaunchCondition"
             {
+                "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_28E9F9CCC0514ABBAF9931BF46B6692B"
+                {
+                "Name" = "8:.NET Framework"
+                "Message" = "8:[VSDNETMSG]"
+                "FrameworkVersion" = "8:.NETFramework,Version=v4.0,Profile=Client"
+                "AllowLaterVersions" = "11:FALSE"
+                "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=131000"
+                }
             }
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_27E9DDFDBB95C54D5320536A57B88768"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_022F26717855DF7B1CB8598947D55C49"
             {
-            "SourcePath" = "8:opencv_highgui240.dll"
-            "TargetName" = "8:opencv_highgui240.dll"
+            "SourcePath" = "8:opencv_core2411.dll"
+            "TargetName" = "8:opencv_core2411.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_183BED64D1B186B635861BCC46766B8B"
+            {
+            "SourcePath" = "8:SDL_ttf.dll"
+            "TargetName" = "8:SDL_ttf.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_32F5028ABADF2B3C39A792A6D8DC2E41"
+            {
+            "SourcePath" = "8:opencv_imgproc2411.dll"
+            "TargetName" = "8:opencv_imgproc2411.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3C5C66C78B28E20B3BBA029322F5A51D"
+            {
+            "SourcePath" = "8:SDL.dll"
+            "TargetName" = "8:SDL.dll"
             "Tag" = "8:"
             "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
             "Condition" = "8:"
@@ -216,7 +302,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4CDAA8D3B6E93C94D8DD134D9B9DE577"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7B354E5F7EA68DB31D0D2ACA61C80D05"
             {
             "SourcePath" = "8:SDL_net.dll"
             "TargetName" = "8:SDL_net.dll"
@@ -256,10 +342,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_81B798CDED88BF053086E3DE40BAB3FC"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8CA18BEE6050CB677412CC00FB1D4181"
             {
-            "SourcePath" = "8:SDL_ttf.dll"
-            "TargetName" = "8:SDL_ttf.dll"
+            "SourcePath" = "8:CameraLibrary2010S.dll"
+            "TargetName" = "8:CameraLibrary2010S.dll"
             "Tag" = "8:"
             "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
             "Condition" = "8:"
@@ -296,30 +382,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_992E7F1ED107A500D88443D2B0DB5E70"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E423B401CCC878F33C9E598973C15C59"
             {
-            "SourcePath" = "8:optitrack.tlb"
-            "TargetName" = "8:optitrack.tlb"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:2"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B3B89D73E245987150257802277025F0"
-            {
-            "SourcePath" = "8:opencv_imgproc240.dll"
-            "TargetName" = "8:opencv_imgproc240.dll"
+            "SourcePath" = "8:opencv_highgui2411.dll"
+            "TargetName" = "8:opencv_highgui2411.dll"
             "Tag" = "8:"
             "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
             "Condition" = "8:"
@@ -336,30 +402,10 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C500B5C2E6504F85EB2522473E29F32C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EBCF8253B033532C88C0DF412A34515E"
             {
-            "SourcePath" = "8:SDL.dll"
-            "TargetName" = "8:SDL.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F8CAE28DD4F2C9002C092102D7CC3326"
-            {
-            "SourcePath" = "8:opencv_core240.dll"
-            "TargetName" = "8:opencv_core240.dll"
+            "SourcePath" = "8:cbw32.dll"
+            "TargetName" = "8:cbw32.dll"
             "Tag" = "8:"
             "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
             "Condition" = "8:"
@@ -465,15 +511,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(OptiTrack)"
-        "ProductCode" = "8:{9B722E31-5179-4F15-B888-9DDC0AA19CD8}"
-        "PackageCode" = "8:{86DD5F4C-04AB-4517-8426-364883F9D081}"
+        "ProductCode" = "8:{226B5EF8-9A2A-4AEF-90B0-247EFF667DD1}"
+        "PackageCode" = "8:{0B2B8FC4-FCDF-4870-9E55-F52012B7BB9C}"
         "UpgradeCode" = "8:{78979124-0A62-4AA8-ABAB-E9F3208CED90}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.8.1"
+        "ProductVersion" = "8:0.8.2"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1020,6 +1066,20 @@
         }
         "MergeModule"
         {
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_90026F211E8B4180B2BFAE26495E6B41"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:Microsoft_VC100_CRT_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
         }
         "ProjectOutput"
         {

@@ -15,13 +15,13 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_2248E9B142C3E4EAEB722BB6C6C3F69B"
+        "MsmKey" = "8:_0AB164A70556EAFDDA834066EBC13027"
         "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_265EEFDC2F4AE723B732D13987FA2A01"
+        "MsmKey" = "8:_169759CF5740D52CF8B540A237ED363B"
         "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -39,7 +39,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_5CDB5998FF9C529CDAE1A19D7A950831"
+        "MsmKey" = "8:_6546F643FD01A3C0E14F6A181FA1B267"
         "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -53,6 +53,12 @@
         {
         "MsmKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_D22AF20AECC94AB58A49FC64EE842ECD"
+        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -77,6 +83,18 @@
         {
         "MsmKey" = "8:_E8425CD15BB5497D816A8C7F3FEFA1F8"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EE945BE77F9C3E57ACB83F1C3C0B81D4"
+        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -172,14 +190,22 @@
         {
             "LaunchCondition"
             {
+                "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_D3037572FABA44EC96F36974136F7437"
+                {
+                "Name" = "8:.NET Framework"
+                "Message" = "8:[VSDNETMSG]"
+                "FrameworkVersion" = "8:.NETFramework,Version=v4.0,Profile=Client"
+                "AllowLaterVersions" = "11:FALSE"
+                "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=131000"
+                }
             }
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2248E9B142C3E4EAEB722BB6C6C3F69B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0AB164A70556EAFDDA834066EBC13027"
             {
-            "SourcePath" = "8:opencv_imgproc243.dll"
-            "TargetName" = "8:opencv_imgproc243.dll"
+            "SourcePath" = "8:opencv_highgui2411.dll"
+            "TargetName" = "8:opencv_highgui2411.dll"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
             "Condition" = "8:"
@@ -196,10 +222,10 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_265EEFDC2F4AE723B732D13987FA2A01"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_169759CF5740D52CF8B540A237ED363B"
             {
-            "SourcePath" = "8:opencv_highgui243.dll"
-            "TargetName" = "8:opencv_highgui243.dll"
+            "SourcePath" = "8:cbw32.dll"
+            "TargetName" = "8:cbw32.dll"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
             "Condition" = "8:"
@@ -256,10 +282,10 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5CDB5998FF9C529CDAE1A19D7A950831"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6546F643FD01A3C0E14F6A181FA1B267"
             {
-            "SourcePath" = "8:opencv_core243.dll"
-            "TargetName" = "8:opencv_core243.dll"
+            "SourcePath" = "8:opencv_core2411.dll"
+            "TargetName" = "8:opencv_core2411.dll"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
             "Condition" = "8:"
@@ -376,6 +402,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EE945BE77F9C3E57ACB83F1C3C0B81D4"
+            {
+            "SourcePath" = "8:opencv_imgproc2411.dll"
+            "TargetName" = "8:opencv_imgproc2411.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
         }
         "FileType"
         {
@@ -465,15 +511,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(FlyCapture2)"
-        "ProductCode" = "8:{864890D7-1B31-4F34-A099-25D19B16499F}"
-        "PackageCode" = "8:{5CD1ADA6-9BE0-4822-A9A9-116E29994B06}"
+        "ProductCode" = "8:{C5EDCFDC-571D-45D7-9041-91D31A365AF0}"
+        "PackageCode" = "8:{32E5BF94-79DD-44EE-B925-5E40B340B594}"
         "UpgradeCode" = "8:{6C186834-C51A-486A-B228-9BF8956470A1}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.8.1"
+        "ProductVersion" = "8:0.8.2"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1020,6 +1066,20 @@
         }
         "MergeModule"
         {
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_D22AF20AECC94AB58A49FC64EE842ECD"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:Microsoft_VC100_CRT_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
         }
         "ProjectOutput"
         {

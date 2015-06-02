@@ -21,13 +21,25 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_44E27779F907427A8D33213DAAE4F9BC"
+        "MsmKey" = "8:_2DC24DD0324BE2D359B483663E75F245"
         "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_68E686BD4E7FFEE28D0125E63640CFF6"
+        "MsmKey" = "8:_2F6A000CC32209B741BF6C9E77A37C45"
+        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_466E06E152C0104E8D981D4AA34B94E8"
+        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_4BF79E4939892B3CE132C86B0D1ECC36"
         "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -45,12 +57,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_8D3E807451A9F913D7089BC7D2861C5B"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_92766BA5615D49D4A1100DBF06517658"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -58,6 +64,12 @@
         "Entry"
         {
         "MsmKey" = "8:_A603E258747E4C06F900C6DC3ED6E240"
+        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_A9E5C2A375F840929E93DA235FCC50CD"
         "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -71,6 +83,12 @@
         {
         "MsmKey" = "8:_B196E8C09DCE43989CC84DE0AA540CA5"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -166,14 +184,22 @@
         {
             "LaunchCondition"
             {
+                "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_E71F67A6AFE4440DAF8DF8B6A640EE01"
+                {
+                "Name" = "8:.NET Framework"
+                "Message" = "8:[VSDNETMSG]"
+                "FrameworkVersion" = "8:.NETFramework,Version=v4.0,Profile=Client"
+                "AllowLaterVersions" = "11:FALSE"
+                "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=131000"
+                }
             }
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_44E27779F907427A8D33213DAAE4F9BC"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2DC24DD0324BE2D359B483663E75F245"
             {
-            "SourcePath" = "8:opencv_core243.dll"
-            "TargetName" = "8:opencv_core243.dll"
+            "SourcePath" = "8:opencv_imgproc2411.dll"
+            "TargetName" = "8:opencv_imgproc2411.dll"
             "Tag" = "8:"
             "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
             "Condition" = "8:"
@@ -190,10 +216,50 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_68E686BD4E7FFEE28D0125E63640CFF6"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2F6A000CC32209B741BF6C9E77A37C45"
             {
-            "SourcePath" = "8:opencv_imgproc243.dll"
-            "TargetName" = "8:opencv_imgproc243.dll"
+            "SourcePath" = "8:cbw32.dll"
+            "TargetName" = "8:cbw32.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_466E06E152C0104E8D981D4AA34B94E8"
+            {
+            "SourcePath" = "8:opencv_core2411.dll"
+            "TargetName" = "8:opencv_core2411.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4BF79E4939892B3CE132C86B0D1ECC36"
+            {
+            "SourcePath" = "8:opencv_highgui2411.dll"
+            "TargetName" = "8:opencv_highgui2411.dll"
             "Tag" = "8:"
             "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
             "Condition" = "8:"
@@ -234,26 +300,6 @@
             {
             "SourcePath" = "8:SDL.dll"
             "TargetName" = "8:SDL.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8D3E807451A9F913D7089BC7D2861C5B"
-            {
-            "SourcePath" = "8:opencv_highgui243.dll"
-            "TargetName" = "8:opencv_highgui243.dll"
             "Tag" = "8:"
             "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
             "Condition" = "8:"
@@ -439,15 +485,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(OpenCV)"
-        "ProductCode" = "8:{43638178-B054-4A81-930E-A0F043457D2D}"
-        "PackageCode" = "8:{22E5A2A4-FE40-436E-A9C5-3CC1578F3D98}"
+        "ProductCode" = "8:{D6CFBDD2-4703-4931-B953-D673EAF6E94C}"
+        "PackageCode" = "8:{90AF6354-59D9-4A0E-BAAC-FF4260FB4CEB}"
         "UpgradeCode" = "8:{610C0CEF-E8C6-4EFB-A337-99E54CD03DFD}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.8.1"
+        "ProductVersion" = "8:0.8.2"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -994,6 +1040,20 @@
         }
         "MergeModule"
         {
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_A9E5C2A375F840929E93DA235FCC50CD"
+            {
+            "UseDynamicProperties" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "SourcePath" = "8:Microsoft_VC100_CRT_x86.msm"
+                "Properties"
+                {
+                }
+            "LanguageId" = "3:0"
+            "Exclude" = "11:FALSE"
+            "Folder" = "8:"
+            "Feature" = "8:"
+            "IsolateTo" = "8:"
+            }
         }
         "ProjectOutput"
         {

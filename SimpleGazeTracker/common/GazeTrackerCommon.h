@@ -24,7 +24,7 @@
 
 
 
-#define VERSION "0.8.1"
+#define VERSION "0.8.2"
 
 #ifdef _WIN32
 #include <windows.h>
