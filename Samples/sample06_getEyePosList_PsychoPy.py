@@ -68,7 +68,7 @@ class FileWindow(wx.Frame):
 
 FileWindowValues = {}
 application = wx.App(False)
-fw = FileWindow(None,wx.ID_ANY,"Sample01_PsychoPy")
+fw = FileWindow(None,wx.ID_ANY,"Sample06_PsychoPy")
 application.MainLoop()
 
 
