@@ -4,7 +4,7 @@ import GazeParser.TrackingTools
 import sys
 
 info = {'Tracker IP address':'localhost','Dummy mode':False}
-psychopy.gui.DlgFromDict(info,title='Sample07_PsychoPy')
+psychopy.gui.DlgFromDict(info,title='Sample08_PsychoPy')
 
 tracker = GazeParser.TrackingTools.getController(backend='PsychoPy',dummy=info['Dummy mode'])
 tracker.connect(info['Tracker IP address'])
