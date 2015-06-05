@@ -2232,7 +2232,7 @@ class ViewerOptions(object):
     ]
 
     def __init__(self):
-        initialConfigFile = os.path.join(os.path.dirname(__file__), 'viewer.cfg')
+        initialConfigFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'viewer.cfg')
         appConfigDir = os.path.join(GazeParser.configDir, 'app')
         if not os.path.isdir(appConfigDir):
             os.mkdir(appConfigDir)
@@ -2424,19 +2424,20 @@ class mainFrame(wx.Frame):
         wx.EVT_MENU(self, ID_TOOL_ANIMATION, self.animation)
         
         # toolbar
+        iconImgPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img')
         self.mainToolbar = self.CreateToolBar()
-        self.mainToolbar.AddLabelTool(wx.ID_OPEN, 'Open data file', wx.Bitmap('img/open.png'))
-        self.mainToolbar.AddLabelTool(wx.ID_SAVE, 'Save data file', wx.Bitmap('img/saveas.png'))
-        self.mainToolbar.AddLabelTool(ID_COMBINE, 'Combine data files', wx.Bitmap('img/combine.png'))
+        self.mainToolbar.AddLabelTool(wx.ID_OPEN, 'Open data file', wx.Bitmap(os.path.join(iconImgPath,'open.png')))
+        self.mainToolbar.AddLabelTool(wx.ID_SAVE, 'Save data file', wx.Bitmap(os.path.join(iconImgPath,'saveas.png')))
+        self.mainToolbar.AddLabelTool(ID_COMBINE, 'Combine data files', wx.Bitmap(os.path.join(iconImgPath,'combine.png')))
         self.mainToolbar.AddSeparator() 
-        self.mainToolbar.AddLabelTool(ID_PREV_TR, 'Prev', wx.Bitmap('img/previous.png'), wx.Bitmap('img/previous_disabled.png'))
+        self.mainToolbar.AddLabelTool(ID_PREV_TR, 'Prev', wx.Bitmap(os.path.join(iconImgPath,'previous.png')), wx.Bitmap(os.path.join(iconImgPath,'previous_disabled.png')))
         self.tcNTrials = wx.TextCtrl(self.mainToolbar, wx.ID_ANY, '(no data)', style=wx.TE_RIGHT)
         self.tcNTrials.Enable(False)
         self.tcJumpTo = wx.TextCtrl(self.mainToolbar, ID_JUMP_TO, style=wx.TE_RIGHT)
         self.tcJumpTo.Bind(wx.EVT_TEXT_ENTER, self.jumpToTrial)
         self.mainToolbar.AddControl(self.tcNTrials)
         self.mainToolbar.AddControl(self.tcJumpTo)
-        self.mainToolbar.AddLabelTool(ID_NEXT_TR, 'Next', wx.Bitmap('img/next.png'), wx.Bitmap('img/next_disabled.png'))
+        self.mainToolbar.AddLabelTool(ID_NEXT_TR, 'Next', wx.Bitmap(os.path.join(iconImgPath,'next.png')), wx.Bitmap(os.path.join(iconImgPath,'next_disabled.png')))
         self.mainToolbar.EnableTool(ID_PREV_TR, False)
         self.mainToolbar.EnableTool(ID_NEXT_TR, False)
         self.mainToolbar.Realize()
