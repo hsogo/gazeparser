@@ -39,20 +39,20 @@ unsigned short* g_USBDIBuffer;
 
 SDL_Thread *g_pUSBThread;
 
-//debug//
+/* debug
 double g_debug_buffer[1000];
 int g_debug_counter=0;
-//debug//
+debug */
 
 int pollUSBIOThread(void *unused)
 {
 	int ULStat;
 	int options=0;
 
-	//debug//
+	/* debug
 	double t, prev;
 	prev = getCurrentTime();
-	//debug//
+	debug */
 
 	while(g_runUSBThread)
 	{
@@ -73,13 +73,13 @@ int pollUSBIOThread(void *unused)
 		if(g_USBDIBuffer!=NULL)
 			ULStat = cbDIn(g_BoardNum, g_USBDIPort, &g_latestDIValue);
 
-		//debug//
+		/* debug
 		t = getCurrentTime();
 		g_debug_buffer[g_debug_counter] = t-prev;
 		prev = t;
 		g_debug_counter++;
 		g_debug_counter = g_debug_counter % 1000;
-		//debug//
+		debug */
 	}
 	
 	return 0;
@@ -287,11 +287,11 @@ void stopUSBThread(void)
 		SDL_WaitThread(g_pUSBThread, NULL);
 		g_LogFS << "USB polling thread is stopped." << std::endl;
 
-		//debug//
+		/* debug
 		for(int i=0; i<1000; i++){
 			g_LogFS << g_debug_buffer[i] << std::endl;
 		}
-		//debug//
+		debug */
 	}
 }
 
