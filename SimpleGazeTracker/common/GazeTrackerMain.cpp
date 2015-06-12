@@ -145,6 +145,10 @@ std::string g_USBIOBoard;
 std::string g_USBIOParamAD;
 std::string g_USBIOParamDI;
 
+bool g_useRenderThread = true;
+bool g_runRenderThread = false;
+SDL_Thread *g_pRenderThread;
+
 #ifdef __DEBUG_WITH_GPC3100
 #include "C:\\Program Files\\Interface\\GPC3100\\include\\FbiAd.h"
 #pragma comment(lib, "C:\\Program Files\\Interface\\GPC3100\\lib\\FbiAd.lib")
@@ -889,7 +893,6 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 	}
 }
 
-
 /*
 render: Render SDL screen.
 
@@ -989,6 +992,18 @@ void renderInitMessages(int n, const char* message)
 	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
 }
 
+
+/*renderThread*/
+int renderThread(void *unused)
+{
+	while(g_runRenderThread)
+	{
+		render();
+		sleepMilliseconds(12);
+	}
+
+	return 0;
+}
 
 /*
 main: Entry point of the application
@@ -1436,7 +1451,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if(g_isShowingCameraImage && !g_isInhibitRendering)
+		if(!g_runRenderThread && g_isShowingCameraImage && !g_isInhibitRendering)
 		{ // if it is not under recording, flip screen in a regular way.
 			render();
 		}
@@ -1829,8 +1844,25 @@ void startRecording(const char* message)
 		g_MessageEnd = 0;
 		g_MessageBuffer[0] = '\0';
 		g_isRecording = true;
-		g_isShowingCameraImage = false;
 		g_isShowingCalResult = false;
+
+		if(g_useRenderThread){
+			g_isShowingCameraImage = true;
+			g_runRenderThread = true;
+			g_pRenderThread = SDL_CreateThread(renderThread, NULL);
+			if(g_pRenderThread==NULL)
+			{
+				g_LogFS << "ERROR: failed to start render thread." << std::endl;
+				g_runRenderThread = false;
+				g_isShowingCameraImage = false;
+			}
+			else
+			{
+				g_LogFS << "Start renderThread" << std::endl;
+			}
+		}else{
+			g_isShowingCameraImage = false;
+		}
 
 		g_RecStartTime = getCurrentTime();
 	}
@@ -1875,6 +1907,13 @@ void stopRecording(const char* message)
 		else
 		{
 			g_LogFS << "StopRecording (no file) " << message << std::endl;
+		}
+
+		if(g_useRenderThread && g_runRenderThread)
+		{
+			g_runRenderThread = false;
+			SDL_WaitThread(g_pRenderThread, NULL);
+			g_LogFS << "Stop renderThread" << std::endl;
 		}
 	
 		g_isRecording = false;
