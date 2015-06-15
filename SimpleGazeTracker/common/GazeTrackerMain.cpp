@@ -148,6 +148,7 @@ std::string g_USBIOParamDI;
 bool g_useRenderThread = true;
 bool g_runRenderThread = false;
 SDL_Thread *g_pRenderThread;
+char g_recordingMessage[256];
 
 #ifdef __DEBUG_WITH_GPC3100
 #include "C:\\Program Files\\Interface\\GPC3100\\include\\FbiAd.h"
@@ -199,6 +200,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 -USBIO_DI (g_USBIOParamDI)
 -USB_USE_THREAD (g_useUSBThread)
 -USB_SLEEP_DURATION (g_SleepDurationUSB)
+-RENDER_DURING_REC (g_useRenderThread)
 
 @return int
 @retval S_OK Camera is successfully initialized.
@@ -215,6 +217,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 @date 2013/12/12 USBIO_BOARD, USBIO_AD and USBIO_DI is supported.
 @date 2013/12/24 USB_USE_THREAD is supported.
 @date 2015/03/12 MAXPOINTS and MINPOINTS are changed to MAXWIDTH and MINWIDTH.
+@date 2015/06/15 RENDER_DURING_REC is supported.
  */
 int initParameters( void )
 {
@@ -290,6 +293,8 @@ int initParameters( void )
 		else if(strcmp(buff,"USBIO_AD")==0) g_USBIOParamAD = p+1;
 		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
 		else if(strcmp(buff,"USB_USE_THREAD")==0) g_useUSBThread = (param!=0)? true: false;
+		else if(strcmp(buff,"RENDER_DURING_REC")==0) g_useRenderThread = param;
+		//obsolete parameters
 		else if(strcmp(buff,"MAXPOINTS")==0){
 			printf("Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
 			g_LogFS << "Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead." << std::endl;
@@ -298,10 +303,11 @@ int initParameters( void )
 			printf("Warning: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead.");
 			g_LogFS << "Warning: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead." << std::endl;
 		}
+		//unknown option
 		else{
 			printf("Error: Unknown option (\"%s\")\n",buff);
 			g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
-			return E_FAIL; //unknown option
+			return E_FAIL;
 		}
 	}
 	
@@ -359,6 +365,7 @@ Following parameters are wrote to the configuration file.
 @date 2013/12/13 USBIO_BOARD, USBIO_AD and USBIO_DI is supported.
 @date 2013/12/24 USB_USE_THREAD is supported.
 @date 2015/03/12 MAXPOINTS and MINPOINTS are changed to MAXWIDTH and MINWIDTH.
+@date 2015/06/15 RENDER_DURING_REC is supported.
 */
 void saveParameters( void )
 {
@@ -414,6 +421,7 @@ void saveParameters( void )
 	fs << "USBIO_AD=" << g_USBIOParamAD << std::endl;
 	fs << "USBIO_DI=" << g_USBIOParamDI << std::endl;
 	fs << "USB_USE_THREAD=" << (g_useUSBThread? "1" : "0") << std::endl;
+	fs << "RENDER_DURING_REC=" << (g_useRenderThread? "1" : "0") << std::endl;
 	
 	fs.close();
 
@@ -947,25 +955,31 @@ void render(void)
 }
 
 /*
-renderBeforeRecording: Render recording message.
+renderRecordingMessage: Render recording message.
 
 This function renders a message informing that the application is now recording data.
-Call this function once immediately before start recording.
 
 @return No value is returned.
 @todo show more information.
+
+@date 2015/06/15
+- renamed: renderBeforeRecroding -> renderRecordingMessage
+- change text position
+- message can be rendered without cleaning screen (when cleanScreen is true)
 */
-void renderBeforeRecording(const char* message)
+void renderRecordingMessage(const char* message, bool clearScreen)
 {
 	SDL_Surface* textSurface;
 	SDL_Rect dstRect;
 	SDL_Color color={255,255,255};
 
-	SDL_FillRect(g_pSDLscreen, NULL, 0);
+	if(clearScreen){
+		SDL_FillRect(g_pSDLscreen, NULL, 0);
+	}
 
 	textSurface = TTF_RenderUTF8_Blended(g_Font, "Now recording...", color);
 	dstRect.x = 10;
-	dstRect.y = (g_PreviewHeight-MENU_FONT_SIZE)/2;
+	dstRect.y = 10;
 	SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
 
 	if(message[0]!='\0')
@@ -978,6 +992,15 @@ void renderBeforeRecording(const char* message)
 	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
 }
 
+
+/*
+renderInitMessage: Render intial message.
+
+@param[in] n vertical position of the message
+@param[in] message a message to be printed.
+
+@return No value is returned.
+*/
 void renderInitMessages(int n, const char* message)
 {
 	SDL_Surface* textSurface;
@@ -993,12 +1016,15 @@ void renderInitMessages(int n, const char* message)
 }
 
 
-/*renderThread*/
+/*
+renderThread: calback function for rendering during the recording.
+*/
 int renderThread(void *unused)
 {
 	while(g_runRenderThread)
 	{
 		render();
+		renderRecordingMessage(g_recordingMessage, false);
 		sleepMilliseconds(12);
 	}
 
@@ -1025,6 +1051,8 @@ main: Entry point of the application
 - Support USB IO.
 @date 2015/03/12
 - Support MaxPupilWidth and MinPupilWidth
+@date 2015/06/12
+- support for rendering during the recording.
 */
 int main(int argc, char** argv)
 {
@@ -1774,6 +1802,7 @@ This function is called from sockProcess() when sockProcess() received "startRec
 @date 2013/03/27 clear g_MessageBuffer.
 @date 2015/03/05 output accuracy and precision at each calibration point.
 @date 2015/03/13 use preserved calibration points
+@date 2015/06/12 support for rendering during the recording.
 */
 void startRecording(const char* message)
 {
@@ -1784,9 +1813,6 @@ void startRecording(const char* message)
 
 		if(g_DataFP!=NULL)
 		{
-			//draw message on calimage
-			renderBeforeRecording(message);
-
 			time(&t);
 			ltm = localtime(&t);
 			fprintf(g_DataFP,"#START_REC,%d,%d,%d,%d,%d,%d\n",ltm->tm_year+1900,ltm->tm_mon+1,ltm->tm_mday,ltm->tm_hour,ltm->tm_min,ltm->tm_sec);
@@ -1847,6 +1873,7 @@ void startRecording(const char* message)
 		g_isShowingCalResult = false;
 
 		if(g_useRenderThread){
+			strncpy(g_recordingMessage, message, sizeof(g_recordingMessage));
 			g_isShowingCameraImage = true;
 			g_runRenderThread = true;
 			g_pRenderThread = SDL_CreateThread(renderThread, NULL);
@@ -1861,6 +1888,9 @@ void startRecording(const char* message)
 				g_LogFS << "Start renderThread" << std::endl;
 			}
 		}else{
+			//draw message on calimage
+			renderRecordingMessage(message, true);
+			//don't render camera image
 			g_isShowingCameraImage = false;
 		}
 
@@ -1882,6 +1912,7 @@ Call flushGazeData(), output #MESSAGE and then output #STOP_REC.
 @return No value is returned.
 @date 2012/07/17 add warinig message.
 @date 2012/12/05 output message to log file.
+@date 2015/05/12 support for rendering during the recording.
 */
 void stopRecording(const char* message)
 {
