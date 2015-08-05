@@ -53,3 +53,6 @@ SimpleGazeTracker/debian/simplegazetracker/
 SimpleGazeTracker/ipch
 [Dd]ebug*/
 [Rr]elease*/
+
+#Windows
+Thumbs.db
