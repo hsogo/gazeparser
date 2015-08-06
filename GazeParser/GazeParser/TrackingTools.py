@@ -2868,6 +2868,9 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         Use recordCurrentMousePos() method to record mouse position.
         """
         l = len(self.mousePosList)
+        while l < numpy.abs(n):
+            self.mousePosList.insert(0,self.mousePosList.insert[0])
+            l+=1
         ml = numpy.array(self.mousePosList)
         if n > 0:
             if getPupil:
@@ -3100,6 +3103,9 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         Use recordCurrentMousePos() method to record mouse position.
         """
         l = len(self.mousePosList)
+        while l < numpy.abs(n):
+            self.mousePosList.insert(0,self.mousePosList.insert[0])
+            l+=1
         ml = numpy.array(self.mousePosList)
 
         if units != 'pix':
