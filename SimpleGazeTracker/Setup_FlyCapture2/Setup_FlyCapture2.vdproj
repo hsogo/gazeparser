@@ -15,36 +15,6 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_0AB164A70556EAFDDA834066EBC13027"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_169759CF5740D52CF8B540A237ED363B"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_2946F89C196CB5329621403DF3E5B25B"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_366A726CA3A4D0A5D5288430BAF45896"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_6546F643FD01A3C0E14F6A181FA1B267"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_BEAF5607111C4BB5A4C19B552EF17081"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -57,44 +27,14 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_D22AF20AECC94AB58A49FC64EE842ECD"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D2BFF4D5542C27ABA9E130E3F5F7F388"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_D61D45A5F02546318D4F12CD49D1B7CF"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_D72257068F69EF397ABE6E3617E25A33"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_E8425CD15BB5497D816A8C7F3FEFA1F8"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_EE945BE77F9C3E57ACB83F1C3C0B81D4"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -126,13 +66,13 @@
                 {
                     "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.0,Profile=Client"
                     {
-                    "Name" = "8:Microsoft .NET Framework 4 Client Profile (x86 and x64)"
+                    "Name" = "8:Microsoft .NET Framework 4 Client Profile (x86 および x64)"
                     "ProductCode" = "8:.NETFramework,Version=v4.0,Profile=Client"
                     }
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.3.1"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.4.5"
                     {
-                    "Name" = "8:Windows Installer 3.1"
-                    "ProductCode" = "8:Microsoft.Windows.Installer.3.1"
+                    "Name" = "8:Windows インストーラー 4.5\r\n"
+                    "ProductCode" = "8:Microsoft.Windows.Installer.4.5"
                     }
                 }
             }
@@ -142,7 +82,7 @@
         "DisplayName" = "8:Release"
         "IsDebugOnly" = "11:FALSE"
         "IsReleaseOnly" = "11:TRUE"
-        "OutputFilename" = "8:Release\\Setup_FlyCapture2.msi"
+        "OutputFilename" = "8:Release\\SimpleGazeTrackerFlyCapture2Setup.msi"
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
@@ -161,15 +101,15 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.0,Profile=Client"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.0"
                     {
-                    "Name" = "8:Microsoft .NET Framework 4 Client Profile (x86 and x64)"
-                    "ProductCode" = "8:.NETFramework,Version=v4.0,Profile=Client"
+                    "Name" = "8:Microsoft .NET Framework 4 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.0"
                     }
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.3.1"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.4.5"
                     {
-                    "Name" = "8:Windows Installer 3.1"
-                    "ProductCode" = "8:Microsoft.Windows.Installer.3.1"
+                    "Name" = "8:Windows Installer 4.5"
+                    "ProductCode" = "8:Microsoft.Windows.Installer.4.5"
                     }
                 }
             }
@@ -194,7 +134,7 @@
                 {
                 "Name" = "8:.NET Framework"
                 "Message" = "8:[VSDNETMSG]"
-                "FrameworkVersion" = "8:.NETFramework,Version=v4.0,Profile=Client"
+                "FrameworkVersion" = "8:.NETFramework,Version=v4.0"
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=131000"
                 }
@@ -202,106 +142,6 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0AB164A70556EAFDDA834066EBC13027"
-            {
-            "SourcePath" = "8:opencv_highgui2411.dll"
-            "TargetName" = "8:opencv_highgui2411.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_169759CF5740D52CF8B540A237ED363B"
-            {
-            "SourcePath" = "8:cbw32.dll"
-            "TargetName" = "8:cbw32.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2946F89C196CB5329621403DF3E5B25B"
-            {
-            "SourcePath" = "8:SDL.dll"
-            "TargetName" = "8:SDL.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_366A726CA3A4D0A5D5288430BAF45896"
-            {
-            "SourcePath" = "8:FlyCapture2_v100.dll"
-            "TargetName" = "8:FlyCapture2_v100.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6546F643FD01A3C0E14F6A181FA1B267"
-            {
-            "SourcePath" = "8:opencv_core2411.dll"
-            "TargetName" = "8:opencv_core2411.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BEAF5607111C4BB5A4C19B552EF17081"
             {
             "SourcePath" = "8:..\\common\\logo01.jpg"
@@ -320,26 +160,6 @@
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D2BFF4D5542C27ABA9E130E3F5F7F388"
-            {
-            "SourcePath" = "8:SDL_net.dll"
-            "TargetName" = "8:SDL_net.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D61D45A5F02546318D4F12CD49D1B7CF"
@@ -362,26 +182,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D72257068F69EF397ABE6E3617E25A33"
-            {
-            "SourcePath" = "8:SDL_ttf.dll"
-            "TargetName" = "8:SDL_ttf.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E8425CD15BB5497D816A8C7F3FEFA1F8"
             {
             "SourcePath" = "8:..\\common\\logo03.jpg"
@@ -400,26 +200,6 @@
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EE945BE77F9C3E57ACB83F1C3C0B81D4"
-            {
-            "SourcePath" = "8:opencv_imgproc2411.dll"
-            "TargetName" = "8:opencv_imgproc2411.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
         }
@@ -512,7 +292,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(FlyCapture2)"
         "ProductCode" = "8:{C5EDCFDC-571D-45D7-9041-91D31A365AF0}"
-        "PackageCode" = "8:{32E5BF94-79DD-44EE-B925-5E40B340B594}"
+        "PackageCode" = "8:{D53F3F8D-F5EC-4E41-B959-C7A61392F86D}"
         "UpgradeCode" = "8:{6C186834-C51A-486A-B228-9BF8956470A1}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -523,7 +303,7 @@
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:Setup_FlyCapture2"
+        "Title" = "8:SimpeGazeTracker(FlyCapture2)"
         "Subject" = "8:"
         "ARPCONTACT" = "8:Hiroyuki Sogo"
         "Keywords" = "8:"
@@ -544,34 +324,6 @@
             {
                 "Keys"
                 {
-                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_5E886C6C0081400A98451542A6A673D2"
-                    {
-                    "Name" = "8:Software"
-                    "Condition" = "8:"
-                    "AlwaysCreate" = "11:FALSE"
-                    "DeleteAtUninstall" = "11:FALSE"
-                    "Transitive" = "11:FALSE"
-                        "Keys"
-                        {
-                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_D917D93C1DEF49CF9F86B5EA121DBEAD"
-                            {
-                            "Name" = "8:[Manufacturer]"
-                            "Condition" = "8:"
-                            "AlwaysCreate" = "11:FALSE"
-                            "DeleteAtUninstall" = "11:FALSE"
-                            "Transitive" = "11:FALSE"
-                                "Keys"
-                                {
-                                }
-                                "Values"
-                                {
-                                }
-                            }
-                        }
-                        "Values"
-                        {
-                        }
-                    }
                 }
             }
             "HKCU"
@@ -624,6 +376,34 @@
             {
                 "Keys"
                 {
+                    "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_5FFAFB314D984F3D9C3E8E592467B929"
+                    {
+                    "Name" = "8:Software"
+                    "Condition" = "8:"
+                    "AlwaysCreate" = "11:FALSE"
+                    "DeleteAtUninstall" = "11:FALSE"
+                    "Transitive" = "11:FALSE"
+                        "Keys"
+                        {
+                            "{60EA8692-D2D5-43EB-80DC-7906BF13D6EF}:_D917D93C1DEF49CF9F86B5EA121DBEAD"
+                            {
+                            "Name" = "8:[Manufacturer]"
+                            "Condition" = "8:"
+                            "AlwaysCreate" = "11:FALSE"
+                            "DeleteAtUninstall" = "11:FALSE"
+                            "Transitive" = "11:FALSE"
+                                "Keys"
+                                {
+                                }
+                                "Values"
+                                {
+                                }
+                            }
+                        }
+                        "Values"
+                        {
+                        }
+                    }
                 }
             }
         }
@@ -679,7 +459,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_A2232D017E9C4800A7C0A386901D60E4"
                     {
                     "Sequence" = "3:300"
-                    "DisplayName" = "8:インストールの確認"
+                    "DisplayName" = "8:Confirm Installation"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdConfirmDlg.wid"
@@ -702,7 +482,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_B84AC64C29834316BA45AEA2D4CC7BB9"
                     {
                     "Sequence" = "3:200"
-                    "DisplayName" = "8:インストール フォルダー"
+                    "DisplayName" = "8:Installation Folder"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdFolderDlg.wid"
@@ -738,7 +518,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_C2B9208CD43145F69AF0AB3DCC6A86FF"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:ようこそ"
+                    "DisplayName" = "8:Welcome"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdWelcomeDlg.wid"
@@ -802,7 +582,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_6C80C098926B469E9C77F152EA44DA81"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:完了"
+                    "DisplayName" = "8:Finished"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdFinishedDlg.wid"
@@ -847,7 +627,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_C6AD45A3491C4C0798D6038076790C48"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:進行状況"
+                    "DisplayName" = "8:Progress"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminProgressDlg.wid"
@@ -892,7 +672,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_6DC176FBD85E4C1F9E246AAF246C09B5"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:進行状況"
+                    "DisplayName" = "8:Progress"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdProgressDlg.wid"
@@ -937,7 +717,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_121219B5534F491EA4F29A9EF91D1B2F"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:完了"
+                    "DisplayName" = "8:Finished"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminFinishedDlg.wid"
@@ -969,7 +749,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_0AA7196C46EC496691712AB6F5469E04"
                     {
                     "Sequence" = "3:200"
-                    "DisplayName" = "8:インストール フォルダー"
+                    "DisplayName" = "8:Installation Folder"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminFolderDlg.wid"
@@ -992,7 +772,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_3057F90B60EF4F9CA8D310E48EA2D67D"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:ようこそ"
+                    "DisplayName" = "8:Welcome"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminWelcomeDlg.wid"
@@ -1041,7 +821,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_C8DFA00B76714EA3A0A4E53C4CCEC3FA"
                     {
                     "Sequence" = "3:300"
-                    "DisplayName" = "8:インストールの確認"
+                    "DisplayName" = "8:Confirm Installation"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminConfirmDlg.wid"
@@ -1066,20 +846,6 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_D22AF20AECC94AB58A49FC64EE842ECD"
-            {
-            "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC100_CRT_x86.msm"
-                "Properties"
-                {
-                }
-            "LanguageId" = "3:0"
-            "Exclude" = "11:FALSE"
-            "Folder" = "8:"
-            "Feature" = "8:"
-            "IsolateTo" = "8:"
-            }
         }
         "ProjectOutput"
         {
