@@ -916,6 +916,8 @@ class BaseController(object):
         A        Toggle on/off of Z key functions.
         S        Save the latest calibration/validation data to
                  SimpleGazeTracker data file.
+        I        Save camera image to SimpleGazeTracker data 
+                 directory.
         ESC or Q Exit calibration
         ======== ================================================
 
@@ -984,7 +986,7 @@ class BaseController(object):
                     self.captureNo += 1
                     datestr = datetime.datetime.today().strftime('%Y%m%d%H%M%S')
                     if self.datafilename == '':
-                        self.sendCommand('saveCameraImage'+chr(0)+'CAP_'+datestr+'_'+str(self.captureNo)+'.bmp'+chr(0))
+                        self.sendCommand('saveCameraImage'+chr(0)+'GP_'+datestr+'_'+str(self.captureNo)+'.bmp'+chr(0))
                     else:
                         self.sendCommand('saveCameraImage'+chr(0)+self.datafilename+'_'+datestr+'_'+str(self.captureNo)+'.bmp'+chr(0))
                 elif key == 'q':
