@@ -188,6 +188,7 @@ extern void getCurrentMenuString(char *p, int maxlen);
 extern void toggleCalResult(int param);
 extern void saveCalValResultsDetail(void);
 
+extern void prepareRecordingScreen(void);
 extern void startRecording(const char* message);
 extern void stopRecording(const char* message);
 extern void openDataFile(char* filename, int overwrite);

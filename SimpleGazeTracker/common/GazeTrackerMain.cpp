@@ -150,6 +150,8 @@ bool g_runRenderThread = false;
 SDL_Thread *g_pRenderThread;
 char g_recordingMessage[256];
 
+int g_captureNum = 0;
+
 #ifdef __DEBUG_WITH_GPC3100
 #include "C:\\Program Files\\Interface\\GPC3100\\include\\FbiAd.h"
 #pragma comment(lib, "C:\\Program Files\\Interface\\GPC3100\\lib\\FbiAd.lib")
@@ -293,7 +295,7 @@ int initParameters( void )
 		else if(strcmp(buff,"USBIO_AD")==0) g_USBIOParamAD = p+1;
 		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
 		else if(strcmp(buff,"USB_USE_THREAD")==0) g_useUSBThread = (param!=0)? true: false;
-		else if(strcmp(buff,"RENDER_DURING_REC")==0) g_useRenderThread = param;
+		else if (strcmp(buff, "RENDER_DURING_REC") == 0) g_useRenderThread = (param != 0) ? true : false;
 		//obsolete parameters
 		else if(strcmp(buff,"MAXPOINTS")==0){
 			printf("Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
@@ -1059,6 +1061,8 @@ main: Entry point of the application
 - Support MaxPupilWidth and MinPupilWidth
 @date 2015/06/12
 - support for rendering during the recording.
+@date 2015/08/26
+- support L key and I key.
 */
 int main(int argc, char** argv)
 {
@@ -1329,6 +1333,20 @@ int main(int argc, char** argv)
 						g_isRecording = g_isCalibrating = g_isValidating = false;
 					}
 					done = 1;
+					break;
+				
+				case SDLK_i:
+					char capfilename[64];
+					time(&t);
+					ltm = localtime(&t);
+					snprintf(capfilename, sizeof(capfilename), "SGT_%d%02d%02d%02d%02d%02d_%8d.bmp", ltm->tm_year + 1900, ltm->tm_mon + 1, ltm->tm_mday, ltm->tm_hour, ltm->tm_min, ltm->tm_sec, g_captureNum);
+					saveCameraImage(capfilename);
+					g_captureNum++;
+					break;
+
+				case SDLK_l:
+					g_useRenderThread = !g_useRenderThread;
+					prepareRecordingScreen();
 					break;
 
 				case SDLK_UP:
@@ -1791,6 +1809,43 @@ void saveCalValResultsDetail(void)
 	}
 }
 
+/*
+prepareRecordingScreen: prepare recording screen.
+
+This function is called to toggle camera image live view during recording.
+
+@return No value is returned.
+*/
+void prepareRecordingScreen()
+{
+	if (g_useRenderThread && !g_runRenderThread){
+		g_isShowingCameraImage = true;
+		g_runRenderThread = true;
+		g_pRenderThread = SDL_CreateThread(renderThread, NULL);
+		if (g_pRenderThread == NULL)
+		{
+			g_LogFS << "ERROR: failed to start render thread." << std::endl;
+			g_runRenderThread = false;
+			g_isShowingCameraImage = false;
+		}
+		else
+		{
+			g_LogFS << "Start renderThread" << std::endl;
+		}
+	}
+	else{
+		if (g_runRenderThread)
+		{
+			g_runRenderThread = false;
+			SDL_WaitThread(g_pRenderThread, NULL);
+			g_LogFS << "Stop renderThread" << std::endl;
+		}
+		//draw message on calimage
+		renderRecordingMessage(g_recordingMessage, true);
+		//don't render camera image
+		g_isShowingCameraImage = false;
+	}
+}
 
 /*!
 startRecording: initialize recording procedures.
@@ -1809,6 +1864,7 @@ This function is called from sockProcess() when sockProcess() received "startRec
 @date 2015/03/05 output accuracy and precision at each calibration point.
 @date 2015/03/13 use preserved calibration points
 @date 2015/06/12 support for rendering during the recording.
+@date 2015/08/25 preparation of recording screen is moved to prepareRecordingScreen().
 */
 void startRecording(const char* message)
 {
@@ -1878,27 +1934,8 @@ void startRecording(const char* message)
 		g_isRecording = true;
 		g_isShowingCalResult = false;
 
-		if(g_useRenderThread){
-			strncpy(g_recordingMessage, message, sizeof(g_recordingMessage));
-			g_isShowingCameraImage = true;
-			g_runRenderThread = true;
-			g_pRenderThread = SDL_CreateThread(renderThread, NULL);
-			if(g_pRenderThread==NULL)
-			{
-				g_LogFS << "ERROR: failed to start render thread." << std::endl;
-				g_runRenderThread = false;
-				g_isShowingCameraImage = false;
-			}
-			else
-			{
-				g_LogFS << "Start renderThread" << std::endl;
-			}
-		}else{
-			//draw message on calimage
-			renderRecordingMessage(message, true);
-			//don't render camera image
-			g_isShowingCameraImage = false;
-		}
+		strncpy(g_recordingMessage, message, sizeof(g_recordingMessage));
+		prepareRecordingScreen();
 
 		g_RecStartTime = getCurrentTime();
 	}
@@ -1946,7 +1983,7 @@ void stopRecording(const char* message)
 			g_LogFS << "StopRecording (no file) " << message << std::endl;
 		}
 
-		if(g_useRenderThread && g_runRenderThread)
+		if(g_runRenderThread)
 		{
 			g_runRenderThread = false;
 			SDL_WaitThread(g_pRenderThread, NULL);
@@ -2537,5 +2574,3 @@ bool isBinocularMode(void)
 	else
 		return false;
 }
-
-
