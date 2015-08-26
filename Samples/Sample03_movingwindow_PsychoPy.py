@@ -118,14 +118,14 @@ imgArray = numpy.ones((maskImageSize,maskImageSize,4),numpy.uint8)*128
 maskimage = Image.fromarray(imgArray,mode='RGBA')
 
 stim = psychopy.visual.SimpleImageStim(win,fname)
-mask = psychopy.visual.PatchStim(win,maskimage)
+mask = psychopy.visual.ImageStim(win,maskimage,interpolate='linear')
 mask.setSize((max(win.size)*2,max(win.size)*2))
 
 for tr in range(5):
     windowSize = 6.0*(tr+1)
     imgArray[:,:,3] = 255*(1-numpy.exp(-(meshx/windowSize)**2-(meshy/windowSize)**2))
     maskimage = Image.fromarray(imgArray,mode='RGBA')
-    mask.setTex(maskimage)
+    mask.setImage(maskimage)
     
     tracker.startRecording(message='trial'+str(tr+1))
     
@@ -137,7 +137,7 @@ for tr in range(5):
             if -win.size[0]/2<exy[0]<win.size[0]/2 and -win.size[1]/2<exy[1]<win.size[1]:
                 maskcenter = (exy[0],exy[1])
         
-        mask.setPos(maskcenter,units='pix')
+        mask.setPos(maskcenter)
         
         keyList = psychopy.event.getKeys()
         if 'space' in keyList:

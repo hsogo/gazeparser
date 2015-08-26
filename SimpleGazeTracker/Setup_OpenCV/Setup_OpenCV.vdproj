@@ -21,38 +21,8 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_2DC24DD0324BE2D359B483663E75F245"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_2F6A000CC32209B741BF6C9E77A37C45"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_466E06E152C0104E8D981D4AA34B94E8"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_4BF79E4939892B3CE132C86B0D1ECC36"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_74DA4646B892437CB894A023A901DA28"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_8D0E051100784CE5208C6075A8B792A8"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -63,32 +33,8 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_A603E258747E4C06F900C6DC3ED6E240"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_A9E5C2A375F840929E93DA235FCC50CD"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_B0038B1C5EAC49E86373F20253BE6C86"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_B196E8C09DCE43989CC84DE0AA540CA5"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -155,15 +101,15 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Net.Framework.3.5"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.0"
                     {
-                    "Name" = "8:.NET Framework 3.5"
-                    "ProductCode" = "8:Microsoft.Net.Framework.3.5"
+                    "Name" = "8:Microsoft .NET Framework 4 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.0"
                     }
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.3.1"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.4.5"
                     {
-                    "Name" = "8:Windows Installer 3.1"
-                    "ProductCode" = "8:Microsoft.Windows.Installer.3.1"
+                    "Name" = "8:Windows Installer 4.5"
+                    "ProductCode" = "8:Microsoft.Windows.Installer.4.5"
                     }
                 }
             }
@@ -188,7 +134,7 @@
                 {
                 "Name" = "8:.NET Framework"
                 "Message" = "8:[VSDNETMSG]"
-                "FrameworkVersion" = "8:.NETFramework,Version=v4.0,Profile=Client"
+                "FrameworkVersion" = "8:.NETFramework,Version=v4.0"
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=131000"
                 }
@@ -196,86 +142,6 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2DC24DD0324BE2D359B483663E75F245"
-            {
-            "SourcePath" = "8:opencv_imgproc2411.dll"
-            "TargetName" = "8:opencv_imgproc2411.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2F6A000CC32209B741BF6C9E77A37C45"
-            {
-            "SourcePath" = "8:cbw32.dll"
-            "TargetName" = "8:cbw32.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_466E06E152C0104E8D981D4AA34B94E8"
-            {
-            "SourcePath" = "8:opencv_core2411.dll"
-            "TargetName" = "8:opencv_core2411.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4BF79E4939892B3CE132C86B0D1ECC36"
-            {
-            "SourcePath" = "8:opencv_highgui2411.dll"
-            "TargetName" = "8:opencv_highgui2411.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_74DA4646B892437CB894A023A901DA28"
             {
             "SourcePath" = "8:..\\common\\logo01.jpg"
@@ -296,26 +162,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8D0E051100784CE5208C6075A8B792A8"
-            {
-            "SourcePath" = "8:SDL.dll"
-            "TargetName" = "8:SDL.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_92766BA5615D49D4A1100DBF06517658"
             {
             "SourcePath" = "8:..\\common\\logo02.jpg"
@@ -334,46 +180,6 @@
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A603E258747E4C06F900C6DC3ED6E240"
-            {
-            "SourcePath" = "8:SDL_ttf.dll"
-            "TargetName" = "8:SDL_ttf.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B0038B1C5EAC49E86373F20253BE6C86"
-            {
-            "SourcePath" = "8:SDL_net.dll"
-            "TargetName" = "8:SDL_net.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B196E8C09DCE43989CC84DE0AA540CA5"
@@ -486,7 +292,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(OpenCV)"
         "ProductCode" = "8:{D6CFBDD2-4703-4931-B953-D673EAF6E94C}"
-        "PackageCode" = "8:{90AF6354-59D9-4A0E-BAAC-FF4260FB4CEB}"
+        "PackageCode" = "8:{F937BCEC-C4E6-4CFD-8CBE-95AFA8C7085A}"
         "UpgradeCode" = "8:{610C0CEF-E8C6-4EFB-A337-99E54CD03DFD}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -497,7 +303,7 @@
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:Setup_OpenCV"
+        "Title" = "8:SimpleGazeTracker(OpenCV)"
         "Subject" = "8:"
         "ARPCONTACT" = "8:Hiroyuki Sogo"
         "Keywords" = "8:"
@@ -647,7 +453,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_49D500A1C71C43F0AC550C33EBBD55FA"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:進行状況"
+                    "DisplayName" = "8:Progress"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminProgressDlg.wid"
@@ -692,7 +498,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_2D7DCBFD19AA4083AB923B03AE46B465"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:完了"
+                    "DisplayName" = "8:Finished"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdFinishedDlg.wid"
@@ -737,7 +543,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_35BCBA3161FA486EA7AA4EB5C483AA56"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:進行状況"
+                    "DisplayName" = "8:Progress"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdProgressDlg.wid"
@@ -794,7 +600,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_552B97C845AD460CAA68D464530247EB"
                     {
                     "Sequence" = "3:300"
-                    "DisplayName" = "8:インストールの確認"
+                    "DisplayName" = "8:Confirm Installation"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminConfirmDlg.wid"
@@ -817,7 +623,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_87352B12A26D4C4ABC256CCBBF5A864F"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:ようこそ"
+                    "DisplayName" = "8:Welcome"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminWelcomeDlg.wid"
@@ -866,7 +672,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_B2BD8B1C6312403F9FC849A7CD1BB80F"
                     {
                     "Sequence" = "3:200"
-                    "DisplayName" = "8:インストール フォルダー"
+                    "DisplayName" = "8:Installation Folder"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminFolderDlg.wid"
@@ -898,7 +704,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_C71E7337FED5424BB691221C9DD2043E"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:完了"
+                    "DisplayName" = "8:Finished"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminFinishedDlg.wid"
@@ -930,7 +736,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_A35AE248452C4B81951C913C371F5D36"
                     {
                     "Sequence" = "3:200"
-                    "DisplayName" = "8:インストール フォルダー"
+                    "DisplayName" = "8:Installation Folder"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdFolderDlg.wid"
@@ -966,7 +772,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_CAB26718450746289267F054BF4D6C35"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:ようこそ"
+                    "DisplayName" = "8:Welcome"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdWelcomeDlg.wid"
@@ -1015,7 +821,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_E3817D80E3184D94B65958A12D040A13"
                     {
                     "Sequence" = "3:300"
-                    "DisplayName" = "8:インストールの確認"
+                    "DisplayName" = "8:Confirm Installation"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdConfirmDlg.wid"
@@ -1040,20 +846,6 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_A9E5C2A375F840929E93DA235FCC50CD"
-            {
-            "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:Microsoft_VC100_CRT_x86.msm"
-                "Properties"
-                {
-                }
-            "LanguageId" = "3:0"
-            "Exclude" = "11:FALSE"
-            "Folder" = "8:"
-            "Feature" = "8:"
-            "IsolateTo" = "8:"
-            }
         }
         "ProjectOutput"
         {

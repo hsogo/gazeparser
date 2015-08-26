@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = subdir-objects
+
 bin_PROGRAMS=sgtsrv
 sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
     common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\

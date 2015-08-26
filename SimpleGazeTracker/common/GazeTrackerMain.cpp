@@ -503,7 +503,13 @@ int initSDLTTF(void)
 			fontFilePath.assign("FreeSans.ttf");
 			if((g_Font=TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE))==NULL)
 			{
-				return E_FAIL;
+				// try parent directory
+				fontFilePath.assign("..");
+				fontFilePath.append(PATH_SEPARATOR);
+				fontFilePath.append("FreeSans.ttf");
+				if ((g_Font = TTF_OpenFont(fontFilePath.c_str(), MENU_FONT_SIZE)) == NULL){
+					return E_FAIL;
+				}
 			}
 		}
 	}

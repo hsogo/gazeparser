@@ -201,10 +201,10 @@ for tr in range(10):
                     tracker.sendMessage('RESPONSE LEFT')
                     arrow_pressed = True
         
-        stim.setPos((fixpos_x,0),units='pix')
+        stim.setPos((fixpos_x,0))
         stim.draw()
         if arrow_pressed:
-            answer.setPos((400,0),units='pix')
+            answer.setPos((400,0))
             answer.draw()
         win.flip()
         
