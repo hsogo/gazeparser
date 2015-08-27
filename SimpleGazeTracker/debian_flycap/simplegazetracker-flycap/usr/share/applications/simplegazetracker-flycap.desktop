@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+GenericName=SimpleGazeTracker Server (FlyCapture2)
+Name=SimpleGazeTracker (FlyCapture2)
+Exec=sgtsrv-flycap
+TryExec=sgtsrv-flyCap
+Type=Application
+Terminal=false
+Categories=Graphics;Science
+Icon=simplegazetracker.xpm
+
+Name[ja]=simplegazetracker-flycap.desktop
