@@ -11,7 +11,6 @@
 #define _CRT_SECURE_NO_DEPRECATE
 
 
-//#include <atlbase.h>
 #include "GazeTracker.h"
 #include "FlyCapture2.h"
 
