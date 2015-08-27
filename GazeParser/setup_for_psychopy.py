@@ -44,6 +44,7 @@ if sys.platform.startswith('win'):
     gpcDir = gpComponentDir.lower()
     cmpDir = [s.lower() for s in psychopy.prefs.builder['componentsFolders']]
 else:
+    gpcDir = gpComponentDir
     cmpDir = psychopy.prefs.builder['componentsFolders']
 
 if not gpcDir in cmpDir:
