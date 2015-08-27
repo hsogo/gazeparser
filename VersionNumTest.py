@@ -9,6 +9,7 @@ files = ['GazeParser/GazeParser/__init__.py',
          'SimpleGazeTracker/NEWS',
          'SimpleGazeTracker/common/GazeTrackerCommon.h',
          'SimpleGazeTracker/debian/changelog',
+         'SimpleGazeTracker/debian/files',
          ]
 
 for file in files:
