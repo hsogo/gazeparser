@@ -1,5 +1,18 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+if FLYCAPTURE
+
+bin_PROGRAMS = sgtsrv-flycap
+
+sgtsrv_flycap_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
+    common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
+    flycapture2/Camera_flycapture2.cpp flycapture2/GazeTracker.h
+
+sgtsrv_flycap_LDADD=$(OPENCV_LIBS) $(SDL_LIBS) $(LIBUSB_LIBS) -lflycapture
+sgtsrv_flycap_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS) $(LIBUSB_CFLAGS) -I/usr/include/flycapture
+
+else
+
 bin_PROGRAMS=sgtsrv
 
 sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
@@ -9,29 +22,18 @@ sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFle
 sgtsrv_LDADD=$(OPENCV_LIBS) $(SDL_LIBS) $(LIBUSB_LIBS)
 sgtsrv_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS) $(LIBUSB_CFLAGS)
 
-
-if FLYCAPTURE
-bin_PROGRAMS += sgtsrvFlyCap
-
-sgtsrvFlyCap_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
-    common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
-    flycapture2/Camera_flycapture2.cpp flycapture2/GazeTracker.h
-
-sgtsrvFlyCap_LDADD=$(OPENCV_LIBS) $(SDL_LIBS) $(LIBUSB_LIBS) -lflycapture
-sgtsrvFlyCap_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS) $(LIBUSB_CFLAGS) -I/usr/include/flycapture
-endif FLYCAPTURE
-
+endif
 
 if FONTLESS
 freesans= 
-else !FONTLESS
+else
 freesans=FreeSans.ttf
-endif !FONTLESS
+endif
 
 bindir=$(prefix)/bin
 datadir=$(prefix)/lib/@PACKAGE@
 dist_data_DATA = opencv/CONFIG opencv/CONFIG_OPENCV $(freesans)
 if FLYCAPTURE
 dist_data_DATA += flycapture2/CONFIG_FLYCAPTURE2 
-endif FLYCAPTURE
+endif
 
