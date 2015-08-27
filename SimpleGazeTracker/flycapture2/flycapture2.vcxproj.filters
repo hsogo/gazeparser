@@ -62,6 +62,6 @@
     <None Include="..\common\FreeSans.ttf" />
     <None Include="CONFIG_FLYCAPTURE2" />
     <None Include="libiomp5md.dll" />
-    <None Include="FlyCapture2_v100.dll" />
+    <None Include="FlyCapture2.dll" />
   </ItemGroup>
 </Project>
