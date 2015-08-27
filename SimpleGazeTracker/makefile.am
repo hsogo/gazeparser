@@ -1,12 +1,26 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
 bin_PROGRAMS=sgtsrv
+
 sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
     common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
     opencv/Camera_OpenCV.cpp opencv/GazeTracker.h
 
 sgtsrv_LDADD=$(OPENCV_LIBS) $(SDL_LIBS) $(LIBUSB_LIBS)
 sgtsrv_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS) $(LIBUSB_CFLAGS)
+
+
+if FLYCAPTURE
+bin_PROGRAMS += sgtsrvFlyCap
+
+sgtsrvFlyCap_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
+    common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
+    flycapture2/Camera_flycapture2.cpp flycapture2/GazeTracker.h
+
+sgtsrvFlyCap_LDADD=$(OPENCV_LIBS) $(SDL_LIBS) $(LIBUSB_LIBS) -lflycapture
+sgtsrvFlyCap_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS) $(LIBUSB_CFLAGS) -I/usr/include/flycapture
+endif FLYCAPTURE
+
 
 if FONTLESS
 freesans= 
@@ -16,5 +30,8 @@ endif !FONTLESS
 
 bindir=$(prefix)/bin
 datadir=$(prefix)/lib/@PACKAGE@
-dist_data_DATA=  opencv/CONFIG opencv/CONFIG_OPENCV $(freesans)
+dist_data_DATA = opencv/CONFIG opencv/CONFIG_OPENCV $(freesans)
+if FLYCAPTURE
+dist_data_DATA += flycapture2/CONFIG_FLYCAPTURE2 
+endif FLYCAPTURE
 

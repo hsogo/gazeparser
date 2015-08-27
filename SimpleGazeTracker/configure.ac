@@ -50,6 +50,18 @@ AC_ARG_ENABLE(
 )
 AM_CONDITIONAL(FONTLESS, test x$fontless = xtrue)
 
+AC_ARG_WITH(
+	[flycapture],
+	[  --with-flycapture is yes, FlyCapture2 version is installed [default no]],
+	[case "${withval}" in
+		yes) flycapture=true  ;;
+		no)  flycapture=false ;;
+		*) AC_MSG_ERROR(bad value ${withval} for --with-flaycapture) ;
+	esac],
+	[flycapture=false]
+)
+AM_CONDITIONAL(FLYCAPTURE, test x$flycapture = xtrue)
+
 AC_CONFIG_FILES([makefile])
 AC_OUTPUT
 
