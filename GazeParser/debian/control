@@ -5,6 +5,7 @@ Maintainer: Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
 Build-Depends: debhelper (>= 8.0.0), autotools-dev
 Standards-Version: 3.9.2
 Homepage: http://gazeparser.sourceforge.net/
+X-Python-Version: >= 2.7
 
 Package: gazeparser
 Architecture: all

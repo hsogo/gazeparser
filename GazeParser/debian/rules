@@ -2,7 +2,7 @@
 # -*- makefile -*-
 
 %:
-	dh $@
+	dh $@ --with python2
 
 override_dh_auto_build:
 	python setup-deb.py build

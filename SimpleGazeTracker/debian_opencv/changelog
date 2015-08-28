@@ -19,7 +19,7 @@ simplegazetracker (0.8.0) unstable; urgency=medium
   * Width and height are used to select pupil candidate instead of contour length. Use MIN_PUPIL_WIDTH and MAX_PUPIL_WIDTH to specify acceptable pupil size (unit is percentage of ROI width)
   * Percentage of dark pixels in pupil candidates are checked to improve pupil detection.
 
- -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thr, 12 Mar 2015 19:48:31 +0900
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thu, 12 Mar 2015 19:48:31 +0900
 
 simplegazetracker (0.7.0) unstable; urgency=medium
 
