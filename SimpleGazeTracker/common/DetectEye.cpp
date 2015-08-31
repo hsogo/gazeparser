@@ -108,6 +108,8 @@ detectPupilPurkinjeMono: Detect pupil and purkinje image (monocular recording)
 - Check MAX_FIRST_CANDIDATES pupil candidates at maximum.
 @date 2012/09/28
 - Return Pupil area.
+@data 2015/08/31
+- Dark areas are filled with green if useRenderThread is true.
 */
 int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double results[MAX_DETECTION_RESULTS])
 {
@@ -137,14 +139,20 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	cv::threshold(g_SrcImg(g_ROI),tmp,Threshold1,127,CV_THRESH_BINARY);
 	cv::findContours(tmp, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(g_ROI.x,g_ROI.y));
 
-	//If g_isShowingCameraImage is true, paint dark areas blue.
+	//If g_isShowingCameraImage is true, paint dark areas.
+	//
 	if(g_isShowingCameraImage){
+		int darkAreaColor = 150;
+		if(g_useRenderThread){
+			darkAreaColor *= 256;
+		}
+		g_LogFS << darkAreaColor << std::endl;
 		for (int iy=0; iy<g_ROI.height; iy++){
 			unsigned char* p = tmp.ptr<unsigned char>(iy);
 			for (int ix=0; ix<g_ROI.width; ix++)
 			{
 				if(p[ix]==0){
-					g_pCameraTextureBuffer[(iy+g_ROI.y)*g_CameraWidth+(ix+g_ROI.x)] |= 150;
+					g_pCameraTextureBuffer[(iy+g_ROI.y)*g_CameraWidth+(ix+g_ROI.x)] |= darkAreaColor;
 				}
 			}
 		}
@@ -371,6 +379,8 @@ detectPupilPurkinjeBin: Detect pupil and purkinje image (Binocular recording)
 - Check MAX_FIRST_CANDIDATES pupil candidates at maximum.
 @date 2012/09/28
 - Return Pupil area.
+@data 2015/08/31
+- Dark areas are filled with green if useRenderThread is true.
 */
 int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double results[MAX_DETECTION_RESULTS])
 {
@@ -399,14 +409,18 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 	cv::threshold(g_SrcImg(g_ROI),tmp,Threshold1,127,CV_THRESH_BINARY);
 	cv::findContours(tmp, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(g_ROI.x,g_ROI.y));
 
-	//If g_isShowingCameraImage is true, paint dark areas blue.
+	//If g_isShowingCameraImage is true, paint dark areas.
 	if(g_isShowingCameraImage){
+		int darkAreaColor = 150;
+		if(g_useRenderThread){
+			darkAreaColor *= 256;
+		}
 		for (int iy=0; iy<g_ROI.height; iy++){
 			unsigned char* p = tmp.ptr<unsigned char>(iy);
 			for (int ix=0; ix<g_ROI.width; ix++)
 			{
 				if(p[ix]==0){
-					g_pCameraTextureBuffer[(iy+g_ROI.y)*g_CameraWidth+(ix+g_ROI.x)] |= 150;
+					g_pCameraTextureBuffer[(iy+g_ROI.y)*g_CameraWidth+(ix+g_ROI.x)] |= darkAreaColor;
 				}
 			}
 		}

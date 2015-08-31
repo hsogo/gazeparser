@@ -166,6 +166,7 @@ extern double g_ParamX[6],g_ParamY[6]; //Monocular: 3 params, Binocular 6 parame
 extern int g_Threshold;
 
 extern int g_RecordingMode;
+extern bool g_useRenderThread;
 
 extern std::string g_DataPath;
 extern std::string g_AppDirPath;
