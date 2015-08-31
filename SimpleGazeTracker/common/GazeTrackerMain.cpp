@@ -145,7 +145,7 @@ std::string g_USBIOBoard;
 std::string g_USBIOParamAD;
 std::string g_USBIOParamDI;
 
-bool g_useRenderThread = true;
+bool g_useRenderThread = false;
 bool g_runRenderThread = false;
 SDL_Thread *g_pRenderThread;
 char g_recordingMessage[256];
@@ -1346,7 +1346,9 @@ int main(int argc, char** argv)
 
 				case SDLK_l:
 					g_useRenderThread = !g_useRenderThread;
-					prepareRecordingScreen();
+					if(g_isRecording){
+						prepareRecordingScreen();
+					}
 					break;
 
 				case SDLK_UP:
