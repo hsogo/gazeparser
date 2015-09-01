@@ -117,7 +117,7 @@ meshx,meshy = numpy.meshgrid(range(-maskImageSize/2,maskImageSize/2),range(-mask
 imgArray = numpy.ones((maskImageSize,maskImageSize,4),numpy.uint8)*128
 maskimage = Image.fromarray(imgArray,mode='RGBA')
 
-stim = psychopy.visual.SimpleImageStim(win,fname)
+stim = psychopy.visual.ImageStim(win,fname)
 mask = psychopy.visual.ImageStim(win,maskimage,interpolate='linear')
 mask.setSize((max(win.size)*2,max(win.size)*2))
 
