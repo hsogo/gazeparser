@@ -201,8 +201,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 -USBIO_AD (g_USBIOParamAD)
 -USBIO_DI (g_USBIOParamDI)
 -USB_USE_THREAD (g_useUSBThread)
--USB_SLEEP_DURATION (g_SleepDurationUSB)
--RENDER_DURING_REC (g_useRenderThread)
+-USB_SLEEP_DURATION (g_USBSleepDuration)
 
 @return int
 @retval S_OK Camera is successfully initialized.
@@ -220,6 +219,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 @date 2013/12/24 USB_USE_THREAD is supported.
 @date 2015/03/12 MAXPOINTS and MINPOINTS are changed to MAXWIDTH and MINWIDTH.
 @date 2015/06/15 RENDER_DURING_REC is supported.
+@date 2015/09/02 RENDER_DURING_REC is removed.
  */
 int initParameters( void )
 {
@@ -295,7 +295,7 @@ int initParameters( void )
 		else if(strcmp(buff,"USBIO_AD")==0) g_USBIOParamAD = p+1;
 		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
 		else if(strcmp(buff,"USB_USE_THREAD")==0) g_useUSBThread = (param!=0)? true: false;
-		else if (strcmp(buff, "RENDER_DURING_REC") == 0) g_useRenderThread = (param != 0) ? true : false;
+		//else if(strcmp(buff,"USB_SLEEP_DURATION")==0) g_USBSleepDuration = param;
 		//obsolete parameters
 		else if(strcmp(buff,"MAXPOINTS")==0){
 			printf("Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
@@ -354,7 +354,7 @@ Following parameters are wrote to the configuration file.
 -USBIO_AD (g_USBIOParamAD)
 -USBIO_DI (g_USBIOParamDI)
 -USB_USE_THREAD (g_useUSBThread)
--USB_SLEEP_DURATION (g_SleepDurationUSB)
+-USB_SLEEP_DURATION (g_USBSleepDuration)
 
 @return No value is returned.
 
@@ -368,6 +368,7 @@ Following parameters are wrote to the configuration file.
 @date 2013/12/24 USB_USE_THREAD is supported.
 @date 2015/03/12 MAXPOINTS and MINPOINTS are changed to MAXWIDTH and MINWIDTH.
 @date 2015/06/15 RENDER_DURING_REC is supported.
+@date 2015/09/02 RENDER_DURING_REC is removed.
 */
 void saveParameters( void )
 {
@@ -423,7 +424,7 @@ void saveParameters( void )
 	fs << "USBIO_AD=" << g_USBIOParamAD << std::endl;
 	fs << "USBIO_DI=" << g_USBIOParamDI << std::endl;
 	fs << "USB_USE_THREAD=" << (g_useUSBThread? "1" : "0") << std::endl;
-	fs << "RENDER_DURING_REC=" << (g_useRenderThread? "1" : "0") << std::endl;
+	//fs << "USB_SLEEP_DURATION=" << g_USBSleepDuration << std::endl;
 	
 	fs.close();
 
