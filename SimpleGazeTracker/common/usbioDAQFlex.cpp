@@ -136,11 +136,6 @@ int pollUSBIOThread(void *unused)
 	size_t pos;
 	char* p;
 
-	//debug//
-	double t, prev;
-	prev = getCurrentTime();
-	//debug//
-
 	while(g_runUSBThread)
 	{
 		if(g_USBADBuffer!=NULL)
@@ -163,13 +158,6 @@ int pollUSBIOThread(void *unused)
 			}
 		}
 
-		//debug//
-		t = getCurrentTime();
-		g_debug_buffer[g_debug_counter] = t-prev;
-		prev = t;
-		g_debug_counter++;
-		g_debug_counter = g_debug_counter % 1000;
-		//debug//
 	}
 	
 	return 0;

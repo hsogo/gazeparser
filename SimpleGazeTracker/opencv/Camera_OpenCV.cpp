@@ -82,15 +82,15 @@ int captureCameraThread(void *unused)
 				g_frameBuffer[idx] = (unsigned char)monoFrame.data[idx];
 			}
 			g_NewFrameAvailable = true;
-            
-            if(g_SleepDuration>0.0)
-            {
-                sleepMilliseconds(g_SleepDuration);
-            }
+			
+			if(g_SleepDuration>0.0)
+			{
+				sleepMilliseconds(g_SleepDuration);
+			}
 		}
 	}
-    
-    return 0;
+	
+	return 0;
 }
 
 

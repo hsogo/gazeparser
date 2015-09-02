@@ -49,11 +49,6 @@ int pollUSBIOThread(void *unused)
 	int ULStat;
 	int options=0;
 
-	/* debug
-	double t, prev;
-	prev = getCurrentTime();
-	debug */
-
 	while(g_runUSBThread)
 	{
 		if(g_USBADBuffer32!=NULL)
@@ -73,13 +68,6 @@ int pollUSBIOThread(void *unused)
 		if(g_USBDIBuffer!=NULL)
 			ULStat = cbDIn(g_BoardNum, g_USBDIPort, &g_latestDIValue);
 
-		/* debug
-		t = getCurrentTime();
-		g_debug_buffer[g_debug_counter] = t-prev;
-		prev = t;
-		g_debug_counter++;
-		g_debug_counter = g_debug_counter % 1000;
-		debug */
 	}
 	
 	return 0;
