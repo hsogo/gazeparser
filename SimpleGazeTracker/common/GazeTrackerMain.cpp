@@ -14,8 +14,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 // #define __DEBUG_WITH_GPC3100
 
-#include <SDL/SDL.h>
-#include <SDL/SDL_ttf.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include <fstream>
 #include <iostream>
@@ -149,9 +149,6 @@ std::string g_USBIOBoard;
 std::string g_USBIOParamAD;
 std::string g_USBIOParamDI;
 
-bool g_useRenderThread = false;
-bool g_runRenderThread = false;
-SDL_Thread *g_pRenderThread;
 char g_recordingMessage[256];
 
 int g_captureNum = 0;
@@ -1035,22 +1032,6 @@ void renderInitMessages(int n, const char* message)
 	SDL_RenderPresent(g_pSDLrenderer);
 }
 
-
-/*
-renderThread: calback function for rendering during the recording.
-*/
-int renderThread(void *unused)
-{
-	while(g_runRenderThread)
-	{
-		render();
-		renderRecordingMessage(g_recordingMessage, false);
-		sleepMilliseconds(12);
-	}
-
-	return 0;
-}
-
 /*
 main: Entry point of the application
 
@@ -1398,9 +1379,16 @@ int main(int argc, char** argv)
 					break;
 
 				case SDLK_l:
-					g_useRenderThread = !g_useRenderThread;
 					if(g_isRecording){
-						prepareRecordingScreen();
+						if(!g_isShowingCameraImage){
+							g_isShowingCameraImage = true;
+							g_LogFS << "WANING: Enable Camera Preview during recording.";
+						}else{
+							g_isShowingCameraImage = false;
+							//draw message on calimage
+							renderRecordingMessage(g_recordingMessage, true);
+							g_LogFS << "WANING: Stop Camera Preview during recording.";
+						}
 					}
 					break;
 
@@ -1558,7 +1546,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if(!g_runRenderThread && g_isShowingCameraImage && !g_isInhibitRendering)
+		if(g_isShowingCameraImage && !g_isInhibitRendering)
 		{ // if it is not under recording, flip screen in a regular way.
 			render();
 		}
@@ -1864,43 +1852,6 @@ void saveCalValResultsDetail(void)
 	}
 }
 
-/*
-prepareRecordingScreen: prepare recording screen.
-
-This function is called to toggle camera image live view during recording.
-
-@return No value is returned.
-*/
-void prepareRecordingScreen()
-{
-	if (g_useRenderThread && !g_runRenderThread){
-		g_isShowingCameraImage = true;
-		g_runRenderThread = true;
-		g_pRenderThread = SDL_CreateThread(renderThread, "LiveViewThread", NULL);
-		if (g_pRenderThread == NULL)
-		{
-			g_LogFS << "ERROR: failed to start render thread." << std::endl;
-			g_runRenderThread = false;
-			g_isShowingCameraImage = false;
-		}
-		else
-		{
-			g_LogFS << "Start renderThread" << std::endl;
-		}
-	}
-	else{
-		if (g_runRenderThread)
-		{
-			g_runRenderThread = false;
-			SDL_WaitThread(g_pRenderThread, NULL);
-			g_LogFS << "Stop renderThread" << std::endl;
-		}
-		//draw message on calimage
-		renderRecordingMessage(g_recordingMessage, true);
-		//don't render camera image
-		g_isShowingCameraImage = false;
-	}
-}
 
 /*!
 startRecording: initialize recording procedures.
@@ -1990,7 +1941,13 @@ void startRecording(const char* message)
 		g_isShowingCalResult = false;
 
 		strncpy(g_recordingMessage, message, sizeof(g_recordingMessage));
-		prepareRecordingScreen();
+		//draw message on calimage
+		renderRecordingMessage(g_recordingMessage, true);
+
+		//don't render camera image
+		g_isShowingCameraImage = false;
+
+		g_LogFS << "Camera preview during recording is disabled." << std::endl;
 
 		g_RecStartTime = getCurrentTime();
 	}
@@ -2038,13 +1995,6 @@ void stopRecording(const char* message)
 			g_LogFS << "StopRecording (no file) " << message << std::endl;
 		}
 
-		if(g_runRenderThread)
-		{
-			g_runRenderThread = false;
-			SDL_WaitThread(g_pRenderThread, NULL);
-			g_LogFS << "Stop renderThread" << std::endl;
-		}
-	
 		g_isRecording = false;
 		g_isShowingCameraImage = true;
 	}
