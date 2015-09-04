@@ -51,6 +51,10 @@ length of custom menu texts must be smaller than MENU_MAX_ITEMS and MENU_STRING_
 */
 std::string g_MenuString[MENU_MAX_ITEMS];
 
+//SDL_Surface* g_pSDLscreen;
+SDL_Window* g_pSDLwindow;
+SDL_Renderer* g_pSDLrenderer;
+SDL_Texture* g_pSDLtexture;
 SDL_Surface* g_pSDLscreen;
 SDL_Surface* g_pCameraTextureSurface;
 SDL_Surface* g_pCalResultTextureSurface;
@@ -151,6 +155,8 @@ SDL_Thread *g_pRenderThread;
 char g_recordingMessage[256];
 
 int g_captureNum = 0;
+
+char g_errorMessage[1024];
 
 #ifdef __DEBUG_WITH_GPC3100
 #include "C:\\Program Files\\Interface\\GPC3100\\include\\FbiAd.h"
@@ -956,7 +962,10 @@ void render(void)
 	dstRect.h = CURSOR_SIZE;
 	SDL_FillRect(g_pSDLscreen, &dstRect, 0xFFFF00);
 
-	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
+	SDL_UpdateTexture(g_pSDLtexture, NULL, g_pSDLscreen->pixels, g_pSDLscreen->pitch);
+	SDL_RenderClear(g_pSDLrenderer);
+	SDL_RenderCopy(g_pSDLrenderer, g_pSDLtexture, NULL, NULL);
+	SDL_RenderPresent(g_pSDLrenderer);
 }
 
 /*
@@ -994,7 +1003,10 @@ void renderRecordingMessage(const char* message, bool clearScreen)
 		SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
 	}
 
-	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
+	SDL_UpdateTexture(g_pSDLtexture, NULL, g_pSDLscreen->pixels, g_pSDLscreen->pitch);
+	SDL_RenderClear(g_pSDLrenderer);
+	SDL_RenderCopy(g_pSDLrenderer, g_pSDLtexture, NULL, NULL);
+	SDL_RenderPresent(g_pSDLrenderer);
 }
 
 
@@ -1017,7 +1029,10 @@ void renderInitMessages(int n, const char* message)
 	dstRect.y = MENU_ITEM_HEIGHT*n+10;
 	SDL_BlitSurface(textSurface, NULL, g_pSDLscreen, &dstRect);
 
-	SDL_UpdateRect(g_pSDLscreen,0,0,0,0);
+	SDL_UpdateTexture(g_pSDLtexture, NULL, g_pSDLscreen->pixels, g_pSDLscreen->pitch);
+	SDL_RenderClear(g_pSDLrenderer);
+	SDL_RenderCopy(g_pSDLrenderer, g_pSDLtexture, NULL, NULL);
+	SDL_RenderPresent(g_pSDLrenderer);
 }
 
 
@@ -1135,6 +1150,10 @@ int main(int argc, char** argv)
 	getLogFilePath(&logFilePath);
 	g_LogFS.open(logFilePath.c_str(),std::ios::out);
 	if(!g_LogFS.is_open()){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Log file (%s) can't be opened.", logFilePath.c_str());
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"Initialization failed",
+			g_errorMessage, NULL);
 		return -1;
 	}
 	std::string str("Welcome to SimpleGazeTracker version ");
@@ -1148,22 +1167,26 @@ int main(int argc, char** argv)
 	g_LogFS << datestr << std::endl;
 	
 	g_LogFS << "Searching AppDirPath directory..." << std::endl;
-	g_LogFS << "check " << g_AppDirPath << "..." << std::endl;
+	g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
 	if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 		//try /usr/local/lib/simplegazetracker
 		g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
-		g_LogFS << "check " << g_AppDirPath << "..." << std::endl;
+		g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
 		if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 			//try Debian directory (/usr/lib/simplegazetracker)
 			g_AppDirPath.assign("/usr/lib/simplegazetracker");
-			g_LogFS << "check " << g_AppDirPath << "..." << std::endl;
+			g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
 			if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 				//try current directory
 				g_AppDirPath.assign(".");
-				g_LogFS << "check " << g_AppDirPath << "..." << std::endl;
+				g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
 				if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 					printf("ERROR: Could not determine AppDirPath directory.\n");
 					g_LogFS << "ERROR: Could not determine AppDirPath directory."  << std::endl;
+					SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+						"Initialization failed",
+						"Default CONFIG file was not found. Please confirm if SimpleGazeTracker is properly installed.",
+						NULL);
 					return -1;
 				}
 			}
@@ -1176,16 +1199,20 @@ int main(int argc, char** argv)
 	//if CONFIG file is not found in g_ParamPath, copy it.
 	if(!useCustomConfigFile){
 		if(FAILED(checkAndCopyFile(g_ParamPath,DEFAULT_CONFIG_FILE,g_AppDirPath))){
-			printf("Error: \"");
-			printf(DEFAULT_CONFIG_FILE);
-			printf("\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n");
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "\"%s\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n", DEFAULT_CONFIG_FILE);
+			printf("%s\n", g_errorMessage);
 			g_LogFS << "Error: \"" << DEFAULT_CONFIG_FILE << "\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+				"Initialization failed", g_errorMessage, NULL);
 			return -1;
 		}
 	}else{
 		if(FAILED(checkFile(g_ParamPath,g_ConfigFileName.c_str()))){
-			printf("Error: configuration file (%s) is not found.", g_ConfigFileName.c_str());
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Error: configuration file (%s) is not found.", g_ConfigFileName.c_str());
+			printf("%s\n", g_errorMessage);
 			g_LogFS << "Error: configuration file (" << g_ConfigFileName.c_str() << ")is not found.";
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+				"Initialization failed", g_errorMessage, NULL);
 			return -1;
 		}
 	}
@@ -1193,19 +1220,45 @@ int main(int argc, char** argv)
 	//start initialization
 	SDL_Init(SDL_INIT_VIDEO);
 
-	g_pSDLscreen=SDL_SetVideoMode(SCREEN_WIDTH,SCREEN_HEIGHT,32,SDL_SWSURFACE);
-	if(g_pSDLscreen == NULL){
-		printf("Error: Could not prepare SDL Window.\n");
-		g_LogFS << "Error: Could not prepare SDL Window." << std::endl;
-		SDL_Quit();
-		return -1;
-	}
 	str.assign("SimpleGazeTracker ");
 	str.append(VERSION);
-	SDL_WM_SetCaption(str.c_str(),NULL);
+
+	g_pSDLwindow = SDL_CreateWindow(str.c_str(),
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		SCREEN_WIDTH, SCREEN_HEIGHT, 0);
+	g_pSDLrenderer = SDL_CreateRenderer(g_pSDLwindow, -1, 0);
+
+	if (g_pSDLwindow == NULL){
+		printf("Error: Could not prepare SDL window.\n");
+		g_LogFS << "Error: Could not prepare SDL window." << std::endl;
+		SDL_Quit();
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"Initialization failed", "Could not prepare SDL window.", NULL);
+		return -1;
+	}
+
+	g_pSDLscreen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32,
+		0x00FF0000,
+		0x0000FF00,
+		0x000000FF,
+		0xFF000000);
+	g_pSDLtexture = SDL_CreateTexture(g_pSDLrenderer,
+		SDL_PIXELFORMAT_ARGB8888,
+		SDL_TEXTUREACCESS_STREAMING,
+		SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	if (g_pSDLscreen == NULL || g_pSDLtexture == NULL){
+		printf("Error: Could not prepare SDL surface and texture.\n");
+		g_LogFS << "Error: Could not prepare SDL surface and texture." << std::endl;
+		SDL_Quit();
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"Initialization failed", "Could not prepare SDL surface surface/texture.", NULL);
+		return -1;
+	}
 
 	if(FAILED(initParameters())){
-		printf("Error: Could not initialize parameters. Check configuration file.\n");
+		// Error dialog shoud be presented by initParameters.
 		g_LogFS << "Error: Could not initialize parameters. Check configuration file." << std::endl;
 		SDL_Quit();
 		return -1;
@@ -1216,8 +1269,11 @@ int main(int argc, char** argv)
 	//TODO output timer initialization results?
 
 	if(FAILED(initSDLTTF())){
+		printf("Error: Could not prepare font.\n");
 		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) is properly installed.";
 		SDL_Quit();
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"Initialization failed", "Failed to initialize font rendering. Maybe the font file (FreeSans.ttf) is missing. Please confirm whether SimpleGazeTracker is properly installed", NULL);
 		return -1;
 	}
 	g_LogFS << "initSDLTTF ... OK." << std::endl;
@@ -1820,7 +1876,7 @@ void prepareRecordingScreen()
 	if (g_useRenderThread && !g_runRenderThread){
 		g_isShowingCameraImage = true;
 		g_runRenderThread = true;
-		g_pRenderThread = SDL_CreateThread(renderThread, NULL);
+		g_pRenderThread = SDL_CreateThread(renderThread, "LiveViewThread", NULL);
 		if (g_pRenderThread == NULL)
 		{
 			g_LogFS << "ERROR: failed to start render thread." << std::endl;

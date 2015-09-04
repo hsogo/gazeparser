@@ -251,7 +251,7 @@ startUSBThread
 int startUSBThread(void)
 {
 	g_runUSBThread = true;
-	g_pUSBThread = SDL_CreateThread(pollUSBIOThread, NULL);
+	g_pUSBThread = SDL_CreateThread(pollUSBIOThread, "USBThread", NULL);
 	if(g_pUSBThread==NULL)
 	{
 		g_LogFS << "ERROR: failed to start USB thread." << std::endl;
