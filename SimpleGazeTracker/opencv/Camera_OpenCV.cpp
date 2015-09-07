@@ -13,7 +13,7 @@
 #include <fstream>
 #include <string>
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
@@ -274,7 +274,7 @@ int initCamera( void )
 	if(g_isThreadMode)
 	{
 		g_runThread = true;
-		g_pThread = SDL_CreateThread(captureCameraThread, NULL);
+		g_pThread = SDL_CreateThread(captureCameraThread, "CaptureThread", NULL);
 		if(g_pThread==NULL)
 		{
 			g_LogFS << "ERROR: failed to start thread" << std::endl;

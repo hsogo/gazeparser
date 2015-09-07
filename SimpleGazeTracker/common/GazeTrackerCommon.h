@@ -39,7 +39,7 @@
 #define PATH_SEPARATOR "/"
 #endif
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <string>
 #include <iostream> 
 

@@ -379,7 +379,7 @@ int initCamera( void )
 	if(g_isThreadMode)
 	{
         g_runThread = true;
-        g_pThread = SDL_CreateThread(captureCameraThread, NULL);
+        g_pThread = SDL_CreateThread(captureCameraThread, "CaptureThread", NULL);
         if(g_pThread==NULL)
         {
             g_LogFS << "ERROR: failed to start thread" << std::endl;
