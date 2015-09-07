@@ -308,7 +308,7 @@ int initParameters( void )
 		}
 		//unknown option
 		else{
-			printf("Error: Unknown option (\"%s\")\n",buff);
+			//snprintf(g_errorMessage, sizeof(g_errorMessage), "Unknown option (\"%s\")\nCheck %s in %s", buff, g_ConfigFileName.c_str(), g_ParamPath.c_str());
 			g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
 			return E_FAIL;
 		}
@@ -1133,7 +1133,7 @@ int main(int argc, char** argv)
 	if(!g_LogFS.is_open()){
 		snprintf(g_errorMessage, sizeof(g_errorMessage), "Log file (%s) can't be opened.", logFilePath.c_str());
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-			"Initialization failed",
+			"SimpleGazeTracker initialization failed",
 			g_errorMessage, NULL);
 		return -1;
 	}
@@ -1165,7 +1165,7 @@ int main(int argc, char** argv)
 					printf("ERROR: Could not determine AppDirPath directory.\n");
 					g_LogFS << "ERROR: Could not determine AppDirPath directory."  << std::endl;
 					SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-						"Initialization failed",
+						"SimpleGazeTracker initialization failed",
 						"Default CONFIG file was not found. Please confirm if SimpleGazeTracker is properly installed.",
 						NULL);
 					return -1;
@@ -1184,7 +1184,7 @@ int main(int argc, char** argv)
 			printf("%s\n", g_errorMessage);
 			g_LogFS << "Error: \"" << DEFAULT_CONFIG_FILE << "\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-				"Initialization failed", g_errorMessage, NULL);
+				"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
 			return -1;
 		}
 	}else{
@@ -1193,7 +1193,7 @@ int main(int argc, char** argv)
 			printf("%s\n", g_errorMessage);
 			g_LogFS << "Error: configuration file (" << g_ConfigFileName.c_str() << ")is not found.";
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-				"Initialization failed", g_errorMessage, NULL);
+				"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
 			return -1;
 		}
 	}
@@ -1215,7 +1215,7 @@ int main(int argc, char** argv)
 		g_LogFS << "Error: Could not prepare SDL window." << std::endl;
 		SDL_Quit();
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-			"Initialization failed", "Could not prepare SDL window.", NULL);
+			"SimpleGazeTracker initialization failed", "Could not prepare SDL window.", NULL);
 		return -1;
 	}
 
@@ -1234,12 +1234,17 @@ int main(int argc, char** argv)
 		g_LogFS << "Error: Could not prepare SDL surface and texture." << std::endl;
 		SDL_Quit();
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-			"Initialization failed", "Could not prepare SDL surface surface/texture.", NULL);
+			"SimpleGazeTracker initialization failed", "Could not prepare SDL surface surface/texture.", NULL);
 		return -1;
 	}
 
+	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
 	if(FAILED(initParameters())){
-		// Error dialog shoud be presented by initParameters.
+		if (strcmp(g_errorMessage, "") == 0){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize parameters. Check %s in %s", g_ConfigFileName.c_str(), g_ParamPath.c_str());
+		}
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
 		g_LogFS << "Error: Could not initialize parameters. Check configuration file." << std::endl;
 		SDL_Quit();
 		return -1;
@@ -1254,7 +1259,7 @@ int main(int argc, char** argv)
 		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) is properly installed.";
 		SDL_Quit();
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-			"Initialization failed", "Failed to initialize font rendering. Maybe the font file (FreeSans.ttf) is missing. Please confirm whether SimpleGazeTracker is properly installed", NULL);
+			"SimpleGazeTracker initialization failed", "Failed to initialize font rendering. Maybe the font file (FreeSans.ttf) is missing. Please confirm whether SimpleGazeTracker is properly installed", NULL);
 		return -1;
 	}
 	g_LogFS << "initSDLTTF ... OK." << std::endl;
@@ -1290,7 +1295,7 @@ int main(int argc, char** argv)
 	renderInitMessages(nInitMessage,"sockInit ... OK.");
 	nInitMessage += 1;
 	
-	if(FAILED(sockAccept())){
+	if (FAILED(sockAccept())){
 		g_LogFS << "sockAccept failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"sockAccept failed. Exit.");
 		sleepMilliseconds(2000);
@@ -1301,7 +1306,13 @@ int main(int argc, char** argv)
 	renderInitMessages(nInitMessage,"sockAccept ... OK.");
 	nInitMessage += 1;
 
-	if(FAILED(initCamera())){
+	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
+	if (FAILED(initCamera())){
+		if (strcmp(g_errorMessage, "") == 0){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize camera. Check %s in %s", g_CameraConfigFileName.c_str(), g_ParamPath.c_str());
+		}
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
 		g_LogFS << "initCamera failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"initCamera failed. Exit.");
 		sleepMilliseconds(2000);
