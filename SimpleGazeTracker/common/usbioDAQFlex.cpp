@@ -246,6 +246,7 @@ int checkAD(void)
 		ss.str("");
 		resstr = sendMessage(cmdstr);
 		if(resstr != validresstr){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Unsupported range (%s) for channel %d.\nCheck %s in %s.", g_USBADRangeList[i].c_str(), g_USBADChannelList[i], g_ConfigFileName.c_str(), g_ParamPath.c_str());
 			g_LogFS << "Could not set AD Range " << g_USBADChannelList[i] << " (" << g_USBADRangeList[i] << ")." << std::endl;
 			return E_FAIL;
 		}
@@ -256,6 +257,7 @@ int checkAD(void)
 		resstr = sendMessage(cmdstr);
 		pos = resstr.find("=");
 		if(pos == std::string::npos){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to read AD channel %d (USBIO_AD=%s).\nCheck %s in %s.", g_USBADChannelList[i], g_USBIOParamAD.c_str(), g_ConfigFileName.c_str(), g_ParamPath.c_str());
 			g_LogFS << "Could not read AD channel " << g_USBADChannelList[i] << "." << std::endl;
 			return E_FAIL;
 		}
@@ -290,6 +292,7 @@ int checkDI(void)
 	
 	resstr = sendMessage(cmdstr);
 	if(resstr != validresstr){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to configure port (%s) as Digital input.\nCheck %s in %s.", g_USBIOParamDI.c_str(), g_ConfigFileName.c_str(), g_ParamPath.c_str());
 		g_LogFS << "Could not configure port (" << g_USBIOParamDI << ") as Digital input." << std::endl;
 		return E_FAIL;
 	}
@@ -299,6 +302,7 @@ int checkDI(void)
 	resstr = sendMessage(cmdstr);
 	pos = resstr.find("=");
 	if(pos == std::string::npos){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to read port (%s) as Digital input.\nCheck %s in %s.", g_USBIOParamDI.c_str(), g_ConfigFileName.c_str(), g_ParamPath.c_str());
 		g_LogFS << "Could not read Digital input port (" << g_USBIOParamDI << ")." << std::endl;
 		return E_FAIL;
 	}
@@ -316,7 +320,7 @@ startUSBThread
 int startUSBThread(void)
 {
 	g_runUSBThread = true;
-	g_pUSBThread = SDL_CreateThread(pollUSBIOThread, NULL);
+	g_pUSBThread = SDL_CreateThread(pollUSBIOThread, "USBIOThread", NULL);
 	if(g_pUSBThread==NULL)
 	{
 		g_LogFS << "ERROR: failed to start USB thread." << std::endl;
@@ -393,15 +397,18 @@ int initUSBIO(void)
 	}else{
 		g_BoardNum = strtol(g_USBIOBoard.c_str(),&p,10);
 	}
-	if(g_BoardNum==0)
+	if(g_USBIOBoard.c_str()==p) // strtol was failed.
 	{	//Guess Product ID
+		printf("hoge %s\n",g_USBIOBoard.c_str());
 		if(FAILED(g_BoardNum = getProductIDValue(g_USBIOBoard.c_str()))){
-			g_LogFS << "ERROR: Could not open USB IO board. Board number (=" << g_USBIOBoard << ") seems invalid." << std::endl;
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open USB I/O board (%s).\nCheck %s in %s.", g_USBIOBoard.c_str(), g_ConfigFileName.c_str(), g_ParamPath.c_str());
+			g_LogFS << "ERROR: Could not open USB I/O board. Board number (=" << g_USBIOBoard << ") seems invalid." << std::endl;
 			return E_FAIL;
 		}
 	}
 	
 	if(FAILED(initDAQFlex(g_BoardNum))){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to find USB I/O board (%s).\nCheck %s in %s.", g_USBIOBoard.c_str(), g_ConfigFileName.c_str(), g_ParamPath.c_str());
 		g_LogFS << "ERROR: Could not find USB IO board. Is board number (=" << g_USBIOBoard << ") bad?" << std::endl;
 		return E_FAIL;
 	}
@@ -415,12 +422,14 @@ int initUSBIO(void)
 		while( iter != params.end())
 		{
 			if(g_numUSBADChannels>=MAX_USB_AD_CHANNELS){
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Too many AD channels are listed.\nCheck %s in %s.", g_ConfigFileName.c_str(), g_ParamPath.c_str());
 				g_LogFS << "ERROR: Too many AD channels." << std::endl;
 				return E_FAIL;
 			}
 			chan = strtol(iter->c_str(),&p,10);
 			for(int i=0; i<g_numUSBADChannels; i++){
 				if(g_USBADChannelList[i]==chan){
+					snprintf(g_errorMessage, sizeof(g_errorMessage), "AD channel %d is duplicated.\nCheck %s in %s.", chan, g_ConfigFileName.c_str(), g_ParamPath.c_str());
 					g_LogFS << "ERROR: USB AD channel " << chan << " is duplicated." << std::endl;
 					return E_FAIL;
 				}
@@ -429,6 +438,7 @@ int initUSBIO(void)
 			iter++;
 			if(iter==params.end())
 			{
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "AD channel parameter (%s) is wrong.\nCheck %s in %s.", g_USBIOParamAD.c_str(), g_ConfigFileName.c_str(), g_ParamPath.c_str());
 				g_LogFS << "ERROR: USB AD channel parameter is wrong (" << g_USBIOParamAD << ")." << std::endl;
 				return E_FAIL;
 			}
@@ -449,12 +459,14 @@ int initUSBIO(void)
 
 			//vaild channels?
 			if(FAILED(checkAD())){
+				// g_errorMessage is set in checkAD().
 				return E_FAIL;
 			}
 
 			//allocate memory
 			g_USBADBuffer = (unsigned int*)malloc(MAXDATA*g_numUSBADChannels*sizeof(unsigned int));
 			if(g_USBADBuffer==NULL){
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to allocate AD buffer.");
 				g_LogFS << "ERROR: failed to allocate AD buffer." << std::endl;
 				return E_FAIL;
 			}
@@ -465,6 +477,7 @@ int initUSBIO(void)
 	if(g_USBIOParamDI!="NONE" && g_USBIOParamDI!=""){
 		g_USBDIPort = strtol(g_USBIOParamDI.c_str(),&p,10);
 		if( g_USBDIPort==0 && g_USBIOParamDI!="0" ){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Unsupported USB DI port (%s).\nCheck %s in %s.", g_USBIOParamDI.c_str(), g_ConfigFileName.c_str(), g_ParamPath.c_str());
 			g_LogFS << "ERROR: unsupported port (" << g_USBIOParamDI << ")." << std::endl;
 			return E_FAIL;
 		}else{
@@ -473,12 +486,14 @@ int initUSBIO(void)
 
 		//vaild port?
 		if(FAILED(checkDI())){
+			// g_errorMessage is set in checkDI().
 			return E_FAIL;
 		}
 
 		//allocate memory
 		g_USBDIBuffer = (unsigned short*)malloc(MAXDATA*sizeof(unsigned short));
 		if(g_USBDIBuffer==NULL){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to allocate DI buffer.");
 			g_LogFS << "ERROR: failed to allocate DI buffer." << std::endl;
 			return E_FAIL;
 		}
@@ -486,12 +501,15 @@ int initUSBIO(void)
 
 	if(g_USBADBuffer==NULL && g_USBDIBuffer==NULL)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "USBIO_BOARD is specified, but neither USBIO_AD nor USBIO_DI is specified.\nCheck %s in %s.", g_ConfigFileName.c_str(), g_ParamPath.c_str());
 		g_LogFS << "ERROR: USBIO_BOARD is specified, but neither USBIO_AD nor USBIO_DI is specified." << std::endl;
 		return E_FAIL;
 	}
 
 	if(g_useUSBThread){
 		if(FAILED(startUSBThread())){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start a new thread for asynchronous USB I/O.");
+			g_LogFS << "ERROR: failed to start thread" << std::endl;
 			cleanupUSBIO();
 			return E_FAIL;
 		}
