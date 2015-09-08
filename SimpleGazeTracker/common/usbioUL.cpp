@@ -437,7 +437,7 @@ int initUSBIO(void)
 
 		//vaild port?
 		if(FAILED(checkDI())){
-			// g_errorMessage is set in checkAD().
+			// g_errorMessage is set in checkDI().
 			return E_FAIL;
 		}
 
@@ -452,7 +452,7 @@ int initUSBIO(void)
 
 	if(g_USBADBuffer32==NULL && g_USBADBuffer16==NULL && g_USBDIBuffer==NULL)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "USBIO_BOARD is specified, but neither USBIO_AD nor USBIO_DI is specified.\nCheck %s in %s.", g_USBIOParamDI.c_str(), g_ConfigFileName.c_str(), g_ParamPath.c_str());
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "USBIO_BOARD is specified, but neither USBIO_AD nor USBIO_DI is specified.\nCheck %s in %s.", g_ConfigFileName.c_str(), g_ParamPath.c_str());
 		g_LogFS << "ERROR: USBIO_BOARD is specified, but neither USBIO_AD nor USBIO_DI is specified." << std::endl;
 		return E_FAIL;
 	}
