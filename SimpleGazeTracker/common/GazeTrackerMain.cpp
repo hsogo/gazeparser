@@ -222,6 +222,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 @date 2015/03/12 MAXPOINTS and MINPOINTS are changed to MAXWIDTH and MINWIDTH.
 @date 2015/06/15 RENDER_DURING_REC is supported.
 @date 2015/09/02 RENDER_DURING_REC is removed.
+@date 2015/09/08 set g_errorMessage when failed.
  */
 int initParameters( void )
 {
@@ -238,6 +239,7 @@ int initParameters( void )
 	fs.open(fname.c_str(), std::ios::in);
 	if(!fs.is_open())
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open  %s", fname.c_str());
 		g_LogFS << "Failed to open " << fname << "." << std::endl;
 		return E_FAIL;
 	}
@@ -308,7 +310,7 @@ int initParameters( void )
 		}
 		//unknown option
 		else{
-			//snprintf(g_errorMessage, sizeof(g_errorMessage), "Unknown option (\"%s\")\nCheck %s in %s", buff, g_ConfigFileName.c_str(), g_ParamPath.c_str());
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Unknown option (\"%s\")\nCheck %s in %s", buff, g_ConfigFileName.c_str(), g_ParamPath.c_str());
 			g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
 			return E_FAIL;
 		}
@@ -316,6 +318,7 @@ int initParameters( void )
 	
 	if(g_CameraWidth*g_CameraHeight==0)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero.\nCheck %s in %s", g_ConfigFileName.c_str(), g_ParamPath.c_str());
 		g_LogFS << "Error: Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero. Please check configration file." << std::endl;
 		return E_FAIL;
 	}
@@ -1276,7 +1279,8 @@ int main(int argc, char** argv)
 	if(FAILED(initBuffers())){
 		g_LogFS << "initBuffers failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"initBuffers failed. Exit.");
-		sleepMilliseconds(2000);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"SimpleGazeTracker initialization failed", "Failed to initialize image buffer.", NULL);
 		SDL_Quit();
 		return -1;
 	}
@@ -1287,7 +1291,8 @@ int main(int argc, char** argv)
 	if(FAILED(sockInit())){
 		g_LogFS << "sockInit failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"sockInit failed. Exit.");
-		sleepMilliseconds(2000);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"SimpleGazeTracker initialization failed", "Failed to initialize network socket.", NULL);
 		SDL_Quit();
 		return -1;
 	}
@@ -1298,7 +1303,8 @@ int main(int argc, char** argv)
 	if (FAILED(sockAccept())){
 		g_LogFS << "sockAccept failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"sockAccept failed. Exit.");
-		sleepMilliseconds(2000);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"SimpleGazeTracker initialization failed", "Failed to initialize network socket.", NULL);
 		SDL_Quit();
 		return -1;
 	}
@@ -1336,7 +1342,8 @@ int main(int argc, char** argv)
 	if(FAILED(initSDLSurfaces())){
 		g_LogFS << "initSDLSurfaces failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"initSDLSurfaces failed. Exit.");
-		sleepMilliseconds(2000);
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"SimpleGazeTracker initialization failed", "Failed to initialize SDL surfaces.", NULL);
 		SDL_Quit();
 		return -1;
 	}
@@ -1348,7 +1355,8 @@ int main(int argc, char** argv)
 		if(FAILED(initUSBIO())){
 			g_LogFS << "initUSBIO failed. Exit." << std::endl;
 			renderInitMessages(nInitMessage,"initUSBIO failed. Exit.");
-			sleepMilliseconds(2000);
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+				"SimpleGazeTracker initialization failed", "Failed to initialize USB IO unit.", NULL);
 			SDL_Quit();
 			return -1;
 		}
