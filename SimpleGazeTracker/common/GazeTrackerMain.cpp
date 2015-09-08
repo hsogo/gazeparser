@@ -9,10 +9,11 @@
 - Custom menu is supported.
 @date 2012/07/30
 - EOG-SimpleGazeTracker concurrent recording mode is appended.  To use this mode, define __DEBUG_WITH_GPC3100.
- */
+@date 2015/09/08
+- __DEBUG_WITH_GPC3100 is removed. Use USB IO units for debug.
+*/
 
 #define _CRT_SECURE_NO_WARNINGS
-// #define __DEBUG_WITH_GPC3100
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
@@ -155,26 +156,6 @@ int g_captureNum = 0;
 
 char g_errorMessage[1024];
 
-#ifdef __DEBUG_WITH_GPC3100
-#include "C:\\Program Files\\Interface\\GPC3100\\include\\FbiAd.h"
-#pragma comment(lib, "C:\\Program Files\\Interface\\GPC3100\\lib\\FbiAd.lib")
-WORD g_debug_EOGDATA[MAXDATA];
-HANDLE g_debug_hDeviceHandle;
-ADSMPLCHREQ g_debug_AdSmplChReq;
-
-HRESULT initADConverter()
-{
-	g_debug_hDeviceHandle = AdOpen("FBIAD1");
-	if (g_debug_hDeviceHandle == INVALID_HANDLE_VALUE) {
-		return E_FAIL;
-	}
-
-	g_debug_AdSmplChReq.ulChNo = 1;
-	g_debug_AdSmplChReq.ulRange = AD_5V;
-	return S_OK;
-}
-
-#endif
 
 /*!
 initParameters: Read parameters from the configuration file to initialize application.
@@ -607,9 +588,6 @@ void flushGazeData(void)
 	if(g_RecordingMode==RECORDING_MONOCULAR){
 		for(int i=0; i<g_DataCounter; i++){
 			fprintf(g_DataFP,"%.3f,",g_TickData[i]);
-#ifdef __DEBUG_WITH_GPC3100
-			fprintf(g_DataFP,"%d,",g_debug_EOGDATA[i]);
-#endif
 
 			if(g_EyeData[i][0]<E_PUPIL_PURKINJE_DETECTION_FAIL){
 				if(g_EyeData[i][0] == E_MULTIPLE_PUPIL_CANDIDATES)
@@ -653,9 +631,7 @@ void flushGazeData(void)
 		for(int i=0; i<g_DataCounter; i++){
 			fprintf(g_DataFP,"%.3f,",g_TickData[i]);
 			getGazePositionBin(g_EyeData[i], xy);
-#ifdef __DEBUG_WITH_GPC3100
-			fprintf(g_DataFP,"%d,",g_debug_EOGDATA[i]);
-#endif			//left eye
+			//left eye
 			if(g_EyeData[i][BIN_LX]<E_PUPIL_PURKINJE_DETECTION_FAIL){
 				if(g_EyeData[i][BIN_LX] == E_MULTIPLE_PUPIL_CANDIDATES)
 					fprintf(g_DataFP,"MULTIPUPIL,MULTIPUPIL,");
@@ -1329,16 +1305,6 @@ int main(int argc, char** argv)
 	renderInitMessages(nInitMessage,"initCamera ... OK.");
 	nInitMessage += 1;
 
-#ifdef __DEBUG_WITH_GPC3100
-	if(FAILED(initADConverter())){
-		g_LogFS << "initAD failed. Exit." << std::endl;
-		renderInitMessages(nInitMessage,"initADConverter failed. Exit.");
-		sleepMilliseconds(2000);
-		SDL_Quit();
-		return -1;
-	}
-#endif
-
 	if(FAILED(initSDLSurfaces())){
 		g_LogFS << "initSDLSurfaces failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage,"initSDLSurfaces failed. Exit.");
@@ -1541,9 +1507,6 @@ int main(int argc, char** argv)
 				g_CameraSpecificData[g_DataCounter] = getCameraSpecificData();
 			}
 
-#ifdef __DEBUG_WITH_GPC3100
-			AdInputAD( g_debug_hDeviceHandle, 1, AD_INPUT_DIFF, &g_debug_AdSmplChReq, &g_debug_EOGDATA[g_DataCounter]);
-#endif
 			if(g_RecordingMode==RECORDING_MONOCULAR){
 				res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
 				if(res!=S_PUPIL_PURKINJE)
