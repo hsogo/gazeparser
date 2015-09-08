@@ -210,6 +210,7 @@ int initCamera( void )
 		}
 		fs.close();
 	}else{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open camera configuration file (%s)", fname.c_str());
 		g_LogFS << "ERROR: failed to open camera configuration file (" << fname << ")" << std::endl;
 		return E_FAIL;
 	}
@@ -217,7 +218,8 @@ int initCamera( void )
 	g_VideoCapture = cv::VideoCapture(cameraID);
 	if(!g_VideoCapture.isOpened())
 	{
-		g_LogFS << "ERROR: no VideoCapture device is found." << std::endl;
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "No VideCapture device was found.");
+		g_LogFS << "ERROR: no VideoCapture device was found." << std::endl;
 		return E_FAIL;
 	}
 
@@ -226,12 +228,12 @@ int initCamera( void )
 
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
 	{
-		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.\nCheck %s.", g_CameraWidth, g_CameraHeight, fname.c_str());
 		return E_FAIL;
 	}
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
 	{
-		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.\nCheck %s.", g_CameraWidth, g_CameraHeight, fname.c_str());
 		return E_FAIL;
 	}
 
@@ -277,6 +279,7 @@ int initCamera( void )
 		g_pThread = SDL_CreateThread(captureCameraThread, "CaptureThread", NULL);
 		if(g_pThread==NULL)
 		{
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start a new thread for asynchronous capturing.");
 			g_LogFS << "ERROR: failed to start thread" << std::endl;
 			g_runThread = false;
 			return E_FAIL;

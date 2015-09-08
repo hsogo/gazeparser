@@ -118,12 +118,14 @@ int initCamera( void )
 		}
 		fs.close();
 	}else{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open camera configuration file (%s)", fname.c_str());
 		g_LogFS << "ERROR: failed to open camera configuration file (" << fname << ")" << std::endl;
 		return E_FAIL;
 	}
 
 	CameraLibrary::CameraManager::X().WaitForInitialization();
 	if(!CameraLibrary::CameraManager::X().AreCamerasInitialized()){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize cameras.");
 		g_LogFS << "ERROR: failed to initialize camera(s)" << std::endl;
 		return E_FAIL;
 	}
@@ -132,6 +134,7 @@ int initCamera( void )
 
 	if(g_camera==NULL)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "No OptiTrack camera was found.");
 		g_LogFS << "ERROR: no camera is found" << std::endl;
 		return E_FAIL;
 	}
@@ -152,6 +155,7 @@ int initCamera( void )
 		g_camera->SetGrayscaleDecimation(2);
 	else
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.\nCheck %s.", g_CameraWidth, g_CameraHeight, fname.c_str());
 		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
 		return E_FAIL;
 	}
