@@ -170,6 +170,7 @@ extern int g_RecordingMode;
 extern std::string g_DataPath;
 extern std::string g_AppDirPath;
 extern std::string g_ParamPath;
+extern std::string g_ConfigFileName;
 
 extern std::fstream g_LogFS;
 extern std::string g_CameraConfigFileName;

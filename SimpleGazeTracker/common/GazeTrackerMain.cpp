@@ -340,7 +340,9 @@ Following parameters are wrote to the configuration file.
 -USBIO_DI (g_USBIOParamDI)
 -USB_USE_THREAD (g_useUSBThread)
 
-@return No value is returned.
+@return int
+@retval S_OK Camera is successfully initialized.
+@retval E_FAIL Initialization is failed.
 
 @date 2012/04/06 CAMERA_WIDTH, CAMERA_HEIGHT, PREVIEW_WIDTH and PREVIEW_HEIGHT are supported.
 @date 2012/07/17 ROI_WIDTH, ROI_Height, SHOW_DETECTIONERROR_MSG are supported.
@@ -353,8 +355,9 @@ Following parameters are wrote to the configuration file.
 @date 2015/03/12 MAXPOINTS and MINPOINTS are changed to MAXWIDTH and MINWIDTH.
 @date 2015/06/15 RENDER_DURING_REC is supported.
 @date 2015/09/02 RENDER_DURING_REC is removed.
+@date 2015/09/08 return 
 */
-void saveParameters( void )
+int saveParameters( void )
 {
 	std::fstream fs;
 	std::string fname(g_ParamPath);
@@ -367,8 +370,9 @@ void saveParameters( void )
 	fs.open(fname.c_str(),std::ios::out);
 	if(!fs.is_open())
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to save parameters to %s.\nThe file may be write protected or opened by another program.", fname.c_str());
 		g_LogFS  << std::endl << "Error: can't open " << fname << "." << std::endl;
-		return;
+		return E_FAIL;
 	}
 
 	fs << "#If you want to recover original settings, delete this file and start eye tracker program." << std::endl;
@@ -412,6 +416,7 @@ void saveParameters( void )
 	fs.close();
 
 	g_LogFS << "OK." << std::endl;
+	return S_OK;
 }
 
 /*!
@@ -1041,7 +1046,7 @@ int main(int argc, char** argv)
 	time_t t;
 	struct tm *ltm;
 	char datestr[256];
-	int nInitMessage=0;
+	int nInitMessage = 0;
 
 	//argv[0] must be copied to resolve application directory later.
 	//see getApplicationDirectoryPath() in PratformDependent.cpp 
@@ -1061,33 +1066,33 @@ int main(int argc, char** argv)
 	bool useCustomConfigFile = false;
 	g_ConfigFileName.assign(DEFAULT_CONFIG_FILE);
 	g_CameraConfigFileName.assign("");
-	if(argc>0){
-		for(int i=0; i<argc; i++){
-			if(strncmp(argv[i],"-configdir=",11)==0)
+	if (argc > 0){
+		for (int i = 0; i < argc; i++){
+			if (strncmp(argv[i], "-configdir=", 11) == 0)
 			{
-				if(strlen(argv[i])<=11){
+				if (strlen(argv[i]) <= 11){
 					return -1;
 				}
 				g_ParamPath.assign(&argv[i][11]);
 				useCustomParamPath = true;
-			}	
-			else if(strncmp(argv[i],"-datadir=",9)==0)
+			}
+			else if (strncmp(argv[i], "-datadir=", 9) == 0)
 			{
-				if(strlen(argv[i])<=9){
+				if (strlen(argv[i]) <= 9){
 					return -1;
 				}
 				g_DataPath.assign(&argv[i][9]);
 				useCustomDataPath = true;
 			}
-			else if(strncmp(argv[i],"-config=",8)==0){
-				if(strlen(argv[i])<=8){
+			else if (strncmp(argv[i], "-config=", 8) == 0){
+				if (strlen(argv[i]) <= 8){
 					return -1;
 				}
 				g_ConfigFileName.assign(&argv[i][8]);
 				useCustomConfigFile = true;
 			}
-			else if(strncmp(argv[i],"-cameraconfig=",14)==0){
-				if(strlen(argv[i])<=14){
+			else if (strncmp(argv[i], "-cameraconfig=", 14) == 0){
+				if (strlen(argv[i]) <= 14){
 					return -1;
 				}
 				g_CameraConfigFileName.assign(&argv[i][14]);
@@ -1096,11 +1101,11 @@ int main(int argc, char** argv)
 	}
 
 	//check directory and crate them if necessary.
-	if(!useCustomParamPath){
+	if (!useCustomParamPath){
 		getParameterDirectoryPath(&g_ParamPath);
 		checkAndCreateDirectory(g_ParamPath);
 	}
-	if(!useCustomDataPath){
+	if (!useCustomDataPath){
 		getDataDirectoryPath(&g_DataPath);
 		checkAndCreateDirectory(g_DataPath);
 	}
@@ -1108,8 +1113,8 @@ int main(int argc, char** argv)
 	//open logfile and output welcome message.
 	std::string logFilePath;
 	getLogFilePath(&logFilePath);
-	g_LogFS.open(logFilePath.c_str(),std::ios::out);
-	if(!g_LogFS.is_open()){
+	g_LogFS.open(logFilePath.c_str(), std::ios::out);
+	if (!g_LogFS.is_open()){
 		snprintf(g_errorMessage, sizeof(g_errorMessage), "Log file (%s) can't be opened.", logFilePath.c_str());
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 			"SimpleGazeTracker initialization failed",
@@ -1125,24 +1130,24 @@ int main(int argc, char** argv)
 	ltm = localtime(&t);
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
 	g_LogFS << datestr << std::endl;
-	
+
 	g_LogFS << "Searching AppDirPath directory..." << std::endl;
 	g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-	if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
+	if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 		//try /usr/local/lib/simplegazetracker
 		g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
 		g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-		if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
+		if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 			//try Debian directory (/usr/lib/simplegazetracker)
 			g_AppDirPath.assign("/usr/lib/simplegazetracker");
 			g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-			if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
+			if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 				//try current directory
 				g_AppDirPath.assign(".");
 				g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-				if(FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
+				if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
 					printf("ERROR: Could not determine AppDirPath directory.\n");
-					g_LogFS << "ERROR: Could not determine AppDirPath directory."  << std::endl;
+					g_LogFS << "ERROR: Could not determine AppDirPath directory." << std::endl;
 					SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 						"SimpleGazeTracker initialization failed",
 						"Default CONFIG file was not found. Please confirm if SimpleGazeTracker is properly installed.",
@@ -1155,10 +1160,10 @@ int main(int argc, char** argv)
 	g_LogFS << "AppDirPath directory is " << g_AppDirPath << "." << std::endl;
 	g_LogFS << "ParamPath directory is " << g_ParamPath << "." << std::endl;
 	g_LogFS << "DataPath directory is " << g_DataPath << "." << std::endl;
-	
+
 	//if CONFIG file is not found in g_ParamPath, copy it.
-	if(!useCustomConfigFile){
-		if(FAILED(checkAndCopyFile(g_ParamPath,DEFAULT_CONFIG_FILE,g_AppDirPath))){
+	if (!useCustomConfigFile){
+		if (FAILED(checkAndCopyFile(g_ParamPath, DEFAULT_CONFIG_FILE, g_AppDirPath))){
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "\"%s\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n", DEFAULT_CONFIG_FILE);
 			printf("%s\n", g_errorMessage);
 			g_LogFS << "Error: \"" << DEFAULT_CONFIG_FILE << "\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
@@ -1166,8 +1171,9 @@ int main(int argc, char** argv)
 				"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
 			return -1;
 		}
-	}else{
-		if(FAILED(checkFile(g_ParamPath,g_ConfigFileName.c_str()))){
+	}
+	else{
+		if (FAILED(checkFile(g_ParamPath, g_ConfigFileName.c_str()))){
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "Error: configuration file (%s) is not found.", g_ConfigFileName.c_str());
 			printf("%s\n", g_errorMessage);
 			g_LogFS << "Error: configuration file (" << g_ConfigFileName.c_str() << ")is not found.";
@@ -1176,7 +1182,7 @@ int main(int argc, char** argv)
 			return -1;
 		}
 	}
-	
+
 	//start initialization
 	SDL_Init(SDL_INIT_VIDEO);
 
@@ -1218,7 +1224,7 @@ int main(int argc, char** argv)
 	}
 
 	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
-	if(FAILED(initParameters())){
+	if (FAILED(initParameters())){
 		if (strcmp(g_errorMessage, "") == 0){
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize parameters. Check %s in %s", g_ConfigFileName.c_str(), g_ParamPath.c_str());
 		}
@@ -1233,7 +1239,7 @@ int main(int argc, char** argv)
 	initTimer();
 	//TODO output timer initialization results?
 
-	if(FAILED(initSDLTTF())){
+	if (FAILED(initSDLTTF())){
 		printf("Error: Could not prepare font.\n");
 		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) is properly installed.";
 		SDL_Quit();
@@ -1244,48 +1250,48 @@ int main(int argc, char** argv)
 	g_LogFS << "initSDLTTF ... OK." << std::endl;
 
 	//now message can be rendered on screen.
-	renderInitMessages(nInitMessage,str.c_str());
+	renderInitMessages(nInitMessage, str.c_str());
 	nInitMessage++;
 	nInitMessage++;
-	renderInitMessages(nInitMessage,"initParameters ... OK.");
+	renderInitMessages(nInitMessage, "initParameters ... OK.");
 	nInitMessage++;
-	renderInitMessages(nInitMessage,"initSDLTTF ... OK.");
+	renderInitMessages(nInitMessage, "initSDLTTF ... OK.");
 	nInitMessage++;
 
-	if(FAILED(initBuffers())){
+	if (FAILED(initBuffers())){
 		g_LogFS << "initBuffers failed. Exit." << std::endl;
-		renderInitMessages(nInitMessage,"initBuffers failed. Exit.");
+		renderInitMessages(nInitMessage, "initBuffers failed. Exit.");
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 			"SimpleGazeTracker initialization failed", "Failed to initialize image buffer.", NULL);
 		SDL_Quit();
 		return -1;
 	}
 	g_LogFS << "initBuffers ... OK." << std::endl;
-	renderInitMessages(nInitMessage,"initBuffers ... OK.");
+	renderInitMessages(nInitMessage, "initBuffers ... OK.");
 	nInitMessage += 1;
 
-	if(FAILED(sockInit())){
+	if (FAILED(sockInit())){
 		g_LogFS << "sockInit failed. Exit." << std::endl;
-		renderInitMessages(nInitMessage,"sockInit failed. Exit.");
+		renderInitMessages(nInitMessage, "sockInit failed. Exit.");
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 			"SimpleGazeTracker initialization failed", "Failed to initialize network socket.", NULL);
 		SDL_Quit();
 		return -1;
 	}
 	g_LogFS << "sockInit ... OK." << std::endl;
-	renderInitMessages(nInitMessage,"sockInit ... OK.");
+	renderInitMessages(nInitMessage, "sockInit ... OK.");
 	nInitMessage += 1;
-	
+
 	if (FAILED(sockAccept())){
 		g_LogFS << "sockAccept failed. Exit." << std::endl;
-		renderInitMessages(nInitMessage,"sockAccept failed. Exit.");
+		renderInitMessages(nInitMessage, "sockAccept failed. Exit.");
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 			"SimpleGazeTracker initialization failed", "Failed to initialize network socket.", NULL);
 		SDL_Quit();
 		return -1;
 	}
 	g_LogFS << "sockAccept ... OK." << std::endl;
-	renderInitMessages(nInitMessage,"sockAccept ... OK.");
+	renderInitMessages(nInitMessage, "sockAccept ... OK.");
 	nInitMessage += 1;
 
 	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
@@ -1296,64 +1302,69 @@ int main(int argc, char** argv)
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 			"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
 		g_LogFS << "initCamera failed. Exit." << std::endl;
-		renderInitMessages(nInitMessage,"initCamera failed. Exit.");
+		renderInitMessages(nInitMessage, "initCamera failed. Exit.");
 		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
 	g_LogFS << "initCamera ... OK." << std::endl;
-	renderInitMessages(nInitMessage,"initCamera ... OK.");
+	renderInitMessages(nInitMessage, "initCamera ... OK.");
 	nInitMessage += 1;
 
-	if(FAILED(initSDLSurfaces())){
+	if (FAILED(initSDLSurfaces())){
 		g_LogFS << "initSDLSurfaces failed. Exit." << std::endl;
-		renderInitMessages(nInitMessage,"initSDLSurfaces failed. Exit.");
+		renderInitMessages(nInitMessage, "initSDLSurfaces failed. Exit.");
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 			"SimpleGazeTracker initialization failed", "Failed to initialize SDL surfaces.", NULL);
 		SDL_Quit();
 		return -1;
 	}
 	g_LogFS << "initSDLSurfaces ... OK." << std::endl;
-	renderInitMessages(nInitMessage,"initSDLSurfaces ... OK.");
+	renderInitMessages(nInitMessage, "initSDLSurfaces ... OK.");
 	nInitMessage += 1;
 
-	if(g_USBIOBoard.length()>0 && g_USBIOBoard!="NONE"){
-		if(FAILED(initUSBIO())){
+	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
+	if (g_USBIOBoard.length() > 0 && g_USBIOBoard != "NONE"){
+		if (FAILED(initUSBIO())){
+			if (strcmp(g_errorMessage, "") == 0){
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize USB I/O. Check %s in %s", g_ConfigFileName.c_str(), g_ParamPath.c_str());
+			}
 			g_LogFS << "initUSBIO failed. Exit." << std::endl;
-			renderInitMessages(nInitMessage,"initUSBIO failed. Exit.");
+			renderInitMessages(nInitMessage, "initUSBIO failed. Exit.");
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-				"SimpleGazeTracker initialization failed", "Failed to initialize USB IO unit.", NULL);
+				"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
 			SDL_Quit();
 			return -1;
 		}
 		g_LogFS << "initUSBIO ... OK." << std::endl;
-		renderInitMessages(nInitMessage,"initUSBIO ... OK.");
+		renderInitMessages(nInitMessage, "initUSBIO ... OK.");
 		nInitMessage += 1;
-	}else{
+	}
+	else{
 		g_LogFS << "USBIO is not used." << std::endl;
 	}
 
 	g_LogFS << "Start." << "\n" << std::endl;
 	nInitMessage += 1;
-	renderInitMessages(nInitMessage,"Start.");
+	renderInitMessages(nInitMessage, "Start.");
 	sleepMilliseconds(2000);
 
 	SDL_Event SDLevent;
 	int done = false;
-	while(!done){
-		while(SDL_PollEvent(&SDLevent)){
-			switch(SDLevent.type){
+	while (!done){
+		while (SDL_PollEvent(&SDLevent)){
+			switch (SDLevent.type){
 			case SDL_KEYDOWN:
-				switch(SDLevent.key.keysym.sym)
+				switch (SDLevent.key.keysym.sym)
 				{
 				case SDLK_q:
-					if(g_isRecording || g_isCalibrating || g_isValidating)
+					if (g_isRecording || g_isCalibrating || g_isValidating)
 					{
 						g_isRecording = g_isCalibrating = g_isValidating = false;
 					}
 					done = 1;
 					break;
-				
+
 				case SDLK_i:
 					char capfilename[64];
 					time(&t);
@@ -1364,11 +1375,12 @@ int main(int argc, char** argv)
 					break;
 
 				case SDLK_l:
-					if(g_isRecording){
-						if(!g_isShowingCameraImage){
+					if (g_isRecording){
+						if (!g_isShowingCameraImage){
 							g_isShowingCameraImage = true;
 							g_LogFS << "WANING: Enable Camera Preview during recording.";
-						}else{
+						}
+						else{
 							g_isShowingCameraImage = false;
 							//draw message on calimage
 							renderRecordingMessage(g_recordingMessage, true);
@@ -1378,51 +1390,51 @@ int main(int argc, char** argv)
 					break;
 
 				case SDLK_UP:
-					if(!g_isRecording && !g_isCalibrating && !g_isValidating){
+					if (!g_isRecording && !g_isCalibrating && !g_isValidating){
 						g_CurrentMenuPosition--;
-						if(g_CurrentMenuPosition<0)
-							g_CurrentMenuPosition = MENU_GENERAL_NUM + g_CustomMenuNum -1;
+						if (g_CurrentMenuPosition < 0)
+							g_CurrentMenuPosition = MENU_GENERAL_NUM + g_CustomMenuNum - 1;
 					}
 					break;
 				case SDLK_DOWN:
-					if(!g_isRecording && !g_isCalibrating && !g_isValidating){
+					if (!g_isRecording && !g_isCalibrating && !g_isValidating){
 						g_CurrentMenuPosition++;
-						if(MENU_GENERAL_NUM + g_CustomMenuNum <= g_CurrentMenuPosition)
-						g_CurrentMenuPosition = 0;
+						if (MENU_GENERAL_NUM + g_CustomMenuNum <= g_CurrentMenuPosition)
+							g_CurrentMenuPosition = 0;
 					}
 					break;
 
 				case SDLK_LEFT:
-					switch(g_CurrentMenuPosition)
+					switch (g_CurrentMenuPosition)
 					{
 					case MENU_THRESH_PUPIL:
 						g_Threshold--;
-						if(g_Threshold<1)
+						if (g_Threshold < 1)
 							g_Threshold = 1;
 						break;
 					case MENU_THRESH_PURKINJE:
 						g_PurkinjeThreshold--;
-						if(g_PurkinjeThreshold<1)
+						if (g_PurkinjeThreshold < 1)
 							g_PurkinjeThreshold = 1;
 						break;
 					case MENU_MIN_PUPILWIDTH:
 						g_MinPupilWidth--;
-						if(g_MinPupilWidth<0)
+						if (g_MinPupilWidth < 0)
 							g_MinPupilWidth = 0;
 						break;
 					case MENU_MAX_PUPILWIDTH:
 						g_MaxPupilWidth--;
-						if(g_MaxPupilWidth<=g_MinPupilWidth)
-							g_MaxPupilWidth = g_MinPupilWidth+1;
+						if (g_MaxPupilWidth <= g_MinPupilWidth)
+							g_MaxPupilWidth = g_MinPupilWidth + 1;
 						break;
 					case MENU_SEARCHAREA:
 						g_PurkinjeSearchArea--;
-						if(g_PurkinjeSearchArea<10)
+						if (g_PurkinjeSearchArea < 10)
 							g_PurkinjeSearchArea = 10;
 						break;
 					case MENU_EXCLUDEAREA:
 						g_PurkinjeExcludeArea--;
-						if(g_PurkinjeExcludeArea<2)
+						if (g_PurkinjeExcludeArea < 2)
 							g_PurkinjeExcludeArea = 2;
 						break;
 					default:
@@ -1431,40 +1443,40 @@ int main(int argc, char** argv)
 					}
 					updateMenuText();
 					updateCustomMenuText();
-					printStringToTexture(0,0,g_MenuString,MENU_GENERAL_NUM+g_CustomMenuNum,MENU_FONT_SIZE,g_pPanelSurface);
+					printStringToTexture(0, 0, g_MenuString, MENU_GENERAL_NUM + g_CustomMenuNum, MENU_FONT_SIZE, g_pPanelSurface);
 					break;
 
 				case SDLK_RIGHT:
-					switch(g_CurrentMenuPosition)
+					switch (g_CurrentMenuPosition)
 					{
 					case MENU_THRESH_PUPIL:
 						g_Threshold++;
-						if(g_Threshold>255)
+						if (g_Threshold > 255)
 							g_Threshold = 255;
 						break;
 					case MENU_THRESH_PURKINJE:
 						g_PurkinjeThreshold++;
-						if(g_PurkinjeThreshold>255)
+						if (g_PurkinjeThreshold > 255)
 							g_PurkinjeThreshold = 255;
 						break;
 					case MENU_MIN_PUPILWIDTH:
 						g_MinPupilWidth++;
-						if(g_MinPupilWidth>=g_MaxPupilWidth)
-							g_MinPupilWidth = g_MaxPupilWidth-1;
+						if (g_MinPupilWidth >= g_MaxPupilWidth)
+							g_MinPupilWidth = g_MaxPupilWidth - 1;
 						break;
 					case MENU_MAX_PUPILWIDTH:
 						g_MaxPupilWidth++;
-						if(g_MaxPupilWidth>100)
+						if (g_MaxPupilWidth > 100)
 							g_MaxPupilWidth = 100;
 						break;
 					case MENU_SEARCHAREA:
 						g_PurkinjeSearchArea++;
-						if(g_PurkinjeSearchArea>150)
+						if (g_PurkinjeSearchArea > 150)
 							g_PurkinjeSearchArea = 150;
 						break;
 					case MENU_EXCLUDEAREA:
 						g_PurkinjeExcludeArea++;
-						if(g_PurkinjeExcludeArea>g_PurkinjeSearchArea)
+						if (g_PurkinjeExcludeArea > g_PurkinjeSearchArea)
 							g_PurkinjeExcludeArea = g_PurkinjeSearchArea;
 						break;
 					default:
@@ -1473,7 +1485,7 @@ int main(int argc, char** argv)
 					}
 					updateMenuText();
 					updateCustomMenuText();
-					printStringToTexture(0,0,g_MenuString,MENU_GENERAL_NUM+g_CustomMenuNum,MENU_FONT_SIZE,g_pPanelSurface);
+					printStringToTexture(0, 0, g_MenuString, MENU_GENERAL_NUM + g_CustomMenuNum, MENU_FONT_SIZE, g_pPanelSurface);
 					break;
 
 				}
@@ -1489,35 +1501,36 @@ int main(int argc, char** argv)
 
 		//if there is no message to process, do application tasks.
 
-		if(g_isShowingCalResult)
+		if (g_isShowingCalResult)
 		{ //show calibration result.
 			drawCalResult(g_DataCounter, g_EyeData, g_CalPointData, g_NumCalPoint, g_CalPointList, g_CalibrationArea);
 		}
-		else if(getCameraImage( )==S_OK)
+		else if (getCameraImage() == S_OK)
 		{ //retrieve camera image and process it.
 			int res;
 			double detectionResults[MAX_DETECTION_RESULTS], TimeImageAquired;
 			TimeImageAquired = getCurrentTime() - g_RecStartTime;
 			//USB IO
-			if(g_useUSBIO){
+			if (g_useUSBIO){
 				setUSBIOData(g_DataCounter);
 			}
 			//CameraSpacificData
-			if(g_isOutputCameraSpecificData==USE_CAMERASPECIFIC_DATA){
+			if (g_isOutputCameraSpecificData == USE_CAMERASPECIFIC_DATA){
 				g_CameraSpecificData[g_DataCounter] = getCameraSpecificData();
 			}
 
-			if(g_RecordingMode==RECORDING_MONOCULAR){
+			if (g_RecordingMode == RECORDING_MONOCULAR){
 				res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
-				if(res!=S_PUPIL_PURKINJE)
+				if (res != S_PUPIL_PURKINJE)
 				{
 					detectionResults[MONO_PUPIL_X] = detectionResults[MONO_PUPIL_Y] = res;
 					detectionResults[MONO_PURKINJE_X] = detectionResults[MONO_PURKINJE_Y] = res;
 				}
 				getGazeMono(detectionResults, TimeImageAquired);
-			}else{
+			}
+			else{
 				res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
-				if(res!=S_PUPIL_PURKINJE)
+				if (res != S_PUPIL_PURKINJE)
 				{
 					detectionResults[BIN_PUPIL_LX] = detectionResults[BIN_PUPIL_LY] = res;
 					detectionResults[BIN_PURKINJE_LX] = detectionResults[BIN_PURKINJE_LY] = res;
@@ -1528,7 +1541,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if(g_isShowingCameraImage && !g_isInhibitRendering)
+		if (g_isShowingCameraImage && !g_isInhibitRendering)
 		{ // if it is not under recording, flip screen in a regular way.
 			render();
 		}
@@ -1537,7 +1550,17 @@ int main(int argc, char** argv)
 
 	g_LogFS << "\nShutting down.\nDoing camera-specific cleanup..." << std::endl;
 	cleanupCamera();
-	saveParameters();
+
+	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
+	if (FAILED(saveParameters())){
+		if (strcmp(g_errorMessage, "") == 0){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to save parameters.");
+		}
+		g_LogFS << "Failed to save parameters." << std::endl;
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+			"SimpleGazeTracker warning", g_errorMessage, NULL);
+
+	}
 	g_LogFS << "Saving Camera-specific parameters..." << std::endl;
 	saveCameraParameters();
 	cleanup();
