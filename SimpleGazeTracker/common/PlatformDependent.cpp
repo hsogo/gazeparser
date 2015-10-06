@@ -305,3 +305,20 @@ int checkAndCopyFile(std::string path, const char* filename, std::string sourceP
 
 	return S_OK;
 }
+
+int openLocation(std::string location)
+/*@date 2015/10/06
+- return system()'s return value.
+*/
+{
+	std::string cmd;
+
+#ifdef _WIN32
+	cmd.assign("start ");
+#else
+	cmd.assign("xdg-open ");
+#endif
+	cmd.append(location);
+	return system(cmd.c_str());
+}
+
