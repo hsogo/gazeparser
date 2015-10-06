@@ -543,25 +543,25 @@ void cleanup( void )
 	
 	if( g_frameBuffer != NULL )
 	{
-        free(g_frameBuffer);
+		free(g_frameBuffer);
 		g_frameBuffer = NULL;
 	}
 
-    if( g_pCameraTextureBuffer != NULL )
+	if( g_pCameraTextureBuffer != NULL )
 	{
-        free(g_pCameraTextureBuffer);
+		free(g_pCameraTextureBuffer);
 		g_pCameraTextureBuffer = NULL;
 	}
 
-    if( g_pCalResultTextureBuffer != NULL )
+	if( g_pCalResultTextureBuffer != NULL )
 	{
-        free(g_pCalResultTextureBuffer);
+		free(g_pCalResultTextureBuffer);
 		g_pCalResultTextureBuffer = NULL;
 	}
 
-    if( g_SendImageBuffer != NULL )
+	if( g_SendImageBuffer != NULL )
 	{
-        free(g_SendImageBuffer);
+		free(g_SendImageBuffer);
 		g_SendImageBuffer = NULL;
 	}
 	
@@ -1048,6 +1048,13 @@ int main(int argc, char** argv)
 	char datestr[256];
 	int nInitMessage = 0;
 
+	const SDL_MessageBoxButtonData sdlMessageBoxButtons[] = {
+		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Open Config-Directory (if possible) and Exit" },
+		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Exit" },
+	};
+	int sdlButtonID;
+
+
 	//argv[0] must be copied to resolve application directory later.
 	//see getApplicationDirectoryPath() in PratformDependent.cpp 
 	g_AppDirPath.assign(argv[0]);
@@ -1228,8 +1235,14 @@ int main(int argc, char** argv)
 		if (strcmp(g_errorMessage, "") == 0){
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize parameters. Check %s in %s", g_ConfigFileName.c_str(), g_ParamPath.c_str());
 		}
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-			"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
+		const SDL_MessageBoxData messageboxdata = {
+			SDL_MESSAGEBOX_ERROR, NULL, 
+			"SimpleGazeTracker initialization failed", g_errorMessage, 
+			SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
+		};
+		if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
+			openLocation(g_ParamPath);
+		}
 		g_LogFS << "Error: Could not initialize parameters. Check configuration file." << std::endl;
 		SDL_Quit();
 		return -1;
@@ -1261,8 +1274,14 @@ int main(int argc, char** argv)
 	if (FAILED(initBuffers())){
 		g_LogFS << "initBuffers failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage, "initBuffers failed. Exit.");
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-			"SimpleGazeTracker initialization failed", "Failed to initialize image buffer.", NULL);
+		const SDL_MessageBoxData messageboxdata = {
+			SDL_MESSAGEBOX_ERROR, NULL, 
+			"SimpleGazeTracker initialization failed", "Failed to initialize image buffer. Settings of camera image size and preview image size may be wrong.", 
+			SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
+		};
+		if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
+			openLocation(g_ParamPath);
+		}
 		SDL_Quit();
 		return -1;
 	}
@@ -1299,11 +1318,16 @@ int main(int argc, char** argv)
 		if (strcmp(g_errorMessage, "") == 0){
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize camera. Check %s in %s", g_CameraConfigFileName.c_str(), g_ParamPath.c_str());
 		}
-		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-			"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
+		const SDL_MessageBoxData messageboxdata = {
+			SDL_MESSAGEBOX_ERROR, NULL, 
+			"SimpleGazeTracker initialization failed", g_errorMessage, 
+			SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
+		};
+		if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
+			openLocation(g_ParamPath);
+		}
 		g_LogFS << "initCamera failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage, "initCamera failed. Exit.");
-		sleepMilliseconds(2000);
 		SDL_Quit();
 		return -1;
 	}
@@ -1329,10 +1353,16 @@ int main(int argc, char** argv)
 			if (strcmp(g_errorMessage, "") == 0){
 				snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize USB I/O. Check %s in %s", g_ConfigFileName.c_str(), g_ParamPath.c_str());
 			}
+			const SDL_MessageBoxData messageboxdata = {
+				SDL_MESSAGEBOX_ERROR, NULL, 
+				"SimpleGazeTracker initialization failed", g_errorMessage, 
+				SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
+			};
+			if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
+				openLocation(g_ParamPath);
+			}
 			g_LogFS << "initUSBIO failed. Exit." << std::endl;
 			renderInitMessages(nInitMessage, "initUSBIO failed. Exit.");
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-				"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
 			SDL_Quit();
 			return -1;
 		}
@@ -1572,7 +1602,7 @@ int main(int argc, char** argv)
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
 	g_LogFS << datestr << std::endl;
 	g_LogFS << "Done." << std::endl;
-    return 0;
+	return 0;
 }
 
 /*!
@@ -1646,7 +1676,7 @@ void startCalibration(int x1, int y1, int x2, int y2)
 		clearData();
 		g_isCalibrating = true;
 		g_isShowingCalResult = false; //erase calibration result screen.
-	    g_CalSamplesAtCurrentPoint = 0;
+		g_CalSamplesAtCurrentPoint = 0;
 	}
 }
 
@@ -1709,7 +1739,7 @@ void getCalSample(double x, double y, int samples)
 		g_LogFS << "Warning: number of calibration point exceeded its maximum (" << MAXCALPOINT << ")" << std::endl;
 		g_NumCalPoint = 0;
 	}
-    g_CalSamplesAtCurrentPoint = samples;
+	g_CalSamplesAtCurrentPoint = samples;
 }
 
 /*!
@@ -1736,7 +1766,7 @@ void startValidation(int x1, int y1, int x2, int y2)
 		clearData();
 		g_isValidating = true;
 		g_isShowingCalResult = false;
-	    g_CalSamplesAtCurrentPoint = 0;
+		g_CalSamplesAtCurrentPoint = 0;
 	}
 }
 
@@ -2456,7 +2486,7 @@ void getCalibrationResultsDetail( char* errorstr, int size, int* len)
 	int idx,l;
 	double xy[4];
 
-    for(idx=0; idx<g_DataCounter; idx++)
+	for(idx=0; idx<g_DataCounter; idx++)
 	{
 		if(g_RecordingMode==RECORDING_MONOCULAR){ //monocular
 			getGazePositionMono(g_EyeData[idx], xy);

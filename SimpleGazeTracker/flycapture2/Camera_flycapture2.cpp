@@ -244,7 +244,7 @@ int initCamera( void )
 		break;
 
 	default:
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Only MODE_0 and MODE_1 are supported. \nCheck vaule of CAMERA_MODE parameter in %s", buff, fname.c_str());
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Only MODE_0 and MODE_1 are supported. \nCheck vaule of CAMERA_MODE parameter in %s", fname.c_str());
 		g_LogFS << "ERROR: only MODE_0 and MODE_1 are supported." << std::endl;
 		return E_FAIL;
 	}

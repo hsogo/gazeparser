@@ -240,6 +240,7 @@ extern int checkAndCreateDirectory(std::string path);
 extern int checkAndRenameFile(std::string path);
 extern int checkFile(std::string path, const char* filename);
 extern int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath);
+extern int openLocation(std::string location);
 
 //USBIO
 extern bool g_useUSBIO;
