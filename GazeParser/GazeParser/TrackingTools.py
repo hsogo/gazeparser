@@ -2841,7 +2841,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         print 'close (dummy)'
         self.datafilename = ''
 
-    def getEyePosition(self, timeout=0.02, ma=1):
+    def getEyePosition(self, timeout=0.02, getPupil=False, ma=1):
         """
         Dummy function for debugging. This method returns current mouse position.
         """
@@ -3071,7 +3071,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         print 'close (dummy)'
         self.datafilename = ''
 
-    def getEyePosition(self, timeout=0.02, units='pix', ma=1):
+    def getEyePosition(self, timeout=0.02, getPupil=False, units='pix', ma=1):
         """
         Dummy function for debugging. This method returns current mouse position.
         """
