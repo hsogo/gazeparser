@@ -288,7 +288,6 @@ int checkDI(void)
 	ss.str("");
 	resstr = sendMessage(cmdstr);
 	
-	resstr = sendMessage(cmdstr);
 	if(resstr != validresstr){
 		g_LogFS << "Could not configure port (" << g_USBIOParamDI << ") as Digital input." << std::endl;
 		return E_FAIL;
