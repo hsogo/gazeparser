@@ -39,7 +39,7 @@ class GazeParserInitComponent(VisualComponent):
     """Initialize GazeParser.TrackingTools"""
     categories = ['GazeParser']
     def __init__(self, exp, parentName, name='GazeParserInit',gpconfigfile="",trconfigfile="",ipaddress="",calarea="[-1.0,-1.0,1.0,1.0]",
-                 caltargetpos="[[0.0,0.0],[-0.8,-0.8],[-0.8,0.0],[-0.8,0.8],\n[0.0,-0.8],[0.0,0.0],[0.0,0.8],\n[0.8,-0.8],[0.8,0.0],[0.8,0.8]]",
+                 caltargetpos="[[0.0,0.0],[-0.8,-0.8],[-0.8,0.0],[-0.8,0.8],[0.0,-0.8],[0.0,0.0],[0.0,0.8],[0.8,-0.8],[0.8,0.0],[0.8,0.8]]",
                  datafile="data.csv",mode='Normal',modevar='',units="pix",calibration=True,useMonitorInfo=True,fitImageBuffer=True):
         super(GazeParserInitComponent, self).__init__(exp, parentName, name)
         self.type='GazeParserInit'
