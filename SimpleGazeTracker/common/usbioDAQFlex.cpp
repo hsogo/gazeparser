@@ -20,7 +20,7 @@
 
 #define MAX_USB_AD_CHANNELS 8
 
-libusb_device_handle* g_pUSBDevHandle;
+libusb_device_handle* g_pUSBDevHandle = NULL;
 
 int g_BoardNum = NO_USBIO;
 
@@ -53,80 +53,80 @@ int g_debug_counter=0;
 
 void sendControlTransfer(std::string message)
 {
-    int numBytesTransferred;
+	int numBytesTransferred;
 
-    uint16_t length = message.length();
-    const char* msgData = message.data();
-    unsigned char data[MAX_MESSAGE_LENGTH];
-    for (uint16_t i = 0; i < MAX_MESSAGE_LENGTH; i++) {
-        data[i] = (i < length) ? msgData[i] : 0;
-    }
-    numBytesTransferred = libusb_control_transfer(g_pUSBDevHandle, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_ENDPOINT_OUT,
-                                                  STRINGMESSAGE, 0, 0, data, MAX_MESSAGE_LENGTH, 1000);
+	uint16_t length = message.length();
+	const char* msgData = message.data();
+	unsigned char data[MAX_MESSAGE_LENGTH];
+	for (uint16_t i = 0; i < MAX_MESSAGE_LENGTH; i++) {
+		data[i] = (i < length) ? msgData[i] : 0;
+	}
+	numBytesTransferred = libusb_control_transfer(g_pUSBDevHandle, LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_ENDPOINT_OUT,
+				STRINGMESSAGE, 0, 0, data, MAX_MESSAGE_LENGTH, 1000);
 }
 
 std::string getControlTransfer()
 {
-    int messageLength;
-    unsigned char message[64];
-    std::string strmessage;
+	int messageLength;
+	unsigned char message[64];
+	std::string strmessage;
 
-    messageLength = libusb_control_transfer(g_pUSBDevHandle,  LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_ENDPOINT_IN,
-				                               STRINGMESSAGE, 0, 0, message, 64, 1000);
-    strmessage = (char*)message;
-    return strmessage;
+	messageLength = libusb_control_transfer(g_pUSBDevHandle,  LIBUSB_REQUEST_TYPE_VENDOR + LIBUSB_ENDPOINT_IN,
+				STRINGMESSAGE, 0, 0, message, 64, 1000);
+	strmessage = (char*)message;
+	return strmessage;
 }
 
 std::string sendMessage(std::string message)
 {
-    sendControlTransfer(message);
-    return getControlTransfer();
+	sendControlTransfer(message);
+	return getControlTransfer();
 }
 
 int initDAQFlex(int idProduct)
 {
-    int i;
-    bool found = false;
-    ssize_t sizeOfList;
-    
-    libusb_device ** list;
+	int i;
+	bool found = false;
+	ssize_t sizeOfList;
+	
+	libusb_device ** list;
 	libusb_device_descriptor desc;
 	libusb_device* device;
 
-    
-    //Initialize USB libraries
-    if(libusb_init(NULL) != 0)
-    	return E_FAIL;
+	
+	//Initialize USB libraries
+	if(libusb_init(NULL) != 0)
+		return E_FAIL;
 
-    //Get the list of USB devices connected to the PC
-    sizeOfList = libusb_get_device_list(NULL, &list);
+	//Get the list of USB devices connected to the PC
+	sizeOfList = libusb_get_device_list(NULL, &list);
 
-    //Traverse the list of USB devices to find the requested device
-    for(i=0; (i<sizeOfList) && (!found); i++)
-    {
-        device = list[i];
-        libusb_get_device_descriptor(device, &desc);
-        if(desc.idVendor == MCC_VENDOR_ID && desc.idProduct == idProduct)
-        {
-            found = true;
+	//Traverse the list of USB devices to find the requested device
+	for(i=0; (i<sizeOfList) && (!found); i++)
+	{
+		device = list[i];
+		libusb_get_device_descriptor(device, &desc);
+		if(desc.idVendor == MCC_VENDOR_ID && desc.idProduct == idProduct)
+		{
+			found = true;
 
-            //Open the device
-            if(!libusb_open(device, &g_pUSBDevHandle))
-            {
-                //Claim interface with the device
-                if(!libusb_claim_interface(g_pUSBDevHandle,0))
-                {
-                    //Get input and output endpoints
-                    //getEndpoints();
-                    found = true;
-                }
-            }
-        }
-    }
+			//Open the device
+			if(!libusb_open(device, &g_pUSBDevHandle))
+			{
+				//Claim interface with the device
+				if(!libusb_claim_interface(g_pUSBDevHandle,0))
+				{
+					//Get input and output endpoints
+					//getEndpoints();
+					found = true;
+				}
+			}
+		}
+	}
 
-    if(!found)
-    	return E_FAIL;
-    
+	if(!found)
+		return E_FAIL;
+	
 	return S_OK;
 }
 
@@ -353,17 +353,23 @@ void cleanupUSBIO(void)
 		stopUSBThread();
 	}
 
-    if( g_USBADBuffer != NULL )
+	if( g_USBADBuffer != NULL )
 	{
-        free(g_USBADBuffer);
+		free(g_USBADBuffer);
 		g_USBADBuffer = NULL;
 	}
 
-    if( g_USBDIBuffer != NULL )
+	if( g_USBDIBuffer != NULL )
 	{
-        free(g_USBDIBuffer);
+		free(g_USBDIBuffer);
 		g_USBDIBuffer = NULL;
 	}
+
+	if(g_pUSBDevHandle!=NULL){
+		libusb_close(g_pUSBDevHandle);
+		g_pUSBDevHandle = NULL;
+	}
+
 }
 
 /*!
@@ -385,6 +391,11 @@ int initUSBIO(void)
 	std::list<std::string> params;
 	std::list<std::string>::iterator iter;
 	int chan,rangeval;
+
+	if(g_pUSBDevHandle != NULL){
+		g_LogFS << "ERROR: USB Device Handle is not null." << std::endl;
+		return E_FAIL;
+	}
 
 	// Board number
 	if(g_USBIOBoard.compare(0,2,"0x")==0){
