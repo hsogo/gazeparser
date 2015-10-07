@@ -322,3 +322,24 @@ int openLocation(std::string location)
 	return system(cmd.c_str());
 }
 
+std::string joinPath(const char* p1, const char* p2)
+{
+	std::string res;
+
+	res.assign(p1);
+	res.append(PATH_SEPARATOR);
+	res.append(p2);
+
+	return res;
+}
+
+std::string joinPath(std::string p1, std::string p2)
+{
+	std::string res;
+
+	res.assign(p1);
+	res.append(PATH_SEPARATOR);
+	res.append(p2);
+
+	return res;
+}

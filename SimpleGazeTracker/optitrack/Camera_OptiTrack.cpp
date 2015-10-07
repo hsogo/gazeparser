@@ -155,7 +155,7 @@ int initCamera( void )
 		g_camera->SetGrayscaleDecimation(2);
 	else
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.\nCheck %s.", g_CameraWidth, g_CameraHeight, fname.c_str());
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported. Please check %s.", g_CameraWidth, g_CameraHeight, fname.c_str());
 		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
 		return E_FAIL;
 	}

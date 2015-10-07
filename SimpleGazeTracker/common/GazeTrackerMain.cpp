@@ -291,7 +291,7 @@ int initParameters( void )
 		}
 		//unknown option
 		else{
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Unknown option (\"%s\")\nCheck %s in %s", buff, g_ConfigFileName.c_str(), g_ParamPath.c_str());
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Unknown option (\"%s\")\nPlease check %s", buff, joinPath(g_ParamPath, g_ConfigFileName).c_str());
 			g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
 			return E_FAIL;
 		}
@@ -299,7 +299,7 @@ int initParameters( void )
 	
 	if(g_CameraWidth*g_CameraHeight==0)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero.\nCheck %s in %s", g_ConfigFileName.c_str(), g_ParamPath.c_str());
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero.\nCheck  %s", joinPath(g_ParamPath, g_ConfigFileName).c_str());
 		g_LogFS << "Error: Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero. Please check configration file." << std::endl;
 		return E_FAIL;
 	}
@@ -1049,7 +1049,7 @@ int main(int argc, char** argv)
 	int nInitMessage = 0;
 
 	const SDL_MessageBoxButtonData sdlMessageBoxButtons[] = {
-		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Open Config-Directory (if possible) and Exit" },
+		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Open Config" },
 		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Exit" },
 	};
 	int sdlButtonID;
@@ -1233,7 +1233,7 @@ int main(int argc, char** argv)
 	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
 	if (FAILED(initParameters())){
 		if (strcmp(g_errorMessage, "") == 0){
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize parameters. Check %s in %s", g_ConfigFileName.c_str(), g_ParamPath.c_str());
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize parameters. Please check %s.", joinPath(g_ParamPath, g_ConfigFileName).c_str());
 		}
 		const SDL_MessageBoxData messageboxdata = {
 			SDL_MESSAGEBOX_ERROR, NULL, 
@@ -1241,7 +1241,10 @@ int main(int argc, char** argv)
 			SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
 		};
 		if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
-			openLocation(g_ParamPath);
+			if (openLocation(g_ParamPath) != 0){
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open %s. Please open this directory manually.", g_ParamPath.c_str());
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open location", g_errorMessage, NULL);
+			}
 		}
 		g_LogFS << "Error: Could not initialize parameters. Check configuration file." << std::endl;
 		SDL_Quit();
@@ -1280,7 +1283,10 @@ int main(int argc, char** argv)
 			SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
 		};
 		if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
-			openLocation(g_ParamPath);
+			if (openLocation(g_ParamPath) != 0){
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open %s. Please open this directory manually.", g_ParamPath.c_str());
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open location", g_errorMessage, NULL);
+			}
 		}
 		SDL_Quit();
 		return -1;
@@ -1316,7 +1322,7 @@ int main(int argc, char** argv)
 	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
 	if (FAILED(initCamera())){
 		if (strcmp(g_errorMessage, "") == 0){
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize camera. Check %s in %s", g_CameraConfigFileName.c_str(), g_ParamPath.c_str());
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize camera. Please check %s.\n\nDo you want to open Config Directory", joinPath(g_CameraConfigFileName, g_ParamPath).c_str());
 		}
 		const SDL_MessageBoxData messageboxdata = {
 			SDL_MESSAGEBOX_ERROR, NULL, 
@@ -1324,7 +1330,10 @@ int main(int argc, char** argv)
 			SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
 		};
 		if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
-			openLocation(g_ParamPath);
+			if (openLocation(g_ParamPath) != 0){
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open %s. Please open this directory manually.", g_ParamPath.c_str());
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open location", g_errorMessage, NULL);
+			}
 		}
 		g_LogFS << "initCamera failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage, "initCamera failed. Exit.");
@@ -1351,7 +1360,7 @@ int main(int argc, char** argv)
 	if (g_USBIOBoard.length() > 0 && g_USBIOBoard != "NONE"){
 		if (FAILED(initUSBIO())){
 			if (strcmp(g_errorMessage, "") == 0){
-				snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize USB I/O. Check %s in %s", g_ConfigFileName.c_str(), g_ParamPath.c_str());
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize USB I/O. Please check %s.", joinPath(g_ParamPath, g_ConfigFileName).c_str());
 			}
 			const SDL_MessageBoxData messageboxdata = {
 				SDL_MESSAGEBOX_ERROR, NULL, 
@@ -1359,7 +1368,10 @@ int main(int argc, char** argv)
 				SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
 			};
 			if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
-				openLocation(g_ParamPath);
+				if (openLocation(g_ParamPath) != 0){
+					snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open %s. Please open this directory manually.", g_ParamPath.c_str());
+					SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open location", g_errorMessage, NULL);
+				}
 			}
 			g_LogFS << "initUSBIO failed. Exit." << std::endl;
 			renderInitMessages(nInitMessage, "initUSBIO failed. Exit.");
