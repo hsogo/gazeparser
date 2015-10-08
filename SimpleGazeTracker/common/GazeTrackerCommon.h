@@ -155,6 +155,7 @@ extern int g_PreviewHeight;
 extern int g_ROIWidth;
 extern int g_ROIHeight;
 
+extern bool g_isRecording;
 extern bool g_isShowingCameraImage;
 extern int g_isShowDetectionErrorMsg;
 extern int g_isOutputCameraSpecificData;
