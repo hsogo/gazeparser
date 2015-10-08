@@ -16,8 +16,8 @@
 #endif
 
 #include	"GazeTrackerCommon.h"
-#include	<SDL/SDL_net.h>
-#include	<SDL/SDL.h>
+#include	<SDL2/SDL_net.h>
+#include	<SDL2/SDL.h>
 #include	<stdio.h>
 #include	<fstream>
 

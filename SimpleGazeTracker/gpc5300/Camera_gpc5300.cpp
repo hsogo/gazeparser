@@ -162,6 +162,7 @@ int initCamera( void )
 		}
 		fs.close();
 	}else{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open camera configuration file (%s)", fname.c_str());
 		g_LogFS << "ERROR: failed to open camera configuration file (" << fname << ")" << std::endl;
 		return E_FAIL;
 	}
@@ -187,6 +188,7 @@ int initCamera( void )
 
 	g_CameraDeviceHandle = CmlOpen("IFIMGCML1");
 	if(g_CameraDeviceHandle == INVALID_HANDLE_VALUE){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open camera device handle (IFIMGCML1).\nCheck IFIMGCML1 is available.");
 		g_LogFS << "ERROR: could not get camera device handle" << std::endl;
 		return E_FAIL;
 	}
@@ -214,6 +216,7 @@ int initCamera( void )
 	ret = CmlReadCamConfFile(g_CameraDeviceHandle,cfgfname.c_str());
 	
 	if(ret != IFCML_ERROR_SUCCESS){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open camera configuration file (%s)", cfgfname.c_str());
 		g_LogFS << "ERROR: could not read camera configuration file(" << cfgfname << ")" << std::endl;
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
@@ -231,6 +234,7 @@ int initCamera( void )
 
 	ret = CmlSetCaptureFormatInfo(g_CameraDeviceHandle, &CapFmt);
 	if(ret != IFCML_ERROR_SUCCESS){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set camera image format.");
 		g_LogFS << "ERROR: could not set camera image format" << std::endl;
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
@@ -244,12 +248,14 @@ int initCamera( void )
 
 		ret =  CmlRegistMemInfo(g_CameraDeviceHandle, (PVOID)-1, BufSize, &g_CameraMemHandle);
 		if(ret != IFCML_ERROR_SUCCESS){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to register meminfo.");
 			g_LogFS << "ERROR: could not register meminfo" << std::endl;
 			CmlClose(g_CameraDeviceHandle);
 			return E_FAIL;
 		}
 		CmlGetMemPtrValue(g_CameraDeviceHandle, g_CameraMemHandle, &MemoryAddress);
 		if(ret != IFCML_ERROR_SUCCESS){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to get memory pointer.");
 			g_LogFS << "ERROR: could not get memory pointer" << std::endl;
 			CmlClose(g_CameraDeviceHandle);
 			return E_FAIL;
@@ -261,6 +267,7 @@ int initCamera( void )
 		g_TmpFrameBuffer = (unsigned char*)malloc(g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
 		if(g_TmpFrameBuffer==NULL)
 		{
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to allocate working buffer.");
 			g_LogFS << "ERROR: failed to allocate working buffer" << std::endl;
 			CmlClose(g_CameraDeviceHandle);
 			return E_FAIL;
@@ -271,7 +278,8 @@ int initCamera( void )
 
 		ret =  CmlRegistMemInfo(g_CameraDeviceHandle, g_TmpFrameBuffer, BufSize, &g_CameraMemHandle);
 		if(ret != IFCML_ERROR_SUCCESS){
-			g_LogFS << "ERROR: could not allocate buffer)" << std::endl;
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to register meminfo.");
+			g_LogFS << "ERROR: could not register meminfo.)" << std::endl;
 			CmlClose(g_CameraDeviceHandle);
 			return E_FAIL;
 		}
@@ -281,6 +289,7 @@ int initCamera( void )
 	// Set Capture Configration
 	ret = CmlSetCapConfig(g_CameraDeviceHandle, g_CameraMemHandle, &CapFmt);
 	if(ret != IFCML_ERROR_SUCCESS){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set camera configuration.");
 		g_LogFS << "ERROR: could not set camera configuration)" << std::endl;
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
@@ -288,6 +297,7 @@ int initCamera( void )
 
 	CmlOutputPower(g_CameraDeviceHandle,IFCML_PWR_ON);
 	if(ret != IFCML_ERROR_SUCCESS){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to turn the camera on.");
 		g_LogFS << "ERROR: could not turn the camera on)" << std::endl;
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
@@ -303,12 +313,14 @@ int initCamera( void )
 
 	ret = CmlSetEventMask(g_CameraDeviceHandle, 0x03);
 	if(ret != IFCML_ERROR_SUCCESS){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set event mask.");
 		g_LogFS << "ERROR: could not set event mask)" << std::endl;
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
 	}
 	ret = CmlSetEvent(g_CameraDeviceHandle,&Event);
 	if(ret != IFCML_ERROR_SUCCESS){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set event mask.");
 		g_LogFS << "ERROR: could not set event)" << std::endl;
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
@@ -316,6 +328,7 @@ int initCamera( void )
 
 	ret = CmlStartCapture(g_CameraDeviceHandle, 0 ,IFCML_CAM_DMA | IFCML_CAP_ASYNC);
 	if(ret != IFCML_ERROR_SUCCESS){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start capturing.");
 		g_LogFS << "ERROR: could not start capture)" << std::endl;
 		CmlClose(g_CameraDeviceHandle);
 		return E_FAIL;
@@ -339,7 +352,6 @@ int getCameraImage( void )
 		g_NewFrameAvailable = false;
 		return S_OK;
 	}
-
 
 	return E_FAIL;
 }

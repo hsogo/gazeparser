@@ -1,3 +1,11 @@
+New in 0.9.0
+
+  * Newer version of OpenCV (3.0) and SDL (2.0) are introduced.
+  * Flycaptue2 edition supports Linux.
+  * Camera image can be viewed during recording by pressing "L" key. Note that performance of SimpleGazeTracker degrades by drawing camera image.
+  * Error dialog is shown when initialization of SimpleGazeTracker is failed. Configuration directory can be opened from the dialog.
+  * Some debug codes are removed.
+
 New in 0.8.2
 
   * A new command "getCameraImageSize" is added.

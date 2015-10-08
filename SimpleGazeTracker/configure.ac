@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([SimpleGazeTracker], [0.8.2])
+AC_INIT([SimpleGazeTracker], [0.9.0])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
@@ -12,15 +12,15 @@ AC_PROG_CC
 
 # Checks for libraries.
 PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES([SDL],[sdl >= 1.2])
-PKG_CHECK_MODULES([OPENCV],[opencv >= 2.2])
+PKG_CHECK_MODULES([SDL2],[sdl2 >= 2.0])
+PKG_CHECK_MODULES([OPENCV],[opencv >= 2.4])
 PKG_CHECK_MODULES([LIBUSB],[libusb-1.0 >= 1.0])
-AC_CHECK_LIB([SDL],[SDL_Init])
-AC_CHECK_LIB([SDL_ttf],[TTF_Init])
-AC_CHECK_LIB([SDL_net],[SDLNet_Init])
+AC_CHECK_LIB([SDL2],[SDL_Init])
+AC_CHECK_LIB([SDL2_ttf],[TTF_Init])
+AC_CHECK_LIB([SDL2_net],[SDLNet_Init])
 
 # Checks for header files.
-AC_CHECK_HEADERS([arpa/inet.h sys/time.h])
+AC_CHECK_HEADERS([arpa/inet.h sysrm /time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -34,7 +34,7 @@ AC_CHECK_FUNCS([clock_gettime gettimeofday mkdir pow sqrt strchr strstr strtol])
 AC_CANONICAL_BUILD
 case $build_os in
 	*darwin*)
-		AC_MSG_NOTICE([MAKE SURE THAT TCP_NODELAY IS ENABLED IN YOUR SDL_NET.])
+		AC_MSG_NOTICE([MAKE SURE THAT TCP_NODELAY IS ENABLED IN YOUR SDL2_NET.])
 		AC_MSG_NOTICE([SEE http://gazeparser.sourceforge.net/ins/mac.html FOR DETAIL.]);;
 esac
 

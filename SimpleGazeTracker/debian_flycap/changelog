@@ -1,7 +1,7 @@
-simplegazetracker-flycap (0.8.2) unstable; urgency=medium
+simplegazetracker-flycap (0.9.0) unstable; urgency=medium
 
   * FlyCapture2 edition supports Linux.
 
- -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thu, 27 Aug 2015 18:00:00 +0900
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Thu, 08 Oct 2015 18:00:00 +0900
 
 

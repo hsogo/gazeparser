@@ -8,8 +8,8 @@ sgtsrv_flycap_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbi
     common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
     flycapture2/Camera_flycapture2.cpp flycapture2/GazeTracker.h
 
-sgtsrv_flycap_LDADD=$(OPENCV_LIBS) $(SDL_LIBS) $(LIBUSB_LIBS) -lflycapture
-sgtsrv_flycap_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS) $(LIBUSB_CFLAGS) -I/usr/include/flycapture
+sgtsrv_flycap_LDADD=$(OPENCV_LIBS) $(SDL2_LIBS) $(LIBUSB_LIBS) -lflycapture
+sgtsrv_flycap_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL2_CFLAGS) $(LIBUSB_CFLAGS) -I/usr/include/flycapture
 
 else
 
@@ -19,8 +19,8 @@ sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFle
     common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
     opencv/Camera_OpenCV.cpp opencv/GazeTracker.h
 
-sgtsrv_LDADD=$(OPENCV_LIBS) $(SDL_LIBS) $(LIBUSB_LIBS)
-sgtsrv_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL_CFLAGS) $(LIBUSB_CFLAGS)
+sgtsrv_LDADD=$(OPENCV_LIBS) $(SDL2_LIBS) $(LIBUSB_LIBS)
+sgtsrv_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL2_CFLAGS) $(LIBUSB_CFLAGS)
 
 endif
 

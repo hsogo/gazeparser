@@ -24,7 +24,7 @@
 
 
 
-#define VERSION "0.8.2"
+#define VERSION "0.9.0"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -39,7 +39,7 @@
 #define PATH_SEPARATOR "/"
 #endif
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <string>
 #include <iostream> 
 
@@ -155,6 +155,7 @@ extern int g_PreviewHeight;
 extern int g_ROIWidth;
 extern int g_ROIHeight;
 
+extern bool g_isRecording;
 extern bool g_isShowingCameraImage;
 extern int g_isShowDetectionErrorMsg;
 extern int g_isOutputCameraSpecificData;
@@ -166,11 +167,11 @@ extern double g_ParamX[6],g_ParamY[6]; //Monocular: 3 params, Binocular 6 parame
 extern int g_Threshold;
 
 extern int g_RecordingMode;
-extern bool g_useRenderThread;
 
 extern std::string g_DataPath;
 extern std::string g_AppDirPath;
 extern std::string g_ParamPath;
+extern std::string g_ConfigFileName;
 
 extern std::fstream g_LogFS;
 extern std::string g_CameraConfigFileName;
@@ -209,6 +210,8 @@ extern void allowRendering(void);
 extern void inhibitRendering(void);
 extern bool isBinocularMode(void);
 
+extern char g_errorMessage[1024];
+
 //Camera.cpp
 extern int initCamera( void );
 extern int getCameraImage( void );
@@ -238,6 +241,9 @@ extern int checkAndCreateDirectory(std::string path);
 extern int checkAndRenameFile(std::string path);
 extern int checkFile(std::string path, const char* filename);
 extern int checkAndCopyFile(std::string path, const char* filename, std::string sourcePath);
+extern int openLocation(std::string location);
+extern std::string joinPath(const char* p1, const char* p2);
+extern std::string joinPath(std::string p1, std::string p2);
 
 //USBIO
 extern bool g_useUSBIO;

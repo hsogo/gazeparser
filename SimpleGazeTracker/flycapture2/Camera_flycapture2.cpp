@@ -219,6 +219,7 @@ int initCamera( void )
 		}
 		fs.close();
 	}else{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open camera configuration file (%s)", fname.c_str());
 		g_LogFS << "ERROR: failed to open camera configuration file (" << fname << ")" << std::endl;
 		return E_FAIL;
 	}
@@ -243,6 +244,7 @@ int initCamera( void )
 		break;
 
 	default:
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Only MODE_0 and MODE_1 are supported. \nCheck vaule of CAMERA_MODE parameter in %s", fname.c_str());
 		g_LogFS << "ERROR: only MODE_0 and MODE_1 are supported." << std::endl;
 		return E_FAIL;
 	}
@@ -254,11 +256,13 @@ int initCamera( void )
 	error = busMgr.GetNumOfCameras(&numCameras);
 	if(error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to find FlyCapture2 camera.");
 		g_LogFS << "ERROR: failed to get FlyCapture2 camera" << std::endl;
 		return E_FAIL;
 	}
 
 	if(numCameras<=0){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to find FlyCapture2 camera.");
 		g_LogFS << "ERROR: no FlyCapture2 camera was found" << std::endl;
 		return E_FAIL;
 	}
@@ -266,6 +270,7 @@ int initCamera( void )
 	error = busMgr.GetCameraFromIndex(0, &g_FC2CameraGUID);
 	if(error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to get the first Flycapture2 camera.");
 		g_LogFS << "ERROR: Could not get FlyCapture2 camera from index" << std::endl;
 		return E_FAIL;
 	}
@@ -274,6 +279,7 @@ int initCamera( void )
 	error = g_FC2Camera.Connect(&g_FC2CameraGUID);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to connect to Flycapture2 camera.");
 		g_LogFS << "ERROR: failed to connect to FlyCapture2 camera" << std::endl;
 		return E_FAIL;
 	}
@@ -292,6 +298,7 @@ int initCamera( void )
 	g_FC2Camera.GetFormat7Configuration(&imageSettings, &packetSize, &percentage);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to get \"Format7\" cofiguration of the Flycapture2 camera.");
 		g_LogFS << "ERROR: failed to get \"Format7\" camera configuration." << std::endl;
 		return E_FAIL;
 	}
@@ -304,17 +311,20 @@ int initCamera( void )
 	error = g_FC2Camera.ValidateFormat7Settings(&imageSettings, &settingsAreValid, &packetInfo);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to validate camera format.\nCheck CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE in %s.", fname.c_str());
 		g_LogFS << "ERROR: could not validate \"Format7\" camera format.  Check CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE." << std::endl;
 		return E_FAIL;
 	}
 	if(!settingsAreValid)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Camera format is invalid.\nCheck CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE in %s.", fname.c_str());
 		g_LogFS << "ERROR: invalid \"Format7\" camera format. Check CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE." << std::endl;
 		return E_FAIL;
 	}
 	error = g_FC2Camera.SetFormat7Configuration(&imageSettings, packetInfo.recommendedBytesPerPacket);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to configure camera format.");
 		g_LogFS << "ERROR: failed to configure \"Format7\" camera format." << std::endl;
 		return E_FAIL;
 	}
@@ -329,12 +339,14 @@ int initCamera( void )
 	error = g_FC2Camera.SetProperty(&prop);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set frame rate.\nCheck FRAME_RATE in %s.", fname.c_str());
 		g_LogFS << "ERROR: failed to set frame rate." << std::endl;
 		return E_FAIL;
 	}
 	error = g_FC2Camera.GetProperty(&prop);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to validate frame rate.");
 		g_LogFS << "ERROR: failed to get frame rate." << std::endl;
 		return E_FAIL;
 	}
@@ -347,6 +359,7 @@ int initCamera( void )
 	error = g_FC2Camera.GetConfiguration(&Config);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to get camera configuration to set grab-timeout.");
 		g_LogFS << "ERROR: failed to get camera configuration." << std::endl;
 		return E_FAIL;
 	}
@@ -354,6 +367,7 @@ int initCamera( void )
 	error = g_FC2Camera.SetConfiguration(&Config);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set grab-timeout.");
 		g_LogFS << "ERROR: failed to set grab-timeout." << std::endl;
 		return E_FAIL;
 	}
@@ -362,7 +376,8 @@ int initCamera( void )
 	error = g_FC2Camera.StartCapture();
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		g_LogFS << "ERROR: failed to start capture by FlyCapture2 camera" << std::endl;
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start capturing by FlyCapture2 camera.");
+		g_LogFS << "ERROR: failed to start capturing by FlyCapture2 camera" << std::endl;
 		return E_FAIL;
 	}
 
@@ -371,6 +386,7 @@ int initCamera( void )
 	error = g_FC2Camera.SetEmbeddedImageInfo(&eInfo);
 	if(error != FlyCapture2::PGRERROR_OK)
 	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set embedded GPIO pin state.");
 		g_LogFS << "ERROR: failed to set embedded GPIO pin state." << std::endl;
 		return E_FAIL;
 	}
@@ -379,12 +395,13 @@ int initCamera( void )
 	if(g_isThreadMode)
 	{
         g_runThread = true;
-        g_pThread = SDL_CreateThread(captureCameraThread, NULL);
+        g_pThread = SDL_CreateThread(captureCameraThread, "CaptureThread", NULL);
         if(g_pThread==NULL)
         {
-            g_LogFS << "ERROR: failed to start thread" << std::endl;
-            g_runThread = false;
-            return E_FAIL;
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start a new thread for asynchronous capturing.");
+			g_LogFS << "ERROR: failed to start thread" << std::endl;
+			g_runThread = false;
+			return E_FAIL;
         }
         else
         {

@@ -110,6 +110,10 @@ detectPupilPurkinjeMono: Detect pupil and purkinje image (monocular recording)
 - Return Pupil area.
 @data 2015/08/31
 - Dark areas are filled with green if useRenderThread is true.
+@data 2015/09/04
+- Revert useRenderThread function (not compatible with SDL2)
+@date 2015/10/08
+- Red rectangle is drawn if live view is enabled during recording.
 */
 int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double results[MAX_DETECTION_RESULTS])
 {
@@ -132,7 +136,11 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		for(int idx=0; idx<g_CameraHeight*g_CameraWidth; idx++){ //convert 8bit to 24bit color.
 			g_pCameraTextureBuffer[idx] = g_frameBuffer[idx]<<16 | g_frameBuffer[idx]<<8 | g_frameBuffer[idx];
 		}
-		cv::rectangle(g_DstImg,g_ROI,CV_RGB(255,255,255));
+		if(g_isRecording){
+			cv::rectangle(g_DstImg,g_ROI,CV_RGB(255,0,0),5);
+		}else{
+			cv::rectangle(g_DstImg,g_ROI,CV_RGB(255,255,255));
+		}
 	}
 
 	//Find areas darker than Threshold1
@@ -140,19 +148,13 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	cv::findContours(tmp, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(g_ROI.x,g_ROI.y));
 
 	//If g_isShowingCameraImage is true, paint dark areas.
-	//
 	if(g_isShowingCameraImage){
-		int darkAreaColor = 150;
-		if(g_useRenderThread){
-			darkAreaColor *= 256;
-		}
-		g_LogFS << darkAreaColor << std::endl;
 		for (int iy=0; iy<g_ROI.height; iy++){
 			unsigned char* p = tmp.ptr<unsigned char>(iy);
 			for (int ix=0; ix<g_ROI.width; ix++)
 			{
 				if(p[ix]==0){
-					g_pCameraTextureBuffer[(iy+g_ROI.y)*g_CameraWidth+(ix+g_ROI.x)] |= darkAreaColor;
+					g_pCameraTextureBuffer[(iy+g_ROI.y)*g_CameraWidth+(ix+g_ROI.x)] |= 150;
 				}
 			}
 		}
@@ -379,8 +381,12 @@ detectPupilPurkinjeBin: Detect pupil and purkinje image (Binocular recording)
 - Check MAX_FIRST_CANDIDATES pupil candidates at maximum.
 @date 2012/09/28
 - Return Pupil area.
-@data 2015/08/31
+@date 2015/08/31
 - Dark areas are filled with green if useRenderThread is true.
+@date 2015/09/04
+- Revert useRenderThread function (not compatible with SDL2)
+@date 2015/10/08
+- Red rectangle is drawn if live view is enabled during recording.
 */
 int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double results[MAX_DETECTION_RESULTS])
 {
@@ -402,7 +408,11 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 		for(int idx=0; idx<g_CameraHeight*g_CameraWidth; idx++){ //convert 8bit to 24bit color.
 			g_pCameraTextureBuffer[idx] = g_frameBuffer[idx]<<16 | g_frameBuffer[idx]<<8 | g_frameBuffer[idx];
 		}
-		cv::rectangle(g_DstImg,g_ROI,CV_RGB(255,255,255));
+		if(g_isRecording){
+			cv::rectangle(g_DstImg,g_ROI,CV_RGB(255,0,0),5);
+		}else{
+			cv::rectangle(g_DstImg,g_ROI,CV_RGB(255,255,255));
+		}
 	}
 
 	//Find areas darker than Threshold1
@@ -411,16 +421,12 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 
 	//If g_isShowingCameraImage is true, paint dark areas.
 	if(g_isShowingCameraImage){
-		int darkAreaColor = 150;
-		if(g_useRenderThread){
-			darkAreaColor *= 256;
-		}
 		for (int iy=0; iy<g_ROI.height; iy++){
 			unsigned char* p = tmp.ptr<unsigned char>(iy);
 			for (int ix=0; ix<g_ROI.width; ix++)
 			{
 				if(p[ix]==0){
-					g_pCameraTextureBuffer[(iy+g_ROI.y)*g_CameraWidth+(ix+g_ROI.x)] |= darkAreaColor;
+					g_pCameraTextureBuffer[(iy+g_ROI.y)*g_CameraWidth+(ix+g_ROI.x)] |= 150;
 				}
 			}
 		}
@@ -481,7 +487,6 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 			}
 		}
 		areac /= (r.size.width*r.size.height*PI/4);
-		g_LogFS << areac << std::endl;
 
 		//Dark area occupies more than 75% of ellipse?
 		if( areac < 0.75 ){
