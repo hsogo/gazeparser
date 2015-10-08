@@ -1,3 +1,12 @@
+simplegazetracker (0.9.0) unstable; urgency=medium
+
+  * SDL2.0 is introduced.
+  * Camera image can be viewed during recording by pressing "L" key. Note that performance of SimpleGazeTracker degrades by drawing camera image.
+  * Error dialog is shown when initialization of SimpleGazeTracker is failed. Configuration directory can be opened from the dialog.
+  * Some debug codes are removed.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Wed, 3 Jun 2015 18:00:00 +0900
+
 simplegazetracker (0.8.2) unstable; urgency=medium
 
   * A new command "getCameraImageSize" is added.
