@@ -1,28 +1,27 @@
-del Debug\*.exe
-del Debug\*.ilk
-del Debug\*.pdb
+rd /S /Q Debug
+rd /S /Q Release
 
-del /Q flycapture2\Debug\*.*
-del /Q flycapture2\Release\*.*
-del /Q gpc5300\Debug\*.*
-del /Q gpc5300\Release\*.*
-del /Q optitrack\Debug\*.*
-del /Q optitrack\Release\*.*
-del /Q opencv\Debug\*.*
-del /Q opencv\Release\*.*
+rd /S /Q flycapture2\Debug
+rd /S /Q flycapture2\Release
+rd /S /Q gpc5300\Debug
+rd /S /Q gpc5300\Release
+rd /S /Q optitrack\Debug
+rd /S /Q optitrack\Release
+rd /S /Q opencv\Debug
+rd /S /Q opencv\Release
 
-del /Q Setup_FlyCapture2\Debug\*.*
-del /Q Setup_FlyCapture2\Release\*.*
-del /Q Setup_GPC5300\Debug\*.*
-del /Q Setup_GPC5300\Release\*.*
-del /Q Setup_OpenCV\Debug\*.*
-del /Q Setup_OpenCV\Release\*.*
-del /Q Setup_OptiTrack\Debug\*.*
-del /Q Setup_OptiTrack\Release\*.*
+rd /S /Q Setup_FlyCapture2\Debug
+rd /S /Q Setup_FlyCapture2\Release
+rd /S /Q Setup_GPC5300\Debug
+rd /S /Q Setup_GPC5300\Release
+rd /S /Q Setup_OpenCV\Debug
+rd /S /Q Setup_OpenCV\Release
+rd /S /Q Setup_OptiTrack\Debug
+rd /S /Q Setup_OptiTrack\Release
 
 del SimpleGazeTracker.sdf
 
-del /S /Q ipch\*.*
-pushd ipch
-for /D %%f in ( * ) do rmdir /S /Q "%%f"
-popd
+rem del /S /Q ipch\*.*
+rem pushd ipch
+rem for /D %%f in ( * ) do rmdir /S /Q "%%f"
+rem popd
