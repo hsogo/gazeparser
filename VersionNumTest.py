@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import re
 
 s = re.compile('\d+\.\d+\.\d')
@@ -5,11 +7,11 @@ files = ['GazeParser/GazeParser/__init__.py',
          'GazeParser/Readme.rst',
          'GazeParser/GazeParser/app/viewer.cfg',
          'GazeParser/debian/changelog',
-         'SimpleGazeTracker/configure.in',
+         'SimpleGazeTracker/configure.ac',
          'SimpleGazeTracker/NEWS',
          'SimpleGazeTracker/common/GazeTrackerCommon.h',
-         'SimpleGazeTracker/debian/changelog',
-         'SimpleGazeTracker/debian/files',
+         'SimpleGazeTracker/debian_flycap/changelog',
+         'SimpleGazeTracker/debian_opencv/changelog',
          ]
 
 for file in files:

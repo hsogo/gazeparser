@@ -1,0 +1,9 @@
+#!/bin/sh
+
+cd SimpleGazeTracker
+mv debian_$1 debian
+dpkg-buildpackage
+make distclean
+mv debian debian_$1
+cd ..
+
