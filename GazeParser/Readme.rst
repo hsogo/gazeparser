@@ -8,10 +8,10 @@ For Windows users
     - GazeParser-0.9.0/GazeParser-0.9.0.zip
 
 * If you plan to record gaze data, install one of following files that is suitable for your camera.
-    - SimpleGazeTracker-0.9.0/SimpleGazeTracker-0.9.0-OptiTrack-1.2.msi
-    - SimpleGazeTracker-0.9.0/SimpleGazeTracker-0.9.0-OpenCV-2.4.3.msi
-    - SimpleGazeTracker-0.9.0/SimpleGazeTracker-0.9.0-GPC5300-2.21-13.msi
-    - SimpleGazeTracker-0.9.0/SimpleGazeTracker-0.9.0-FlyCapture2-2.5.4.msi
+    - SimpleGazeTracker-0.9.0/SimpleGazeTracker-0.9.0-OptiTrack-1.7.2.msi
+    - SimpleGazeTracker-0.9.0/SimpleGazeTracker-0.9.0-OpenCV-3.0.0.msi
+    - SimpleGazeTracker-0.9.0/SimpleGazeTracker-0.9.0-GPC5300-2.41.16.msi
+    - SimpleGazeTracker-0.9.0/SimpleGazeTracker-0.9.0-FlyCapture2-2.8.3.1.msi
 
 For Linux users
 ============================
@@ -28,3 +28,13 @@ For Linux users
     
     - GazeParser-0.9.0/gazeparser_0.9.0_all.deb
     - SimpleGazeTracker-0.9.0/simplegazetracker_0.9.0_amd64.deb
+
+For MacOS users
+============================
+
+* Install following file.
+    - GazeParser-0.9.0/GazeParser-0.9.0.zip
+
+.. note::
+    SimpleGazeTracker 0.9.0 does not officially support MacOS.
+    Please use Linux or Windows to run SimpleGazeTracker.
