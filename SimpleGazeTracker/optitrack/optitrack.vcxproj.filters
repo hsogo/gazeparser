@@ -50,10 +50,5 @@
     </None>
     <None Include="CONFIG" />
     <None Include="CONFIG_OPTITRACK" />
-    <None Include="..\common\libfreetype-6.dll" />
-    <None Include="..\common\LICENSE.freetype.txt" />
-    <None Include="..\common\LICENSE.zlib.txt" />
-    <None Include="..\common\zlib1.dll" />
-    <None Include="..\common\FreeSans.ttf" />
   </ItemGroup>
 </Project>

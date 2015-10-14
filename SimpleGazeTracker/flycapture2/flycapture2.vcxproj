@@ -168,32 +168,11 @@
     <ResourceCompile Include="..\common\GazeTracker.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\common\FreeSans.ttf">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
     <None Include="..\common\icon.ico" />
-    <None Include="..\common\libfreetype-6.dll">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
-    <None Include="..\common\LICENSE.freetype.txt">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
-    <None Include="..\common\LICENSE.zlib.txt">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
-    <None Include="..\common\zlib1.dll">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
     <None Include="CONFIG">
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="CONFIG_FLYCAPTURE2">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
-    <None Include="FlyCapture2.dll">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
-    <None Include="libiomp5md.dll">
       <DeploymentContent>true</DeploymentContent>
     </None>
   </ItemGroup>

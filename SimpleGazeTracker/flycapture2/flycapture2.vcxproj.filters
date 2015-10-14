@@ -55,13 +55,6 @@
       <Filter>リソース ファイル</Filter>
     </None>
     <None Include="CONFIG" />
-    <None Include="..\common\libfreetype-6.dll" />
-    <None Include="..\common\LICENSE.freetype.txt" />
-    <None Include="..\common\LICENSE.zlib.txt" />
-    <None Include="..\common\zlib1.dll" />
-    <None Include="..\common\FreeSans.ttf" />
     <None Include="CONFIG_FLYCAPTURE2" />
-    <None Include="libiomp5md.dll" />
-    <None Include="FlyCapture2.dll" />
   </ItemGroup>
 </Project>
