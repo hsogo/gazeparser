@@ -19,8 +19,6 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup_FlyCapture2", "Setup_
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup_GPC5300", "Setup_GPC5300\Setup_GPC5300.vdproj", "{EA8A1831-E3AA-45EF-AE75-680296138425}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup2", "Setup2\Setup2.vdproj", "{5A280D20-55F4-485C-AD92-5F0372E36C71}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CD_ROM|Win32 = CD_ROM|Win32
@@ -102,11 +100,6 @@ Global
 		{EA8A1831-E3AA-45EF-AE75-680296138425}.Release|Win32.ActiveCfg = Release
 		{EA8A1831-E3AA-45EF-AE75-680296138425}.SingleImage|Win32.ActiveCfg = Release
 		{EA8A1831-E3AA-45EF-AE75-680296138425}.SingleImage|Win32.Build.0 = Release
-		{5A280D20-55F4-485C-AD92-5F0372E36C71}.CD_ROM|Win32.ActiveCfg = Release
-		{5A280D20-55F4-485C-AD92-5F0372E36C71}.Debug|Win32.ActiveCfg = Debug
-		{5A280D20-55F4-485C-AD92-5F0372E36C71}.DVD-5|Win32.ActiveCfg = Debug
-		{5A280D20-55F4-485C-AD92-5F0372E36C71}.Release|Win32.ActiveCfg = Release
-		{5A280D20-55F4-485C-AD92-5F0372E36C71}.SingleImage|Win32.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

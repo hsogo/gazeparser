@@ -21,20 +21,8 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_130FC00122247F438A257E993F2E3523"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_33FC0165C67EDAFE2E990ED79AFD8099"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -47,12 +35,6 @@
         {
         "MsmKey" = "8:_654FB9C71DBB4191A9923661AD9AA786"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_7100FB5F784870AE1ADF3F3415111962"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -93,32 +75,20 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_973DFA0F5D4C3E1292A08A93528807D0"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_B196E8C09DCE43989CC84DE0AA540CA5"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_B73A5CE76B64E3FD776A116118B61BEC"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
+        "MsmKey" = "8:_E89BD1D1EC61466A9A15DA103B18B9B1"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_F7529D0569FA4E30B3CB1C9C79745E7D"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_FAC07F9824CB44CB9F122B11A8B2E497"
-        "OwnerKey" = "8:_1D8C8AC66BBD4F63B25BF1BD38C9532E"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -246,46 +216,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_130FC00122247F438A257E993F2E3523"
-            {
-            "SourcePath" = "8:opencv_world300.dll"
-            "TargetName" = "8:opencv_world300.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_33FC0165C67EDAFE2E990ED79AFD8099"
-            {
-            "SourcePath" = "8:SDL2.dll"
-            "TargetName" = "8:SDL2.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5343895FC61644F4BCAB9AEDB73AAD59"
             {
             "SourcePath" = "8:C:\\opencv\\bin\\opencv_world300.dll"
@@ -324,26 +254,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7100FB5F784870AE1ADF3F3415111962"
-            {
-            "SourcePath" = "8:SDL2_ttf.dll"
-            "TargetName" = "8:SDL2_ttf.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_74DA4646B892437CB894A023A901DA28"
@@ -466,26 +376,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_973DFA0F5D4C3E1292A08A93528807D0"
-            {
-            "SourcePath" = "8:cbw32.dll"
-            "TargetName" = "8:cbw32.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B196E8C09DCE43989CC84DE0AA540CA5"
             {
             "SourcePath" = "8:..\\common\\logo03.jpg"
@@ -504,26 +394,6 @@
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B73A5CE76B64E3FD776A116118B61BEC"
-            {
-            "SourcePath" = "8:SDL2_net.dll"
-            "TargetName" = "8:SDL2_net.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F7529D0569FA4E30B3CB1C9C79745E7D"
@@ -1190,11 +1060,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_FAC07F9824CB44CB9F122B11A8B2E497"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_E89BD1D1EC61466A9A15DA103B18B9B1"
             {
             "UseDynamicProperties" = "11:TRUE"
-            "IsDependency" = "11:TRUE"
-            "SourcePath" = "8:microsoft_vc120_crt_x86.msm"
+            "IsDependency" = "11:FALSE"
+            "SourcePath" = "8:C:\\Program Files (x86)\\Common Files\\Merge Modules\\Microsoft_VC120_CRT_x86.msm"
                 "Properties"
                 {
                 }
