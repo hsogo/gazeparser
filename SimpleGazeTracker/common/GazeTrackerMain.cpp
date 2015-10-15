@@ -1407,6 +1407,12 @@ int main(int argc, char** argv)
 					done = 1;
 					break;
 
+				case SDLK_s:
+					if (!g_isRecording && !g_isCalibrating && !g_isValidating){
+						saveCalValResultsDetail();
+					}
+					break;
+
 				case SDLK_i:
 					char capfilename[64];
 					time(&t);
