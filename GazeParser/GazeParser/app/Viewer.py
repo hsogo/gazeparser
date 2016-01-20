@@ -2916,7 +2916,7 @@ class mainFrame(wx.Frame):
             # plot new trial widthout drawing
             self.plotData(draw=False)
 
-            # restor polot range
+            # restore plot range
             self.ax.set_xlim(xlim)
             self.ax.set_ylim(ylim)
 
