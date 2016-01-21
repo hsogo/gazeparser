@@ -2485,7 +2485,7 @@ void getCalibrationResults( double *Goodness, double *MaxError, double *MeanErro
 }
 
 /*!
-getCalibrationResults: get detailed calibration error.
+getCalibrationResultsDetail: get detailed calibration error.
 
 Pair of position of calibration/validation target point and recorded gaze position is returned as a string of comma-separated values
 This function is called from sockProcess() when sockProcess() received "getCalResultsDetail" command.
