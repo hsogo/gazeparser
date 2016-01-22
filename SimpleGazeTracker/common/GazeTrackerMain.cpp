@@ -1679,9 +1679,12 @@ This function must be called when starting calibration.
 @param[in] y1 top of the calibration area.
 @param[in] x2 right of the calibration area.
 @param[in] y2 bottom of the calibration area.
+@param[in] clear clear previous calibration data if this value is 1.
 @return No value is returned.
+
+@date 2016/01/22 add 'clear' option.
 */
-void startCalibration(int x1, int y1, int x2, int y2)
+void startCalibration(int x1, int y1, int x2, int y2, int clear)
 {
 	g_LogFS << "StartCalibration" << std::endl;
 
@@ -1690,8 +1693,10 @@ void startCalibration(int x1, int y1, int x2, int y2)
 	g_CalibrationArea[2] = x2;
 	g_CalibrationArea[3] = y2;
 	if(!g_isRecording && !g_isValidating && !g_isCalibrating){
-		clearCalibrationData();
-		clearData();
+		if (clear == 1){
+			clearCalibrationData();
+			clearData();
+		}
 		g_isCalibrating = true;
 		g_isShowingCalResult = false; //erase calibration result screen.
 		g_CalSamplesAtCurrentPoint = 0;

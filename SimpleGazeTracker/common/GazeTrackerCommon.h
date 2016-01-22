@@ -49,8 +49,8 @@
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
-#define MAXDATA 432000 //120*60sec*60min, 393*18min
-#define MAXCALDATA 7200 // 120*30sec, 393*18.3sec
+#define MAXDATA 432000 //120*60min, 393*18min
+#define MAXCALDATA 7200 // 120*60sec, 393*18.3sec
 #define MAXCALPOINT 60
 #define MAXCALSAMPLEPERPOINT (MAXCALDATA/MAXCALPOINT)
 #define MAXMESSAGE 262144
@@ -176,7 +176,7 @@ extern std::string g_ConfigFileName;
 extern std::fstream g_LogFS;
 extern std::string g_CameraConfigFileName;
 
-extern void startCalibration(int x1, int y1, int x2, int y2);
+extern void startCalibration(int x1, int y1, int x2, int y2, int clear);
 extern void getCalSample(double x, double y, int samples);
 extern void endCalibration(void);
 
