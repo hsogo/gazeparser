@@ -50,7 +50,7 @@ class BaseController(object):
     - self.setCalibrationScreen(self, screen)
     - self.updateScreen(self)
     - self.setCameraImage(self)
-    - self.drawCalibrationResults(self)
+    - self.putCalibrationResultsImage(self)
     - self.setCalibrationTargetStimulus(self, stim)
     - self.setCalibrationTargetPositions(self, area, calposlist)
     - self.getKeys(self)
@@ -1071,18 +1071,18 @@ class BaseController(object):
                 if self.isMonocularRecording:
                     if len(retval) % 4 != 0:
                         print 'getCalibrationResultsDetail: illeagal data', retval
-                        self.drawCalibrationResults()
+                        self.putCalibrationResultsImage()
                         return None
 
                     for i in range(len(retval)/4):
                         draw.line(((retval[4*i]+self.calResultScreenOrigin[0], retval[4*i+1]+self.calResultScreenOrigin[1]),
                                   (retval[4*i+2]+self.calResultScreenOrigin[0], retval[4*i+3]+self.calResultScreenOrigin[1])),
                                   fill=32)
-                    self.drawCalibrationResults()
+                    self.putCalibrationResultsImage()
                 else:
                     if len(retval) % 6 != 0:
                         print 'getCalibrationResultsDetail: illeagal data', retval
-                        self.drawCalibrationResults()
+                        self.putCalibrationResultsImage()
                         return None
 
                     for i in range(len(retval)/6):
@@ -1092,13 +1092,13 @@ class BaseController(object):
                         draw.line(((retval[6*i]+self.calResultScreenOrigin[0], retval[6*i+1]+self.calResultScreenOrigin[1]),
                                   (retval[6*i+4]+self.calResultScreenOrigin[0], retval[6*i+5]+self.calResultScreenOrigin[1])),
                                   fill=224)
-                    self.drawCalibrationResults()
+                    self.putCalibrationResultsImage()
             except:
                 print 'getCalibrationResultsDetail: data was not successfully received.'
 
             return None  # Success
 
-        self.drawCalibrationResults()
+        self.putCalibrationResultsImage()
 
     def doCalibration(self):
         """
@@ -1929,7 +1929,7 @@ class ControllerVisionEggBackend(BaseController):
         """
         self.img.parameters.texture.get_texture_object().put_sub_image(self.PILimg)
 
-    def drawCalibrationResults(self):
+    def putCalibrationResultsImage(self):
         """
         Set calibration results screen.
 
@@ -2276,7 +2276,7 @@ class ControllerPsychoPyBackend(BaseController):
         """
         self.img.setImage(self.PILimg, log=False)
 
-    def drawCalibrationResults(self):
+    def putCalibrationResultsImage(self):
         """
         Set calibration results screen.
 
@@ -3116,7 +3116,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         draw = ImageDraw.Draw(self.PILimgCAL)
         draw.rectangle(((0, 0), self.PILimgCAL.size), fill=0)
         draw.text((64, 64), 'Calibration/Validation Results', fill=255)
-        self.drawCalibrationResults()
+        self.putCalibrationResultsImage()
 
     def doCalibration(self):
         """
@@ -3357,7 +3357,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         draw = ImageDraw.Draw(self.PILimgCAL)
         draw.rectangle(((0, 0), self.PILimgCAL.size), fill=0)
         draw.text((64, 64), 'Calibration/Validation Results', fill=255)
-        self.drawCalibrationResults()
+        self.putCalibrationResultsImage()
 
     def doCalibration(self):
         """
