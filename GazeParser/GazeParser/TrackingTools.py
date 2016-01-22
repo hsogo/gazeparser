@@ -119,6 +119,8 @@ class BaseController(object):
         else:
             self.clock = time.time
 
+        self.latestCalibrationResultsString = None
+
     def isDummy(self):
         """
         Returns True if this controller is dummy.
@@ -1053,6 +1055,22 @@ class BaseController(object):
                         break
                     else:
                         data += newData
+        
+        if hasGotCal:
+            self.latestCalibrationResultsString = data
+        else:
+            self.latestCalibrationResultsString = None
+        
+        self.plotCalibrationResultsDetail()
+
+
+    def plotCalibrationResultsDetail(self, emphasize=None):
+        """
+        Plot detailed calibration results.
+        
+        :param list emphasize: List of calibration points to be emphasized.
+            If None, no point is emphasized.
+        """
 
         draw = ImageDraw.Draw(self.PILimgCAL)
         draw.rectangle(((0, 0), self.PILimgCAL.size), fill=128)
@@ -1061,7 +1079,8 @@ class BaseController(object):
         else:
             self.showCalImage = False
 
-        if hasGotCal:
+        if self.latestCalibrationResultsString is not None:
+            data = self.latestCalibrationResultsString
             try:
                 retval = [float(x) for x in data.split(',')]
             except:
@@ -1099,6 +1118,7 @@ class BaseController(object):
             return None  # Success
 
         self.putCalibrationResultsImage()
+
 
     def doCalibration(self):
         """
