@@ -1294,63 +1294,52 @@ class BaseController(object):
                 else:
                     for key in keys:
                         if key == 'space':
-                            if (0 <= calIndex < 9) and (self.CALTARGET_MOTION_DURATION < t):
+                            if (0 <= calIndex < len(self.calTargetPos)) and (self.CALTARGET_MOTION_DURATION < t):
                                 self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[calIndex][0])
                                                  + ','+str(self.calTargetPos[calIndex][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
                                 isWaitingSampleAcquisition = True
                                 startAcquisitionTime = self.clock()
+                        isNumKeyPressed = False
                         if key == 'return':
                             isCalibrating = False
                         elif key in ('0', 'num_0'):
-                            startTime = self.clock()
+                            isNumKeyPressed = True
                             calIndex = -1
-                            prevPos = currentPos
-                            currentPos = (None, None)
                         elif key in ('1', 'num_1'):  # Note that self.calTargetPos[0] is initial position.
-                            startTime = self.clock() # so calIndex=0 is not necessary
+                            isNumKeyPressed = True   # so calIndex=0 is not necessary
                             calIndex = 1
-                            prevPos = currentPos
-                            currentPos = self.calTargetPos[calIndex]
                         elif key in ('2', 'num_2'):
-                            startTime = self.clock()
+                            isNumKeyPressed = True
                             calIndex = 2
-                            prevPos = currentPos
-                            currentPos = self.calTargetPos[calIndex]
                         elif key in ('3', 'num_3'):
-                            startTime = self.clock()
+                            isNumKeyPressed = True
                             calIndex = 3
-                            prevPos = currentPos
-                            currentPos = self.calTargetPos[calIndex]
                         elif key in ('4', 'num_4'):
-                            startTime = self.clock()
+                            isNumKeyPressed = True
                             calIndex = 4
-                            prevPos = currentPos
-                            currentPos = self.calTargetPos[calIndex]
                         elif key in ('5', 'num_5'):
-                            startTime = self.clock()
+                            isNumKeyPressed = True
                             calIndex = 5
-                            prevPos = currentPos
-                            currentPos = self.calTargetPos[calIndex]
                         elif key in ('6', 'num_6'):
-                            startTime = self.clock()
+                            isNumKeyPressed = True
                             calIndex = 6
-                            prevPos = currentPos
-                            currentPos = self.calTargetPos[calIndex]
                         elif key in ('7', 'num_7'):
-                            startTime = self.clock()
+                            isNumKeyPressed = True
                             calIndex = 7
-                            prevPos = currentPos
-                            currentPos = self.calTargetPos[calIndex]
                         elif key in ('8', 'num_8'):
-                            startTime = self.clock()
+                            isNumKeyPressed = True
                             calIndex = 8
-                            prevPos = currentPos
-                            currentPos = self.calTargetPos[calIndex]
                         elif key in ('9', 'num_9'):
-                            startTime = self.clock()
+                            isNumKeyPressed = True
                             calIndex = 9
+                        
+                        if isNumKeyPressed:
+                            startTime = self.clock()
                             prevPos = currentPos
-                            currentPos = self.calTargetPos[calIndex]
+                            if calIndex == -1:
+                                currentPos = (None, None)
+                            else:
+                                currentPos = self.calTargetPos[calIndex]
                 
                     if calIndex >= len(self.calTargetPos):
                         print 'Warning: invalid target position index (length of target position list is %d)' % len(self.calTargetPosition)
