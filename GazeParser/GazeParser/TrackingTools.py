@@ -119,7 +119,7 @@ class BaseController(object):
         else:
             self.clock = time.time
 
-        self.latestCalibrationResultsString = None
+        self.latestCalibrationResultsList = None
 
     def isDummy(self):
         """
@@ -1055,14 +1055,38 @@ class BaseController(object):
                         break
                     else:
                         data += newData
-        
-        if hasGotCal:
-            self.latestCalibrationResultsString = data
-        else:
-            self.latestCalibrationResultsString = None
-        
-        self.plotCalibrationResultsDetail()
 
+        self.latestCalibrationResultsList = None
+
+        if hasGotCal:
+            try:
+                retval = [float(x) for x in data.split(',')]
+            except:
+                print 'getCalibrationResultsDetail: non-float value is found in the received data.'
+
+            try:
+                if self.isMonocularRecording:
+                    if len(retval) % 4 != 0:
+                        print 'getCalibrationResultsDetail: illeagal data', retval
+                        self.putCalibrationResultsImage()
+                        return None
+
+                    self.latestCalibrationResultsList = []
+                    for i in range(len(retval)/4):
+                        self.latestCalibrationResultsList.append(retval[4*i:4*i+4])
+                else:
+                    if len(retval) % 6 != 0:
+                        print 'getCalibrationResultsDetail: illeagal data', retval
+                        self.putCalibrationResultsImage()
+                        return None
+
+                    for i in range(len(retval)/6):
+                        self.latestCalibrationResultsList.append(retval[6*i:6*i+6])
+
+            except:
+                print 'plotCalibrationResultsDetail: data was not successfully received.'
+
+        self.plotCalibrationResultsDetail()
 
     def plotCalibrationResultsDetail(self, emphasize=[]):
         """
@@ -1079,47 +1103,28 @@ class BaseController(object):
         else:
             self.showCalImage = False
 
-        if len(self.latestCalibrationResultsString) > 0:
-            data = self.latestCalibrationResultsString
-            try:
-                retval = [float(x) for x in data.split(',')]
-            except:
-                print 'getCalibrationResultsDetail: non-float value is found in the received data.'
+        if self.latestCalibrationResultsList is not None and len(self.latestCalibrationResultsList) > 0:
+            if self.isMonocularRecording:
+                for i in range(len(self.latestCalibrationResultsList)):
+                    (x1,y1,x2,y2) = self.latestCalibrationResultsList[i]
+                    draw.line(((x1+self.calResultScreenOrigin[0], y1+self.calResultScreenOrigin[1]),
+                              (x2+self.calResultScreenOrigin[0], y2+self.calResultScreenOrigin[1])),
+                              fill=32)
+            else:
+                for i in range(len(self.latestCalibrationResultsList)):
+                    (x1,y1,x2,y2,x3,y3) = self.latestCalibrationResultsList[i]
+                    draw.line(((x1+self.calResultScreenOrigin[0], y1+self.calResultScreenOrigin[1]),
+                              (x2+self.calResultScreenOrigin[0], y2+self.calResultScreenOrigin[1])),fill=32)
+                    draw.line(((x1+self.calResultScreenOrigin[0], y1+self.calResultScreenOrigin[1]),
+                              (x3+self.calResultScreenOrigin[0], y3+self.calResultScreenOrigin[1])),fill=224)
 
-            try:
-                if self.isMonocularRecording:
-                    if len(retval) % 4 != 0:
-                        print 'getCalibrationResultsDetail: illeagal data', retval
-                        self.putCalibrationResultsImage()
-                        return None
+            for j in range(len(emphasize)):
+                x1 = emphasize[j][0]+self.calResultScreenOrigin[0]-16
+                x2 = emphasize[j][0]+self.calResultScreenOrigin[0]+16
+                y1 = emphasize[j][1]+self.calResultScreenOrigin[1]-16
+                y2 = emphasize[j][1]+self.calResultScreenOrigin[1]+16
+                draw.arc((x1,y1,x2,y2), 0, 360, 64)
 
-                    for i in range(len(retval)/4):
-                        draw.line(((retval[4*i]+self.calResultScreenOrigin[0], retval[4*i+1]+self.calResultScreenOrigin[1]),
-                                  (retval[4*i+2]+self.calResultScreenOrigin[0], retval[4*i+3]+self.calResultScreenOrigin[1])),
-                                  fill=32)
-                else:
-                    if len(retval) % 6 != 0:
-                        print 'getCalibrationResultsDetail: illeagal data', retval
-                        self.putCalibrationResultsImage()
-                        return None
-
-                    for i in range(len(retval)/6):
-                        draw.line(((retval[6*i]+self.calResultScreenOrigin[0], retval[6*i+1]+self.calResultScreenOrigin[1]),
-                                  (retval[6*i+2]+self.calResultScreenOrigin[0], retval[6*i+3]+self.calResultScreenOrigin[1])),
-                                  fill=32)
-                        draw.line(((retval[6*i]+self.calResultScreenOrigin[0], retval[6*i+1]+self.calResultScreenOrigin[1]),
-                                  (retval[6*i+4]+self.calResultScreenOrigin[0], retval[6*i+5]+self.calResultScreenOrigin[1])),
-                                  fill=224)
-
-                for j in range(len(emphasize)):
-                    x1 = emphasize[j][0]+self.calResultScreenOrigin[0]-16
-                    x2 = emphasize[j][0]+self.calResultScreenOrigin[0]+16
-                    y1 = emphasize[j][1]+self.calResultScreenOrigin[1]-16
-                    y2 = emphasize[j][1]+self.calResultScreenOrigin[1]+16
-                    draw.arc((x1,y1,x2,y2), 0, 360, 64)
-
-            except:
-                print 'plotCalibrationResultsDetail: data was not successfully received.'
 
         self.putCalibrationResultsImage()
 
@@ -1294,7 +1299,6 @@ class BaseController(object):
                          + str(self.calArea[2])+','+str(self.calArea[3])+chr(0)+'1'+chr(0))
 
         isManualCalibration = True
-        elimlist = []
         
         while isManualCalibration:
             self.showCameraImage = False
@@ -1306,6 +1310,8 @@ class BaseController(object):
             calIndex = -1
             prevPos = (None, None)
             currentPos = (None, None)
+            
+            elimlist = []
             
             isCalibrating = True
             isWaitingSampleAcquisition = False
@@ -1393,18 +1399,19 @@ class BaseController(object):
             while True:
                 isNumKeyPressed = False
                 keys = self.getKeys()
-                if 'return' in keys:
+                if 'space' in keys:
                     #re-start manual calibration without flushing data
                     self.sendCommand('startCal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
                                      + str(self.calArea[2])+','+str(self.calArea[3])+chr(0)+'0'+chr(0))
                     break
-                elif 'escape' in keys:
+                elif 'return' in keys:
                     isManualCalibration = False
                     break
                 else:
                     for key in keys:
                         if key in ('0', 'num_0'):
-                            pass
+                            if len(elimlist)>0:
+                                self.deleteCalibrationDataPartial(elimlist)
                         elif key in ('1', 'num_1'):
                             isNumKeyPressed = True
                             calIndex = 1
@@ -1440,6 +1447,37 @@ class BaseController(object):
                         elimlist.append(self.calTargetPos[calIndex])
                     self.plotCalibrationResultsDetail(emphasize=elimlist)
                     self.updateScreen()
+        
+        self.plotCalibrationResultsDetail() #remove marker if drawn
+        self.updateScreen()
+
+    def deleteCalibrationDataPartial(self, points=[]):
+        '''
+        Delete specified calibration data.
+        
+        :param points:
+            Points to be removed.
+        '''
+        
+        if self.latestCalibrationResultsList is None or len(self.latestCalibrationResultsList) == 0:
+            return
+        
+        if len(points) == 0:
+            return
+        
+        pointsStr = ','.join(['%d,%d' % tuple(p) for p in points])
+        self.sendCommand('deleteCalData'+chr(0)+pointsStr+chr(0))
+        
+        self.calibrationResults = self.getCalibrationResults()
+        try:
+            if self.isMonocularRecording:
+                self.messageText = 'AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+            else:
+                self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+        except:
+            self.messageText = 'Calibration/Validation failed.'
+
+        self.getCalibrationResultsDetail()
 
     '''
     # obsolete
