@@ -1064,12 +1064,12 @@ class BaseController(object):
         self.plotCalibrationResultsDetail()
 
 
-    def plotCalibrationResultsDetail(self, emphasize=None):
+    def plotCalibrationResultsDetail(self, emphasize=[]):
         """
         Plot detailed calibration results.
         
         :param list emphasize: List of calibration points to be emphasized.
-            If None, no point is emphasized.
+            If empty list, no point is emphasized.
         """
 
         draw = ImageDraw.Draw(self.PILimgCAL)
@@ -1079,7 +1079,7 @@ class BaseController(object):
         else:
             self.showCalImage = False
 
-        if self.latestCalibrationResultsString is not None:
+        if len(self.latestCalibrationResultsString) > 0:
             data = self.latestCalibrationResultsString
             try:
                 retval = [float(x) for x in data.split(',')]
@@ -1097,7 +1097,6 @@ class BaseController(object):
                         draw.line(((retval[4*i]+self.calResultScreenOrigin[0], retval[4*i+1]+self.calResultScreenOrigin[1]),
                                   (retval[4*i+2]+self.calResultScreenOrigin[0], retval[4*i+3]+self.calResultScreenOrigin[1])),
                                   fill=32)
-                    self.putCalibrationResultsImage()
                 else:
                     if len(retval) % 6 != 0:
                         print 'getCalibrationResultsDetail: illeagal data', retval
@@ -1111,11 +1110,16 @@ class BaseController(object):
                         draw.line(((retval[6*i]+self.calResultScreenOrigin[0], retval[6*i+1]+self.calResultScreenOrigin[1]),
                                   (retval[6*i+4]+self.calResultScreenOrigin[0], retval[6*i+5]+self.calResultScreenOrigin[1])),
                                   fill=224)
-                    self.putCalibrationResultsImage()
-            except:
-                print 'getCalibrationResultsDetail: data was not successfully received.'
 
-            return None  # Success
+                for j in range(len(emphasize)):
+                    x1 = emphasize[j][0]+self.calResultScreenOrigin[0]-16
+                    x2 = emphasize[j][0]+self.calResultScreenOrigin[0]+16
+                    y1 = emphasize[j][1]+self.calResultScreenOrigin[1]-16
+                    y2 = emphasize[j][1]+self.calResultScreenOrigin[1]+16
+                    draw.arc((x1,y1,x2,y2), 0, 360, 64)
+
+            except:
+                print 'plotCalibrationResultsDetail: data was not successfully received.'
 
         self.putCalibrationResultsImage()
 
@@ -1290,6 +1294,8 @@ class BaseController(object):
                          + str(self.calArea[2])+','+str(self.calArea[3])+chr(0)+'1'+chr(0))
 
         isManualCalibration = True
+        elimlist = []
+        
         while isManualCalibration:
             self.showCameraImage = False
             self.showCalImage = False
@@ -1385,15 +1391,55 @@ class BaseController(object):
             self.updateScreen()
             
             while True:
+                isNumKeyPressed = False
                 keys = self.getKeys()
                 if 'return' in keys:
+                    #re-start manual calibration without flushing data
                     self.sendCommand('startCal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
                                      + str(self.calArea[2])+','+str(self.calArea[3])+chr(0)+'0'+chr(0))
                     break
                 elif 'escape' in keys:
                     isManualCalibration = False
                     break
+                else:
+                    for key in keys:
+                        if key in ('0', 'num_0'):
+                            pass
+                        elif key in ('1', 'num_1'):
+                            isNumKeyPressed = True
+                            calIndex = 1
+                        elif key in ('2', 'num_2'):
+                            isNumKeyPressed = True
+                            calIndex = 2
+                        elif key in ('3', 'num_3'):
+                            isNumKeyPressed = True
+                            calIndex = 3
+                        elif key in ('4', 'num_4'):
+                            isNumKeyPressed = True
+                            calIndex = 4
+                        elif key in ('5', 'num_5'):
+                            isNumKeyPressed = True
+                            calIndex = 5
+                        elif key in ('6', 'num_6'):
+                            isNumKeyPressed = True
+                            calIndex = 6
+                        elif key in ('7', 'num_7'):
+                            isNumKeyPressed = True
+                            calIndex = 7
+                        elif key in ('8', 'num_8'):
+                            isNumKeyPressed = True
+                            calIndex = 8
+                        elif key in ('9', 'num_9'):
+                            isNumKeyPressed = True
+                            calIndex = 9
 
+                if isNumKeyPressed:
+                    if self.calTargetPos[calIndex] in elimlist:
+                        elimlist.remove(self.calTargetPos[calIndex])
+                    else:
+                        elimlist.append(self.calTargetPos[calIndex])
+                    self.plotCalibrationResultsDetail(emphasize=elimlist)
+                    self.updateScreen()
 
     '''
     # obsolete
