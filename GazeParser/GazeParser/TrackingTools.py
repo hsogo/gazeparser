@@ -1411,7 +1411,7 @@ class BaseController(object):
                     for key in keys:
                         if key in ('0', 'num_0'):
                             if len(elimlist)>0:
-                                self.deleteCalibrationDataPartial(elimlist)
+                                self.deleteCalibrationDataSubset(elimlist)
                         elif key in ('1', 'num_1'):
                             isNumKeyPressed = True
                             calIndex = 1
@@ -1451,7 +1451,7 @@ class BaseController(object):
         self.plotCalibrationResultsDetail() #remove marker if drawn
         self.updateScreen()
 
-    def deleteCalibrationDataPartial(self, points=[]):
+    def deleteCalibrationDataSubset(self, points=[]):
         '''
         Delete specified calibration data.
         
