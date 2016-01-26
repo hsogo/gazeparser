@@ -1478,6 +1478,7 @@ class BaseController(object):
             self.messageText = 'Calibration/Validation failed.'
 
         self.getCalibrationResultsDetail()
+        self.updateScreen()
 
     '''
     # obsolete
