@@ -209,6 +209,7 @@ extern void stopMeasurement(void);
 extern void allowRendering(void);
 extern void inhibitRendering(void);
 extern bool isBinocularMode(void);
+extern void deleteCalibrationDataSubset(char* points);
 
 extern char g_errorMessage[1024];
 

@@ -207,6 +207,8 @@ This function parses commands sent from the Client PC and call appropriate funct
 - "getCameraImageSize" command is added.
 @date 2016/01/22
 - "clear" option is added to "startCal" command.
+@date 2016/01/26
+- "deleteCalData" command is added.
 */
 int sockProcess( void )
 {
@@ -751,6 +753,14 @@ int sockProcess( void )
 						SDLNet_TCP_Send(g_SockSend,str,len+1);
 
 						nextp = seekNextCommand(buff,nextp,1);
+					}
+					else if (strcmp(buff + nextp, "deleteCalData") == 0)
+					{
+						char* param = buff + nextp + 14;
+
+						deleteCalibrationDataSubset(param);
+
+						nextp = seekNextCommand(buff, nextp, 2);
 					}
 					else
 					{
