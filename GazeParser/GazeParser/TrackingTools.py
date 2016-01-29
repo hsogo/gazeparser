@@ -1088,12 +1088,9 @@ class BaseController(object):
 
         self.plotCalibrationResultsDetail()
 
-    def plotCalibrationResultsDetail(self, emphasize=[]):
+    def plotCalibrationResultsDetail(self):
         """
         Plot detailed calibration results.
-        
-        :param list emphasize: List of calibration points to be emphasized.
-            If empty list, no point is emphasized.
         """
 
         draw = ImageDraw.Draw(self.PILimgCAL)
@@ -1118,14 +1115,33 @@ class BaseController(object):
                     draw.line(((x1+self.calResultScreenOrigin[0], y1+self.calResultScreenOrigin[1]),
                               (x3+self.calResultScreenOrigin[0], y3+self.calResultScreenOrigin[1])),fill=224)
 
-            for j in range(len(emphasize)):
-                x1 = emphasize[j][0]+self.calResultScreenOrigin[0]-16
-                x2 = emphasize[j][0]+self.calResultScreenOrigin[0]+16
-                y1 = emphasize[j][1]+self.calResultScreenOrigin[1]-16
-                y2 = emphasize[j][1]+self.calResultScreenOrigin[1]+16
-                draw.arc((x1,y1,x2,y2), 0, 360, 64)
 
+        self.putCalibrationResultsImage()
 
+    def overlayMakersToCalScreen(self, marker1=[], marker2=[], drawFrame=False):
+
+        draw = ImageDraw.Draw(self.PILimgCAL)
+
+        for j in range(len(marker1)):
+            x1 = marker1[j][0]+self.calResultScreenOrigin[0]-16
+            x2 = marker1[j][0]+self.calResultScreenOrigin[0]+16
+            y1 = marker1[j][1]+self.calResultScreenOrigin[1]-16
+            y2 = marker1[j][1]+self.calResultScreenOrigin[1]+16
+            draw.arc((x1,y1,x2,y2), 0, 360, 64)
+
+        for j in range(len(marker2)):
+            x1 = marker2[j][0]+self.calResultScreenOrigin[0]-8
+            x2 = marker2[j][0]+self.calResultScreenOrigin[0]+8
+            y1 = marker2[j][1]+self.calResultScreenOrigin[1]-8
+            y2 = marker2[j][1]+self.calResultScreenOrigin[1]+8
+            draw.ellipse((x1,y1,x2,y2), 0)
+
+        if drawFrame:
+            draw.line(((0,0),(self.PILimgCAL.size[0],0)),fill=0, width=10)
+            draw.line(((self.PILimgCAL.size[0],0),self.PILimgCAL.size),fill=0, width=10)
+            draw.line((self.PILimgCAL.size,(0,self.PILimgCAL.size[1])),fill=0, width=10)
+            draw.line(((0,self.PILimgCAL.size[1]),(0,0)),fill=0, width=10)
+        
         self.putCalibrationResultsImage()
 
 
@@ -1394,6 +1410,7 @@ class BaseController(object):
                 self.messageText = 'Calibration/Validation failed.'
 
             self.getCalibrationResultsDetail()
+            self.overlayMakersToCalScreen(drawFrame=True)
             self.updateScreen()
             
             while True:
@@ -1412,6 +1429,7 @@ class BaseController(object):
                         if key in ('0', 'num_0'):
                             if len(elimlist)>0:
                                 self.deleteCalibrationDataSubset(elimlist)
+                                elimlist = []
                         elif key in ('1', 'num_1'):
                             isNumKeyPressed = True
                             calIndex = 1
@@ -1443,12 +1461,19 @@ class BaseController(object):
                 if isNumKeyPressed:
                     if self.calTargetPos[calIndex] in elimlist:
                         elimlist.remove(self.calTargetPos[calIndex])
-                    else:
+                    elif self.calTargetPos[calIndex] not in elimlist:
                         elimlist.append(self.calTargetPos[calIndex])
-                    self.plotCalibrationResultsDetail(emphasize=elimlist)
+                    self.plotCalibrationResultsDetail()
+                    self.overlayMakersToCalScreen(marker1=elimlist, drawFrame=True)
                     self.updateScreen()
         
-        self.plotCalibrationResultsDetail() #remove marker if drawn
+        #blink screen to notify manual calibration was finished.
+        
+        draw = ImageDraw.Draw(self.PILimgCAL)
+        draw.rectangle(((0, 0), self.PILimgCAL.size), fill=0)
+        self.updateScreen()
+        time.sleep(0.1)
+        self.plotCalibrationResultsDetail()
         self.updateScreen()
 
     def deleteCalibrationDataSubset(self, points=[]):
