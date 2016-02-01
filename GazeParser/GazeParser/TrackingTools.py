@@ -1138,19 +1138,20 @@ class BaseController(object):
             draw.ellipse((x1,y1,x2,y2), 0)
 
         if drawFrame:
-            draw.line(((0,0),(self.PILimgCAL.size[0],0)),fill=0, width=10)
-            draw.line(((self.PILimgCAL.size[0],0),self.PILimgCAL.size),fill=0, width=10)
-            draw.line((self.PILimgCAL.size,(0,self.PILimgCAL.size[1])),fill=0, width=10)
-            draw.line(((0,self.PILimgCAL.size[1]),(0,0)),fill=0, width=10)
+            draw.line(((0,0),(self.PILimgCAL.size[0],0)),fill=255, width=10)
+            draw.line(((self.PILimgCAL.size[0],0),self.PILimgCAL.size),fill=255, width=10)
+            draw.line((self.PILimgCAL.size,(0,self.PILimgCAL.size[1])),fill=255, width=10)
+            draw.line(((0,self.PILimgCAL.size[1]),(0,0)),fill=255, width=10)
         
         self.putCalibrationResultsImage()
 
 
-    def doCalibration(self, semiauto = True):
+    def doCalibration(self, allowRecalibration = True):
         """
         Start calibration process.
         """
         
+        #all points are used for the first time
         self.indexList = range(1, len(self.calTargetPos))
         while True:
             random.shuffle(self.indexList)
@@ -1164,11 +1165,11 @@ class BaseController(object):
             self.showCameraImage = False
             self.showCalImage = False
 
-            calCheckList = [False for i in range(len(self.calTargetPos))]
+            calCheckList = [False for i in range(len(self.indexList))]
             self.showCalTarget = True
             prevSHOW_CALDISPLAY = self.SHOW_CALDISPLAY
             self.SHOW_CALDISPLAY = False
-            self.calTargetPosition = self.calTargetPos[0]
+            self.calTargetPosition = self.calTargetPos[self.indexList[0]]
 
             elimlist = []
 
@@ -1182,7 +1183,7 @@ class BaseController(object):
                     if key == 'space':
                         isWaitingKey = False
                         break
-                self.updateCalibrationTargetStimulusCallBack(0, 0, self.calTargetPos[0], self.calTargetPosition)
+                self.updateCalibrationTargetStimulusCallBack(0, 0, self.calTargetPos[self.indexList[0]], self.calTargetPosition)
                 self.updateScreen()
 
             isCalibrating = True
@@ -1193,7 +1194,7 @@ class BaseController(object):
                 t = currentTime % self.CALTARGET_DURATION_PER_POS
                 prevTargetPosition = int((currentTime-t)/self.CALTARGET_DURATION_PER_POS)
                 currentTargetPosition = prevTargetPosition+1
-                if currentTargetPosition >= len(self.calTargetPos):
+                if currentTargetPosition >= len(self.indexList):
                     isCalibrating = False
                     break
                 if t < self.CALTARGET_MOTION_DURATION:
@@ -1225,35 +1226,52 @@ class BaseController(object):
                 self.messageText = 'Calibration/Validation failed.'
 
             self.getCalibrationResultsDetail()
-            
-            if not semiauto:
+
+            if not allowRecalibration:
                 break
-            
+
             markerIndex = 0
             self.overlayMarkersToCalScreen(marker2=[self.calTargetPos[markerIndex]],drawFrame=True)
             self.updateScreen()
-            
+
             while True:
                 keys = self.getKeys()
                 if 'space' in keys:
+                    if len(elimlist)==0:
+                        #if elimlist is empty, then continue
+                        continue
+                    
+                    #delete marked points
+                    self.deleteCalibrationDataSubset(elimlist, updatePlot=False)
 
                     #rebuild calibration target position list
-                    self.indexList = range(1, len(self.calTargetPos))
-                    random.shuffle(self.indexList)
                     elimidx = []
-                    for idx in range(len(self.indexList)):
-                        if self.calTargetPos[self.indexList[idx]] in elimlist:
+                    for idx in range(1,len(self.calTargetPos)):
+                        if self.calTargetPos[idx] in elimlist:
                             elimidx.append(idx)
-                    for idx in range(len(elimidx)):
-                        self.indexList.remove(elimidx[idx])
-                    if len(self.indexList) == 0:
-                        #no recalibration point!
-                        break
-                    if self.indexList[0] != 0:
-                        self.indexList.insert(0, 0)
+                    if len(elimidx) == 0:
+                        #no recalibration point.
+                        #usually this cannot be happen.
+                        continue
+                    elif len(elimidx) == 1: #only on recabliration point
+                        #if recabliration point is equal to calTargetPos[0], the first position must not be equal to it.
+                        if self.calTargetPos[elimidx[0]][0] == self.calTargetPos[0][0] and self.calTargetPos[elimidx[0]][1] == self.calTargetPos[0][1]:
+                            while True:
+                                tmpidx = random.randint(1, len(self.calTargetPos))
+                                if tmpidx != elimidx[0]:
+                                    break
+                            self.indexList = [tmpidx, elimidx[0]]
+                        #if recabliration point is not equal to calTargetPos[0], the first position should be 0.
+                        else:
+                            self.indexList = [0, elimidx[0]]
                     else:
-                        self.indexList.insert(0,random.randint(1,len(self.calTargetPos)-1))
-                
+                        while True:
+                            random.shuffle(elimidx)
+                            if self.calTargetPos[elimidx[0]][0] != self.calTargetPos[0][0] or self.calTargetPos[self.elimidx[0]][1] != self.calTargetPos[0][1]:
+                                break
+                        self.indexList = elimidx
+                        self.indexList.insert(0,0)
+
                     #re-start manual calibration without flushing data
                     self.sendCommand('startCal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
                                      + str(self.calArea[2])+','+str(self.calArea[3])+chr(0)+'0'+chr(0))
@@ -1261,10 +1279,6 @@ class BaseController(object):
                 elif 'return' in keys:
                     isCalibrationLoop = False
                     break
-                elif '0' in keys or 'num_0' in keys:
-                    if len(elimlist)>0:
-                        self.deleteCalibrationDataSubset(elimlist)
-                        elimlist = []
                 elif 'up' in keys:
                     markerIndex = (markerIndex+1)%len(self.calTargetPos)
                 elif 'down' in keys:
@@ -1540,7 +1554,7 @@ class BaseController(object):
         self.plotCalibrationResultsDetail()
         self.updateScreen()
 
-    def deleteCalibrationDataSubset(self, points=[]):
+    def deleteCalibrationDataSubset(self, points=[], updatePlot=True):
         '''
         Delete specified calibration data.
         
@@ -1557,17 +1571,18 @@ class BaseController(object):
         pointsStr = ','.join(['%d,%d' % tuple(p) for p in points])
         self.sendCommand('deleteCalData'+chr(0)+pointsStr+chr(0))
         
-        self.calibrationResults = self.getCalibrationResults()
-        try:
-            if self.isMonocularRecording:
-                self.messageText = 'AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
-            else:
-                self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
-        except:
-            self.messageText = 'Calibration/Validation failed.'
+        if updatePlot:
+            self.calibrationResults = self.getCalibrationResults()
+            try:
+                if self.isMonocularRecording:
+                    self.messageText = 'AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+                else:
+                    self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+            except:
+                self.messageText = 'Calibration/Validation failed.'
 
-        self.getCalibrationResultsDetail()
-        self.updateScreen()
+            self.getCalibrationResultsDetail()
+            self.updateScreen()
 
     '''
     # obsolete
@@ -1720,11 +1735,48 @@ class BaseController(object):
         """
         return
     
-    def updateManualCalibrationTargetStimulusCallBack(self, t, currentPos, prevTargetPosition):
-        if currentPos[0] is None:
+    def updateManualCalibrationTargetStimulusCallBack(self, t, currentPosition, prevPosition):
+        """
+        This method is called every time before updating calibration screen.
+        In default, This method set "currentPos" parameter to caliration 
+        target position.  If the first element of currentPos is None, 
+        calibration target position is set to (100*screen width, 100*
+        screen height) not to display calibration target.
+        
+        If you want to modify this behavior, override this method.
+
+        :param float t: time spent for current target position.
+        :param currentPosition: A tuple of two values that represents
+            current calibration target position. This value is
+            (None, None) if calibration target is not presented
+            now.
+        :param prevPosition: A tuple of two values that represents
+            previous calibration target position. This value is
+            (None, None) if calibration target was not presented
+            previously.
+
+        This is an example of using this method.
+
+        ::
+
+            tracker = GazeParser.TrackingTools.getController(backend='VisionEgg')
+            calstim = [VisionEgg.MoreStimuli.Target2D(size=(5, 5), color=(1, 1, 1)),
+                       VisionEgg.MoreStimuli.Target2D(size=(2, 2), color=(0, 0, 0))]
+            tracker.setCalibrationTargetStimulus(calstim)
+
+            def callback(self, t, targetPos, currentPos):
+                if t<1.0:
+                    self.caltarget[0].parameters.size = ((20.0-19.0*t)*5, (20.0-19.0*t)*5)
+                else:
+                    self.caltarget[0].parameters.size = (5, 5)
+
+            tracker.updateManualCalibrationTargetStimulusCallBack = callback
+        """
+
+        if currentPosition[0] is None:
             self.calTargetPosition = (self.screenWidth*100, self.screenHeight*100)
         else:
-            self.calTargetPosition = currentPos
+            self.calTargetPosition = currentPosition
         
 
 
