@@ -32,13 +32,13 @@ paths, calculating saccade trajectory curvature and so on.
       ],
       keywords='gaze tracking, eye tracking, eye movement',
       author='Hiroyuki Sogo',
-      author_email='hsogo@ehime-u.ac.jp',
+      author_email='hsogo12600@gmail.com',
       url='http://sourceforge.net/p/gazeparser/',
       license='GNU GPL',
       install_requires=[],
       packages=['GazeParser', 'GazeParser.app'],
-      package_data={'GazeParser': ['*.cfg'],
+      package_data={'GazeParser': ['*.cfg','PPComp/*.*','PPComp1.83/*.*'],
                     'GazeParser.app': ['img/*.png', 'img/*.ico',
                                        'img/*.gif', '*.cfg']},
-      scripts=['gazeparser_viewer','setup_for_psychopy.py']
+      scripts=['gazeparser_viewer','setup_for_psychopy1.83.py']
       )
