@@ -93,6 +93,7 @@ double g_EyeData[MAXDATA][4]; /*!< Holds the center of purkinje image relative t
 double g_PupilSizeData[MAXDATA][2]; /*!< Holds pupil size*/
 double g_TickData[MAXDATA]; /*!< Holids tickcount when data was obtained. */
 double g_CalPointData[MAXCALDATA][2]; /*!< Holds where the calibration item is presented when calibration data is sampled.*/
+bool g_CalPointDelList[MAXCALDATA];
 double g_ParamX[6]; /*!< Holds calibration parameters for X coordinate. Only three elements are used when recording mode is monocular.*/
 double g_ParamY[6]; /*!< Holds calibration parameters for Y coordinate. Only three elements are used when recording mode is monocular.*/
 double g_CalibrationArea[4]; /*!< Holds calibration area. These values are used when calibration results are rendered.*/
@@ -1636,7 +1637,7 @@ void clearCalibrationData(void)
 	for(i=0; i<g_NumCalPoint; i++)
 	{
 		g_CalPointData[i][0] = 0;
-		g_CalPointData[i][0] = 0;
+		g_CalPointData[i][1] = 0;
 	}
 
 	g_NumCalPoint = 0;
@@ -1679,9 +1680,12 @@ This function must be called when starting calibration.
 @param[in] y1 top of the calibration area.
 @param[in] x2 right of the calibration area.
 @param[in] y2 bottom of the calibration area.
+@param[in] clear clear previous calibration data if this value is 1.
 @return No value is returned.
+
+@date 2016/01/22 add 'clear' option.
 */
-void startCalibration(int x1, int y1, int x2, int y2)
+void startCalibration(int x1, int y1, int x2, int y2, int clear)
 {
 	g_LogFS << "StartCalibration" << std::endl;
 
@@ -1690,8 +1694,10 @@ void startCalibration(int x1, int y1, int x2, int y2)
 	g_CalibrationArea[2] = x2;
 	g_CalibrationArea[3] = y2;
 	if(!g_isRecording && !g_isValidating && !g_isCalibrating){
-		clearCalibrationData();
-		clearData();
+		if (clear == 1){
+			clearCalibrationData();
+			clearData();
+		}
 		g_isCalibrating = true;
 		g_isShowingCalResult = false; //erase calibration result screen.
 		g_CalSamplesAtCurrentPoint = 0;
@@ -1758,6 +1764,54 @@ void getCalSample(double x, double y, int samples)
 		g_NumCalPoint = 0;
 	}
 	g_CalSamplesAtCurrentPoint = samples;
+}
+
+/*!
+deleteCalibrationDataSubset: delete subset of calibration data.
+
+This function removes subset of calibration data.
+Points to be deleted is given as a string.
+Format of the string is "x1,y1,x2,y2,...".
+
+endCalibration() is called at the end of this function to 
+
+@param[in] points Calibration points to be deleted.
+@return No value is returned.
+
+@date 2016/01/26 Created.
+*/
+void deleteCalibrationDataSubset(char* points)
+{
+	int x, y, datalen, newdatalen;
+	char* p = points;
+	datalen = g_DataCounter;
+
+	while (*p != 0){
+		x = strtol(p, &p, 10);
+		p++;
+		y = strtol(p, &p, 10);
+		p++;
+		for (int i = 0; i < datalen; i++){
+			g_CalPointDelList[i] = (g_CalPointData[i][0] == x && g_CalPointData[i][1] == y) ? true : false;
+		}
+		newdatalen = 0;
+		for (int i = 0; i < datalen; i++){
+			if (!g_CalPointDelList[i]){
+				if (newdatalen != i){
+					g_CalPointData[newdatalen][0] = g_CalPointData[i][0];
+					g_CalPointData[newdatalen][1] = g_CalPointData[i][1];
+					g_EyeData[newdatalen][0] = g_EyeData[i][0];
+					g_EyeData[newdatalen][1] = g_EyeData[i][1];
+				}
+				newdatalen++;
+			}
+		}
+		datalen = newdatalen;
+	}
+	g_DataCounter = datalen;
+
+	endCalibration();
+
 }
 
 /*!
@@ -2485,7 +2539,7 @@ void getCalibrationResults( double *Goodness, double *MaxError, double *MeanErro
 }
 
 /*!
-getCalibrationResults: get detailed calibration error.
+getCalibrationResultsDetail: get detailed calibration error.
 
 Pair of position of calibration/validation target point and recorded gaze position is returned as a string of comma-separated values
 This function is called from sockProcess() when sockProcess() received "getCalResultsDetail" command.
