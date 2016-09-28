@@ -1417,7 +1417,7 @@ int main(int argc, char** argv)
 					char capfilename[64];
 					time(&t);
 					ltm = localtime(&t);
-					snprintf(capfilename, sizeof(capfilename), "SGT_%d%02d%02d%02d%02d%02d_%8d.bmp", ltm->tm_year + 1900, ltm->tm_mon + 1, ltm->tm_mday, ltm->tm_hour, ltm->tm_min, ltm->tm_sec, g_captureNum);
+					snprintf(capfilename, sizeof(capfilename), "SGT_%d%02d%02d%02d%02d%02d_%08d.bmp", ltm->tm_year + 1900, ltm->tm_mon + 1, ltm->tm_mday, ltm->tm_hour, ltm->tm_min, ltm->tm_sec, g_captureNum);
 					saveCameraImage(capfilename);
 					g_captureNum++;
 					break;
