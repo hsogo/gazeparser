@@ -1,3 +1,10 @@
+simplegazetracker-flycap (0.10.0) unstable; urgency=medium
+
+  * Manual calibration mode is added.
+  * Camera image can be saved.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Fri, 30 Sep 2016 18:00:00 +0900
+
 simplegazetracker-flycap (0.9.0) unstable; urgency=medium
 
   * FlyCapture2 edition supports Linux.

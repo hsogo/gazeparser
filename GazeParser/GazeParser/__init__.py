@@ -4,7 +4,7 @@
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
 
-release_name = '0.9.0'
+release_name = '0.10.0'
 
 __version__ = release_name
 

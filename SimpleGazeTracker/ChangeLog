@@ -1,3 +1,16 @@
+2016-09-30 Hiroyuki Sogo
+
+release: 0.10.0
+  * Manual calibration mode is added.
+  * Camera image can be saved.
+
+2015-10-08 Hiroyuki Sogo
+
+release: 0.9.0
+  * setup_for_psychopy.py script is added to help installing GazeParser to Standalone PsychoPy.
+  * Camera image can be saved by pressing "I" key during preview.
+  * fix error in getEyePosition() and getEyePositionList() in dummy mode.
+
 2015-03-12 Hiroyuki Sogo
 
 release: 0.8.0

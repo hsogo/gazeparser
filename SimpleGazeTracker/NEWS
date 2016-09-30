@@ -1,3 +1,8 @@
+New in 0.10.0
+
+  * Manual calibration mode is added.
+  * Camera image can be saved.
+
 New in 0.9.0
 
   * Newer version of OpenCV (3.0) and SDL (2.0) are introduced.
