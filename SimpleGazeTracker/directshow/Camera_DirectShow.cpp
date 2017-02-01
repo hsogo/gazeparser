@@ -306,6 +306,8 @@ int initCamera(void)
 	g_DirectShowCamera.width = g_CameraWidth;
 	g_DirectShowCamera.height = g_CameraHeight;
 	g_DirectShowCamera.fps = g_FrameRate;
+	g_DirectShowCamera.mstype = MEDIASUBTYPE_RGB24;
+	g_DirectShowCamera.dev_mstype = GUID_NULL;
 
 	// Initialize DirectShow camera
 	HRESULT hr;
