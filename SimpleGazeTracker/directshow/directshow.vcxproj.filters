@@ -49,4 +49,14 @@
     <None Include="CONFIG" />
     <None Include="CONFIG_DIRECTSHOW" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\common\GazeTracker.rc">
+      <Filter>リソース ファイル</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\common\simplegazetracker.ico">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
