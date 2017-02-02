@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>SimpleGazeTracker_DirectShow</RootNamespace>
+    <ProjectName>SimpleGazeTracker_DirectShow</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\opencv\build\include;C:\SDL2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\opencv\build\x86\vc12\lib;C:\SDL2\SDL2_ttf-2.0.12\lib\x86;C:\SDL2\SDL2_net-2.0.0\lib\x86;C:\SDL2\SDL2-2.0.3\lib\x86;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\opencv\build\include;C:\SDL2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\opencv\build\x86\vc12\lib;C:\SDL2\SDL2_ttf-2.0.12\lib\x86;C:\SDL2\SDL2_net-2.0.0\lib\x86;C:\SDL2\SDL2-2.0.3\lib\x86;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw32.lib;strmiids.lib;opencv_ts300d.lib;opencv_world300d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw32.lib;strmiids.lib;opencv_world300.lib;opencv_ts300.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\common\DetectEye.cpp" />
+    <ClCompile Include="..\common\GazeTrackerMain.cpp" />
+    <ClCompile Include="..\common\PlatformDependent.cpp" />
+    <ClCompile Include="..\common\tcpipcom.cpp" />
+    <ClCompile Include="..\common\usbioUL.cpp" />
+    <ClCompile Include="Camera_DirectShow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\common\GazeTrackerCommon.h" />
+    <ClInclude Include="..\common\resource.h" />
+    <ClInclude Include="GazeTracker.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CONFIG">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="CONFIG_DIRECTSHOW">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\common\GazeTracker.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\common\simplegazetracker.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

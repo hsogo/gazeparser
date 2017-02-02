@@ -19,6 +19,10 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup_FlyCapture2", "Setup_
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup_GPC5300", "Setup_GPC5300\Setup_GPC5300.vdproj", "{EA8A1831-E3AA-45EF-AE75-680296138425}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleGazeTracker_DirectShow", "directshow\directshow.vcxproj", "{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup_DirectShow", "Setup_DirectShow\Setup_DirectShow.vdproj", "{E192951F-0C64-4CBA-BB24-A3CC65554FD5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CD_ROM|Win32 = CD_ROM|Win32
@@ -100,6 +104,21 @@ Global
 		{EA8A1831-E3AA-45EF-AE75-680296138425}.Release|Win32.ActiveCfg = Release
 		{EA8A1831-E3AA-45EF-AE75-680296138425}.SingleImage|Win32.ActiveCfg = Release
 		{EA8A1831-E3AA-45EF-AE75-680296138425}.SingleImage|Win32.Build.0 = Release
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.CD_ROM|Win32.ActiveCfg = Release|Win32
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.CD_ROM|Win32.Build.0 = Release|Win32
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.Debug|Win32.Build.0 = Debug|Win32
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.DVD-5|Win32.ActiveCfg = Debug|Win32
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.DVD-5|Win32.Build.0 = Debug|Win32
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.Release|Win32.ActiveCfg = Release|Win32
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.Release|Win32.Build.0 = Release|Win32
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.SingleImage|Win32.ActiveCfg = Release|Win32
+		{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}.SingleImage|Win32.Build.0 = Release|Win32
+		{E192951F-0C64-4CBA-BB24-A3CC65554FD5}.CD_ROM|Win32.ActiveCfg = Release
+		{E192951F-0C64-4CBA-BB24-A3CC65554FD5}.Debug|Win32.ActiveCfg = Debug
+		{E192951F-0C64-4CBA-BB24-A3CC65554FD5}.DVD-5|Win32.ActiveCfg = Debug
+		{E192951F-0C64-4CBA-BB24-A3CC65554FD5}.Release|Win32.ActiveCfg = Release
+		{E192951F-0C64-4CBA-BB24-A3CC65554FD5}.SingleImage|Win32.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
