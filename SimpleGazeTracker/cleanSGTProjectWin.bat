@@ -1,6 +1,8 @@
 rd /S /Q Debug
 rd /S /Q Release
 
+rd /S /Q directshow\Debug
+rd /S /Q directshow\Release
 rd /S /Q flycapture2\Debug
 rd /S /Q flycapture2\Release
 rd /S /Q gpc5300\Debug
@@ -10,6 +12,8 @@ rd /S /Q optitrack\Release
 rd /S /Q opencv\Debug
 rd /S /Q opencv\Release
 
+rd /S /Q Setup_DirectShow\Debug
+rd /S /Q Setup_DirectShow\Release
 rd /S /Q Setup_FlyCapture2\Debug
 rd /S /Q Setup_FlyCapture2\Release
 rd /S /Q Setup_GPC5300\Debug
