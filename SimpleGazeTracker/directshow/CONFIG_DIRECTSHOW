@@ -1,2 +1,3 @@
 [SimpleGazeTrackerDirectShow]
+CAMERA_ID=0
 FRAME_RATE=120

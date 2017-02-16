@@ -315,12 +315,30 @@ int initCamera(void)
 
 	hr = CoCreateInstance(CLSID_FilterGraph, 0, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void **)&g_DirectShowCamera.pGraph);
 	hr = CoCreateInstance(CLSID_SystemDeviceEnum, 0, CLSCTX_INPROC_SERVER, IID_ICreateDevEnum, (void **)&g_DirectShowCamera.pDevEnum);
+	if (hr != S_OK)	{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow camera interface (No DirectShow camera is connected?).");
+		g_LogFS << "ERROR: failed to initialize DirectShow camera interface." << std::endl;
+		return E_FAIL;
+	}
 	hr = g_DirectShowCamera.pDevEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &g_DirectShowCamera.pEnum, 0);
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow camera interface (No DirectShow camera is connected?).");
+		g_LogFS << "ERROR: failed to initialize DirectShow camera interface." << std::endl;
+		return E_FAIL;
+	}
 
-	if (g_DirectShowCamera.pEnum->Next(1, &g_DirectShowCamera.pMoniker, &cFetched) == S_OK){
+	for (int i = 0; i <= cameraID; i++)
+	{
+		hr = g_DirectShowCamera.pEnum->Next(1, &g_DirectShowCamera.pMoniker, &cFetched);
+	}
+
+	if (hr == S_OK){
 		LPOLESTR strMonikerName = 0;
 		hr = g_DirectShowCamera.pMoniker->GetDisplayName(NULL, NULL, &strMonikerName);
-		//if (hr != S_OK){ errcode = 6; goto fin; }
+		if (hr != S_OK){
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+			g_LogFS << "ERROR: failed to get Camera's moniker name." << std::endl;
+		}
 
 		int cntflag = 0;
 		if (wcsstr(strMonikerName, L"@device:pnp") != NULL) cntflag = 1;	//'@device:pnp' is included
@@ -331,21 +349,35 @@ int initCamera(void)
 			g_DirectShowCamera.pMoniker->BindToObject(0, 0, IID_IBaseFilter, (void **)&g_DirectShowCamera.pCap);
 			// add filter to graph
 			hr = g_DirectShowCamera.pGraph->AddFilter(g_DirectShowCamera.pCap, L"Video Capture 0");
-			// if (hr != S_OK){ errcode = 7; goto fin; }
+			if (hr != S_OK){ 
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+				g_LogFS << "ERROR: failed to add Camera." << std::endl;
+			}
 		}
 		release(g_DirectShowCamera.pMoniker);
+	}
+	else{
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not open Camera #%d.", cameraID);
+		g_LogFS << "ERROR: could not open Camera #" << cameraID << "." << std::endl;
+		return E_FAIL;
 	}
 
 	// create pBuilder
 	CoCreateInstance(CLSID_CaptureGraphBuilder2, 0, CLSCTX_INPROC_SERVER,
 		IID_ICaptureGraphBuilder2, (void **)&g_DirectShowCamera.pBuilder);
 	hr = g_DirectShowCamera.pBuilder->SetFiltergraph(g_DirectShowCamera.pGraph);
-	//if (hr != S_OK){ errcode = 10; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to set Capture Graph Builder." << std::endl;
+	}
 
 	// get IAMStreamConfig interface
 	hr = g_DirectShowCamera.pBuilder->FindInterface(&PIN_CATEGORY_CAPTURE, &MEDIATYPE_Video,
 		g_DirectShowCamera.pCap, IID_IAMStreamConfig, (void**)&g_DirectShowCamera.pConfig);
-	//if (hr != S_OK){ errcode = 11; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to get IAMStreamConfig interface." << std::endl;
+	}
 
 	// set camera image size and fps
 	hr = g_DirectShowCamera.pConfig->GetFormat(&g_DirectShowCamera.pmt);
@@ -361,13 +393,19 @@ int initCamera(void)
 	g_DirectShowCamera.dev_mstype = g_DirectShowCamera.pmt->subtype;
 
 	hr = g_DirectShowCamera.pConfig->SetFormat(g_DirectShowCamera.pmt);
-	//if (hr != S_OK){ errcode = 12; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set camera format (%dx%d @%.2ffps).", g_DirectShowCamera.width, g_DirectShowCamera.height, g_DirectShowCamera.fps);
+		g_LogFS << "ERROR: failed to set camera format (" << g_DirectShowCamera.width << "x" << g_DirectShowCamera.height << " @" << g_DirectShowCamera.fps << "fps)." << std::endl;
+	}
 	release(g_DirectShowCamera.pConfig);
 
 	// create sample grabber pF,pGrab
 	CoCreateInstance(CLSID_SampleGrabber, 0, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (LPVOID *)&g_DirectShowCamera.pF);
 	hr = g_DirectShowCamera.pF->QueryInterface(IID_ISampleGrabber, (void **)&g_DirectShowCamera.pGrab);
-	//if (hr != S_OK){ errcode = 13; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to get SampleGrabber interface." << std::endl;
+	}
 
 	// set media type
 	ZeroMemory(&g_DirectShowCamera.mt, sizeof(AM_MEDIA_TYPE));
@@ -375,10 +413,16 @@ int initCamera(void)
 	g_DirectShowCamera.mt.subtype = g_DirectShowCamera.mstype;
 	g_DirectShowCamera.mt.formattype = FORMAT_VideoInfo;
 	hr = g_DirectShowCamera.pGrab->SetMediaType(&g_DirectShowCamera.mt);
-	//if (hr != S_OK){ errcode = 14; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to set media type." << std::endl;
+	}
 	// add filter to grabber
 	hr = g_DirectShowCamera.pGraph->AddFilter(g_DirectShowCamera.pF, L"Grabber 1");
-	//if (hr != S_OK){ errcode = 15; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to add filter." << std::endl;
+	}
 
 	// connecting sample grabber
 	// get pin
@@ -402,23 +446,35 @@ int initCamera(void)
 
 	// connect pins
 	hr = g_DirectShowCamera.pGraph->Connect(g_DirectShowCamera.pSrcOut, g_DirectShowCamera.pSGrabIn);
-	//if (hr != S_OK){ errcode = 16; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to connect pins." << std::endl;
+	}
 
 	release(g_DirectShowCamera.pSrcOut);
 	release(g_DirectShowCamera.pSGrabIn);
 
 	// set grabber mode
 	hr = g_DirectShowCamera.pGrab->SetBufferSamples(FALSE);
-	//if (hr != S_OK){ errcode = 17; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to set buffer samples." << std::endl;
+	}
 	hr = g_DirectShowCamera.pGrab->SetOneShot(FALSE);
-	//if (hr != S_OK){ errcode = 18; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to set one shot." << std::endl;
+	}
 
 	// create buffer, register dsc_pSampleGrabberCB[]
 	g_DirectShowCamera.buffer = (int *)new int[g_DirectShowCamera.width*g_DirectShowCamera.height];
 	g_OriginalImage = cv::Mat(g_CameraHeight, g_CameraWidth, CV_8UC3, g_DirectShowCamera.buffer);
 	g_pImageGrabberCB = new ImageGrabberCB();
 	hr = g_DirectShowCamera.pGrab->SetCallback(g_pImageGrabberCB, 1);
-	//if (hr != S_OK){ errcode = 19; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to set callback function for ImageGrabber." << std::endl;
+	}
 
 	// get IAMVideoProcAmp
 	hr = g_DirectShowCamera.pCap->QueryInterface(IID_IAMVideoProcAmp, (void **)&g_DirectShowCamera.pVPAmp);
@@ -468,24 +524,34 @@ int initCamera(void)
 
 	//get IMediaEvent
 	hr = g_DirectShowCamera.pGraph->QueryInterface(IID_IMediaEvent, (LPVOID *)&g_DirectShowCamera.pMediaEvent);
-	//if (hr != S_OK){ errcode = 20; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to get MediaEvent interface." << std::endl;
+	}
 
 	// start capture
 	hr = g_DirectShowCamera.pGraph->QueryInterface(IID_IMediaControl, (void **)&g_DirectShowCamera.pMediaControl);
-	//if (hr != S_OK){ errcode = 21; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize DirectShow Camera");
+		g_LogFS << "ERROR: failed to get MediaControl interface." << std::endl;
+	}
 	hr = g_DirectShowCamera.pMediaControl->Run();
-	//if (hr != S_OK){ errcode = 22; retryflag = 1; goto fin; }
+	if (hr != S_OK){
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to run camera.");
+		g_LogFS << "ERROR: failed to run camera." << std::endl;
+	}
 	release(g_DirectShowCamera.pMediaControl);
 
 	// wait for sample
 	long evCode;
 	g_DirectShowCamera.pMediaEvent->WaitForCompletion(DSC_RUN_TIMEOUT, &evCode);
-	//if (hr != S_OK){
-	//	if (hr == E_ABORT){ errcode = 23; retryflag = 1; goto fin; }
-	//}
 	int t0 = GetTickCount();
 	do{
-		//if ((GetTickCount() - t0)>RUN_TIMEOUT){ errcode = 24; retryflag = 1; goto fin; }
+		if ((GetTickCount() - t0) > DSC_RUN_TIMEOUT)
+		{
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to run camera.");
+			g_LogFS << "ERROR: failed to run camera." << std::endl;
+		}
 	} while (g_DirectShowCamera.bufsize == 0);
 
 	g_LogFS << "Start" << std::endl;
