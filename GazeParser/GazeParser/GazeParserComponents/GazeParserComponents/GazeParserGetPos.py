@@ -13,7 +13,7 @@ iconFile = path.join(thisFolder,'GazeParserGetPos.png')
 tooltip = 'GazeParserGetPos: sending a GetPos to SimpleGazeTracker'
 
 # want a complete, ordered list of codeParams in Builder._BaseParamsDlg, best to define once:
-paramNames = ['time','timeType','text']
+paramNames = ['time','filler','binocular','ma']
 
 class GazeParserGetPosComponent(BaseVisualComponent):
     """Recording with GazeParser.TrackingTools"""

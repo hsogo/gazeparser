@@ -26,12 +26,12 @@ class GazeParserMessageComponent(BaseComponent):
         self.order = ['name'] + paramNames[:] # want a copy, else codeParamNames list gets mutated
         self.params['time']=Param(time, valType='code', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
-            hint=_translate("When does the component start?"),
-            label=_localized['startVal'])
-        self.params['timeType']=Param(text, valType='str', allowedVals=['time (s)', 'frame N', 'condition'],
+            hint="When this message should be sent?",
+            label='time')
+        self.params['timeType']=Param(timeType, valType='str', allowedVals=['time (s)', 'frame N', 'condition'],
             updates='constant', allowedUpdates=[],
-            hint=_translate("How do you want to define your start point?"),
-            label=_localized['startType'])
+            hint="How do you want to define time?",
+            label='time type')
         self.params['text']=Param(text, valType='str', allowedTypes=[],
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="Message text",
