@@ -41,6 +41,11 @@ ControllerDefaults = {
     'TRACKER_IP_ADDRESS': '192.168.1.1'
 }
 
+numKeyDict = {
+        '1':1, 'num_1':1, '2':2, 'num_2':2, '3':3, 'num_3':3,
+        '4':4, 'num_4':4, '5':5, 'num_5':5, '6':6, 'num_6':6,
+        '7':7, 'num_7':7, '8':8, 'num_8':8, '9':9, 'num_9':9
+    }
 
 class BaseController(object):
     """
@@ -1257,7 +1262,7 @@ class BaseController(object):
                         #no recalibration point.
                         #usually this cannot be happen.
                         continue
-                    elif len(elimidx) == 1: #only on recabliration point
+                    elif len(elimidx) == 1: #only one recabliration point
                         #if recabliration point is equal to calTargetPos[0], the first position must not be equal to it.
                         if self.calTargetPos[elimidx[0]][0] == self.calTargetPos[0][0] and self.calTargetPos[elimidx[0]][1] == self.calTargetPos[0][1]:
                             while True:
@@ -1441,33 +1446,9 @@ class BaseController(object):
                         elif key in ('0', 'num_0'):
                             isNumKeyPressed = True
                             calIndex = -1
-                        elif key in ('1', 'num_1'):  # Note that self.calTargetPos[0] is initial position.
-                            isNumKeyPressed = True   # so calIndex=0 is not necessary
-                            calIndex = 1
-                        elif key in ('2', 'num_2'):
-                            isNumKeyPressed = True
-                            calIndex = 2
-                        elif key in ('3', 'num_3'):
-                            isNumKeyPressed = True
-                            calIndex = 3
-                        elif key in ('4', 'num_4'):
-                            isNumKeyPressed = True
-                            calIndex = 4
-                        elif key in ('5', 'num_5'):
-                            isNumKeyPressed = True
-                            calIndex = 5
-                        elif key in ('6', 'num_6'):
-                            isNumKeyPressed = True
-                            calIndex = 6
-                        elif key in ('7', 'num_7'):
-                            isNumKeyPressed = True
-                            calIndex = 7
-                        elif key in ('8', 'num_8'):
-                            isNumKeyPressed = True
-                            calIndex = 8
-                        elif key in ('9', 'num_9'):
-                            isNumKeyPressed = True
-                            calIndex = 9
+                        elif key in numKeyDict:
+                            isNumKeyPressed = True     # Note that self.calTargetPos[0] is initial position.
+                            calIndex = numKeyDict[key] # so calIndex=0 is not necessary
                         
                         if isNumKeyPressed:
                             startTime = self.clock()
@@ -1518,33 +1499,9 @@ class BaseController(object):
                             if len(elimlist)>0:
                                 self.deleteCalibrationDataSubset(elimlist)
                                 elimlist = []
-                        elif key in ('1', 'num_1'):
-                            isNumKeyPressed = True
-                            calIndex = 1
-                        elif key in ('2', 'num_2'):
-                            isNumKeyPressed = True
-                            calIndex = 2
-                        elif key in ('3', 'num_3'):
-                            isNumKeyPressed = True
-                            calIndex = 3
-                        elif key in ('4', 'num_4'):
-                            isNumKeyPressed = True
-                            calIndex = 4
-                        elif key in ('5', 'num_5'):
-                            isNumKeyPressed = True
-                            calIndex = 5
-                        elif key in ('6', 'num_6'):
-                            isNumKeyPressed = True
-                            calIndex = 6
-                        elif key in ('7', 'num_7'):
-                            isNumKeyPressed = True
-                            calIndex = 7
-                        elif key in ('8', 'num_8'):
-                            isNumKeyPressed = True
-                            calIndex = 8
-                        elif key in ('9', 'num_9'):
-                            isNumKeyPressed = True
-                            calIndex = 9
+                        elif key in numKeyDict:
+                            isNumKeyPressed = True     # Note that self.calTargetPos[0] is initial position.
+                            calIndex = numKeyDict[key] # so calIndex=0 is not necessary
 
                 if isNumKeyPressed:
                     if self.calTargetPos[calIndex] in elimlist:
