@@ -1117,13 +1117,12 @@ class BaseController(object):
 
         self.putCalibrationResultsImage()
 
-    def overlayMarkersToCalScreen(self, marker1=[], marker2=[], drawFrame=False):
+    def overlayMarkersToCalScreen(self, marker1=[], marker2=[]):
         '''
         Draw markers and frame on the calibration result.
         
         :param marker1: a list of positions of open cirlces.
         :param marker2: a list of positions of filled cirlces.
-        :param drawFrame: If true, frame is drawn.
         '''
 
         draw = ImageDraw.Draw(self.PILimgCAL)
@@ -1142,12 +1141,6 @@ class BaseController(object):
             y2 = marker2[j][1]+self.calResultScreenOrigin[1]+8
             draw.ellipse((x1,y1,x2,y2), 0)
 
-        if drawFrame:
-            draw.line(((0,0),(self.PILimgCAL.size[0],0)),fill=255, width=10)
-            draw.line(((self.PILimgCAL.size[0],0),self.PILimgCAL.size),fill=255, width=10)
-            draw.line((self.PILimgCAL.size,(0,self.PILimgCAL.size[1])),fill=255, width=10)
-            draw.line(((0,self.PILimgCAL.size[1]),(0,0)),fill=255, width=10)
-        
         self.putCalibrationResultsImage()
 
 
@@ -1231,6 +1224,8 @@ class BaseController(object):
                     self.messageText = 'AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
                 else:
                     self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+                if allowRecalibration:
+                    self.messageText += '\nUp/Down: select point Left/Right/1-9key: toggle mark 0:remove marked points'
             except:
                 self.messageText = 'Calibration/Validation failed.'
 
@@ -1240,7 +1235,7 @@ class BaseController(object):
                 break
 
             markerIndex = 0
-            self.overlayMarkersToCalScreen(marker2=[self.calTargetPos[markerIndex]],drawFrame=True)
+            self.overlayMarkersToCalScreen(marker2=[self.calTargetPos[markerIndex]])
             self.updateScreen()
 
             while True:
@@ -1299,9 +1294,12 @@ class BaseController(object):
                         elimlist.append(self.calTargetPos[markerIndex])
 
                 self.plotCalibrationResultsDetail()
-                self.overlayMarkersToCalScreen(marker1=elimlist, marker2=[self.calTargetPos[markerIndex]], drawFrame=True)
+                self.overlayMarkersToCalScreen(marker1=elimlist, marker2=[self.calTargetPos[markerIndex]])
                 self.updateScreen()
 
+        nindex = self.messageText.find('\n')  #remove instruction
+        if n>0:
+            self.messageText = self.messageText[:nindex]
         self.plotCalibrationResultsDetail()
         self.updateScreen()
 
@@ -1475,11 +1473,12 @@ class BaseController(object):
                     self.messageText = 'AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
                 else:
                     self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+                self.messageText += '\nUp/Down: select point Left/Right/1-9key: toggle mark 0:remove marked points'
             except:
                 self.messageText = 'Calibration/Validation failed.'
 
             self.getCalibrationResultsDetail()
-            self.overlayMarkersToCalScreen(drawFrame=True)
+            self.overlayMarkersToCalScreen()
             self.updateScreen()
             
             while True:
@@ -1509,9 +1508,12 @@ class BaseController(object):
                     else:
                         elimlist.append(self.calTargetPos[calIndex])
                     self.plotCalibrationResultsDetail()
-                    self.overlayMarkersToCalScreen(marker1=elimlist, drawFrame=True)
+                    self.overlayMarkersToCalScreen(marker1=elimlist)
                     self.updateScreen()
         
+        nindex = self.messageText.find('\n')  #remove instruction
+        if n>0:
+            self.messageText = self.messageText[:nindex]
         self.plotCalibrationResultsDetail()
         self.updateScreen()
 
