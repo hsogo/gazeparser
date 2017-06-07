@@ -1225,7 +1225,7 @@ class BaseController(object):
                 else:
                     self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
                 if allowRecalibration:
-                    self.messageText += '\nUp/Down: select point Left/Right/1-9key: toggle mark 0:remove marked points'
+                    self.messageText += '\nUp/Down: select point  Left/Right: toggle mark\nSpace: retry  Enter: exit cal'
             except:
                 self.messageText = 'Calibration/Validation failed.'
 
@@ -1234,7 +1234,7 @@ class BaseController(object):
             if not allowRecalibration:
                 break
 
-            markerIndex = 0
+            markerIndex = 1
             self.overlayMarkersToCalScreen(marker2=[self.calTargetPos[markerIndex]])
             self.updateScreen()
 
@@ -1244,9 +1244,8 @@ class BaseController(object):
                     if len(elimlist)==0:
                         #if elimlist is empty, then continue
                         continue
-                    
                     #delete marked points
-                    self.deleteCalibrationDataSubset(elimlist, updatePlot=False)
+                    self.deleteCalibrationDataSubset(elimlist)
 
                     #rebuild calibration target position list
                     elimidx = []
@@ -1284,9 +1283,9 @@ class BaseController(object):
                     isCalibrationLoop = False
                     break
                 elif 'up' in keys:
-                    markerIndex = (markerIndex+1)%len(self.calTargetPos)
+                    markerIndex = markerIndex+1 if markerIndex<len(self.calTargetPos)-1 else 1  # avoid 0!
                 elif 'down' in keys:
-                    markerIndex = markerIndex-1 if markerIndex>=0 else len(self.calTargetPos)-1
+                    markerIndex = markerIndex-1 if markerIndex>1 else len(self.calTargetPos)-1   # avoid 0!
                 elif 'left' in keys or 'right' in keys:
                     if self.calTargetPos[markerIndex] in elimlist:
                         elimlist.remove(self.calTargetPos[markerIndex])
@@ -1298,7 +1297,7 @@ class BaseController(object):
                 self.updateScreen()
 
         nindex = self.messageText.find('\n')  #remove instruction
-        if n>0:
+        if nindex>0:
             self.messageText = self.messageText[:nindex]
         self.plotCalibrationResultsDetail()
         self.updateScreen()
@@ -1473,7 +1472,7 @@ class BaseController(object):
                     self.messageText = 'AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
                 else:
                     self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
-                self.messageText += '\nUp/Down: select point Left/Right/1-9key: toggle mark 0:remove marked points'
+                self.messageText += '\n1-9: toggle mark 0:remove marked points\nSpace: retry Enter:exit cal'
             except:
                 self.messageText = 'Calibration/Validation failed.'
 
@@ -1498,6 +1497,21 @@ class BaseController(object):
                             if len(elimlist)>0:
                                 self.deleteCalibrationDataSubset(elimlist)
                                 elimlist = []
+                                
+                                self.calibrationResults = self.getCalibrationResults()
+                                try:
+                                    if self.isMonocularRecording:
+                                        self.messageText = 'AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+                                    else:
+                                        self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
+                                    self.messageText += '\n1-9: toggle mark 0:remove marked points\nSpace: retry Enter:exit cal'
+                                except:
+                                    self.messageText = 'Calibration/Validation failed.'
+                                
+                                self.getCalibrationResultsDetail()
+                                self.overlayMarkersToCalScreen()
+                                self.updateScreen()
+
                         elif key in numKeyDict:
                             isNumKeyPressed = True     # Note that self.calTargetPos[0] is initial position.
                             calIndex = numKeyDict[key] # so calIndex=0 is not necessary
@@ -1512,12 +1526,12 @@ class BaseController(object):
                     self.updateScreen()
         
         nindex = self.messageText.find('\n')  #remove instruction
-        if n>0:
+        if nindex>0:
             self.messageText = self.messageText[:nindex]
         self.plotCalibrationResultsDetail()
         self.updateScreen()
 
-    def deleteCalibrationDataSubset(self, points=[], updatePlot=True):
+    def deleteCalibrationDataSubset(self, points=[], wait=0.1):
         '''
         Delete specified calibration data.
         
@@ -1534,18 +1548,7 @@ class BaseController(object):
         pointsStr = ','.join(['%d,%d' % tuple(p) for p in points])
         self.sendCommand('deleteCalData'+chr(0)+pointsStr+chr(0))
         
-        if updatePlot:
-            self.calibrationResults = self.getCalibrationResults()
-            try:
-                if self.isMonocularRecording:
-                    self.messageText = 'AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
-                else:
-                    self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
-            except:
-                self.messageText = 'Calibration/Validation failed.'
-
-            self.getCalibrationResultsDetail()
-            self.updateScreen()
+        time.sleep(wait)
 
     '''
     # obsolete
