@@ -1786,11 +1786,12 @@ void deleteCalibrationDataSubset(char* points)
 	char* p = points;
 	datalen = g_DataCounter;
 
+	g_LogFS << "DeleteCalibrationDataSubset:" << points << std::endl;
+
 	while (*p != 0){
 		x = strtol(p, &p, 10);
 		p++;
 		y = strtol(p, &p, 10);
-		p++;
 		for (int i = 0; i < datalen; i++){
 			g_CalPointDelList[i] = (g_CalPointData[i][0] == x && g_CalPointData[i][1] == y) ? true : false;
 		}
@@ -1807,6 +1808,8 @@ void deleteCalibrationDataSubset(char* points)
 			}
 		}
 		datalen = newdatalen;
+		if (*p == NULL) break;
+		p++;
 	}
 	g_DataCounter = datalen;
 
