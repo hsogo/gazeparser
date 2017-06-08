@@ -1160,7 +1160,6 @@ class BaseController(object):
         self.sendCommand('startCal'+chr(0)+str(self.calArea[0])+','+str(self.calArea[1])+','
                          + str(self.calArea[2])+','+str(self.calArea[3])+chr(0)+'1'+chr(0))
 
-        
         isCalibrationLoop = True
         
         while isCalibrationLoop:
@@ -1270,7 +1269,7 @@ class BaseController(object):
                     else:
                         while True:
                             random.shuffle(elimidx)
-                            if self.calTargetPos[elimidx[0]][0] != self.calTargetPos[0][0] or self.calTargetPos[self.elimidx[0]][1] != self.calTargetPos[0][1]:
+                            if self.calTargetPos[elimidx[0]][0] != self.calTargetPos[0][0] or self.calTargetPos[elimidx[0]][1] != self.calTargetPos[0][1]:
                                 break
                         self.indexList = elimidx
                         self.indexList.insert(0,0)
