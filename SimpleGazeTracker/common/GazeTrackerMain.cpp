@@ -1438,6 +1438,15 @@ int main(int argc, char** argv)
 					}
 					break;
 
+				case SDLK_h:
+					if (!g_isRecording){
+						SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,
+							"SimpleGazeTracker Help",
+							"q: [Q]uit\ns: [S]ave calibration data\ni: save camera [I]mage\nl:toggle [L]ive view during recording\nh: show this [H]elp\n\nup/down: select menu item\nleft/right: adjust parameter",
+							NULL);
+					}
+					break;
+
 				case SDLK_UP:
 					if (!g_isRecording && !g_isCalibrating && !g_isValidating){
 						g_CurrentMenuPosition--;
