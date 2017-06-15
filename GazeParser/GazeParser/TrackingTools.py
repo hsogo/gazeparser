@@ -1451,7 +1451,7 @@ class BaseController(object):
                         elif key in ('0', 'num_0'):
                             isNumKeyPressed = True
                             calIndex = -1
-                        elif key in numKeyDict:
+                        elif key in numKeyDict and numKeyDict[key]<len(self.calTargetPos):
                             isNumKeyPressed = True     # Note that self.calTargetPos[0] is initial position.
                             calIndex = numKeyDict[key] # so calIndex=0 is not necessary
                         
@@ -1520,7 +1520,7 @@ class BaseController(object):
                                 self.overlayMarkersToCalScreen()
                                 self.updateScreen()
 
-                        elif key in numKeyDict:
+                        elif key in numKeyDict and numKeyDict[key]<len(self.calTargetPos):
                             isNumKeyPressed = True     # Note that self.calTargetPos[0] is initial position.
                             calIndex = numKeyDict[key] # so calIndex=0 is not necessary
 
