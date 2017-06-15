@@ -1292,6 +1292,14 @@ class BaseController(object):
                         elimlist.remove(self.calTargetPos[markerIndex])
                     else:
                         elimlist.append(self.calTargetPos[markerIndex])
+                else:
+                    for key in keys:
+                        if key in numKeyDict and numKeyDict[key]<len(self.calTargetPos):
+                            markerIndex = numkeyDict[key]
+                            if self.calTargetPos[markerIndex] in elimlist:
+                                elimlist.remove(self.calTargetPos[markerIndex])
+                            else:
+                                elimlist.append(self.calTargetPos[markerIndex])
 
                 self.plotCalibrationResultsDetail()
                 self.overlayMarkersToCalScreen(marker1=elimlist, marker2=[self.calTargetPos[markerIndex]])
