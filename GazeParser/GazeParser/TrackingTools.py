@@ -1297,9 +1297,10 @@ class BaseController(object):
                 self.overlayMarkersToCalScreen(marker1=elimlist, marker2=[self.calTargetPos[markerIndex]])
                 self.updateScreen()
 
-        nindex = self.messageText.find('\n')  #remove instruction
-        if n>0:
-            self.messageText = self.messageText[:nindex]
+        if allowRecalibration:
+            nindex = self.messageText.find('\n')  #remove instruction
+            if n>0:
+                self.messageText = self.messageText[:nindex]
         self.plotCalibrationResultsDetail()
         self.updateScreen()
 
