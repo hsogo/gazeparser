@@ -1293,7 +1293,7 @@ class BaseController(object):
                 else:
                     for key in keys:
                         if key in numKeyDict and numKeyDict[key]<len(self.calTargetPos):
-                            markerIndex = numkeyDict[key]
+                            markerIndex = numKeyDict[key]
                             if self.calTargetPos[markerIndex] in elimlist:
                                 elimlist.remove(self.calTargetPos[markerIndex])
                             else:
@@ -1305,7 +1305,7 @@ class BaseController(object):
 
         if allowRecalibration:
             nindex = self.messageText.find('\n')  #remove instruction
-            if n>0:
+            if nindex>0:
                 self.messageText = self.messageText[:nindex]
         self.plotCalibrationResultsDetail()
         self.updateScreen()
