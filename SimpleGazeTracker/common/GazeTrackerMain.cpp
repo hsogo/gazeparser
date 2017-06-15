@@ -1438,6 +1438,15 @@ int main(int argc, char** argv)
 					}
 					break;
 
+				case SDLK_h:
+					if (!g_isRecording){
+						SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,
+							"SimpleGazeTracker Help",
+							"q: [Q]uit\ns: [S]ave calibration data\ni: save camera [I]mage\nl:toggle [L]ive view during recording\nh: show this [H]elp\n\nup/down: select menu item\nleft/right: adjust parameter",
+							NULL);
+					}
+					break;
+
 				case SDLK_UP:
 					if (!g_isRecording && !g_isCalibrating && !g_isValidating){
 						g_CurrentMenuPosition--;
@@ -1786,11 +1795,12 @@ void deleteCalibrationDataSubset(char* points)
 	char* p = points;
 	datalen = g_DataCounter;
 
+	g_LogFS << "DeleteCalibrationDataSubset:" << points << std::endl;
+
 	while (*p != 0){
 		x = strtol(p, &p, 10);
 		p++;
 		y = strtol(p, &p, 10);
-		p++;
 		for (int i = 0; i < datalen; i++){
 			g_CalPointDelList[i] = (g_CalPointData[i][0] == x && g_CalPointData[i][1] == y) ? true : false;
 		}
@@ -1807,6 +1817,8 @@ void deleteCalibrationDataSubset(char* points)
 			}
 		}
 		datalen = newdatalen;
+		if (*p == NULL) break;
+		p++;
 	}
 	g_DataCounter = datalen;
 
