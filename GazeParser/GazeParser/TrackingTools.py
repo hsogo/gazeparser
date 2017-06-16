@@ -1224,7 +1224,7 @@ class BaseController(object):
                 else:
                     self.messageText = 'LEFT(black) AvgError:%.2f MaxError:%.2f / RIGHT(white) AvgError:%.2f MaxError:%.2f' % tuple(self.calibrationResults)
                 if allowRecalibration:
-                    self.messageText += '\nUp/Down: select point  Left/Right: toggle mark\nSpace: retry  Enter: exit cal'
+                    self.messageText += '\nUp/Down: select point  Left/Right/1-9: toggle mark\nSpace: retry  Enter: exit cal'
             except:
                 self.messageText = 'Calibration/Validation failed.'
 
