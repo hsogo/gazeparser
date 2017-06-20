@@ -14,8 +14,6 @@ import tkFileDialog
 import tkMessageBox
 import sys
 import traceback
-import Image
-import ImageTk
 import copy
 
 from GazeParser.Converter import EyelinkToGazeParser, TrackerToGazeParser, TobiiToGazeParser
