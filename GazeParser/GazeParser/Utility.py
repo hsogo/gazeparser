@@ -26,6 +26,10 @@ def save(filename, data, additionalData=None):
     :param additionalData:
         Additional data (if necessary).
     """
+
+    if isinstance(filename, unicode):
+        filename = filename.encode(sys.getfilesystemencoding())
+
     db = anydbm.open(filename, 'c')
     s = cPickle.dumps(data)
     db['GazeData'] = zlib.compress(s)
@@ -52,6 +56,8 @@ def load(filename, checkVersion=True):
     if not os.path.isfile(filename):
         raise ValueError('%s is not exist.' % filename)
 
+    if isinstance(filename, unicode):
+        filename = filename.encode(sys.getfilesystemencoding())
     db = anydbm.open(filename, 'r')
     s = zlib.decompress(db['GazeData'])
     D = cPickle.loads(s)

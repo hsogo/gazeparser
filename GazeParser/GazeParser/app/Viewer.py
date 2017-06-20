@@ -24,6 +24,7 @@ import GazeParser.Region
 import os
 import sys
 import re
+import codecs
 import functools
 import wx
 import wx.aui
@@ -2291,12 +2292,16 @@ class ViewerOptions(object):
         else:
             for section, params in self.options:
                 for optName, optType in params:
-                    setattr(self, optName, optType(appConf.get(section, optName)))
+                    try:
+                        setattr(self, optName, optType(appConf.get(section, optName)))
+                    except:
+                        messageDialogShowerror(None, 'error', 'could not read option [%s]%s.\nConfiguration file (%s) may be corrupted.' % (section, optName, self.viewerConfigFile))
+                        sys.exit()
 
         # set recent directories
         self.RecentDir = []
         for i in range(5):
-            d = getattr(self, 'RECENT_DIR%02d' % (i+1))
+            d = getattr(self, 'RECENT_DIR%02d' % (i+1)).decode(sys.getfilesystemencoding())
             self.RecentDir.append(d)
 
     def _write(self):
@@ -2304,7 +2309,7 @@ class ViewerOptions(object):
         for i in range(5):
             setattr(self, 'RECENT_DIR%02d' % (i+1), self.RecentDir[i])
 
-        with open(self.viewerConfigFile, 'w') as fp:
+        with codecs.open(self.viewerConfigFile, 'w', sys.getfilesystemencoding()) as fp:
             for section, params in self.options:
                 fp.write('[%s]\n' % section)
                 for optName, optType in params:
