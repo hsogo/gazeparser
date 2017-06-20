@@ -270,7 +270,7 @@ def parseBlinkCandidates(T, HVs, config):
     if isBlink:
         dur = T[index]-T[blinkStart]
         blinkCandidates.append([blinkStart, index, dur])
-    blinkCandidates = numpy.array(blinkCandidates)
+    blinkCandidates = numpy.array(blinkCandidates, dtype=numpy.int)
 
     return blinkCandidates
 
@@ -313,7 +313,7 @@ def parseSaccadeCandidatesWithVACriteria(T, HV, config):
         dur = T[index]-T[saccadeStart]
         # saccadeCandidates.append([saccadeStart, index-1, dur, absAcceleration[saccadeStart-1], absAcceleration[index-1]])
         saccadeCandidates.append([saccadeStart, index-1, dur])
-    saccadeCandidates = numpy.array(saccadeCandidates)
+    saccadeCandidates = numpy.array(saccadeCandidates, dtype=numpy.int)
 
     return saccadeCandidates
 
@@ -382,7 +382,7 @@ def buildEventListBinocular(T, LHV, RHV, config):
     if saccadeCandidates[-1, 1] != len(T)-1:
         dur = T[-1] - T[saccadeCandidates[-1, 1]]
         fixationCandidates.append([saccadeCandidates[-1, 1], len(T)-1, dur])
-    fixationCandidates = numpy.array(fixationCandidates)
+    fixationCandidates = numpy.array(fixationCandidates, dtype=numpy.int)
 
     # merge small inter-saccadic fixation to saccade.
     tooShortFixation = numpy.where(fixationCandidates[:, 2] <= config.FIXATION_MINIMUM_DURATION)[0]
@@ -471,7 +471,7 @@ def buildEventListMonocular(T, HV, config):
         if saccadeCandidates[-1, 1] != len(T)-1:
             dur = T[-1] - T[saccadeCandidates[-1, 1]]
             fixationCandidates.append([saccadeCandidates[-1, 1], len(T)-1, dur])
-        fixationCandidates = numpy.array(fixationCandidates)
+        fixationCandidates = numpy.array(fixationCandidates, dtype=numpy.int)
 
         # merge small inter-saccadic fixation to saccade.
         tooShortFixation = numpy.where(fixationCandidates[:, 2] <= config.FIXATION_MINIMUM_DURATION)[0]
@@ -490,7 +490,7 @@ def buildEventListMonocular(T, HV, config):
         fixationCandidates = fixationCandidates[fixationCandidates[:, 2] > config.FIXATION_MINIMUM_DURATION, :]
 
     else:  # no saccade candidate is found.
-        fixationCandidates = numpy.array([[0, len(T)-1, T[-1]-T[0]]])
+        fixationCandidates = numpy.array([[0, len(T)-1, T[-1]-T[0]]], dtype=numpy.int)
 
     # find blinks
     # TODO: check break of fixation and saccades by blink.
@@ -841,7 +841,6 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 else:
                     accuracy = itemList[3:7]
                     precision = itemList[7:11]
-                print itemList, config.RECORDED_EYE, itemList[1:3], accuracy, precision
                 CALPOINT.append(GazeParser.CalPointData(itemList[1:3],accuracy,precision,config.RECORDED_EYE))
                 
             elif itemList[0] == '#CALDATA':
