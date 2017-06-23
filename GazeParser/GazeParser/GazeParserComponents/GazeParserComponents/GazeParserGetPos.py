@@ -13,13 +13,13 @@ iconFile = path.join(thisFolder,'GazeParserGetPos.png')
 tooltip = 'GazeParserGetPos: sending a GetPos to SimpleGazeTracker'
 
 # want a complete, ordered list of codeParams in Builder._BaseParamsDlg, best to define once:
-paramNames = ['time','filler','binocular','ma']
+paramNames = ['filler','binocular','ma']
 
 class GazeParserGetPosComponent(BaseVisualComponent):
     """Recording with GazeParser.TrackingTools"""
     categories = ['GazeParser']
-    def __init__(self, exp, parentName, name='GazeParserGetPos', startType='time (s)', startVal='',
-                stopType='duration (s)', stopVal='', filler='-10000', binocular='Average', ma=1, units='from exp settings'):
+    def __init__(self, exp, parentName, name='GazeParserGetPos',
+                filler='-10000', binocular='Average', ma=1, units='from exp settings'):
         self.type='GazeParserGetPos'
         self.url="http://gazeparser.sourceforge.net/"
         super(GazeParserGetPosComponent, self).__init__(exp, parentName, name)
@@ -38,6 +38,10 @@ class GazeParserGetPosComponent(BaseVisualComponent):
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="Integer equal or greater than 1.",
             label="Moving average", categ="Advanced")
+
+        # these inherited params are harmless but might as well trim:
+        for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType', 'durationEstim']:
+            del self.params[p]
 
         # these inherited params are harmless but might as well trim:
         for p in ['color','opacity','colorSpace','pos','size','ori']:
