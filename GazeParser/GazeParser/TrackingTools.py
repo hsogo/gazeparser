@@ -2427,16 +2427,19 @@ class ControllerPsychoPyBackend(BaseController):
         """
         from psychopy.visual import TextStim, SimpleImageStim, Rect, Circle
         from psychopy.event import getKeys, Mouse
-        from psychopy.misc import cm2pix, deg2pix, pix2cm, pix2deg
+        from psychopy.misc import cm2pix, deg2pix, pix2cm #, pix2deg
+        from psychopy import monitors
         self.PPSimpleImageStim = SimpleImageStim
         self.PPTextStim = TextStim
         self.PPmouse = Mouse
         self.PPRect = Rect
         self.PPCircle = Circle
+        self.PPmonitors = monitors
         self.cm2pix = cm2pix
         self.deg2pix = deg2pix
         self.pix2cm = pix2cm
-        self.pix2deg = pix2deg
+        # pix2deg has bug (PsychoPy 1.85.1)
+        # self.pix2deg = pix2deg
         self.backend = 'PsychoPy'
         BaseController.__init__(self, configFile)
         self.getKeys = getKeys  # for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
@@ -2838,9 +2841,12 @@ class ControllerPsychoPyBackend(BaseController):
 
         :param sequence pos:
             Sequence of positions. odd and even elements correspond to
-            X and Y components, respectively.
+            X and Y components, respectively.  For example, if two points
+            (x1, y1) and (x2, y2) should be passed as (x1, y1, x2, y2).
+            Sequence of points (i.e, ((x1, y1), (x2, y2))) is not supported.
         :param str units:
-            'norm', 'height', 'deg', 'cm' and 'pix' are accepted.
+            'norm', 'height', 'cm', 'deg', 'degFlat', 'degFlatPos' and 'pix'
+            are accepted.
         :param bool forceToInt:
             If true, returned values are forced to integer.
             Default value is False.
@@ -2875,10 +2881,20 @@ class ControllerPsychoPyBackend(BaseController):
                     retval.append(None)
                 else:
                     retval.append(self.deg2pix(pos[i], self.win.monitor))
+        elif units in ['degFlat', 'degFlatPos']:
+            if len(pos)%2 == 0:
+                for i in range(len(pos)/2):
+                    if pos[2*i] is None:
+                        retval.extend([None, None])
+                    else:
+                        retval.extend(self.deg2pix(pos[2*i:2*i+2], self.win.monitor,
+                            correctFlat=True))
+            else:
+                raise ValueError('Number of elements must be even.')
         elif units == 'pix':
             retval = list(pos)
         else:
-            raise ValueError('units must bet norm, height, cm, deg or pix.')
+            raise ValueError('units must bet norm, height, cm, deg, degFlat, degFlatPos or pix.')
 
         if forceToInt:
             for i in range(len(retval)):
@@ -2896,9 +2912,12 @@ class ControllerPsychoPyBackend(BaseController):
 
         :param sequence pos:
             Sequence of positions. odd and even elements correspond to
-            X and Y components, respectively.
+            X and Y components, respectively.  For example, if two points
+            (x1, y1) and (x2, y2) should be passed as (x1, y1, x2, y2).
+            Sequence of points (i.e, ((x1, y1), (x2, y2))) is not supported.
         :param str units:
-            'norm', 'height', 'deg', 'cm' and 'pix' are accepted.
+            'norm', 'height', 'cm', 'deg', 'degFlat', 'degFlatPos' and 'pix'
+            are accepted.
 
         :return: converted list.
         """
@@ -2930,12 +2949,60 @@ class ControllerPsychoPyBackend(BaseController):
                     retval.append(None)
                 else:
                     retval.append(self.pix2deg(pos[i], self.win.monitor))
+        elif units in ['degFlat', 'degFlatPos']:
+            if len(pos)%2 == 0:
+                for i in range(len(pos)/2):
+                    if pos[2*i] is None:
+                        retval.extend([None, None])
+                    else:
+                        retval.extend(self.pix2deg(numpy.array(pos[2*i:2*i+2]),
+                            self.win.monitor, correctFlat=True))
+            else:
+                raise ValueError('Number of elements must be even.')
         elif units == 'pix':
             retval = list(pos)
         else:
-            raise ValueError('units must bet norm, height, cm, deg or pix.')
+            raise ValueError('units must bet norm, height, cm, deg, degFlat, degFlatPos or pix.')
 
         return retval
+
+    def cm2deg(self, cm, monitor, correctFlat=False):
+        """
+        Bug-fixed version of psychopy.tools.monitorunittools.cm2deg
+        (PsychoPy version<=1.85.1).
+        """
+        
+        if not isinstance(monitor, self.PPmonitors.Monitor):
+            msg = ("cm2deg requires a monitors.Monitor object as the second "
+                   "argument but received %s")
+            raise ValueError(msg % str(type(monitor)))
+        dist = monitor.getDistance()
+        if dist is None:
+            msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
+            raise ValueError(msg % monitor.name)
+        if correctFlat:
+            return numpy.degrees(numpy.arctan(cm / dist))
+        else:
+            return cm / (dist * 0.017455)
+
+
+    def pix2deg(self, pixels, monitor, correctFlat=False):
+        """
+        Bug-fixed version of psychopy.tools.monitorunittools.pix2deg
+        (PsychoPy version<=1.85.1).
+        """
+        
+        scrWidthCm = monitor.getWidth()
+        scrSizePix = monitor.getSizePix()
+        if scrSizePix is None:
+            msg = "Monitor %s has no known size in pixels (SEE MONITOR CENTER)"
+            raise ValueError(msg % monitor.name)
+        if scrWidthCm is None:
+            msg = "Monitor %s has no known width in cm (SEE MONITOR CENTER)"
+            raise ValueError(msg % monitor.name)
+        cmSize = pixels * float(scrWidthCm) / scrSizePix[0]
+        return self.cm2deg(cmSize, monitor, correctFlat)
+
 
     def getMousePressed(self):
         """
