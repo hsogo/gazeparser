@@ -4,7 +4,10 @@
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from psychopy.app.builder.components._base import *
+try:
+    from psychopy.experiment.components import *
+except:
+    from psychopy.app.builder.components._base import *
 from os import path
 
 thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path

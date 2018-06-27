@@ -4,7 +4,10 @@
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
 
-from psychopy.app.builder.components._base import BaseVisualComponent, Param
+try:
+    from psychopy.experiment.components import BaseVisualComponent, Param
+except:
+    from psychopy.app.builder.components._base import BaseVisualComponent, Param
 from os import path
 
 
