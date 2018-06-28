@@ -5,6 +5,9 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 GazeParser.Configuration is a class for holding GazeParser configuration.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
 import Tkinter

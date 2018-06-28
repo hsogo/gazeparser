@@ -4,6 +4,9 @@
 .. Distributed under the terms of the GNU General Public License (GPL).
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 try:
     import Image
@@ -97,7 +100,7 @@ class BaseController(object):
                     setattr(self, key, value)
 
             except:
-                print 'Warning: %s is not properly defined in TrackingTools.cfg. Default value is used.' % (key)
+                print('Warning: %s is not properly defined in TrackingTools.cfg. Default value is used.' % (key))
                 setattr(self, key, ControllerDefaults[key])
 
         self.showCalImage = False
@@ -179,19 +182,19 @@ class BaseController(object):
         calposlist = list(calposlist)
 
         if len(area) != 4:
-            print 'Calibration area must be a sequence of 4 integers.'
+            print('Calibration area must be a sequence of 4 integers.')
             self.calAreaSet = False
             return
         try:
             for i in range(4):
                 area[i] = int(area[i])
         except:
-            print 'Calibration area must be a sequence of 4 integers.'
+            print('Calibration area must be a sequence of 4 integers.')
             self.calAreaSet = False
             return
 
         if area[2] < area[0] or area[3] < area[1]:
-            print 'Calibration area is wrong.'
+            print('Calibration area is wrong.')
             self.calAreaSet = False
             return
 
@@ -200,13 +203,13 @@ class BaseController(object):
 
         for i in range(len(calposlist)):
             if len(calposlist[i]) != 2:
-                print 'Calibration position must be a sequence of 2 integers.'
+                print('Calibration position must be a sequence of 2 integers.')
                 self.calTargetPosSet = False
                 return
             try:
                 calposlist[i] = (int(calposlist[i][0]), int(calposlist[i][1]))
             except:
-                print 'Calibration position must be a sequence of 2 integers.'
+                print('Calibration position must be a sequence of 2 integers.')
                 self.calTargetPosSet = False
                 return
 
@@ -216,7 +219,7 @@ class BaseController(object):
                 isDifferentPositionIncluded = True
                 break
         if not isDifferentPositionIncluded:
-            print 'At least one different position must be specified.'
+            print('At least one different position must be specified.')
             self.calTargetPosSet = False
             return
 
@@ -253,9 +256,9 @@ class BaseController(object):
         if address == '':
             address = self.TRACKER_IP_ADDRESS
 
-        print 'Tracker IP address:' + address
-        print 'Port send:%d  receive:%d' % (portSend, portRecv)
-        print 'Request connection ...'
+        print('Tracker IP address:' + address)
+        print('Port send:%d  receive:%d' % (portSend, portRecv))
+        print('Request connection ...')
         self.sendSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sendSock.connect((address, portSend))
         self.sendSock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -268,7 +271,7 @@ class BaseController(object):
 
         self.readSockList = [self.serverSock]
 
-        print 'Waiting connection... ',
+        print('Waiting connection... ', end='')
         self.sv_connected = False
         while not self.sv_connected:
             [r, w, c] = select.select(self.readSockList, [], [], 0)
@@ -277,7 +280,7 @@ class BaseController(object):
                     (conn, addr) = self.serverSock.accept()
                     self.readSockList.append(conn)
                     self.sv_connected = True
-                    print 'Accepted'
+                    print('Accepted')
 
     def __del__(self):
         try:
@@ -291,7 +294,7 @@ class BaseController(object):
             if hasattr(self, 'serverSock'):
                 self.serverSock.close()
         except:
-            print 'Warning: server socket may not be correctly closed.'
+            print('Warning: server socket may not be correctly closed.')
 
     def openDataFile(self, filename, overwrite=False):
         """
@@ -333,7 +336,7 @@ class BaseController(object):
             If an unicode string is passed as a message,
             it is converted to UTF-8 before sending.
         """
-        if isinstance(message, unicode):
+        if sys.version_info[0] > 2 or isinstance(message, unicode):
             message = message.encode('utf-8')
         self.sendSock.send('insertMessage'+chr(0)+message+chr(0))
 
@@ -368,7 +371,7 @@ class BaseController(object):
             If an unicode string is passed as a message,
             it is converted to UTF-8 before sending.
         """
-        if isinstance(message, unicode):
+        if sys.version_info[0] > 2 or isinstance(message, unicode):
             message = message.encode('utf-8')
         self.sendSock.send('startRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
@@ -388,7 +391,7 @@ class BaseController(object):
             If an unicode string is passed as a message,
             it is converted to UTF-8 before sending.
         """
-        if isinstance(message, unicode):
+        if sys.version_info[0] > 2 or isinstance(message, unicode):
             message = message.encode('utf-8')
         self.sendSock.send('stopRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
@@ -450,7 +453,7 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                # print 'GetEyePosition timeout'
+                # print('GetEyePosition timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
@@ -462,7 +465,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getEyePosition: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
+                            print('getEyePosition: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotEye = True
@@ -488,7 +491,7 @@ class BaseController(object):
                         else:
                             return retval[:4]
             except:
-                print 'getEyePosition: non-float value is found in the received data.'
+                print('getEyePosition: non-float value is found in the received data.')
 
         # timeout or wrong data length
         if self.isMonocularRecording:
@@ -549,7 +552,7 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                # print 'GetEyePositionList timeout'
+                # print('GetEyePositionList timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
@@ -561,7 +564,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getEyePositionList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
+                            print('getEyePositionList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotEye = True
@@ -571,13 +574,13 @@ class BaseController(object):
                         data += newData
         if hasGotEye:
             if len(data) == 0:
-                print 'getEyePositionList: No data'
+                print('getEyePositionList: No data')
                 return None
 
             try:
                 retval = numpy.array([float(x) for x in data.split(',')])
             except:
-                print 'getEyePositionList: non-float value is found in the received data.'
+                print('getEyePositionList: non-float value is found in the received data.')
                 return None
 
             try:
@@ -592,7 +595,7 @@ class BaseController(object):
                     else:
                         return retval.reshape((-1, 5))
             except:
-                print 'getEyePositionList: data was not successfully received.'
+                print('getEyePositionList: data was not successfully received.')
                 return None
 
         return None
@@ -638,7 +641,7 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                # print 'GetWholeEyePositionList timeout'
+                # print('GetWholeEyePositionList timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
@@ -650,7 +653,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getWholeEyePositionList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
+                            print('getWholeEyePositionList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotEye = True
@@ -660,12 +663,12 @@ class BaseController(object):
                         data += newData
         if hasGotEye:
             if len(data) == 0:
-                print 'getWholeEyePositionList: No data'
+                print('getWholeEyePositionList: No data')
                 return None
             try:
                 retval = numpy.array([float(x) for x in data.split(',')])
             except:
-                print 'getWholeEyePositionList: non-float value is found in the received data.'
+                print('getWholeEyePositionList: non-float value is found in the received data.')
                 return None
 
             try:
@@ -680,7 +683,7 @@ class BaseController(object):
                     else:
                         return retval.reshape((-1, 5))
             except:
-                print 'getWholeEyePositionList: data was not successfully received.'
+                print('getWholeEyePositionList: data was not successfully received.')
                 return None
 
         return None
@@ -713,7 +716,7 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                # print 'GetWholeEyePositionList timeout'
+                # print('GetWholeEyePositionList timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
@@ -725,7 +728,7 @@ class BaseController(object):
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getWholeMessageList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
+                            print('getWholeMessageList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotData = True
@@ -743,7 +746,7 @@ class BaseController(object):
                 elif(len(m) > 3):
                     ret.append([float(m[1]), ','.join(m[2:])])
         except:
-            print 'getWholeMessageList:conversion failed - possibly failure in data transfer.'
+            print('getWholeMessageList:conversion failed - possibly failure in data transfer.')
             return []
 
         return ret
@@ -768,21 +771,21 @@ class BaseController(object):
             if '\0' in data:
                 delimiterIndex = data.index('\0')
                 if delimiterIndex+1 < len(data):
-                    print 'getCurrentMenuItem: %d bytes after \\0' % (len(data)-(delimiterIndex+1))
+                    print('getCurrentMenuItem: %d bytes after \\0' % (len(data)-(delimiterIndex+1)))
                     self.prevBuffer = data[(delimiterIndex+1):]
                 data = data[:delimiterIndex]
                 hasGotMenu = True
                 isInLoop = False
                 break
             if self.clock()-startTime > timeout:
-                # print 'timeout'
+                # print('timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
                 try:
                     newData = x.recv(4096)
                 except:
-                    # print 'recv error in getCalibrationResults'
+                    # print('recv error in getCalibrationResults')
                     isInLoop = False
                 if newData:
                     data += newData
@@ -815,20 +818,20 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                # print 'timeout'
+                # print('timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
                 try:
                     newData = x.recv(4096)
                 except:
-                    # print 'recv error in getCalibrationResults'
+                    # print('recv error in getCalibrationResults')
                     isInLoop = False
                 if newData:
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getCalibrationResults: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
+                            print('getCalibrationResults: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotCal = True
@@ -840,7 +843,7 @@ class BaseController(object):
             try:
                 retval = [float(x) for x in data.split(',')]
             except:
-                print 'getCalibrationResults: non-float value is found in the received data.'
+                print('getCalibrationResults: non-float value is found in the received data.')
 
             try:
                 if len(retval) == 2:
@@ -850,7 +853,7 @@ class BaseController(object):
                     self.isMonocularRecording = False
                     return retval
             except:
-                print 'getCalibrationResults: data was not successfully received.'
+                print('getCalibrationResults: data was not successfully received.')
 
         return None
 
@@ -874,7 +877,7 @@ class BaseController(object):
             if '\0' in data:
                 delimiterIndex = data.index('\0')
                 if delimiterIndex+1 < len(data):
-                    print 'getCameraImage: %d bytes after \\0' % (len(data)-(delimiterIndex+1))
+                    print('getCameraImage: %d bytes after \\0' % (len(data)-(delimiterIndex+1)))
                     self.prevBuffer = data[(delimiterIndex+1):]
                 imgdata = [ord(data[idx]) for idx in range(delimiterIndex)]
                 hasGotImage = True
@@ -885,7 +888,7 @@ class BaseController(object):
                 try:
                     newData = x.recv(16384)
                 except:
-                    # print 'recv error in getameraImage'
+                    # print('recv error in getameraImage')
                     hasGotImage = True
                     continue
                 if newData:
@@ -894,11 +897,11 @@ class BaseController(object):
         if len(imgdata) == self.IMAGE_WIDTH*self.IMAGE_HEIGHT:
             self.PILimg.putdata(imgdata)
         elif len(imgdata) < self.IMAGE_WIDTH*self.IMAGE_HEIGHT:
-            print 'getCameraImage: got ', len(imgdata), 'bytes /expected ', self.IMAGE_WIDTH*self.IMAGE_HEIGHT, 'bytes IMAGE_WIDTH and IMAGE_HIGHT may be wrong, otherwise trouble occurs in communication with SimpleGazeTracker.'
+            print('getCameraImage: got ', len(imgdata), 'bytes /expected ', self.IMAGE_WIDTH*self.IMAGE_HEIGHT, 'bytes IMAGE_WIDTH and IMAGE_HIGHT may be wrong, otherwise trouble occurs in communication with SimpleGazeTracker.')
             imgdata.extend([0 for i in range(self.IMAGE_WIDTH*self.IMAGE_HEIGHT-len(imgdata))])
             self.PILimg.putdata(imgdata)
         else:
-            print 'getCameraImage: got ', len(imgdata), 'bytes /expected ', self.IMAGE_WIDTH*self.IMAGE_HEIGHT, 'bytes IMAGE_WIDTH and IMAGE_HIGHT may be wrong, otherwise trouble occurs in communication with SimpleGazeTracker.'
+            print('getCameraImage: got ', len(imgdata), 'bytes /expected ', self.IMAGE_WIDTH*self.IMAGE_HEIGHT, 'bytes IMAGE_WIDTH and IMAGE_HIGHT may be wrong, otherwise trouble occurs in communication with SimpleGazeTracker.')
             self.PILimg.putdata(imgdata[:self.IMAGE_WIDTH*self.IMAGE_HEIGHT])
 
     def sendCommand(self, command):
@@ -1033,20 +1036,20 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                # print 'timeout'
+                # print('timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
                 try:
                     newData = x.recv(4096)
                 except:
-                    # print 'recv error in getCalibrationResults'
+                    # print('recv error in getCalibrationResults')
                     isInLoop = False
                 if newData:
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getCalibrationResultsDetail: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
+                            print('getCalibrationResultsDetail: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotCal = True
@@ -1061,12 +1064,12 @@ class BaseController(object):
             try:
                 retval = [float(x) for x in data.split(',')]
             except:
-                print 'getCalibrationResultsDetail: non-float value is found in the received data.'
+                print('getCalibrationResultsDetail: non-float value is found in the received data.')
 
             try:
                 if self.isMonocularRecording:
                     if len(retval) % 4 != 0:
-                        print 'getCalibrationResultsDetail: illeagal data', retval
+                        print('getCalibrationResultsDetail: illeagal data', retval)
                         self.putCalibrationResultsImage()
                         return None
 
@@ -1075,7 +1078,7 @@ class BaseController(object):
                         self.latestCalibrationResultsList.append(retval[4*i:4*i+4])
                 else:
                     if len(retval) % 6 != 0:
-                        print 'getCalibrationResultsDetail: illeagal data', retval
+                        print('getCalibrationResultsDetail: illeagal data', retval)
                         self.putCalibrationResultsImage()
                         return None
 
@@ -1083,7 +1086,7 @@ class BaseController(object):
                         self.latestCalibrationResultsList.append(retval[6*i:6*i+6])
 
             except:
-                print 'plotCalibrationResultsDetail: data was not successfully received.'
+                print('plotCalibrationResultsDetail: data was not successfully received.')
 
         self.plotCalibrationResultsDetail()
 
@@ -1150,7 +1153,7 @@ class BaseController(object):
         """
         
         #all points are used for the first time
-        self.indexList = range(1, len(self.calTargetPos))
+        self.indexList = list(range(1, len(self.calTargetPos)))
         while True:
             random.shuffle(self.indexList)
             if self.calTargetPos[self.indexList[0]][0] != self.calTargetPos[0][0] or self.calTargetPos[self.indexList[0]][1] != self.calTargetPos[0][1]:
@@ -1322,7 +1325,7 @@ class BaseController(object):
         for p in self.calTargetPos:
             self.valTargetPos.append([p[0]+int((random.randint(0, 1)-0.5)*2*self.VALIDATION_SHIFT), p[1]+int((random.randint(0, 1)-0.5)*2*self.VALIDATION_SHIFT)])
 
-        self.indexList = range(1, len(self.valTargetPos))
+        self.indexList = list(range(1, len(self.valTargetPos)))
         while True:
             random.shuffle(self.indexList)
             if self.valTargetPos[self.indexList[0]][0] != self.valTargetPos[0][0] or self.valTargetPos[self.indexList[0]][1] != self.valTargetPos[0][1]:
@@ -1464,7 +1467,7 @@ class BaseController(object):
                                 currentPos = self.calTargetPos[calIndex]
                 
                     if calIndex >= len(self.calTargetPos):
-                        print 'Warning: invalid target position index (length of target position list is %d)' % len(self.calTargetPosition)
+                        print('Warning: invalid target position index (length of target position list is %d)' % len(self.calTargetPosition))
                         calIndex = -1
                 
                 self.updateManualCalibrationTargetStimulusCallBack(t, currentPos, prevPos)
@@ -1943,20 +1946,20 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                print 'timeout'
+                print('timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
                 try:
                     newData = x.recv(4096)
                 except:
-                    print 'recv error in isBinocularMode'
+                    print('recv error in isBinocularMode')
                     isInLoop = False
                 if newData:
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'isBinocularMode: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
+                            print('isBinocularMode: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotCal = True
@@ -1992,20 +1995,20 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                print 'timeout'
+                print('timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
                 try:
                     newData = x.recv(4096)
                 except:
-                    print 'recv error in getCameraImageSize'
+                    print('recv error in getCameraImageSize')
                     isInLoop = False
                 if newData:
                     if '\0' in newData:
                         delimiterIndex = newData.index('\0')
                         if delimiterIndex+1 < len(newData):
-                            print 'getCameraImageSize: %d bytes after \\0' % (len(newData)-(delimiterIndex+1))
+                            print('getCameraImageSize: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
                         data += newData[:delimiterIndex]
                         hasGotCal = True
@@ -2015,7 +2018,7 @@ class BaseController(object):
                         data += newData
         
         try:
-            size = map(int,data.split(','))
+            size = list(map(int,data.split(',')))
         except:
             return None
 
@@ -3233,22 +3236,22 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         Dummy function for debugging. This method does nothing.
         """
         if address == '':
-            print 'connect to default IP address=%s (dummy)' % (self.TRACKER_IP_ADDRESS)
+            print('connect to default IP address=%s (dummy)' % (self.TRACKER_IP_ADDRESS))
         else:
-            print 'connect to %s (dummy)' % (address)
+            print('connect to %s (dummy)' % (address))
 
     def openDataFile(self, filename):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'openDataFile (dummy): ' + filename
+        print('openDataFile (dummy): ' + filename)
         self.datafilename = filename
 
     def closeDataFile(self):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'close (dummy)'
+        print('close (dummy)')
         self.datafilename = ''
 
     def getEyePosition(self, timeout=0.02, getPupil=False, ma=1):
@@ -3319,20 +3322,20 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         Dummy function for debugging. This method emurates sendMessage.
         """
-        print 'sendMessage (dummy) %s' % message
+        print('sendMessage (dummy) %s' % message)
         self.messageList.append(['#MESSAGE', 1000*(self.clock()-self.recStartTime), message])
 
     def sendSettings(self, configDict):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'sendSettings (dummy)'
+        print('sendSettings (dummy)')
 
     def startRecording(self, message='', wait=0.2):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'startRecording (dummy): ' + message
+        print('startRecording (dummy): ' + message)
         self.mousePosList = []
         self.lastMousePosIndex = 0
         self.recStartTime = self.clock()
@@ -3341,13 +3344,13 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'stopRecording (dummy): ' + message
+        print('stopRecording (dummy): ' + message)
 
     def startMeasurement(self, message='', wait=0.2):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'startMeasurement (dummy): ' + message
+        print('startMeasurement (dummy): ' + message)
         self.mousePosList = []
         self.lastMousePosIndex = 0
         self.recStartTime = self.clock()
@@ -3356,7 +3359,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'stopMeasurement (dummy): ' + message
+        print('stopMeasurement (dummy): ' + message)
 
     def getCurrentMenuItem(self, timeout=0.2):
         """
@@ -3393,7 +3396,7 @@ class DummyVisionEggBackend(ControllerVisionEggBackend):
         Dummy function for debugging. This method outputs commands to
         standard output instead of sending it to SimpleGazeTracker.
         """
-        print 'Dummy sendCommand: ' + command
+        print('Dummy sendCommand: ' + command)
 
     def setCalibrationScreen(self, screen, font_name=None):
         """
@@ -3463,22 +3466,22 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         Dummy function for debugging. This method does nothing.
         """
         if address == '':
-            print 'connect to default IP address=%s (dummy)' % (self.TRACKER_IP_ADDRESS)
+            print('connect to default IP address=%s (dummy)' % (self.TRACKER_IP_ADDRESS))
         else:
-            print 'connect to %s (dummy)' % (address)
+            print('connect to %s (dummy)' % (address))
 
     def openDataFile(self, filename):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'openDataFile (dummy): ' + filename
+        print('openDataFile (dummy): ' + filename)
         self.datafilename = filename
 
     def closeDataFile(self):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'close (dummy)'
+        print('close (dummy)')
         self.datafilename = ''
 
     def getEyePosition(self, timeout=0.02, getPupil=False, units='pix', ma=1):
@@ -3560,20 +3563,20 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         Dummy function for debugging. This method emurates sendMessage.
         """
-        print 'sendMessage (dummy) %s' % message
+        print('sendMessage (dummy) %s' % message)
         self.messageList.append(['#MESSAGE', 1000*(self.clock()-self.recStartTime), message])
 
     def sendSettings(self, configDict):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'sendSettings (dummy)'
+        print('sendSettings (dummy)')
 
     def startRecording(self, message='', wait=0.2):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'startRecording (dummy): ' + message
+        print('startRecording (dummy): ' + message)
         self.mousePosList = []
         self.lastMousePosIndex = 0
         self.recStartTime = self.clock()
@@ -3582,13 +3585,13 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'stopRecording (dummy): ' + message
+        print('stopRecording (dummy): ' + message)
 
     def startMeasurement(self, message='', wait=0.2):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'startMeasurement (dummy): ' + message
+        print('startMeasurement (dummy): ' + message)
         self.mousePosList = []
         self.lastMousePosIndex = 0
         self.recStartTime = self.clock()
@@ -3597,7 +3600,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print 'stopMeasurement (dummy): ' + message
+        print('stopMeasurement (dummy): ' + message)
 
     def getCurrentMenuItem(self, timeout=0.2):
         """
@@ -3634,7 +3637,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         Dummy function for debugging. This method outputs commands to
         standard output instead of sending it to SimpleGazeTracker.
         """
-        print 'Dummy sendCommand: ' + command
+        print('Dummy sendCommand: ' + command)
 
     def setCalibrationScreen(self, win, font=''):
         """

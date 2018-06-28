@@ -3,12 +3,16 @@
 .. Copyright (C) 2012-2015 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy
 import GazeParser
 import GazeParser.Configuration
 import os
 import re
+import sys
 import codecs
 from scipy.interpolate import interp1d
 from scipy.stats import nanmean
@@ -41,17 +45,20 @@ def EyelinkToGazeParser(EDFfile, eye, overwrite=False, config=None):
     dstFileName = os.path.join(workDir, filenameRoot + '.db')
     additionalDataFileName = os.path.join(workDir, filenameRoot + '.txt')
 
-    print 'EyelinkToGazeParser start.'
+    print('EyelinkToGazeParser start.')
     if os.path.exists(dstFileName) and (not overwrite):
-        print 'Can not open %s.' % dstFileName
+        print('Can not open %s.' % dstFileName)
         return 'CANNOT_OPEN_OUTPUT_FILE'
 
     if not isinstance(config, GazeParser.Configuration.Config):
-        if isinstance(config, str) or isinstance(config, unicode):
-            print 'Load configuration file: %s' % config
+        if isinstance(config, str):
+            print('Load configuration file: %s' % config)
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif sys.version_info[0] == 2 and isinstance(config, unicode):
+            print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif config is None:
-            print 'Use default configuration.'
+            print('Use default configuration.')
             config = GazeParser.Configuration.Config()
         else:
             raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
@@ -223,7 +230,7 @@ def EyelinkToGazeParser(EDFfile, eye, overwrite=False, config=None):
         Data.append(G)
 
     if os.path.exists(additionalDataFileName):
-        print 'Additional data file is found.'
+        print('Additional data file is found.')
         adfp = open(additionalDataFileName)
         ad = []
         for line in adfp:
@@ -683,19 +690,22 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     additionalDataFileName = os.path.join(workDir, filenameRoot+'.txt')
     usbioFormat = None
 
-    print '------------------------------------------------------------'
-    print 'TrackerToGazeParser start.'
-    print 'source file: %s' % inputfile
+    print('------------------------------------------------------------')
+    print('TrackerToGazeParser start.')
+    print('source file: %s' % inputfile)
     if os.path.exists(dstFileName) and (not overwrite):
-        print 'Target file (%s) already exist.' % dstFileName
+        print('Target file (%s) already exist.' % dstFileName)
         return 'TARGET_FILE_ALREADY_EXISTS'
 
     if not isinstance(config, GazeParser.Configuration.Config):
-        if isinstance(config, str) or isinstance(config, unicode):
-            print 'Load configuration file: %s' % config
+        if isinstance(config, str):
+            print('Load configuration file: %s' % config)
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif sys.version_info[0] == 2 and isinstance(config, unicode):
+            print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif config is None:
-            print 'Use default configuration.'
+            print('Use default configuration.')
             config = GazeParser.Configuration.Config()
         else:
             raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
@@ -738,13 +748,13 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     flgInBlock = False
     isCheckedEffectiveDigit = False
     effectiveDigit = 2
-    print 'parsing...'
+    print('parsing...')
 
     for line in fid:
         itemList = line[:-1].rstrip().split(',')
         if itemList[0][0] == '#':  # Messages
             if itemList[0] == '#START_REC':
-                startRec = map(int, itemList[1:])
+                startRec = list(map(int, itemList[1:]))
                 flgInBlock = True
 
             elif itemList[0] == '#STOP_REC':
@@ -863,20 +873,20 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                                 cmd = 'idx'+itemList[i+1] + '=' + str(i)
                             exec cmd
                             tmp.append(cmd)
-                        print 'DATAFORMAT: %s' % (','.join(tmp))
+                        print('DATAFORMAT: %s' % (','.join(tmp)))
 
                     # GazeParser options
                     optName = itemList[0][1:]
                     if optName in GazeParser.Configuration.GazeParserDefaults:
                         if type(GazeParser.Configuration.GazeParserDefaults[optName]) == float:
                             setattr(config, optName, float(itemList[1]))
-                            print '%s = %f' % (optName, getattr(config, optName))
+                            print('%s = %f' % (optName, getattr(config, optName)))
                         elif type(GazeParser.Configuration.GazeParserDefaults[optName]) == int:
                             setattr(config, optName, int(itemList[1]))
-                            print '%s = %d' % (optName, getattr(config, optName))
+                            print('%s = %d' % (optName, getattr(config, optName)))
                         else:  # str
                             setattr(config, optName, itemList[1])
-                            print '%s = %s' % (optName, getattr(config, optName))
+                            print('%s = %s' % (optName, getattr(config, optName)))
 
         else:  # gaze data
             if not isCheckedEffectiveDigit:
@@ -942,12 +952,12 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                     tmp = itemList[idxUSBIO].split(';')
                     if len(tmp[-1]) == 0:
                         tmp.pop(-1)
-                    tmp = map(int, tmp)
+                    tmp = list(map(int, tmp))
                     USBIO.append(tmp)
                 except:
                     C.append(itemList[idxUSBIO])
 
-    print 'saving...'
+    print('saving...')
     if os.path.exists(additionalDataFileName):
         adfp = codecs.open(additionalDataFileName, 'r', 'utf-8')
         ad = []
@@ -966,7 +976,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     else:
         GazeParser.save(dstFileName, Data)
 
-    print 'done.'
+    print('done.')
     return 'SUCCESS'
 
 
@@ -994,17 +1004,20 @@ def TobiiToGazeParser(inputfile, overwrite=False, config=None):
     dstFileName = os.path.join(workDir, filenameRoot+'.db')
     additionalDataFileName = os.path.join(workDir, filenameRoot+'.txt')
 
-    print 'TobiiToGazeParser start.'
+    print('TobiiToGazeParser start.')
     if os.path.exists(dstFileName) and (not overwrite):
-        print 'Can not open %s.' % dstFileName
+        print('Can not open %s.' % dstFileName)
         return 'CANNOT_OPEN_OUTPUT_FILE'
 
     if not isinstance(config, GazeParser.Configuration.Config):
-        if isinstance(config, str) or isinstance(config, unicode):
-            print 'Load configuration file: %s' % config
+        if isinstance(config, str):
+            print('Load configuration file: %s' % config)
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif sys.version_info[0] == 2 and isinstance(config, unicode):
+            print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif config is None:
-            print 'Use default configuration.'
+            print('Use default configuration.')
             config = GazeParser.Configuration.Config()
         else:
             raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
@@ -1018,8 +1031,8 @@ def TobiiToGazeParser(inputfile, overwrite=False, config=None):
         if itemList[0] == 'Recording resolution:':
             config.SCREEN_WIDTH = int(itemList[1].split('x')[0])
             config.SCREEN_HEIGHT = int(itemList[1].split('x')[1])
-            print 'SCREEN_WIDTH: %d' % config.SCREEN_WIDTH
-            print 'SCREEN_HEIGHT: %d' % config.SCREEN_HEIGHT
+            print('SCREEN_WIDTH: %d' % config.SCREEN_WIDTH)
+            print('SCREEN_HEIGHT: %d' % config.SCREEN_HEIGHT)
         elif itemList[0] == 'Timestamp':
             # read column header
             for i in range(len(itemList)):
@@ -1103,7 +1116,7 @@ def TobiiToGazeParser(inputfile, overwrite=False, config=None):
     Data.append(G)
 
     if os.path.exists(additionalDataFileName):
-        print 'Additional data file is found.'
+        print('Additional data file is found.')
         adfp = open(additionalDataFileName)
         ad = []
         for line in adfp:

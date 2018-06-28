@@ -3,6 +3,9 @@
 .. Copyright (C) 2012-2015 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import GazeParser
 import numpy
@@ -993,7 +996,7 @@ class GazeData(object):
             try:
                 idxMsg = numpy.where(self._Msg == message)[0]
             except:
-                print 'Could not find message.'
+                print('Could not find message.')
                 raise
         else:
             raise ValueError('\'message\' must be an index or an instance of MessgeData object.')

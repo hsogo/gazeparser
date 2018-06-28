@@ -9,6 +9,10 @@ Thanks to following page for embedded plot.
 * http://www.mailinglistarchive.com/html/matplotlib-users@lists.sourceforge.net/2010-08/msg00148.html
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import ConfigParser
 import shutil
 try:
@@ -525,10 +529,16 @@ class convertSGTDialog(wx.Dialog):
             box.Add(wx.StaticText(self.paramPanel, wx.ID_ANY, key))
             if key == 'FILTER_TYPE':
                 self.paramEntryDict[key] = wx.ComboBox(self.paramPanel, wx.ID_ANY, choices=self.filterCommands, style=wx.CB_DROPDOWN)
-                self.paramEntryDict[key].SetValue(unicode(getattr(self.configuration, key)))
+                if sys.version_info[0] == 2:
+                    self.paramEntryDict[key].SetValue(unicode(getattr(self.configuration, key)))
+                else:
+                    self.paramEntryDict[key].SetValue(getattr(self.configuration, key))
                 self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickRadiobutton)
             else:
-                self.paramEntryDict[key] = wx.TextCtrl(self.paramPanel, wx.ID_ANY, unicode(getattr(self.configuration, key)))
+                if sys.version_info[0] == 2:
+                    self.paramEntryDict[key] = wx.TextCtrl(self.paramPanel, wx.ID_ANY, unicode(getattr(self.configuration, key)))
+                else:
+                    self.paramEntryDict[key] = wx.TextCtrl(self.paramPanel, wx.ID_ANY, getattr(self.configuration, key))
             box.Add(self.paramEntryDict[key])
         self.paramPanel.SetSizer(box)
         self.onClickRadiobutton()
@@ -771,16 +781,25 @@ class interactiveConfigFrame(wx.Frame):
         for key in GazeParser.Configuration.GazeParserOptions:
             box.Add(wx.StaticText(paramPanel, wx.ID_ANY, key), flag=wx.LEFT|wx.RIGHT, border=5)
             if hasattr(self.D[self.tr].config, key):
-                box.Add(wx.StaticText(paramPanel, wx.ID_ANY, unicode(getattr(self.D[self.tr].config, key))), flag=wx.RIGHT, border=5)
+                if sys.version_info[0] == 2:
+                    box.Add(wx.StaticText(paramPanel, wx.ID_ANY, unicode(getattr(self.D[self.tr].config, key))), flag=wx.RIGHT, border=5)
+                else:
+                    box.Add(wx.StaticText(paramPanel, wx.ID_ANY, getattr(self.D[self.tr].config, key)), flag=wx.RIGHT, border=5)
             else:
                 box.Add(wx.StaticText(paramPanel, wx.ID_ANY, text='not available'), flag=wx.RIGHT, border=5)
 
             if key == 'FILTER_TYPE':
                 self.paramEntryDict[key] = wx.ComboBox(paramPanel, wx.ID_ANY, choices=self.filterCommands, style=wx.CB_DROPDOWN)
-                self.paramEntryDict[key].SetValue(unicode(getattr(self.D[self.tr].config, key)))
+                if sys.version_info[0] == 2:
+                    self.paramEntryDict[key].SetValue(unicode(getattr(self.D[self.tr].config, key)))
+                else:
+                    self.paramEntryDict[key].SetValue(getattr(self.D[self.tr].config, key))
                 self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickCombobox)
             else:
-                self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, unicode(getattr(self.D[self.tr].config, key)))
+                if sys.version_info[0] == 2:
+                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, unicode(getattr(self.D[self.tr].config, key)))
+                else:
+                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, getattr(self.D[self.tr].config, key))
             box.Add(self.paramEntryDict[key], flag=wx.RIGHT, border=5)
         paramPanel.SetSizer(box)
 
@@ -1174,7 +1193,7 @@ class getFixationsInRegionDialog(wx.Dialog):
                                 containsTime = 'all'
                                 containsTraj = 'all'
 
-                            # print region, period, useCenter, containsTime, containsTraj
+                            # print(region, period, useCenter, containsTime, containsTraj)
 
                             fixlist = GazeParser.Region.getFixationsInRegion(self.D[tr], region, period, useCenter, containsTime, containsTraj)
                             fixlistTrial.extend(fixlist)
@@ -1946,7 +1965,7 @@ class exportToFileDialog(wx.Dialog):
                 if self.rangeBox.GetStringSelection() == 'This trial':
                     trlist = [self.tr]
                 else:  # AllTrials
-                    trlist = range(len(self.D))
+                    trlist = list(range(len(self.D)))
                 for tr in trlist:
                     fp.write('TRIAL%d\n' % (tr+1))
                     for e in self.D[tr].EventList:
@@ -1965,7 +1984,7 @@ class exportToFileDialog(wx.Dialog):
                 if self.rangeBox.GetStringSelection() == 'This trial':
                     trlist = [self.tr]
                 else:  # AllTrials
-                    trlist = range(len(self.D))
+                    trlist = list(range(len(self.D)))
                 for tr in trlist:
                     fp.write('TRIAL%d\n' % (tr+1))
                     if self.cbSaccade.GetValue():
@@ -2626,7 +2645,7 @@ class mainFrame(wx.Frame):
         # if extension is .csv, try converting
         if os.path.splitext(self.dataFileName)[1].lower() == '.csv':
             dbFileName = os.path.splitext(self.dataFileName)[0]+'.db'
-            print dbFileName
+            print(dbFileName)
             if os.path.isfile(dbFileName):
                 doOverwrite = messageDialogAskyesno(self, 'Overwrite?', dbFileName+' already exists. Overwrite?')
                 if not doOverwrite:
@@ -2942,7 +2961,7 @@ class mainFrame(wx.Frame):
                     return
             elif event.Id == ID_JUMPLIST_REGISTERED:
                 posstr = self.jumplistbox.GetItem(event.GetIndex(),3).GetText()
-                pos = map(float, posstr.split(','))
+                pos = list(map(float, posstr.split(',')))
 
             xlim = self.ax.get_xlim()
             ylim = self.ax.get_ylim()

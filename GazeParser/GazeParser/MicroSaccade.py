@@ -28,6 +28,9 @@ REFERENCE:
  of covert attention. Vision Res, 43(9), 1035-1045.
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy
 import scipy.stats

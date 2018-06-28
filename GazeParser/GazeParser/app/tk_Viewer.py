@@ -9,13 +9,23 @@ Thanks to following page for embedded plot.
 * http://www.mailinglistarchive.com/html/matplotlib-users@lists.sourceforge.net/2010-08/msg00148.html
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import ConfigParser
 import shutil
-import Tkinter
-import tkFileDialog
-import tkMessageBox
-import tkColorChooser
+import sys
+if sys.version_info[0] == 2:
+    import Tkinter
+    import tkFileDialog
+    import tkMessageBox
+    import tkColorChooser
+else:
+    import tkinter as Tkinter
+    from tkinter import filedialog as tkFileDialog
+    from tkinter import messagebox as tkMessageBox
+    from tkinter import colorchooser as tkColorChooser
 try:
     import Image
     import ImageTk
@@ -27,7 +37,6 @@ import GazeParser.Converter
 import GazeParser.Utility
 import GazeParser.Region
 import os
-import sys
 import re
 import functools
 import traceback
@@ -237,7 +246,7 @@ class getFixationsInRegionWindow(Tkinter.Frame):
                                 containsTime = 'all'
                                 containsTraj = 'all'
 
-                            # print region, period, useCenter, containsTime, containsTraj
+                            # print(region, period, useCenter, containsTime, containsTraj)
 
                             fixlist = GazeParser.Region.getFixationsInRegion(self.D[tr], region, period, useCenter, containsTime, containsTraj)
                             fixlistTrial.extend(fixlist)
@@ -401,7 +410,8 @@ class combineDataFileWindow(Tkinter.Frame):
         if fnames == '':
             return
 
-        if isinstance(fnames, unicode):
+        # for old tkFileDialog
+        if sys.version_info[0] == 2 and isinstance(fnames, unicode):
             fnames = GazeParser.Utility.splitFilenames(fnames)
 
         self.mainWindow.initialDataDir = os.path.split(fnames[0])[0]
@@ -411,15 +421,15 @@ class combineDataFileWindow(Tkinter.Frame):
 
     def removefiles(self, event=None):
         selected = self.filelistbox.curselection()
-        # print self.filelistbox.size(), selected[0]
+        # print(self.filelistbox.size(), selected[0])
         if len(selected) > 0:
             self.filelistbox.delete(selected)
-            # print self.filelistbox.size(), selected[0]
+            #(print self.filelistbox.size(), selected[0])
             if self.filelistbox.size() <= int(selected[0]):
-                # print 'select '+selected[0]+'-1'
+                # print('select '+selected[0]+'-1')
                 self.filelistbox.selection_set(int(selected[0])-1)
             else:
-                # print 'select '+selected[0]
+                # print('select '+selected[0])
                 self.filelistbox.selection_set(selected)
         else:
             tkMessageBox.showinfo('Info', 'Select files to delete.')
@@ -759,7 +769,7 @@ class exportToFileWindow(Tkinter.Frame):
                 if self.flgTrials.get() == 'ThisTrial':
                     trlist = [self.tr]
                 else:  # AllTrials
-                    trlist = range(len(self.D))
+                    trlist = list(range(len(self.D)))
                 for tr in trlist:
                     fp.write('TRIAL%d\n' % (tr+1))
                     for e in self.D[tr].EventList:
@@ -778,7 +788,7 @@ class exportToFileWindow(Tkinter.Frame):
                 if self.flgTrials.get() == 'ThisTrial':
                     trlist = [self.tr]
                 else:  # AllTrials
-                    trlist = range(len(self.D))
+                    trlist = list(range(len(self.D)))
                 for tr in trlist:
                     fp.write('TRIAL%d\n' % (tr+1))
                     if self.flgSac.get():
@@ -956,7 +966,7 @@ def parsegeometry(geometry):
     m = re.match("(\d+)x(\d+)([-+]\d+)([-+]\d+)", geometry)
     if not m:
         raise ValueError("failed to parse geometry string")
-    return map(int, m.groups())
+    return list(map(int, m.groups()))
 
 
 class ViewerOptions(object):
@@ -1736,7 +1746,7 @@ class mainWindow(Tkinter.Frame):
         # if extension is .csv, try converting
         if os.path.splitext(self.dataFileName)[1].lower() == '.csv':
             dbFileName = os.path.splitext(self.dataFileName)[0]+'.db'
-            print dbFileName
+            print(dbFileName)
             if os.path.isfile(dbFileName):
                 doOverwrite = tkMessageBox.askyesno('Overwrite?', dbFileName+' already exists. Overwrite?')
                 if not doOverwrite:

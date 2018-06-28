@@ -3,6 +3,9 @@
 .. Copyright (C) 2012-2015 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy
 import anydbm
@@ -27,7 +30,7 @@ def save(filename, data, additionalData=None):
         Additional data (if necessary).
     """
 
-    if isinstance(filename, unicode):
+    if sys.version_info[0] == 2 and isinstance(filename, unicode):
         filename = filename.encode(sys.getfilesystemencoding())
 
     db = anydbm.open(filename, 'c')
@@ -56,7 +59,7 @@ def load(filename, checkVersion=True):
     if not os.path.isfile(filename):
         raise ValueError('%s is not exist.' % filename)
 
-    if isinstance(filename, unicode):
+    if sys.version_info[0] == 2 and isinstance(filename, unicode):
         filename = filename.encode(sys.getfilesystemencoding())
     db = anydbm.open(filename, 'r')
     s = zlib.decompress(db['GazeData'])
@@ -71,7 +74,7 @@ def load(filename, checkVersion=True):
     if compareVersion(D[0].__version__, GazeParser.__version__) < 0 and checkVersion:
         lackingattributes = checkAttributes(D[0])
         if len(lackingattributes) > 0:
-            print 'Version of the data file is older than GazeParser version. Some features may not work correctly. (lacking attributes:%s)' % ','.join(lackingattributes)
+            print('Version of the data file is older than GazeParser version. Some features may not work correctly. (lacking attributes:%s)' % ','.join(lackingattributes))
     return (D, A)
 
 
@@ -88,8 +91,8 @@ def compareVersion(testVersion, baseVersion):
     :return:
         See above.
     """
-    baseVer = map(int, baseVersion.split('.'))
-    testVer = map(int, testVersion.split('.'))
+    baseVer = list(map(int, baseVersion.split('.')))
+    testVer = list(map(int, testVersion.split('.')))
     if testVer > baseVer:
         return 1
     elif testVer < baseVer:
@@ -113,7 +116,7 @@ def join(newFileName, fileList):
     newD = []
     newA = []
     for f in fileList:
-        print f + '...'
+        print(f + '...')
         (D, A) = load(f)
         newD.extend(D)
         if A is not None:
@@ -134,7 +137,7 @@ def createConfigDir(overwrite=False):
     """
     if sys.platform != 'win32':
         if os.getuid() == 0:  # running as root
-            print 'Warning: GazeParser.Utility.createConfigDir do nothing because process is runnging as root (uid=0).'
+            print('Warning: GazeParser.Utility.createConfigDir do nothing because process is runnging as root (uid=0).')
             return
 
     AppDir = os.path.abspath(os.path.dirname(__file__))
@@ -149,9 +152,9 @@ def createConfigDir(overwrite=False):
 
     if not os.path.exists(configDir):
         os.mkdir(configDir)
-        print 'GazeParser: ConfigDir is successfully created.'
+        print('GazeParser: ConfigDir is successfully created.')
     else:
-        print 'GazeParser: ConfigDir is exsiting.'
+        print('GazeParser: ConfigDir is exsiting.')
 
     src = []
     dst = []
@@ -162,10 +165,10 @@ def createConfigDir(overwrite=False):
 
     for i in range(len(src)):
         if overwrite or not os.path.exists(dst[i]):
-            print '%s -> %s' % (src[i], dst[i])
+            print('%s -> %s' % (src[i], dst[i]))
             shutil.copyfile(src[i], dst[i])
         else:
-            print '%s is existing.' % (dst[i])
+            print('%s is existing.' % (dst[i]))
 
 
 def sortrows(d, cols, order=None):
@@ -238,7 +241,7 @@ def checkAttributes(gazeData):
     if not isinstance(gazeData, GazeParser.Core.GazeData):
         raise ValueError('Not a GazeParser.Core.GazeData object.')
 
-    dummyData = GazeParser.Core.GazeData(range(10), [], [], [], [],  # Tlist, Llist, Rlist, SacList, FixList
+    dummyData = GazeParser.Core.GazeData(list(range(10)), [], [], [], [],  # Tlist, Llist, Rlist, SacList, FixList
                                          [], [], [], 'B')  # MsgList, BlinkList, PupilList, recordingEye
     dummyAttributes = set(dir(dummyData))
     dataAttributes = set(dir(gazeData))
@@ -265,7 +268,7 @@ def rebuildData(gazeData):
         if hasattr(gazeData, 'recordingDate'):
             recordingDate = gazeData.recordingDate
         else:
-            print 'Warning: recording date can not be recovered from data. If recording date is necessary, please build GazeData object from SimpleGazeTracker CSV file.'
+            print('Warning: recording date can not be recovered from data. If recording date is necessary, please build GazeData object from SimpleGazeTracker CSV file.')
             recordingDate = None
         newdata = GazeParser.Core.GazeData(
             gazeData.T,
@@ -294,7 +297,7 @@ def rebuildData(gazeData):
             if hasattr(data, 'recordingDate'):
                 recordingDate = data.recordingDate
             else:
-                print 'Warning: recording date can not be recovered from data. If recording date is necessary, please build GazeData object from SimpleGazeTracker CSV file.'
+                print('Warning: recording date can not be recovered from data. If recording date is necessary, please build GazeData object from SimpleGazeTracker CSV file.')
                 recordingDate = None
             newdata = GazeParser.Core.GazeData(
                 data.T,

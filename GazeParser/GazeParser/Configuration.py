@@ -3,6 +3,9 @@
 .. Copyright (C) 2012-2015 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
 import ConfigParser
@@ -71,7 +74,7 @@ class Config(object):
             if not os.path.isfile(ConfigFile):
                 ConfigFile = os.path.join(GazeParser.appDir, 'GazeParser.cfg')
                 if not os.path.isfile(ConfigFile):
-                    print 'Warning: configuration file (%s) was not found. Default parameters were set.' % ConfigFile
+                    print('Warning: configuration file (%s) was not found. Default parameters were set.' % ConfigFile)
                     self.ConfigFile = None
         self.ConfigFile = ConfigFile
 
@@ -94,7 +97,7 @@ class Config(object):
                     setattr(self, option, value)
                     optionDict[option] = value
             except:
-                print 'Warning: %s is not properly defined in GazeParser configuration file(%s). Default value is used.' % (option, self.ConfigFile)
+                print('Warning: %s is not properly defined in GazeParser configuration file(%s). Default value is used.' % (option, self.ConfigFile))
                 setattr(self, option, GazeParserDefaults[option])
                 optionDict[option] = GazeParserDefaults[option]
 
@@ -123,7 +126,7 @@ class Config(object):
         Print all parameters holded in this object.
         """
         for key in GazeParserOptions:
-            print '%s = %s' % (key, getattr(self, key))
+            print('%s = %s' % (key, getattr(self, key)))
 
     def getParametersAsDict(self):
         """

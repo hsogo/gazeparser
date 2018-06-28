@@ -5,6 +5,9 @@ Distributed under the terms of the GNU General Public License (GPL).
 
 Convert gaze data files to GazeParser data file.
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import GazeParser
 import GazeParser.Configuration
@@ -97,7 +100,7 @@ class Converter(Tkinter.Frame):
             tkMessageBox.showinfo('info', 'No files')
             return
 
-        if isinstance(fnames, unicode):
+        if if sys.version_info[0] == 2 and isinstance(fnames, unicode):
             fnames = splitFilenames(fnames)
 
         self.initialDataDir = os.path.split(fnames[0])[0]
@@ -287,7 +290,7 @@ class EyelinkConverter(Tkinter.Frame):
             tkMessageBox.showinfo('info', 'No files')
             return
 
-        if isinstance(fnames, unicode):
+        if sys.version_info[0] == 2 and isinstance(fnames, unicode):
             fnames = splitFilenames(fnames)
 
         self.initialDataDir = os.path.split(fnames[0])[0]
@@ -386,7 +389,7 @@ class TobiiConverter(Tkinter.Frame):
             tkMessageBox.showinfo('info', 'No files')
             return
 
-        if isinstance(fnames, unicode):
+        if sys.version_info[0] == 2 and isinstance(fnames, unicode):
             fnames = splitFilenames(fnames)
 
         self.initialDataDir = os.path.split(fnames[0])[0]
