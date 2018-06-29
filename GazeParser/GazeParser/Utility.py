@@ -102,23 +102,27 @@ def compareVersion(testVersion, baseVersion):
 def join(newFileName, fileList):
     """
     Combine GazeParser data files into a single file.
+    If some files have addional data and the others don't have, missing
+    additional data is filled with empty lists.
 
     :param str newFileName:
         Name of combined data file.
     :param sequence fileList:
         A list of file names to be combined.
-
-    ..  todo:: deal with mixure of datafiles with out without additional data.
     """
     newD = []
     newA = []
+    found = False
     for f in fileList:
         print f + '...'
         (D, A) = load(f)
         newD.extend(D)
         if A is not None:
+            found = True
             newA.extend(A)
-    if A == []:
+        else:
+            newA.extend([]*len(D))
+    if not found:
         save(newFileName, newD)
     else:
         save(newFileName, newD, additionalData=newA)
