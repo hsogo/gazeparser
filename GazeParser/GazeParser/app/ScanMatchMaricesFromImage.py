@@ -2,15 +2,29 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-try:
-    import Image
-except ImportError:
-    from PIL import Image
-import Tkinter, ImageTk
-import tkFileDialog
-import tkMessageBox
+import sys
 import os
 import numpy
+
+pillow = False
+
+try:
+    import Image, ImageTk
+except ImportError:
+    from PIL import Image, ImageTk
+    pillow = True
+
+if sys.version_info[0] == 2:
+    import Tkinter
+    import tkFileDialog
+    import tkMessageBox
+    import tkColorChooser
+else:
+    import tkinter as Tkinter
+    from tkinter import filedialog as tkFileDialog
+    from tkinter import messagebox as tkMessageBox
+    from tkinter import colorchooser as tkColorChooser
+
 
 import GazeParser.ScanMatch
 from GazeParser import homeDir
