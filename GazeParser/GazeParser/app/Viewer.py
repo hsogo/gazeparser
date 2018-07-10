@@ -42,8 +42,6 @@ import matplotlib.font_manager
 import matplotlib.patches
 import matplotlib.cm
 import matplotlib.animation
-import GazeParser.app.ConfigEditor
-import GazeParser.app.Converters
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 from GazeParser.Converter import buildEventListBinocular, buildEventListMonocular, applyFilter
@@ -262,7 +260,7 @@ class animationDialog(wx.Dialog):
         self.tcStop.Bind(wx.EVT_TEXT_ENTER, self.updateRangeCtrl)
         self.tcStartTime.Enable(False)
         self.tcStopTime.Enable(False)
-        box = wx.FlexGridSizer(2,3)
+        box = wx.FlexGridSizer(2, 3, 0, 0)
         box.Add(self.startSlider, flag=wx.EXPAND)
         box.Add(self.tcStart)
         box.Add(self.tcStartTime)
@@ -524,7 +522,7 @@ class convertSGTDialog(wx.Dialog):
         self.filterCommands = ['identity', 'ma', 'butter', 'butter_filtfilt']
         
         self.paramPanel = wx.Panel(self, wx.ID_ANY)
-        box = wx.FlexGridSizer(len(GazeParser.Configuration.GazeParserOptions),2)
+        box = wx.FlexGridSizer(len(GazeParser.Configuration.GazeParserOptions), 2, 0, 0)
         for key in GazeParser.Configuration.GazeParserOptions:
             box.Add(wx.StaticText(self.paramPanel, wx.ID_ANY, key))
             if key == 'FILTER_TYPE':
@@ -732,12 +730,12 @@ class interactiveConfigFrame(wx.Frame):
         menu_bar.Append(self.menu_view, 'View')
         menu_file.Append(ID_EXPORT, 'Export Config')
         menu_file.Append(wx.ID_CLOSE, 'Close')
-        wx.EVT_MENU(self, ID_EXPORT, self.exportConfig)
-        wx.EVT_MENU(self, wx.ID_CLOSE, self.cancel)
+        self.Bind(wx.EVT_MENU, self.exportConfig, id=ID_EXPORT)
+        self.Bind(wx.EVT_MENU, self.cancel, id=wx.ID_CLOSE)
         self.menu_view.Append(ID_PREV_TR, 'Prev Trial')
         self.menu_view.Append(ID_NEXT_TR, 'Next Trial')
-        wx.EVT_MENU(self, ID_PREV_TR, self.prevTrial)
-        wx.EVT_MENU(self, ID_NEXT_TR, self.nextTrial)
+        self.Bind(wx.EVT_MENU, self.prevTrial, id=ID_PREV_TR)
+        self.Bind(wx.EVT_MENU, self.nextTrial, id=ID_NEXT_TR)
         
         ac = []
         keys = ((wx.WXK_LEFT,self.prevTrial),
@@ -774,7 +772,7 @@ class interactiveConfigFrame(wx.Frame):
 
         commandPanel = wx.Panel(self, wx.ID_ANY)
         paramPanel = wx.Panel(commandPanel, wx.ID_ANY)
-        box = wx.FlexGridSizer(len(GazeParser.Configuration.GazeParserOptions)+1,3)
+        box = wx.FlexGridSizer(len(GazeParser.Configuration.GazeParserOptions)+1,3, 0, 0)
         box.Add(wx.StaticText(paramPanel, wx.ID_ANY, ''), flag=wx.ALL, border=5)
         box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'Original'), flag=wx.TOP|wx.RIGHT|wx.BOTTOM, border=5)
         box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'New'), flag=wx.TOP|wx.RIGHT|wx.BOTTOM, border=5)
@@ -821,13 +819,13 @@ class interactiveConfigFrame(wx.Frame):
         
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
-        self.MakeModal(True)
+        # self.MakeModal(True)
         self.Show()
         self.eventLoop = wx.EventLoop()
         self.eventLoop.Run()
 
     def onClose(self, event=None):
-        self.MakeModal(False)
+        # self.MakeModal(False)
         self.eventLoop.Exit()
 
     def onClickCombobox(self, event=None):
@@ -905,7 +903,7 @@ class interactiveConfigFrame(wx.Frame):
 
         for s in range(self.D[self.tr].nSac):
             self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart, -10000], self.D[self.tr].Sac[s].duration, 20000,
-                              hatch='/', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
+                              hatch='///', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
 
         if self.newSacList is not None and self.newFixList is not None:
             for f in range(len(self.newFixList)):
@@ -916,7 +914,7 @@ class interactiveConfigFrame(wx.Frame):
             hatchColor = getComplementaryColorStr(self.conf.COLOR_SACCADE_HATCH)
             for s in range(len(self.newSacList)):
                 self.ax.add_patch(matplotlib.patches.Rectangle([self.newSacList[s].startTime-tStart, -10000], self.newSacList[s].duration, 20000,
-                                  hatch='\\', fc=hatchColor, alpha=0.3))
+                                  hatch='\\\\\\', fc=hatchColor, alpha=0.3))
 
         self.ax.axis(self.currentPlotArea)
         self.ax.set_title('%s: Trial %d / %d' % (os.path.basename(self.dataFileName), self.tr+1, len(self.D)), fontproperties=self.fontPlotText)
@@ -1031,7 +1029,7 @@ class getFixationsInRegionDialog(wx.Dialog):
         self.tcRectRegionY1 = wx.TextCtrl(regionPanelInside, wx.ID_ANY, size=(60,-1))
         self.tcRectRegionX2 = wx.TextCtrl(regionPanelInside, wx.ID_ANY, size=(60,-1))
         self.tcRectRegionY2 = wx.TextCtrl(regionPanelInside, wx.ID_ANY, size=(60,-1))
-        box = wx.FlexGridSizer(2,9)
+        box = wx.FlexGridSizer(2, 9, 0, 0)
         box.Add(self.rbCircleRegion, flag=wx.RIGHT, border=15)
         box.Add(wx.StaticText(regionPanelInside, wx.ID_ANY, 'x'))
         box.Add(self.tcCircleRegionX, flag=wx.RIGHT, border=10)
@@ -1359,7 +1357,7 @@ class getSaccadeLatencyDialog(wx.Dialog):
         latencyMinMaxPanel = wx.Panel(latencyPanel, wx.ID_ANY)
         self.tcMinLatency = wx.TextCtrl(latencyMinMaxPanel, wx.ID_ANY)
         self.tcMaxLatency = wx.TextCtrl(latencyMinMaxPanel, wx.ID_ANY)
-        sbox = wx.FlexGridSizer(2,2)
+        sbox = wx.FlexGridSizer(2, 2, 0, 0)
         sbox.Add(wx.StaticText(latencyMinMaxPanel, wx.ID_ANY, 'Min'))
         sbox.Add(self.tcMinLatency, flag=wx.EXPAND)
         sbox.Add(wx.StaticText(latencyMinMaxPanel, wx.ID_ANY, 'Max'))
@@ -1374,7 +1372,7 @@ class getSaccadeLatencyDialog(wx.Dialog):
         ampMinMaxPanel = wx.Panel(amplitudePanel, wx.ID_ANY)
         self.tcMinAmplitude = wx.TextCtrl(ampMinMaxPanel, wx.ID_ANY)
         self.tcMaxAmplitude = wx.TextCtrl(ampMinMaxPanel, wx.ID_ANY)
-        sbox = wx.FlexGridSizer(2,2)
+        sbox = wx.FlexGridSizer(2, 2, 0, 0)
         sbox.Add(wx.StaticText(ampMinMaxPanel, wx.ID_ANY, 'Min'))
         sbox.Add(self.tcMinAmplitude, flag=wx.EXPAND)
         sbox.Add(wx.StaticText(ampMinMaxPanel, wx.ID_ANY, 'Max'))
@@ -1776,7 +1774,7 @@ class insertNewMessageDialog(wx.Dialog):
         editPanel = wx.Panel(self, id=wx.ID_ANY)
         self.tcTime = wx.TextCtrl(editPanel, wx.ID_ANY, '', size=(360,-1))
         self.tcText = wx.TextCtrl(editPanel, wx.ID_ANY, '', size=(360,-1))
-        box = wx.FlexGridSizer(2,2)
+        box = wx.FlexGridSizer(2, 2, 0, 0)
         box.Add(wx.StaticText(editPanel, wx.ID_ANY, 'Time'), flag=wx.LEFT|wx.RIGHT, border=5)
         box.Add(self.tcTime, wx.LEFT|wx.RIGHT, border=5)
         box.Add(wx.StaticText(editPanel, wx.ID_ANY, 'Message'), flag=wx.LEFT|wx.RIGHT, border=5)
@@ -1845,7 +1843,7 @@ class editMessageDialog(wx.Dialog):
         self.tcText = wx.TextCtrl(editPanel, wx.ID_ANY, str(message.text), size=(360,-1))
         tcCurrentTime.Enable(False)
         tcCurrentText.Enable(False)
-        box = wx.FlexGridSizer(3,3)
+        box = wx.FlexGridSizer(3, 3, 0, 0)
         box.Add(wx.StaticText(self, wx.ID_ANY, ''), flag=wx.LEFT|wx.RIGHT, border=5)
         box.Add(wx.StaticText(editPanel, wx.ID_ANY, 'Current'), flag=wx.LEFT|wx.RIGHT, border=5)
         box.Add(wx.StaticText(editPanel, wx.ID_ANY, 'New'), flag=wx.LEFT|wx.RIGHT, border=5)
@@ -2027,7 +2025,7 @@ class configColorDialog(wx.Dialog):
                         nParam += 1
 
         colorPanel = wx.Panel(self, wx.ID_ANY)
-        box = wx.FlexGridSizer(nParam,2)
+        box = wx.FlexGridSizer(nParam, 2, 0, 5)
         
         self.newColorDict = {}
         self.origColorDict = {}
@@ -2129,7 +2127,7 @@ class configGridDialog(wx.Dialog):
         if yparams[0] == 'INTERVAL' or yparams[0] == 'CUSTOM':
             self.tcOrdinate.SetValue(yparams[1])
 
-        box = wx.FlexGridSizer(2,2)
+        box = wx.FlexGridSizer(2, 2, 0, 0)
         box.Add(self.rbAbscissa, flag=wx.EXPAND)
         box.Add(self.rbOrdinate, flag=wx.EXPAND)
         box.Add(self.tcAbscissa, flag=wx.EXPAND)
@@ -2392,48 +2390,48 @@ class mainFrame(wx.Frame):
         self.menu_bar.Append(self.menu_tools,'Tools')
 
         self.menu_file.Append(wx.ID_OPEN,'Open')
-        self.menu_file.AppendMenu(wx.ID_ANY, 'Recent Dir', self.menu_recent)
+        self.menu_file.Append(wx.ID_ANY, 'Recent Dir', self.menu_recent)
         for i in range(MAX_RECENT):
             item = self.menu_recent.Append(recentIDList[i], str(i+1)+'. '+self.conf.RecentDir[i])
             if self.conf.RecentDir[i] == '':
                 item.Enable(False)
-            wx.EVT_MENU(self, recentIDList[i], self.openrecent)
+            self.Bind(wx.EVT_MENU, self.openrecent, id=recentIDList[i])
         self.menu_file.Append(wx.ID_SAVE, 'Save')
         self.menu_file.Append(ID_EXPORT, 'Export')
         self.menu_file.Append(ID_COMBINE, 'Combine data files')
         self.menu_file.Append(wx.ID_CLOSE, 'Exit')
-        wx.EVT_MENU(self, wx.ID_OPEN, self.openfile)
-        wx.EVT_MENU(self, wx.ID_SAVE, self.savefile)
-        wx.EVT_MENU(self, ID_EXPORT, self.exportfile)
-        wx.EVT_MENU(self, ID_COMBINE, self.combinefiles)
-        wx.EVT_MENU(self, wx.ID_CLOSE, self.exit)
+        self.Bind(wx.EVT_MENU, self.openfile, id=wx.ID_OPEN)
+        self.Bind(wx.EVT_MENU, self.savefile, id=wx.ID_SAVE)
+        self.Bind(wx.EVT_MENU, self.exportfile, id=ID_EXPORT)
+        self.Bind(wx.EVT_MENU, self.combinefiles, id=ID_COMBINE)
+        self.Bind(wx.EVT_MENU, self.exit, id=wx.ID_CLOSE)
         self.menu_view.Append(ID_PREV_TR, 'Prev trial')
         self.menu_view.Append(ID_NEXT_TR, 'Next trial')
-        wx.EVT_MENU(self, ID_PREV_TR, self.prevTrial)
-        wx.EVT_MENU(self, ID_NEXT_TR, self.nextTrial)
+        self.Bind(wx.EVT_MENU, self.prevTrial, id=ID_PREV_TR)
+        self.Bind(wx.EVT_MENU, self.nextTrial, id=ID_NEXT_TR)
         self.menu_view.AppendSeparator()
         self.menu_view.AppendRadioItem(ID_VIEW_TXY, 'T-XY plot')
         self.menu_view.AppendRadioItem(ID_VIEW_XY, 'XY plot')
         self.menu_view.AppendRadioItem(ID_VIEW_SCATTER, 'Scatter plot')
         self.menu_view.AppendRadioItem(ID_VIEW_HEATMAP, 'Heatmap plot')
-        wx.EVT_MENU(self, ID_VIEW_TXY, self.toTXYView)
-        wx.EVT_MENU(self, ID_VIEW_XY, self.toXYView)
-        wx.EVT_MENU(self, ID_VIEW_SCATTER, self.toScatterView)
-        wx.EVT_MENU(self, ID_VIEW_HEATMAP, self.toHeatmapView)
+        self.Bind(wx.EVT_MENU, self.toTXYView, id=ID_VIEW_TXY)
+        self.Bind(wx.EVT_MENU, self.toXYView, id=ID_VIEW_XY)
+        self.Bind(wx.EVT_MENU, self.toScatterView, id=ID_VIEW_SCATTER)
+        self.Bind(wx.EVT_MENU, self.toHeatmapView, id=ID_VIEW_HEATMAP)
         self.menu_view.AppendSeparator()
         self.menu_view.AppendCheckItem(ID_SHOW_FIXNUM, 'Show Fixation Number')
         self.menu_view.AppendCheckItem(ID_SHOW_STIMIMAGE, 'Show Stimulus Image')
-        wx.EVT_MENU(self, ID_SHOW_FIXNUM, self.toggleFixNum)
-        wx.EVT_MENU(self, ID_SHOW_STIMIMAGE, self.toggleStimImage)
+        self.Bind(wx.EVT_MENU, self.toggleFixNum, id=ID_SHOW_FIXNUM)
+        self.Bind(wx.EVT_MENU, self.toggleStimImage, id=ID_SHOW_STIMIMAGE)
         self.menu_view.AppendSeparator()
         self.menu_view.Append(ID_CONF_GRID, 'Config grid')
         self.menu_view.Append(ID_CONF_COLOR, 'Config color')
         self.menu_view.Append(ID_CONF_FONT, 'Config font')
         self.menu_view.Append(ID_CONF_STIMIMAGE, 'Config stimulus image')
-        wx.EVT_MENU(self, ID_CONF_GRID, self.configGrid)
-        wx.EVT_MENU(self, ID_CONF_COLOR, self.configColor)
-        wx.EVT_MENU(self, ID_CONF_FONT, self.configFont)
-        wx.EVT_MENU(self, ID_CONF_STIMIMAGE, self.configStimImage)
+        self.Bind(wx.EVT_MENU, self.configGrid, id=ID_CONF_GRID)
+        self.Bind(wx.EVT_MENU, self.configColor, id=ID_CONF_COLOR)
+        self.Bind(wx.EVT_MENU, self.configFont, id=ID_CONF_FONT)
+        self.Bind(wx.EVT_MENU, self.configStimImage, id=ID_CONF_STIMIMAGE)
         self.menu_tools.Append(ID_TOOL_CONVERT, 'Convert  SimpleGazeTracker CSV')
         self.menu_tools.Append(ID_TOOL_EDITCONFIG, 'Edit GazeParser Configuration File')
         self.menu_tools.AppendSeparator()
@@ -2441,27 +2439,27 @@ class mainFrame(wx.Frame):
         self.menu_tools.Append(ID_TOOL_GETFIXREG, 'Fixations in region')
         self.menu_tools.AppendSeparator()
         self.menu_tools.Append(ID_TOOL_ANIMATION, 'Animation')
-        wx.EVT_MENU(self, ID_TOOL_CONVERT, self.convertSGT)
-        wx.EVT_MENU(self, ID_TOOL_EDITCONFIG, self.interactiveConfig)
-        wx.EVT_MENU(self, ID_TOOL_GETLATENCY, self.getLatency)
-        wx.EVT_MENU(self, ID_TOOL_GETFIXREG, self.getFixationsInRegion)
-        wx.EVT_MENU(self, ID_TOOL_ANIMATION, self.animation)
+        self.Bind(wx.EVT_MENU, self.convertSGT, id=ID_TOOL_CONVERT)
+        self.Bind(wx.EVT_MENU, self.interactiveConfig, id=ID_TOOL_EDITCONFIG)
+        self.Bind(wx.EVT_MENU, self.getLatency, id=ID_TOOL_GETLATENCY)
+        self.Bind(wx.EVT_MENU, self.getFixationsInRegion, id=ID_TOOL_GETFIXREG)
+        self.Bind(wx.EVT_MENU, self.animation, id=ID_TOOL_ANIMATION)
         
         # toolbar
         iconImgPath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'img')
         self.mainToolbar = self.CreateToolBar()
-        self.mainToolbar.AddLabelTool(wx.ID_OPEN, 'Open data file', wx.Bitmap(os.path.join(iconImgPath,'open.png')))
-        self.mainToolbar.AddLabelTool(wx.ID_SAVE, 'Save data file', wx.Bitmap(os.path.join(iconImgPath,'saveas.png')))
-        self.mainToolbar.AddLabelTool(ID_COMBINE, 'Combine data files', wx.Bitmap(os.path.join(iconImgPath,'combine.png')))
+        self.mainToolbar.AddTool(wx.ID_OPEN, 'Open data file', wx.Bitmap(os.path.join(iconImgPath,'open.png')))
+        self.mainToolbar.AddTool(wx.ID_SAVE, 'Save data file', wx.Bitmap(os.path.join(iconImgPath,'saveas.png')))
+        self.mainToolbar.AddTool(ID_COMBINE, 'Combine data files', wx.Bitmap(os.path.join(iconImgPath,'combine.png')))
         self.mainToolbar.AddSeparator() 
-        self.mainToolbar.AddLabelTool(ID_PREV_TR, 'Prev', wx.Bitmap(os.path.join(iconImgPath,'previous.png')), wx.Bitmap(os.path.join(iconImgPath,'previous_disabled.png')))
+        self.mainToolbar.AddTool(ID_PREV_TR, 'Prev', wx.Bitmap(os.path.join(iconImgPath,'previous.png')), wx.Bitmap(os.path.join(iconImgPath,'previous_disabled.png')))
         self.tcNTrials = wx.TextCtrl(self.mainToolbar, wx.ID_ANY, '(no data)', style=wx.TE_RIGHT)
         self.tcNTrials.Enable(False)
         self.tcJumpTo = wx.TextCtrl(self.mainToolbar, ID_JUMP_TO, style=wx.TE_RIGHT)
         self.tcJumpTo.Bind(wx.EVT_TEXT_ENTER, self.jumpToTrial)
         self.mainToolbar.AddControl(self.tcNTrials)
         self.mainToolbar.AddControl(self.tcJumpTo)
-        self.mainToolbar.AddLabelTool(ID_NEXT_TR, 'Next', wx.Bitmap(os.path.join(iconImgPath,'next.png')), wx.Bitmap(os.path.join(iconImgPath,'next_disabled.png')))
+        self.mainToolbar.AddTool(ID_NEXT_TR, 'Next', wx.Bitmap(os.path.join(iconImgPath,'next.png')), wx.Bitmap(os.path.join(iconImgPath,'next_disabled.png')))
         self.mainToolbar.EnableTool(ID_PREV_TR, False)
         self.mainToolbar.EnableTool(ID_NEXT_TR, False)
         self.mainToolbar.Realize()
@@ -3158,7 +3156,7 @@ class mainFrame(wx.Frame):
         elif self.plotStyle == 'SCATTER':
             # plot fixations
             fixcenter = self.D[self.tr].getFixCenter()
-            fixdur = self.D[self.tr].getFixDur()
+            fixdur = self.D[self.tr].getFixDur().flatten()
             self.ax.plot(fixcenter[:, 0], fixcenter[:, 1], 'k-')
             self.ax.scatter(fixcenter[:, 0], fixcenter[:, 1], s=fixdur, c=fixdur, alpha=0.7)
             for f in range(self.D[self.tr].nFix):
@@ -3263,21 +3261,21 @@ class mainFrame(wx.Frame):
                     if s in self.selectionlist['Sac']:
                         self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart, -10000],
                                                                        self.D[self.tr].Sac[s].duration, 20000,
-                                                                       hatch='/', fc=self.conf.COLOR_SACCADE_HATCH_E, alpha=0.8))
+                                                                       hatch='///', fc=self.conf.COLOR_SACCADE_HATCH_E, alpha=0.8))
                     else:
                         self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart, -10000],
                                                                        self.D[self.tr].Sac[s].duration, 20000,
-                                                                       hatch='/', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
+                                                                       hatch='///', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
                 else:
                     if s in self.selectionlist['Sac']:
                         self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart, -10000],
                                                                        self.D[self.tr].Sac[s].duration, 20000,
-                                                                       hatch='/', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
+                                                                       hatch='///', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
 
             for b in range(self.D[self.tr].nBlink):
                 self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Blink[b].startTime-tStart, -10000],
                                                                self.D[self.tr].Blink[b].duration, 20000,
-                                                               hatch='\\', fc=self.conf.COLOR_BLINK_HATCH, alpha=0.3))
+                                                               hatch='\\\\\\', fc=self.conf.COLOR_BLINK_HATCH, alpha=0.3))
 
             for m in range(self.D[self.tr].nMsg):
                 mObj = self.D[self.tr].Msg[m]
@@ -3328,23 +3326,23 @@ class mainFrame(wx.Frame):
         idx=0
         for e in self.D[self.tr].EventList:
             if isinstance(e, GazeParser.SaccadeData):
-                self.msglistbox.InsertStringItem(idx, '%10.1f' % (e.startTime))
-                self.msglistbox.SetStringItem(idx, 1, 'Sac')
+                self.msglistbox.InsertItem(idx, '%10.1f' % (e.startTime))
+                self.msglistbox.SetItem(idx, 1, 'Sac')
                 idx+=1
             elif isinstance(e, GazeParser.FixationData):
-                self.msglistbox.InsertStringItem(idx, '%10.1f' % (e.startTime))
-                self.msglistbox.SetStringItem(idx, 1, 'Fix')
+                self.msglistbox.InsertItem(idx, '%10.1f' % (e.startTime))
+                self.msglistbox.SetItem(idx, 1, 'Fix')
                 idx+=1
                 # self.msglistbox.itemconfig(Tkinter.END, bg=self.conf.COLOR_TRAJECTORY_L_FIX)
             elif isinstance(e, GazeParser.MessageData):
-                self.msglistbox.InsertStringItem(idx, '%10.1f' % (e.time))
-                self.msglistbox.SetStringItem(idx, 1, e.text)
+                self.msglistbox.InsertItem(idx, '%10.1f' % (e.time))
+                self.msglistbox.SetItem(idx, 1, e.text)
                 self.msglistbox.SetItemBackgroundColour(idx, self.conf.COLOR_MESSAGE_BG)
                 self.msglistbox.SetItemTextColour(idx, self.conf.COLOR_MESSAGE_FC)
                 idx+=1
             elif isinstance(e, GazeParser.BlinkData):
-                self.msglistbox.InsertStringItem(idx, '%10.1f' % (e.startTime))
-                self.msglistbox.SetStringItem(idx, 1, 'Blk')
+                self.msglistbox.InsertItem(idx, '%10.1f' % (e.startTime))
+                self.msglistbox.SetItem(idx, 1, 'Blk')
                 idx+=1
 
     def setmarker(self, event=None):
