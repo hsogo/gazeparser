@@ -8,7 +8,11 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import ConfigParser
+import sys
+if sys.version_info[0] == 2:
+    import ConfigParser as configparser
+else:
+    import configparser
 import GazeParser
 
 GazeParserDefaults = {
@@ -67,7 +71,7 @@ class Config(object):
             application directory.
             Default value is None.
         """
-        cfgp = ConfigParser.SafeConfigParser()
+        cfgp = configparser.SafeConfigParser()
         cfgp.optionxform = str
         if ConfigFile is None:
             ConfigFile = os.path.join(GazeParser.configDir, 'GazeParser.cfg')

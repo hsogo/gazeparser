@@ -642,7 +642,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                                     usbioFormat.pop(-1)
                             else:
                                 cmd = 'idx'+itemList[i+1] + '=' + str(i)
-                            exec cmd
+                            exec(cmd)
                             tmp.append(cmd)
                         print('DATAFORMAT: %s' % (','.join(tmp)))
 

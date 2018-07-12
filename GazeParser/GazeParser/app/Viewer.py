@@ -13,7 +13,12 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import ConfigParser
+import os
+import sys
+if sys.version_info[0] == 2:
+    import ConfigParser as configparser
+else:
+    import configparser
 import shutil
 try:
     import Image
@@ -25,8 +30,6 @@ import GazeParser
 import GazeParser.Converter
 import GazeParser.Utility
 import GazeParser.Region
-import os
-import sys
 import re
 import codecs
 import functools
@@ -2259,7 +2262,7 @@ class ViewerOptions(object):
         if not os.path.isfile(self.viewerConfigFile):
             shutil.copyfile(initialConfigFile, self.viewerConfigFile)
 
-        appConf = ConfigParser.SafeConfigParser()
+        appConf = configparser.SafeConfigParser()
         appConf.optionxform = str
         appConf.read(self.viewerConfigFile)
 
@@ -2270,7 +2273,7 @@ class ViewerOptions(object):
             if ans:
                 shutil.copyfile(self.viewerConfigFile, self.viewerConfigFile+'.bak')
                 shutil.copyfile(initialConfigFile, self.viewerConfigFile)
-                appConf = ConfigParser.SafeConfigParser()
+                appConf = configparser.SafeConfigParser()
                 appConf.optionxform = str
                 appConf.read(self.viewerConfigFile)
                 self.VIEWER_VERSION = appConf.get('Version', 'VIEWER_VERSION')
@@ -2289,7 +2292,7 @@ class ViewerOptions(object):
                 sys.exit()
 
         if doMerge:
-            appNewConf = ConfigParser.SafeConfigParser()
+            appNewConf = configParser.SafeConfigParser()
             appNewConf.optionxform = str
             appNewConf.read(initialConfigFile)
             newOpts = []
@@ -2318,7 +2321,10 @@ class ViewerOptions(object):
         # set recent directories
         self.RecentDir = []
         for i in range(5):
-            d = getattr(self, 'RECENT_DIR%02d' % (i+1)).decode(sys.getfilesystemencoding())
+            if sys.version_info[0] == 2:
+                d = getattr(self, 'RECENT_DIR%02d' % (i+1)).decode(sys.getfilesystemencoding())
+            else:
+                d = getattr(self, 'RECENT_DIR%02d' % (i+1))
             self.RecentDir.append(d)
 
     def _write(self):
