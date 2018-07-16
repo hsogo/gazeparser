@@ -146,6 +146,20 @@ class SaccadeData(object):
 
     def getPreviousEvent(self, step=1, eventType=None):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
+    
+    def __eq__(self, other):
+        if not isinstance(other, SaccadeData):
+            return False
+        for attr in ('startTime', 'endTime', 'duration', 'amplitude', 'length', 'direction'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('start', 'end'):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class FixationData(object):
@@ -267,6 +281,20 @@ class FixationData(object):
     def getPreviousEvent(self, step=1, eventType=None):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
 
+    def __eq__(self, other):
+        if not isinstance(other, FixationData):
+            return False
+        for attr in ('startTime', 'endTime', 'duration'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('center', ):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class MessageData(object):
     """
@@ -323,6 +351,17 @@ class MessageData(object):
         if self._parent is not None:
             self._parent.sortMessagesByTime()
             self._parent.sortEventListByTime()
+
+    def __eq__(self, other):
+        if not isinstance(other, MessageData):
+            return False
+        for attr in ('time', 'text'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class BlinkData(object):
@@ -411,6 +450,17 @@ class BlinkData(object):
     def getPreviousEvent(self, step=1, eventType=None):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
 
+    def __eq__(self, other):
+        if not isinstance(other, BlinkData):
+            return False
+        for attr in ('startTime', 'endTime', 'duration'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class CalPointData(object):
     """
@@ -479,6 +529,20 @@ class CalPointData(object):
             return self._precision[2:4]
         else: # B
             return self._precision[0:4]
+
+    def __eq__(self, other):
+        if not isinstance(other, MessageData):
+            return False
+        for attr in ('recordedEye', ):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('point', 'accuracy', 'precision'):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class GazeData(object):
@@ -1432,3 +1496,28 @@ class GazeData(object):
             return a
         else:
             raise ValueError('contents must be \'point\', \'accuracy\', \'precision\' or \'All\'.')
+
+    def __eq__(self, other):
+        if not isinstance(other, GazeData):
+            return False
+        for attr in ('nSac', 'nFix', 'nMsg', 'nBlink', 'recordedEye', 'recordingDate'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('Sac', 'Fix', 'Msg', 'Blink'):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                print(attr)
+                return False
+        for attr in ('L', 'R', 'T', 'Pupil'):
+            attr1 = getattr(self, attr)
+            attr2 = getattr(other, attr)
+            if isinstance(attr1, numpy.ndarray) and isinstance(attr2, numpy.ndarray):
+                if not numpy.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
+                    return False
+            elif attr1 is None and isinstance(attr2, numpy.ndarray):
+                return False
+            elif attr2 is None and isinstance(attr1, numpy.ndarray):
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
