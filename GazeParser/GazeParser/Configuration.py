@@ -147,3 +147,19 @@ class Config(object):
         for key in GazeParserOptions:
             optionDict[key] = getattr(self, key)
         return optionDict
+    
+    def __str__(self):
+        msg = '<{}.{} object at {}>\n'.format(self.__class__.__module__,
+                                              self.__class__.__name__,
+                                              hex(id(self)))
+        missing = []
+        for key in GazeParserOptions:
+            if hasattr(self, key):
+                msg += '  {} = {}\n'.format(key, getattr(self, key))
+            else:
+                missing.append(key)
+            
+        if len(missing)>0:
+            msg += 'Warining: missing parameters: {}\n'.format(', '.join(missing))
+        
+        return msg
