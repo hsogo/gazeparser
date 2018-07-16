@@ -129,8 +129,15 @@ class Config(object):
         """
         Print all parameters holded in this object.
         """
+        missing = []
         for key in GazeParserOptions:
-            print('%s = %s' % (key, getattr(self, key)))
+            if hasattr(self, key):
+                print('%s = %s' % (key, getattr(self, key)))
+            else:
+                missing.append(key)
+            
+        if len(missing)>0:
+            print('Warining: missing parameters: {}'.format(', '.join(missing)))
 
     def getParametersAsDict(self):
         """
