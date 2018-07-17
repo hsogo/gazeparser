@@ -13,6 +13,8 @@ import re
 import sys
 import locale
 
+float_tolerance = 0.000000000001
+
 class SaccadeData(object):
     """
     Holds various parameters of a single saccade such as start time,
@@ -151,8 +153,12 @@ class SaccadeData(object):
     def __eq__(self, other):
         if not isinstance(other, SaccadeData):
             return False
-        for attr in ('startTime', 'endTime', 'duration', 'amplitude', 'length', 'direction'):
+        for attr in ('startTime', 'endTime', 'duration', 'amplitude', 'length'):
             if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('direction',):
+            # return value of arctan2() may be different between 32bit and 64bit Python.
+            if getattr(self, attr) - getattr(other, attr) > float_tolerance:
                 return False
         for attr in ('start', 'end'):
             if (getattr(self, attr) != getattr(other, attr)).any():
