@@ -433,13 +433,13 @@ def applyFilter(T, HV, config, decimals=2):
     return numpy.vstack((filteredH, filteredV)).transpose()
 
 
-def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParameters=True):
+def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParameters=True, outputfile=None):
     """
     Convert an SimpleGazeTracker data file to a GazeParser file.
     If GazeTracker data file name is 'foo.csv', the output file name is 'foo.db'
 
     :param str inputfile:
-        name of GazeParser file to be converted.
+        Name of SimpleGazeTracker CSV file to be converted.
     :param Boolean overwrite:
         If this parameter is true, output file is overwritten.
         The default value is False.
@@ -453,12 +453,18 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
         If this parameter is true, conversion configurations are
         overwritten by parameters defined in the data file.
         The default value is True.
+    :param str outputfile:
+        Name of output file. If None, extension of input file name
+        is replaced with '.db'.
     """
     (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
     filenameRoot, ext = os.path.splitext(srcFilename)
     inputfileFullpath = os.path.join(workDir, srcFilename)
-    dstFileName = os.path.join(workDir, filenameRoot+'.db')
     additionalDataFileName = os.path.join(workDir, filenameRoot+'.txt')
+    if outputfile is None:
+        dstFileName = os.path.join(workDir, filenameRoot+'.db')
+    else:
+        dstFileName = os.path.join(workDir, outputfile)
     usbioFormat = None
 
     print('------------------------------------------------------------')
@@ -632,17 +638,40 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                     # SimpleGazeTracker options
                     if itemList[0] == '#DATAFORMAT':
                         idxT = idxX = idxY = idxP = idxC = idxUSBIO = None
-                        idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = idxC = None
+                        idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = None
                         tmp = []
+                        print(itemList)
                         for i in range(len(itemList)-1):
                             if itemList[i+1].find('USBIO;') == 0:  # support USBIO
-                                cmd = 'idxUSBIO=' + str(i)
+                                idxUSBIO = i
+                                cmd = 'USBIO={}'.format(i)
                                 usbioFormat = itemList[i+1][6:].split(';')
                                 if len(usbioFormat[-1]) == 0:  # remove last item if empty
                                     usbioFormat.pop(-1)
                             else:
-                                cmd = 'idx'+itemList[i+1] + '=' + str(i)
-                            exec(cmd)
+                                if itemList[i+1] == 'T':
+                                    idxT = i
+                                elif itemList[i+1] == 'X':
+                                    idxX = i
+                                elif itemList[i+1] == 'Y':
+                                    idxY = i
+                                elif itemList[i+1] == 'P':
+                                    idxP = i
+                                elif itemList[i+1] == 'C':
+                                    idxC = i
+                                elif itemList[i+1] == 'LX':
+                                    idxLX = i
+                                elif itemList[i+1] == 'LY':
+                                    idxLY = i
+                                elif itemList[i+1] == 'RX':
+                                    idxRX = i
+                                elif itemList[i+1] == 'RY':
+                                    idxRY = i
+                                elif itemList[i+1] == 'LP':
+                                    idxLP = i
+                                elif itemList[i+1] == 'RP':
+                                    idxRP = i
+                                cmd = '{}={}'.format(itemList[i+1],i)
                             tmp.append(cmd)
                         print('DATAFORMAT: %s' % (','.join(tmp)))
 
