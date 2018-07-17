@@ -10,7 +10,8 @@ from __future__ import print_function
 import GazeParser
 import numpy
 import re
-
+import sys
+import locale
 
 class SaccadeData(object):
     """
@@ -161,6 +162,17 @@ class SaccadeData(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                              self.__class__.__name__,
+                                              hex(id(self)))
+        
+        msg += '{:.3f}s, [ {} {}], [ {} {}], {:.1f}>'.format(
+            self.startTime/1000.0, self.start[0], self.start[1],
+            self.end[0], self.end[1],self.length)
+        
+        return msg
+
 
 class FixationData(object):
     """
@@ -295,6 +307,14 @@ class FixationData(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                              self.__class__.__name__)
+        
+        msg += '{:.3f}s, {:.1f}ms, [ {:.1f} {:.1f}]>'.format(self.startTime/1000.0, self.duration, self.center[0], self.center[1])
+        
+        return msg
+
 
 class MessageData(object):
     """
@@ -362,6 +382,33 @@ class MessageData(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                              self.__class__.__name__)
+        if len(self.text) > 16:
+            text = self.text[:13]+'...'
+        else:
+            text = self.text
+        
+        msg += '{:.3f}s, {}>'.format(self.time/1000.0, repr(text))
+        
+        return msg
+
+    def __str__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                              self.__class__.__name__)
+        if len(self.text) > 16:
+            text = self.text[:13]+'...'
+        else:
+            text = self.text
+        
+        if sys.version_info[0] == 2:
+            msg += '{:.3f}s, {}>'.format(self.time/1000.0, text.encode(locale.getpreferredencoding()))
+        else:
+            msg += '{:.3f}s, {}>'.format(self.time/1000.0, text)
+        
+        return msg
 
 
 class BlinkData(object):
@@ -461,6 +508,14 @@ class BlinkData(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                              self.__class__.__name__)
+        
+        msg += '{:.3f}s, {:.1f}ms>'.format(self.startTime/1000.0, self.duration)
+        
+        return msg
+
 
 class CalPointData(object):
     """
@@ -543,6 +598,14 @@ class CalPointData(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                              self.__class__.__name__)
+        
+        msg += '{accuracy:.3f}, {precision:.3f}>'.format(self.accuracy, self.precision)
+        
+        return msg
 
 
 class GazeData(object):
@@ -1521,3 +1584,14 @@ class GazeData(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                              self.__class__.__name__)
+        if hasattr(self, 'recordingDate'):
+            date = '{:d}/{:02d}/{:02d}-{:02d}:{:02d}:{:02d}'.format(*self.recordingDate)
+            msg += '{}, {}, {:.1f}s>'.format(date, self.recordedEye, self.T[-1]/1000.0)
+        else:
+            msg += 'no_date, {}, {:.1f}s>'.format(self.recordedEye, self.T[-1]/1000.0)
+        
+        return msg
