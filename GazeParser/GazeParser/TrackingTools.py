@@ -23,7 +23,10 @@ import random
 
 import os
 import sys
-import ConfigParser
+if sys.version_info[0] == 2:
+    import ConfigParser as configparser
+else:
+    import configparser
 import shutil
 
 import numpy
@@ -73,7 +76,7 @@ class BaseController(object):
             If None, TrackingTools.cfg in the GazeParser configuration directory
             is used. Default value is None.
         """
-        cfgp = ConfigParser.SafeConfigParser()
+        cfgp = configparser.SafeConfigParser()
         cfgp.optionxform = str
 
         if configFile is None:  # use default settings
@@ -84,7 +87,7 @@ class BaseController(object):
             ConfigFile = configFile
         cfgp.read(ConfigFile)
 
-        for key in ControllerDefaults.keys():
+        for key in list(ControllerDefaults.keys()):
             try:
                 value = cfgp.get('Controller', key)
                 if isinstance(ControllerDefaults[key], int):
@@ -117,7 +120,7 @@ class BaseController(object):
         self.calAreaSet = False
         self.calTargetPosSet = False
 
-        self.prevBuffer = ''
+        self.prevBuffer = b''
 
         self.captureNo = 0
         self.datafilename = ''
@@ -313,16 +316,16 @@ class BaseController(object):
             Non-ascii code is not supprted as a file name.
         """
         if overwrite:
-            self.sendSock.send('openDataFile'+chr(0)+filename+chr(0)+'1'+chr(0))
+            self.sendCommand('openDataFile'+chr(0)+filename+chr(0)+'1'+chr(0))
         else:
-            self.sendSock.send('openDataFile'+chr(0)+filename+chr(0)+'0'+chr(0))
+            self.sendCommand('openDataFile'+chr(0)+filename+chr(0)+'0'+chr(0))
         self.datafilename = filename
 
     def closeDataFile(self):
         """
         Send a command to close data file on the Tracker Host PC.
         """
-        self.sendSock.send('closeDataFile'+chr(0))
+        self.sendCommand('closeDataFile'+chr(0))
         self.datafilename = ''
 
     def sendMessage(self, message):
@@ -336,9 +339,9 @@ class BaseController(object):
             If an unicode string is passed as a message,
             it is converted to UTF-8 before sending.
         """
-        if sys.version_info[0] > 2 or isinstance(message, unicode):
+        if sys.version_info[0] == 2 and isinstance(message, unicode):
             message = message.encode('utf-8')
-        self.sendSock.send('insertMessage'+chr(0)+message+chr(0))
+        self.sendCommand('insertMessage'+chr(0)+message+chr(0))
 
     def sendSettings(self, configDict):
         """
@@ -354,7 +357,7 @@ class BaseController(object):
                 configlist.append('#'+key+','+str(configDict[key]))
 
         message = '/'.join(configlist)
-        self.sendSock.send('insertSettings'+chr(0)+message+chr(0))
+        self.sendCommand('insertSettings'+chr(0)+message+chr(0))
 
     def startRecording(self, message='', wait=0.1):
         """
@@ -371,9 +374,9 @@ class BaseController(object):
             If an unicode string is passed as a message,
             it is converted to UTF-8 before sending.
         """
-        if sys.version_info[0] > 2 or isinstance(message, unicode):
+        if sys.version_info[0] == 2 and isinstance(message, unicode):
             message = message.encode('utf-8')
-        self.sendSock.send('startRecording'+chr(0)+message+chr(0))
+        self.sendCommand('startRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
 
     def stopRecording(self, message='', wait=0.1):
@@ -391,9 +394,9 @@ class BaseController(object):
             If an unicode string is passed as a message,
             it is converted to UTF-8 before sending.
         """
-        if sys.version_info[0] > 2 or isinstance(message, unicode):
+        if sys.version_info[0] == 2 and isinstance(message, unicode):
             message = message.encode('utf-8')
-        self.sendSock.send('stopRecording'+chr(0)+message+chr(0))
+        self.sendCommand('stopRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
 
     def startMeasurement(self, wait=0.1):
@@ -407,7 +410,7 @@ class BaseController(object):
             Duration of waiting for processing on the Tracker Host PC.
             Unit is second. Default value is 0.1
         """
-        self.sendSock.send('startMeasurement'+chr(0))
+        self.sendCommand('startMeasurement'+chr(0))
         time.sleep(wait)
 
     def stopMeasurement(self, wait=0.1):
@@ -419,7 +422,7 @@ class BaseController(object):
             Duration of waiting for processing on the Tracker Host PC.
             Unit is second. Default value is 0.1
         """
-        self.sendSock.send('stopMeasurement'+chr(0))
+        self.sendCommand('stopMeasurement'+chr(0))
         time.sleep(wait)
 
     def getEyePosition(self, timeout=0.02, getPupil=False, ma=1):
@@ -446,10 +449,10 @@ class BaseController(object):
         """
         if ma < 1:
             raise ValueError('ma must be equal or larger than 1.')
-        self.sendSock.send('getEyePosition'+chr(0)+str(ma)+chr(0))
+        self.sendCommand('getEyePosition'+chr(0)+str(ma)+chr(0))
         hasGotEye = False
         isInLoop = True
-        data = ''
+        data = b''
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
@@ -462,8 +465,8 @@ class BaseController(object):
                 except:
                     isInLoop = False
                 if newData:
-                    if '\0' in newData:
-                        delimiterIndex = newData.index('\0')
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
                         if delimiterIndex+1 < len(newData):
                             print('getEyePosition: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -475,7 +478,7 @@ class BaseController(object):
                         data += newData
         if hasGotEye:
             try:
-                retval = [int(x) for x in data.split(',')]
+                retval = [int(x) for x in data.split(b',')]
                 if self.isMonocularRecording:
                     # if recording mode is monocular, length of retval must be 3.
                     if len(retval) == 3:
@@ -545,10 +548,10 @@ class BaseController(object):
             getPupilFlagStr = '1'
         else:
             getPupilFlagStr = '0'
-        self.sendSock.send('getEyePositionList'+chr(0)+str(n)+chr(0)+getPupilFlagStr+chr(0))
+        self.sendCommand('getEyePositionList'+chr(0)+str(n)+chr(0)+getPupilFlagStr+chr(0))
         hasGotEye = False
         isInLoop = True
-        data = ''
+        data = b''
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
@@ -561,8 +564,8 @@ class BaseController(object):
                 except:
                     isInLoop = False
                 if newData:
-                    if '\0' in newData:
-                        delimiterIndex = newData.index('\0')
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
                         if delimiterIndex+1 < len(newData):
                             print('getEyePositionList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -578,7 +581,7 @@ class BaseController(object):
                 return None
 
             try:
-                retval = numpy.array([float(x) for x in data.split(',')])
+                retval = numpy.array([float(x) for x in data.split(b',')])
             except:
                 print('getEyePositionList: non-float value is found in the received data.')
                 return None
@@ -634,10 +637,10 @@ class BaseController(object):
             getPupilFlagStr = '1'
         else:
             getPupilFlagStr = '0'
-        self.sendSock.send('getWholeEyePositionList'+chr(0)+getPupilFlagStr+chr(0))
+        self.sendCommand('getWholeEyePositionList'+chr(0)+getPupilFlagStr+chr(0))
         hasGotEye = False
         isInLoop = True
-        data = ''
+        data = b''
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
@@ -650,8 +653,8 @@ class BaseController(object):
                 except:
                     isInLoop = False
                 if newData:
-                    if '\0' in newData:
-                        delimiterIndex = newData.index('\0')
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
                         if delimiterIndex+1 < len(newData):
                             print('getWholeEyePositionList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -666,7 +669,7 @@ class BaseController(object):
                 print('getWholeEyePositionList: No data')
                 return None
             try:
-                retval = numpy.array([float(x) for x in data.split(',')])
+                retval = numpy.array([float(x) for x in data.split(b',')])
             except:
                 print('getWholeEyePositionList: non-float value is found in the received data.')
                 return None
@@ -709,10 +712,10 @@ class BaseController(object):
             If length of received data is zero or data conversion is failed,
             [] is returned.
         """
-        self.sendSock.send('getWholeMessageList'+chr(0))
+        self.sendCommand('getWholeMessageList'+chr(0))
         hasGotData = False
         isInLoop = True
-        data = ''
+        data = b''
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
@@ -725,8 +728,8 @@ class BaseController(object):
                 except:
                     isInLoop = False
                 if newData:
-                    if '\0' in newData:
-                        delimiterIndex = newData.index('\0')
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
                         if delimiterIndex+1 < len(newData):
                             print('getWholeMessageList: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -762,14 +765,14 @@ class BaseController(object):
         :return:
             Text.
         """
-        self.sendSock.send('getCurrMenu'+chr(0))
+        self.sendCommand('getCurrMenu'+chr(0))
         hasGotMenu = False
         isInLoop = True
         data = self.prevBuffer
         startTime = self.clock()
         while isInLoop:
-            if '\0' in data:
-                delimiterIndex = data.index('\0')
+            if b'\0' in data:
+                delimiterIndex = data.index(b'\0')
                 if delimiterIndex+1 < len(data):
                     print('getCurrentMenuItem: %d bytes after \\0' % (len(data)-(delimiterIndex+1)))
                     self.prevBuffer = data[(delimiterIndex+1):]
@@ -791,7 +794,10 @@ class BaseController(object):
                     data += newData
 
         if hasGotMenu:
-            return data
+            if sys.version_info[0] > 2:
+                return data.decode()
+            else:
+                return data
         return 'WARNING: menu string was not received.'
 
     def getCalibrationResults(self, timeout=0.2):
@@ -811,10 +817,10 @@ class BaseController(object):
             left eye and the latter 2 elements correspond to right eye.
 
         """
-        self.sendSock.send('getCalResults'+chr(0))
+        self.sendCommand('getCalResults'+chr(0))
         hasGotCal = False
         isInLoop = True
-        data = ''
+        data = b''
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
@@ -828,8 +834,8 @@ class BaseController(object):
                     # print('recv error in getCalibrationResults')
                     isInLoop = False
                 if newData:
-                    if '\0' in newData:
-                        delimiterIndex = newData.index('\0')
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
                         if delimiterIndex+1 < len(newData):
                             print('getCalibrationResults: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -841,7 +847,7 @@ class BaseController(object):
                         data += newData
         if hasGotCal:
             try:
-                retval = [float(x) for x in data.split(',')]
+                retval = [float(x) for x in data.split(b',')]
             except:
                 print('getCalibrationResults: non-float value is found in the received data.')
 
@@ -868,18 +874,21 @@ class BaseController(object):
             is not updated. Unit is second. Default value is 0.2
 
         """
-        self.sendSock.send('getImageData'+chr(0))
+        self.sendCommand('getImageData'+chr(0))
         hasGotImage = False
         data = self.prevBuffer
         imgdata = []
         startTime = self.clock()
         while not hasGotImage:
-            if '\0' in data:
-                delimiterIndex = data.index('\0')
+            if b'\0' in data:
+                delimiterIndex = data.index(b'\0')
                 if delimiterIndex+1 < len(data):
                     print('getCameraImage: %d bytes after \\0' % (len(data)-(delimiterIndex+1)))
                     self.prevBuffer = data[(delimiterIndex+1):]
-                imgdata = [ord(data[idx]) for idx in range(delimiterIndex)]
+                if sys.version_info[0] > 2:
+                    imgdata = [data[idx] for idx in range(delimiterIndex)]
+                else:
+                    imgdata = [ord(data[idx]) for idx in range(delimiterIndex)]
                 hasGotImage = True
             if self.clock()-startTime > timeout:
                 break
@@ -910,6 +919,8 @@ class BaseController(object):
 
         *Usually, you don't need use this method.*
         """
+        if sys.version_info[0] > 2 and isinstance(command, str):
+            command = command.encode('utf-8')
         self.sendSock.send(command)
 
     def calibrationLoop(self):
@@ -1032,7 +1043,7 @@ class BaseController(object):
         self.sendCommand('getCalResultsDetail'+chr(0))
         hasGotCal = False
         isInLoop = True
-        data = ''
+        data = b''
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
@@ -1046,8 +1057,8 @@ class BaseController(object):
                     # print('recv error in getCalibrationResults')
                     isInLoop = False
                 if newData:
-                    if '\0' in newData:
-                        delimiterIndex = newData.index('\0')
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
                         if delimiterIndex+1 < len(newData):
                             print('getCalibrationResultsDetail: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -1062,7 +1073,7 @@ class BaseController(object):
 
         if hasGotCal:
             try:
-                retval = [float(x) for x in data.split(',')]
+                retval = [float(x) for x in data.split(b',')]
             except:
                 print('getCalibrationResultsDetail: non-float value is found in the received data.')
 
@@ -1074,7 +1085,7 @@ class BaseController(object):
                         return None
 
                     self.latestCalibrationResultsList = []
-                    for i in range(len(retval)/4):
+                    for i in range(int(len(retval)/4)):
                         self.latestCalibrationResultsList.append(retval[4*i:4*i+4])
                 else:
                     if len(retval) % 6 != 0:
@@ -1082,7 +1093,7 @@ class BaseController(object):
                         self.putCalibrationResultsImage()
                         return None
 
-                    for i in range(len(retval)/6):
+                    for i in range(int(len(retval)/6)):
                         self.latestCalibrationResultsList.append(retval[6*i:6*i+6])
 
             except:
@@ -1942,7 +1953,7 @@ class BaseController(object):
         self.sendCommand('isBinocularMode'+chr(0))
         hasGot = False
         isInLoop = True
-        data = ''
+        data = b''
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
@@ -1956,8 +1967,8 @@ class BaseController(object):
                     print('recv error in isBinocularMode')
                     isInLoop = False
                 if newData:
-                    if '\0' in newData:
-                        delimiterIndex = newData.index('\0')
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
                         if delimiterIndex+1 < len(newData):
                             print('isBinocularMode: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -1991,7 +2002,7 @@ class BaseController(object):
         self.sendCommand('getCameraImageSize'+chr(0))
         hasGot = False
         isInLoop = True
-        data = ''
+        data = b''
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
@@ -2005,8 +2016,8 @@ class BaseController(object):
                     print('recv error in getCameraImageSize')
                     isInLoop = False
                 if newData:
-                    if '\0' in newData:
-                        delimiterIndex = newData.index('\0')
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
                         if delimiterIndex+1 < len(newData):
                             print('getCameraImageSize: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
                             self.prevBuffer = newData[(delimiterIndex+1):]
@@ -2886,7 +2897,7 @@ class ControllerPsychoPyBackend(BaseController):
                     retval.append(self.deg2pix(pos[i], self.win.monitor))
         elif units in ['degFlat', 'degFlatPos']:
             if len(pos)%2 == 0:
-                for i in range(len(pos)/2):
+                for i in range(int(len(pos)/2)):
                     if pos[2*i] is None:
                         retval.extend([None, None])
                     else:
@@ -2954,7 +2965,7 @@ class ControllerPsychoPyBackend(BaseController):
                     retval.append(self.pix2deg(pos[i], self.win.monitor))
         elif units in ['degFlat', 'degFlatPos']:
             if len(pos)%2 == 0:
-                for i in range(len(pos)/2):
+                for i in range(int(len(pos)/2)):
                     if pos[2*i] is None:
                         retval.extend([None, None])
                     else:
