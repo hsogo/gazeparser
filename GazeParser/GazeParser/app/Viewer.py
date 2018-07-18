@@ -28,6 +28,7 @@ except ImportError:
     from PIL import ImageTk
 import GazeParser
 import GazeParser.Converter
+import GazeParser.Configuration
 import GazeParser.Utility
 import GazeParser.Region
 import re
@@ -782,26 +783,32 @@ class interactiveConfigFrame(wx.Frame):
         for key in GazeParser.Configuration.GazeParserOptions:
             box.Add(wx.StaticText(paramPanel, wx.ID_ANY, key), flag=wx.LEFT|wx.RIGHT, border=5)
             if hasattr(self.D[self.tr].config, key):
-                if sys.version_info[0] == 2:
-                    box.Add(wx.StaticText(paramPanel, wx.ID_ANY, unicode(getattr(self.D[self.tr].config, key))), flag=wx.RIGHT, border=5)
-                else:
-                    box.Add(wx.StaticText(paramPanel, wx.ID_ANY, getattr(self.D[self.tr].config, key)), flag=wx.RIGHT, border=5)
-            else:
-                box.Add(wx.StaticText(paramPanel, wx.ID_ANY, text='not available'), flag=wx.RIGHT, border=5)
+                # note: Value of GazeParser parameters are ASCII characters.
+                box.Add(wx.StaticText(paramPanel, wx.ID_ANY, str(getattr(self.D[self.tr].config, key))), flag=wx.RIGHT, border=5)
 
-            if key == 'FILTER_TYPE':
-                self.paramEntryDict[key] = wx.ComboBox(paramPanel, wx.ID_ANY, choices=self.filterCommands, style=wx.CB_DROPDOWN)
-                if sys.version_info[0] == 2:
-                    self.paramEntryDict[key].SetValue(unicode(getattr(self.D[self.tr].config, key)))
-                else:
+                if key == 'FILTER_TYPE':
+                    self.paramEntryDict[key] = wx.ComboBox(paramPanel, wx.ID_ANY, choices=self.filterCommands, style=wx.CB_DROPDOWN)
+                    # note: Value of FILTER_TYPE is string, so str() is not necessary.
                     self.paramEntryDict[key].SetValue(getattr(self.D[self.tr].config, key))
-                self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickCombobox)
-            else:
-                if sys.version_info[0] == 2:
-                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, unicode(getattr(self.D[self.tr].config, key)))
+                    self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickCombobox)
                 else:
-                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, getattr(self.D[self.tr].config, key))
-            box.Add(self.paramEntryDict[key], flag=wx.RIGHT, border=5)
+                    # note: Value of GazeParser parameters are ASCII characters.
+                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, str(getattr(self.D[self.tr].config, key)))
+                box.Add(self.paramEntryDict[key], flag=wx.RIGHT, border=5)
+
+            else:
+                box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'not available'), flag=wx.RIGHT, border=5)
+                
+                if key == 'FILTER_TYPE':
+                    self.paramEntryDict[key] = wx.ComboBox(paramPanel, wx.ID_ANY, choices=self.filterCommands, style=wx.CB_DROPDOWN)
+                    self.paramEntryDict[key].SetValue(GazeParser.Configuration.GazeParserDefaults[key])
+                    self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickCombobox)
+                else:
+                    # note: Value of GazeParser parameters are ASCII characters.
+                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, str(GazeParser.Configuration.GazeParserDefaults[key]))
+                box.Add(self.paramEntryDict[key], flag=wx.RIGHT, border=5)
+
+
         paramPanel.SetSizer(box)
 
         updateButton = wx.Button(commandPanel, wx.ID_ANY, 'Update plot')
@@ -824,7 +831,7 @@ class interactiveConfigFrame(wx.Frame):
         
         # self.MakeModal(True)
         self.Show()
-        self.eventLoop = wx.EventLoop()
+        self.eventLoop = wx.GUIEventLoop()
         self.eventLoop.Run()
 
     def onClose(self, event=None):
