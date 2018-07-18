@@ -170,12 +170,11 @@ class SaccadeData(object):
 
     def __repr__(self):
         msg = '<{}.{}, '.format(self.__class__.__module__,
-                                              self.__class__.__name__,
-                                              hex(id(self)))
+                                self.__class__.__name__)
         
-        msg += '{:.3f}s, [ {} {}], [ {} {}], {:.1f}>'.format(
+        msg += '{:.3f}s, [ {} {}], {:.1f}, {:.1f}>'.format(
             self.startTime/1000.0, self.start[0], self.start[1],
-            self.end[0], self.end[1],self.length)
+            numpy.rad2deg(self.direction), self.length)
         
         return msg
 
@@ -315,7 +314,7 @@ class FixationData(object):
 
     def __repr__(self):
         msg = '<{}.{}, '.format(self.__class__.__module__,
-                                              self.__class__.__name__)
+                                self.__class__.__name__)
         
         msg += '{:.3f}s, {:.1f}ms, [ {:.1f} {:.1f}]>'.format(self.startTime/1000.0, self.duration, self.center[0], self.center[1])
         
@@ -391,7 +390,8 @@ class MessageData(object):
 
     def __repr__(self):
         msg = '<{}.{}, '.format(self.__class__.__module__,
-                                              self.__class__.__name__)
+                                self.__class__.__name__)
+
         if len(self.text) > 16:
             text = self.text[:13]+'...'
         else:
@@ -403,7 +403,8 @@ class MessageData(object):
 
     def __str__(self):
         msg = '<{}.{}, '.format(self.__class__.__module__,
-                                              self.__class__.__name__)
+                                self.__class__.__name__)
+
         if len(self.text) > 16:
             text = self.text[:13]+'...'
         else:
@@ -516,7 +517,7 @@ class BlinkData(object):
 
     def __repr__(self):
         msg = '<{}.{}, '.format(self.__class__.__module__,
-                                              self.__class__.__name__)
+                                self.__class__.__name__)
         
         msg += '{:.3f}s, {:.1f}ms>'.format(self.startTime/1000.0, self.duration)
         
@@ -607,7 +608,7 @@ class CalPointData(object):
 
     def __repr__(self):
         msg = '<{}.{}, '.format(self.__class__.__module__,
-                                              self.__class__.__name__)
+                                self.__class__.__name__)
         
         msg += '{accuracy:.3f}, {precision:.3f}>'.format(self.accuracy, self.precision)
         
@@ -1593,7 +1594,8 @@ class GazeData(object):
 
     def __repr__(self):
         msg = '<{}.{}, '.format(self.__class__.__module__,
-                                              self.__class__.__name__)
+                                self.__class__.__name__)
+
         if hasattr(self, 'recordingDate'):
             date = '{:d}/{:02d}/{:02d}-{:02d}:{:02d}:{:02d}'.format(*self.recordingDate)
             msg += '{}, {}, {:.1f}s>'.format(date, self.recordedEye, self.T[-1]/1000.0)

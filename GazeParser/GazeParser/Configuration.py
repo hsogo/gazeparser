@@ -150,7 +150,7 @@ class Config(object):
     
     def __repr__(self):
         msg = '<{}.{}, '.format(self.__class__.__module__,
-                                              self.__class__.__name__)
+                                self.__class__.__name__)
         params = []
         missing = []
         for key in GazeParserOptions:
@@ -169,8 +169,8 @@ class Config(object):
         return msg
 
     def __str__(self):
-        msg = '<{}.{}, '.format(self.__class__.__module__,
-                                              self.__class__.__name__)
+        msg = '<{}.{}\n'.format(self.__class__.__module__,
+                                self.__class__.__name__)
         params = []
         missing = []
         for key in GazeParserOptions:
