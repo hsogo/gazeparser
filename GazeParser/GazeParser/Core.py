@@ -1055,7 +1055,12 @@ class GazeData(object):
            gazedata.findNearestIndexFromMessage(msg) is equivalent to
            gazedata.findIndexFromTime(msg.time)
         """
-        return self.findNearestIndexFromTime(self.Msg[message].time)
+        if isinstance(message, int):
+            return self.findIndexFromTime(self.Msg[message].time)
+        elif isinstance(message, MessageData):
+            return self.findIndexFromTime(message.time)
+        else:
+            raise ValueError('message must be integer or MessageData object.')
 
     def findIndexFromTime(self, time):
         """
@@ -1570,13 +1575,6 @@ class GazeData(object):
     def __eq__(self, other):
         if not isinstance(other, GazeData):
             return False
-        for attr in ('nSac', 'nFix', 'nMsg', 'nBlink', 'recordedEye', 'recordingDate'):
-            if getattr(self, attr) != getattr(other, attr):
-                return False
-        for attr in ('Sac', 'Fix', 'Msg', 'Blink'):
-            if (getattr(self, attr) != getattr(other, attr)).any():
-                print(attr)
-                return False
         for attr in ('L', 'R', 'T', 'Pupil'):
             attr1 = getattr(self, attr)
             attr2 = getattr(other, attr)
@@ -1586,6 +1584,12 @@ class GazeData(object):
             elif attr1 is None and isinstance(attr2, numpy.ndarray):
                 return False
             elif attr2 is None and isinstance(attr1, numpy.ndarray):
+                return False
+        for attr in ('nSac', 'nFix', 'nMsg', 'nBlink', 'recordedEye', 'recordingDate'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('Sac', 'Fix', 'Msg', 'Blink'):
+            if (getattr(self, attr) != getattr(other, attr)).any():
                 return False
         return True
 
@@ -1603,3 +1607,29 @@ class GazeData(object):
             msg += 'no_date, {}, {:.1f}s>'.format(self.recordedEye, self.T[-1]/1000.0)
         
         return msg
+
+    def _compare(self, other):
+        """
+        This functions is basically equal to __eq__, but outputs difference.
+        """
+        if not isinstance(other, GazeData):
+            print('The parameter is not GazeData object.')
+            return
+        for attr in ('L', 'R', 'T', 'Pupil'):
+            attr1 = getattr(self, attr)
+            attr2 = getattr(other, attr)
+            if isinstance(attr1, numpy.ndarray) and isinstance(attr2, numpy.ndarray):
+                if not numpy.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
+                    print('"{}" is different'.format(attr))
+            elif attr1 is None and isinstance(attr2, numpy.ndarray):
+                print('"{}" is different'.format(attr))
+            elif attr2 is None and isinstance(attr1, numpy.ndarray):
+                print('"{}" is different'.format(attr))
+        for attr in ('nSac', 'nFix', 'nMsg', 'nBlink', 'recordedEye', 'recordingDate'):
+            if getattr(self, attr) != getattr(other, attr):
+                print('"{}" is different'.format(attr))
+                return
+        for attr in ('Sac', 'Fix', 'Msg', 'Blink'):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                print('"{}" is different'.format(attr))
+                return
