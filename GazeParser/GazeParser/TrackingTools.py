@@ -1703,23 +1703,23 @@ class BaseController(object):
         This is an example of using this method.
         Suppose that parameters are defined as following.
 
-        * CALTARGET_MOTION_DURATION = 2.0
-        * CALTARGET_DURATION_PER_POS = 1.0
+        * CALTARGET_MOTION_DURATION = 1.0
+        * CALTARGET_DURATION_PER_POS = 2.0
 
         ::
 
-            tracker = GazeParser.TrackingTools.getController(backend='VisionEgg')
-            calstim = [VisionEgg.MoreStimuli.Target2D(size=(5, 5), color=(1, 1, 1)),
-                       VisionEgg.MoreStimuli.Target2D(size=(2, 2), color=(0, 0, 0))]
+            tracker = GazeParser.TrackingTools.getController(backend='PsychoPy')
+            calstim = [psychopy.visual.Rect(win, width=4, height=4, units='pix'),
+                       psychopy.visual.Rect(win, width=2, height=2, units='pix')]
             tracker.setCalibrationTargetStimulus(calstim)
 
             def callback(self, t, index, targetPos, currentPos):
                 if t<1.0:
-                    self.caltarget[0].parameters.size = ((20.0-19.0*t)*5, (20.0-19.0*t)*5)
+                    self.caltarget[0].setSize(((10-9*t)*4,(10-9*t)*4))
                 else:
-                    self.caltarget[0].parameters.size = (5, 5)
+                    self.caltarget[0].setSize((4,4))
 
-            tracker.updateCalibrationTargetStimulusCallBack = callback
+            type(tracker).updateCalibrationTargetStimulusCallBack = callback
         """
         return
     
@@ -1747,18 +1747,20 @@ class BaseController(object):
 
         ::
 
-            tracker = GazeParser.TrackingTools.getController(backend='VisionEgg')
-            calstim = [VisionEgg.MoreStimuli.Target2D(size=(5, 5), color=(1, 1, 1)),
-                       VisionEgg.MoreStimuli.Target2D(size=(2, 2), color=(0, 0, 0))]
+            tracker = GazeParser.TrackingTools.getController(backend='PsychoPy')
+            calstim = [psychopy.visual.Rect(win, width=4, height=4, units='pix'),
+                       psychopy.visual.Rect(win, width=2, height=2, units='pix')]
             tracker.setCalibrationTargetStimulus(calstim)
 
-            def callback(self, t, targetPos, currentPos):
-                if t<1.0:
-                    self.caltarget[0].parameters.size = ((20.0-19.0*t)*5, (20.0-19.0*t)*5)
-                else:
-                    self.caltarget[0].parameters.size = (5, 5)
+            def callback(self, t, targetPos, prevPos):
+                self.calTargetPosition = currentPosition
 
-            tracker.updateManualCalibrationTargetStimulusCallBack = callback
+                if t<1.0:
+                    self.caltarget[0].setSize(((10-9*t)*4,(10-9*t)*4))
+                else:
+                    self.caltarget[0].setSize((4,4))
+
+            type(tracker).updateManualCalibrationTargetStimulusCallBack = callback
         """
 
         if currentPosition[0] is None:
@@ -2059,373 +2061,8 @@ class BaseController(object):
         This method simply returns "config" parameter.
         This method must be overridden.
         
-        See also :func:`ControllerVisionEggBackend.setCurrentScreenParamsToConfig`
-        and :func:`ControllerPsychoPyBackend.setCurrentScreenParamsToConfig`.
+        See also :func:`ControllerPsychoPyBackend.setCurrentScreenParamsToConfig`.
         """
-        return config
-
-
-class ControllerVisionEggBackend(BaseController):
-    """
-    SimpleGazeTracker controller for VisionEgg.
-    """
-
-    def __init__(self, configFile=None):
-        """
-        :param str configFile: Controller configuration file. If None, default configurations are used.
-        """
-        from VisionEgg.Core import swap_buffers
-        from VisionEgg.Core import Viewport
-        from VisionEgg.Text import Text
-        from VisionEgg.Textures import Texture, TextureStimulus
-        from VisionEgg.MoreStimuli import Target2D, FilledCircle
-        from VisionEgg.GL import GL_NEAREST
-        from pygame import key, event, mouse
-        from pygame.locals import KEYDOWN, K_LEFT, K_RIGHT
-        self.VEswap_buffers = swap_buffers
-        self.VEViewport = Viewport
-        self.VETarget2D = Target2D
-        self.VEFilledCircle = FilledCircle
-        self.VETexture = Texture
-        self.VETextureStimulus = TextureStimulus
-        self.VEText = Text
-        self.VEGL_NEAREST = GL_NEAREST
-        self.VEKEYDOWN = KEYDOWN
-        self.VEkey = key
-        self.VEmouse = mouse
-        self.VEevent = event
-        self.VEK_LEFT = K_LEFT
-        self.VEK_RIGHT = K_RIGHT
-        self.backend = 'VisionEgg'
-        BaseController.__init__(self, configFile)
-
-    def setCalibrationScreen(self, screen, font_name=None):
-        """
-        Set calibration screen.
-
-        :param VisionEgg.Core.Screen screen: instance of VisionEgg.Core.Screen
-            to display calibration screen.
-        :param str font_name: font name.
-        """
-        self.screen = screen
-        (self.screenWidth, self.screenHeight) = screen.size
-        self.screenCenter = (screen.size[0]/2, screen.size[1]/2)
-        self.caltarget = self.VETarget2D(size=(10, 10), on=False, color=(0, 0, 0))
-        self.PILimgCAL = Image.new('L', (self.screenWidth-self.screenWidth % 4, self.screenHeight-self.screenHeight % 4))
-        self.texture = self.VETexture(self.PILimg)
-        self.calTexture = self.VETexture(self.PILimgCAL)
-        self.img = self.VETextureStimulus(texture=self.texture,
-                                          size=self.PILimg.size,
-                                          position=(self.screenWidth/2, self.screenHeight/2), anchor='center',
-                                          on=False,
-                                          texture_mag_filter=self.VEGL_NEAREST)
-        self.imgCal = self.VETextureStimulus(texture=self.calTexture,
-                                             size=self.PILimgCAL.size,
-                                             position=(self.screenWidth/2, self.screenHeight/2), anchor='center',
-                                             on=False,
-                                             texture_mag_filter=self.VEGL_NEAREST)
-        if font_name is None:
-            self.msgtext = self.VEText(position=(self.screenWidth/2, self.screenHeight/2-self.PREVIEW_HEIGHT/2-12),
-                                       anchor='center', font_size=24, text=self.getCurrentMenuItem())
-        else:
-            self.msgtext = self.VEText(position=(self.screenWidth/2, self.screenHeight/2-self.PREVIEW_HEIGHT/2-12),
-                                       anchor='center', font_size=24, text=self.getCurrentMenuItem(), font_name=font_name)
-        self.viewport = self.VEViewport(screen=screen, stimuli=[self.img, self.imgCal, self.caltarget, self.msgtext])
-        self.calResultScreenOrigin = (0, 0)
-
-    def updateScreen(self):
-        """
-        Update calibration screen.
-
-        *Usually, you don't need use this method.*
-        """
-        self.img.parameters.on = self.showCameraImage
-        self.imgCal.parameters.on = self.showCalImage
-        self.msgtext.parameters.on = self.SHOW_CALDISPLAY
-        if isinstance(self.caltarget, tuple):
-            for s in self.caltarget:
-                s.parameters.on = self.showCalTarget
-                s.parameters.position = self.calTargetPosition
-        else:
-            self.caltarget.parameters.on = self.showCalTarget
-            self.caltarget.parameters.position = self.calTargetPosition
-        self.msgtext.parameters.text = self.messageText
-
-        self.screen.clear()
-        self.viewport.draw()
-        self.VEswap_buffers()
-
-    def setCameraImage(self):
-        """
-        Set camera preview image.
-
-        *Usually, you don't need use this method.*
-        """
-        self.img.parameters.texture.get_texture_object().put_sub_image(self.PILimg)
-
-    def putCalibrationResultsImage(self):
-        """
-        Set calibration results screen.
-
-        *Usually, you don't need use this method.*
-        """
-        self.imgCal.parameters.texture.get_texture_object().put_sub_image(self.PILimgCAL)
-
-    def getKeys(self):
-        """
-        Get key events.
-
-        *Usually, you don't need use this method.*
-
-        .. note::
-            This method calls pygame.event.clear()
-        """
-        keys = [self.VEkey.name(e.key) for e in self.VEevent.get(self.VEKEYDOWN)]
-
-        keyin = self.VEkey.get_pressed()
-        if keyin[self.VEK_LEFT] and ('left' not in keys):
-            keys.append('left')
-        if keyin[self.VEK_RIGHT] and ('right' not in keys):
-            keys.append('right')
-
-        # clear event buffer
-        self.VEevent.clear()
-
-        return keys
-
-    def getMousePressed(self):
-        """
-        Get mouse button status.
-
-        *Usually, you don't need use this method.*
-
-        """
-        return self.VEmouse.get_pressed()
-
-    def setCalibrationTargetStimulus(self, stim):
-        """
-        Set calibration target.
-
-        :param stim: Stimulus object such as circle, rectangle, and so on.
-            A list of stimulus objects is also accepted.  If a list of stimulus
-            object is provided, the order of stimulus object corresponds to
-            the order of drawing.
-        """
-
-        if isinstance(stim, list) or isinstance(stim, tuple):
-            self.caltarget = tuple(stim)
-            stimlist = [self.img, self.imgCal]
-            stimlist.extend(self.caltarget)
-            stimlist.append(self.msgtext)
-            self.viewport = self.VEViewport(screen=self.screen, stimuli=stimlist)
-        else:  # suppose VisionEgg.Core.Stimulus
-            self.caltarget = stim
-            self.viewport = self.VEViewport(screen=self.screen, stimuli=[self.img, self.imgCal, self.caltarget, self.msgtext])
-
-    def getSpatialError(self, position=None, responseKey='space', message=None, responseMouseButton=None,
-                        gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey=None,
-                        showMarker=False, showBackground=False, ma=1):
-        """
-        Verify measurement error at a given position on the screen.
-
-        :param position:
-            A tuple of two numbers that represents target position in screen
-            coordinate.  If None, the center of the screen is used.
-            Default value is None.
-        :param responseKey:
-            When this key is pressed, eye position is measured and spatial error is
-            evaluated.  Default value is 'space'.
-        :param message:
-            If a string is given, the string is presented on the screen.
-            Default value is None.
-        :param responseMouseButton:
-            If this value is 0, left button of the mouse is also used to
-            measure eye position.  If the value is 2, right button is used.
-            If None, mouse buttons are ignored.
-            Default value is None.
-        :param gazeMarker:
-            Specify a stimulus which is presented on the current gaze position.
-            If None, default marker is used.
-            Default value is None.
-        :param backgroundStimuli:
-            Specify a list of stimuli which are presented as background stimuli.
-            If None, a gray circle is presented as background.
-            Default value is None.
-        :param str toggleMarkerKey:
-            Specify name of a key to toggle visibility of gaze marker.
-            Default value is 'm'.
-        :param str toggleBackgroundKey:
-            Specify name of a key to toggle visibility of background stimuli.
-            Default value is None.
-        :param bool showMarker:
-            If True, gaze marker is visible when getSpatialError is called.
-            Default value is False.
-        :param bool showBackground:
-            If True, gaze marker is visible when getSpatialError is called.
-            Default value is False.
-        :param int ma:
-            If this value is 1, the latest position is returned. If more than 1,
-            moving average of the latest N samples is returned (N is equal to
-            the value of this parameter). Default value is 1.
-
-        :return:
-            If recording mode is monocular, a tuple of two elements is returned.
-            The first element is the distance from target to measured eye position.
-            The second element is a tuple that represents measured eye position.
-            If measurement is failed, the first element is None.
-
-            If recording mode is binocular, a tuple of four elements is returned.
-            The first, second and third element is the distance from target to
-            measured eye position.  The second and third element are the results
-            for left eye and right eye, respectively.  These elements are None if
-            measurement of corresponding eye is failed.  The first element is
-            the average of the second and third element.  If measurement of either
-            Left or Right eye is failed, the first element is also None.
-            The fourth element is measured eye position.
-        """
-        if position is None:
-            position = self.screenCenter
-
-        if isinstance(self.caltarget, tuple):
-            for s in self.caltarget:
-                s.parameters.on = True
-                s.parameters.position = position
-        else:
-            self.caltarget.parameters.on = True
-            self.caltarget.parameters.position = position
-
-        if message is not None:
-            self.msgtext.parameters.text = message
-            mainViewport = self.VEViewport(screen=self.screen, stimuli=[self.caltarget, self.msgtext])
-        else:
-            mainViewport = self.VEViewport(screen=self.screen, stimuli=[self.caltarget])
-
-        isMarkerVisible = showMarker
-        isBackgroundVisible = showBackground
-        if gazeMarker is None:
-            gazeMarker = self.VETarget2D(size=(2, 2), color=(1, 1, 0))
-        gazeMarker.parameters.on = isMarkerVisible
-        if backgroundStimuli is None:
-            backgroundStimuli = [self.VEFilledCircle(radius=100, color=(0.6, 0.6, 0.6), position=position)]
-        for i in range(len(backgroundStimuli)):
-            backgroundStimuli[-(i+1)].parameters.on = isBackgroundVisible
-
-        markerViewport = self.VEViewport(screen=self.screen, stimuli=[gazeMarker])
-        backgroundViewport = self.VEViewport(screen=self.screen, stimuli=backgroundStimuli)
-
-        self.startMeasurement()
-
-        isWaitingKey = True
-        while isWaitingKey:
-            if responseMouseButton is not None:
-                if self.getMousePressed()[responseMouseButton] == 1:
-                    isWaitingKey = False
-                    eyepos = self.getEyePosition(ma=ma)
-                    break
-            keys = self.getKeys()
-            for key in keys:
-                if key == responseKey:
-                    isWaitingKey = False
-                    eyepos = self.getEyePosition(ma=ma)
-                    break
-                if key == toggleMarkerKey:
-                    isMarkerVisible = not isMarkerVisible
-                    gazeMarker.parameters.on = isMarkerVisible
-                if key == toggleBackgroundKey:
-                    isBackgroundVisible = not isBackgroundVisible
-                    for s in backgroundStimuli:
-                        s.parameters.on = isBackgroundVisible
-            if isMarkerVisible:
-                eyepos = self.getEyePosition(ma=ma)
-                if len(eyepos) == 2:
-                    if eyepos[0] is not None:
-                        gazeMarker.parameters.position = eyepos
-                else:
-                    if (eyepos[0] is not None) and (eyepos[1] is not None):
-                        gazeMarker.parameters.position = ((eyepos[0]+eyepos[2])/2.0, (eyepos[1]+eyepos[3])/2.0)
-            self.screen.clear()
-            backgroundViewport.draw()
-            mainViewport.draw()
-            markerViewport.draw()
-            self.VEswap_buffers()
-
-        self.stopMeasurement()
-
-        if len(eyepos) == 2:  # monocular
-            if eyepos[0] is None:
-                error = None
-            else:
-                error = numpy.linalg.norm((eyepos[0]-position[0], eyepos[1]-position[1]))
-            retval = (error, eyepos)
-
-        else:  # binocular
-            if eyepos[0] is None:
-                errorL = None
-            else:
-                errorL = numpy.linalg.norm((eyepos[0]-position[0], eyepos[1]-position[1]))
-            if eyepos[2] is None:
-                errorR = None
-            else:
-                errorR = numpy.linalg.norm((eyepos[2]-position[0], eyepos[3]-position[1]))
-
-            if (errorL is not None) and (errorR is not None):
-                error = (errorL+errorR)/2.0
-
-            retval = (error, errorL, errorR, eyepos)
-
-        return retval
-
-    # Override
-    def setCurrentScreenParamsToConfig(self, config, screenSize, distance):
-        """
-        Set current screen parameters to GazeParser.Configuration.Config object.
-        Following parameters will be updated.
-        
-        * SCREEN_ORIGIN
-        * TRACKER_ORIGIN
-        * SCREEN_WIDTH
-        * SCREEN_HEIGHT
-        * DOTS_PER_CENTIMETER_H
-        * DOTS_PER_CENTIMETER_V
-        * VIEWING_DISTANCE
-
-        :param GazeParser.Configuration.Config config: instance of 
-            GazeParser.Configuration.Config config object.
-        :param sequence screenSize: Size (width, height) of screen in 
-            **centimeters**.
-        :param float distance:  Viewing distance in **centimeter**.
-
-        :return:
-            Updated configuration object.
-        """
-        
-        try:
-            (w, h) = self.screen.size
-        except:
-            raise ValueError('Screen size is not available. Call setCalibrationScreen() first.')
-        
-        try:
-            d = float(distance)
-        except:
-            raise ValueError('distance must be a real number.')
-
-        try:
-            sw = float(screenSize[0])
-            sh = float(screenSize[1])
-        except:
-            raise ValueError('Screen width and height must be real numbers.')
-
-        dpcH = w/sw
-        dpcV = h/sh
-        
-        config.SCREEN_ORIGIN = 'BottomLeft'
-        config.TRACKER_ORIGIN = 'BottomLeft'
-        config.SCREEN_WIDTH = w
-        config.SCREEN_HEIGHT = h
-        config.VIEWING_DISTANCE = d
-        config.DOTS_PER_CENTIMETER_H = dpcH
-        config.DOTS_PER_CENTIMETER_V = dpcV
-        
         return config
 
 
@@ -3223,235 +2860,6 @@ class ControllerPsychoPyBackend(BaseController):
         
         return config
 
-class DummyVisionEggBackend(ControllerVisionEggBackend):
-    """
-    Dummy controller for VisionEgg.
-    """
-    def __init__(self, configFile):
-        ControllerVisionEggBackend.__init__(self, configFile)
-        # from pygame import mouse
-        # self.mouse = mouse
-        self.mousePosList = []
-        self.messageList = []
-        self.lastMousePosIndex = 0
-        self.recStartTime = 0
-
-    def isDummy(self):
-        """
-        Returns True if this controller is dummy.
-        """
-        return True
-
-    def connect(self, address='', portSend=10000, portRecv=10001):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        if address == '':
-            print('connect to default IP address=%s (dummy)' % (self.TRACKER_IP_ADDRESS))
-        else:
-            print('connect to %s (dummy)' % (address))
-
-    def openDataFile(self, filename):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        print('openDataFile (dummy): ' + filename)
-        self.datafilename = filename
-
-    def closeDataFile(self):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        print('close (dummy)')
-        self.datafilename = ''
-
-    def getEyePosition(self, timeout=0.02, getPupil=False, ma=1):
-        """
-        Dummy function for debugging. This method returns current mouse position.
-        """
-        pos = self.VEmouse.get_pos()
-        return (pos[0], self.screenHeight-pos[1])
-
-    def recordCurrentMousePos(self):
-        """
-        Record current mouse position.
-        This method is for debugging --- included only in dummy controller.
-        Therefore, make sure that your controller is dummy controller before
-        calling this method.
-
-        Example::
-
-            if tracker.isDummy():
-                tracker.recordCurrentMousePos()
-
-        """
-        pos = self.VEmouse.get_pos()
-        self.mousePosList.append([1000*(self.clock()-self.recStartTime), pos[0], self.screenHeight-pos[1], 0])
-
-    def getEyePositionList(self, n, timeout=0.02, getPupil=False):
-        """
-        Dummy function for debugging. This method returns mouse position list.
-        Use recordCurrentMousePos() method to record mouse position.
-        """
-        l = len(self.mousePosList)
-        while l <= numpy.abs(n):
-            self.mousePosList.insert(0,self.mousePosList[0])
-            l = len(self.mousePosList)
-        ml = numpy.array(self.mousePosList)
-        if n > 0:
-            if getPupil:
-                return ml[-1:l-n-1:-1]
-            else:
-                return ml[-1:l-n-1:-1, :3]
-        else:
-            nn = min(l-self.lastMousePosIndex, -n)
-            self.lastMousePosIndex = l
-            if getPupil:
-                return ml[-1:l-nn-1:-1]
-            else:
-                return ml[-1:l-nn-1:-1, :3]
-
-    def getWholeEyePositionList(self, timeout=0.02, getPupil=False):
-        """
-        Dummy function for debugging. This method returns mouse position list.
-        Use recordCurrentMousePos() method to record mouse position.
-        """
-        ml = numpy.array(self.mousePosList)
-
-        if getPupil:
-            return ml
-        else:
-            return ml[:, :3]
-
-    def getWholeMessageList(self, timeout=0.2):
-        """
-        Dummy function for debugging. This method emurates getWholeMessageList.
-        """
-        return self.messageList
-
-    def sendMessage(self, message):
-        """
-        Dummy function for debugging. This method emurates sendMessage.
-        """
-        print('sendMessage (dummy) %s' % message)
-        self.messageList.append(['#MESSAGE', 1000*(self.clock()-self.recStartTime), message])
-
-    def sendSettings(self, configDict):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        print('sendSettings (dummy)')
-
-    def startRecording(self, message='', wait=0.2):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        print('startRecording (dummy): ' + message)
-        self.mousePosList = []
-        self.lastMousePosIndex = 0
-        self.recStartTime = self.clock()
-
-    def stopRecording(self, message='', wait=0.2):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        print('stopRecording (dummy): ' + message)
-
-    def startMeasurement(self, message='', wait=0.2):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        print('startMeasurement (dummy): ' + message)
-        self.mousePosList = []
-        self.lastMousePosIndex = 0
-        self.recStartTime = self.clock()
-
-    def stopMeasurement(self, message='', wait=0.2):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        print('stopMeasurement (dummy): ' + message)
-
-    def getCurrentMenuItem(self, timeout=0.2):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        return 'Dummy Controller'
-
-    def getCalibrationResults(self, timeout=0.2):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        return 'Dummy Results'
-
-    def getCameraImage(self):
-        """
-        Dummy function for debugging. This method puts a text
-        'Camera Preview' at the top-left corner of camera preview screen.
-
-        *Usually, you don't need use this method.*
-        """
-        draw = ImageDraw.Draw(self.PILimg)
-        draw.rectangle(((0, 0), (self.IMAGE_WIDTH, self.IMAGE_HEIGHT)), fill=0)
-        draw.text((64, 64), 'Camera Preview', fill=255)
-        return None
-
-    def getCalibrationResultsDetail(self, timeout=0.2):
-        """
-        Dummy function for debugging. This method does nothing.
-        """
-        return None
-
-    def sendCommand(self, command):
-        """
-        Dummy function for debugging. This method outputs commands to
-        standard output instead of sending it to SimpleGazeTracker.
-        """
-        print('Dummy sendCommand: ' + command)
-
-    def setCalibrationScreen(self, screen, font_name=None):
-        """
-        Set calibration screen.
-        """
-        ControllerVisionEggBackend.setCalibrationScreen(self, screen, font_name=font_name)
-        draw = ImageDraw.Draw(self.PILimgCAL)
-        draw.rectangle(((0, 0), self.PILimgCAL.size), fill=0)
-        draw.text((64, 64), 'Calibration/Validation Results', fill=255)
-        self.putCalibrationResultsImage()
-
-    def doCalibration(self):
-        """
-        Emurates calibration procedure.
-        """
-        BaseController.doCalibration(self)
-        if self.SHOW_CALDISPLAY:
-            self.showCalImage = True
-        else:
-            self.showCalImage = False
-        self.messageText = 'Dummy Results'
-
-    def doValidation(self):
-        """
-        Emurates validation procedure.
-        """
-        BaseController.doValidation(self)
-        if self.SHOW_CALDISPLAY:
-            self.showCalImage = True
-        else:
-            self.showCalImage = False
-        self.messageText = 'Dummy Results'
-
-    def isBinocularMode(self, timeout=0.2):
-        """
-        Currently dummy controller emulates only monocular recording.
-        """
-        return False
-
-    def getCameraImageSize(self, timeout=0.2):
-        """
-        This dummy method simply returns current IMAGE_WIDTH and IMAGE_HEIGHT
-        """
-        return (self.IMAGE_WIDTH, self.IMAGE_HEIGHT)
 
 class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     """
@@ -3698,7 +3106,8 @@ def getController(backend, configFile=None, dummy=False):
     """
     Get Tracker controller object.
 
-    :param str backend: specify screen type. 'VisionEgg', 'PsychoPy.
+    :param str backend: specify screen type. Currently, only 'PsychoPy'
+        is accepted ('VisionEgg' is obsolated).
     :param stt configFile: Controller configuration file.
         If None, Tracker.cfg in the application directory is used.
         Default value is None.
@@ -3706,10 +3115,7 @@ def getController(backend, configFile=None, dummy=False):
         Default value is False.
     """
     if backend == 'VisionEgg':
-        if dummy:
-            return DummyVisionEggBackend(configFile)
-        else:
-            return ControllerVisionEggBackend(configFile)
+        raise ValueError('VisionEgg controller is obsolated.'
     elif backend == 'PsychoPy':
         if dummy:
             return DummyPsychoPyBackend(configFile)
@@ -3724,51 +3130,10 @@ def cameraDelayEstimationHelper(screen, tracker):
     A simple tool to help estimating measurement delay.
     See documents of GazeParser for detail.
 
-    :param screen: an instance of psychopy.visual.Window or VisionEgg.Core.Screen.
-    :param tracker: an instance of GazeParser.TrackingTools.ControllerPsychoPyBackend
-        or GazeParser.TrackingTools.ControllerVisionEggBackend.
+    :param screen: an instance of psychopy.visual.Window.
+    :param tracker: an instance of GazeParser.TrackingTools.ControllerPsychoPyBackend.
     """
-    if isinstance(tracker, ControllerVisionEggBackend):
-        import VisionEgg.Core
-        import VisionEgg.Text
-        import pygame
-        from pygame.locals import KEYDOWN, K_ESCAPE, K_SPACE
-
-        (x0, y0) = (screen.size[0]/2, screen.size[1]/2)
-        msg = VisionEgg.Text.Text(position=(x0, y0), font_size=64)
-        viewport = VisionEgg.Core.Viewport(screen=screen, stimuli=[msg])
-
-        msg.parameters.text = 'press space'
-        isWaiting = True
-        while isWaiting:
-            screen.clear()
-            viewport.draw()
-            VisionEgg.Core.swap_buffers()
-            for e in pygame.event.get():
-                if e.type == KEYDOWN and e.key == K_SPACE:
-                    isWaiting = False
-
-        tracker.sendCommand('inhibitRendering'+chr(0))
-
-        frame = 0
-        isRunning = True
-        while isRunning:
-            msg.parameters.text = str(frame)
-            screen.clear()
-            viewport.draw()
-            VisionEgg.Core.swap_buffers()
-
-            for e in pygame.event.get():
-                if e.type == KEYDOWN and e.key == K_ESCAPE:
-                    isRunning = False
-                elif e.type == KEYDOWN and e.key == K_SPACE:
-                    tracker.sendCommand('saveCameraImage'+chr(0)+'FRAME'+str(frame).zfill(8)+'.bmp'+chr(0))
-
-            frame += 1
-
-        tracker.sendCommand('allowRendering'+chr(0))
-
-    elif isinstance(tracker, ControllerPsychoPyBackend):
+    if isinstance(tracker, ControllerPsychoPyBackend):
         import psychopy.event
         import psychopy.visual
         msg = psychopy.visual.TextStim(screen, pos=(0, 0))
