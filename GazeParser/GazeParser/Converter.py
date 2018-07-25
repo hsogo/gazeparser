@@ -433,7 +433,7 @@ def applyFilter(T, HV, config, decimals=2):
     return numpy.vstack((filteredH, filteredV)).transpose()
 
 
-def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParameters=True, outputfile=None):
+def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParameters=True, outputfile=None, verbose=False):
     """
     Convert an SimpleGazeTracker data file to a GazeParser file.
     If GazeTracker data file name is 'foo.csv', the output file name is 'foo.db'
@@ -467,22 +467,23 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
         dstFileName = os.path.join(workDir, outputfile)
     usbioFormat = None
 
-    print('------------------------------------------------------------')
-    print('TrackerToGazeParser start.')
-    print('source file: %s' % inputfile)
+    if verbose:
+        print('------------------------------------------------------------')
+        print('TrackerToGazeParser start.')
+        print('source file: %s' % inputfile)
     if os.path.exists(dstFileName) and (not overwrite):
-        print('Target file (%s) already exist.' % dstFileName)
+        if vervose: print('Target file (%s) already exist.' % dstFileName)
         return 'TARGET_FILE_ALREADY_EXISTS'
 
     if not isinstance(config, GazeParser.Configuration.Config):
         if isinstance(config, str):
-            print('Load configuration file: %s' % config)
+            if verbose: print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif sys.version_info[0] == 2 and isinstance(config, unicode):
-            print('Load configuration file: %s' % config)
+            if verbose: print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif config is None:
-            print('Use default configuration.')
+            if verbose: print('Use default configuration.')
             config = GazeParser.Configuration.Config()
         else:
             raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
@@ -525,7 +526,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     flgInBlock = False
     isCheckedEffectiveDigit = False
     effectiveDigit = 2
-    print('parsing...')
+    if verbose: print('parsing...')
 
     for line in fid:
         itemList = line[:-1].rstrip().split(',')
@@ -634,60 +635,60 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 pass
             
             if not flgInBlock:
-                if useFileParameters:
-                    # SimpleGazeTracker options
-                    if itemList[0] == '#DATAFORMAT':
-                        idxT = idxX = idxY = idxP = idxC = idxUSBIO = None
-                        idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = None
-                        tmp = []
-                        print(itemList)
-                        for i in range(len(itemList)-1):
-                            if itemList[i+1].find('USBIO;') == 0:  # support USBIO
-                                idxUSBIO = i
-                                cmd = 'USBIO={}'.format(i)
-                                usbioFormat = itemList[i+1][6:].split(';')
-                                if len(usbioFormat[-1]) == 0:  # remove last item if empty
-                                    usbioFormat.pop(-1)
-                            else:
-                                if itemList[i+1] == 'T':
-                                    idxT = i
-                                elif itemList[i+1] == 'X':
-                                    idxX = i
-                                elif itemList[i+1] == 'Y':
-                                    idxY = i
-                                elif itemList[i+1] == 'P':
-                                    idxP = i
-                                elif itemList[i+1] == 'C':
-                                    idxC = i
-                                elif itemList[i+1] == 'LX':
-                                    idxLX = i
-                                elif itemList[i+1] == 'LY':
-                                    idxLY = i
-                                elif itemList[i+1] == 'RX':
-                                    idxRX = i
-                                elif itemList[i+1] == 'RY':
-                                    idxRY = i
-                                elif itemList[i+1] == 'LP':
-                                    idxLP = i
-                                elif itemList[i+1] == 'RP':
-                                    idxRP = i
-                                cmd = '{}={}'.format(itemList[i+1],i)
-                            tmp.append(cmd)
-                        print('DATAFORMAT: %s' % (','.join(tmp)))
+                # #DATAFORMAT must be loaded regardless of useFileParameters
+                if itemList[0] == '#DATAFORMAT':
+                    idxT = idxX = idxY = idxP = idxC = idxUSBIO = None
+                    idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = None
+                    tmp = []
+                    if verbose: print(itemList)
+                    for i in range(len(itemList)-1):
+                        if itemList[i+1].find('USBIO;') == 0:  # support USBIO
+                            idxUSBIO = i
+                            cmd = 'USBIO={}'.format(i)
+                            usbioFormat = itemList[i+1][6:].split(';')
+                            if len(usbioFormat[-1]) == 0:  # remove last item if empty
+                                usbioFormat.pop(-1)
+                        else:
+                            if itemList[i+1] == 'T':
+                                idxT = i
+                            elif itemList[i+1] == 'X':
+                                idxX = i
+                            elif itemList[i+1] == 'Y':
+                                idxY = i
+                            elif itemList[i+1] == 'P':
+                                idxP = i
+                            elif itemList[i+1] == 'C':
+                                idxC = i
+                            elif itemList[i+1] == 'LX':
+                                idxLX = i
+                            elif itemList[i+1] == 'LY':
+                                idxLY = i
+                            elif itemList[i+1] == 'RX':
+                                idxRX = i
+                            elif itemList[i+1] == 'RY':
+                                idxRY = i
+                            elif itemList[i+1] == 'LP':
+                                idxLP = i
+                            elif itemList[i+1] == 'RP':
+                                idxRP = i
+                            cmd = '{}={}'.format(itemList[i+1],i)
+                        tmp.append(cmd)
+                    if verbose: print('DATAFORMAT: %s' % (','.join(tmp)))
 
-                    # GazeParser options
+                # load GazeParser options if useFileParameters is True
+                elif useFileParameters:
                     optName = itemList[0][1:]
                     if optName in GazeParser.Configuration.GazeParserDefaults:
                         if type(GazeParser.Configuration.GazeParserDefaults[optName]) == float:
                             setattr(config, optName, float(itemList[1]))
-                            print('%s = %f' % (optName, getattr(config, optName)))
+                            if verbose: print('%s = %f' % (optName, getattr(config, optName)))
                         elif type(GazeParser.Configuration.GazeParserDefaults[optName]) == int:
                             setattr(config, optName, int(itemList[1]))
-                            print('%s = %d' % (optName, getattr(config, optName)))
+                            if verbose: print('%s = %d' % (optName, getattr(config, optName)))
                         else:  # str
                             setattr(config, optName, itemList[1])
-                            print('%s = %s' % (optName, getattr(config, optName)))
 
+                            if verbose: print('%s = %s' % (optName, getattr(config, optName)))
         else:  # gaze data
             if not isCheckedEffectiveDigit:
                 if config.RECORDED_EYE == 'B':
@@ -757,7 +758,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 except:
                     C.append(itemList[idxUSBIO])
 
-    print('saving...')
+    if verbose: print('saving...')
     if os.path.exists(additionalDataFileName):
         adfp = codecs.open(additionalDataFileName, 'r', 'utf-8')
         ad = []
@@ -776,7 +777,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     else:
         GazeParser.save(dstFileName, Data)
 
-    print('done.')
+    if verbose: print('done.')
     return 'SUCCESS'
 
 
