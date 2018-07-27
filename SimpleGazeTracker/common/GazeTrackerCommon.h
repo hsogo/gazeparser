@@ -28,7 +28,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#define snprintf sprintf_s
+//#define snprintf sprintf_s
 #define strncpy(dst,src,size) strcpy_s(dst,size,src)
 #define PATH_SEPARATOR "\\"
 #else
