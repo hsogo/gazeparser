@@ -104,7 +104,7 @@ int getDataDirectoryPath(std::string* path)
 int getApplicationDirectoryPath(std::string* path)
 {
 	char buff[1024];
-	int index;
+	size_t index;
 #ifdef _WIN32
 	GetModuleFileName(NULL,buff,sizeof(buff));
 	path->assign(buff);
