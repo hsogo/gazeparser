@@ -53,6 +53,7 @@ SimpleGazeTracker/debian_flycap/simplegazetracker/
 *.user
 *.opensdf
 SimpleGazeTracker/ipch
+SimpleGazeTracker/.vs
 [Dd]ebug*/
 [Rr]elease*/
 
