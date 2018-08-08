@@ -3115,7 +3115,7 @@ def getController(backend, configFile=None, dummy=False):
         Default value is False.
     """
     if backend == 'VisionEgg':
-        raise ValueError('VisionEgg controller is obsolated.'
+        raise ValueError('VisionEgg controller is obsolated.')
     elif backend == 'PsychoPy':
         if dummy:
             return DummyPsychoPyBackend(configFile)
