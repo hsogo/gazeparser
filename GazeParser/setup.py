@@ -1,11 +1,10 @@
 #!/usr/bin/env python
+
 from setuptools import setup, find_packages
 import sys
 import os
 
-from GazeParser import __version__
-
-version = __version__
+version = '0.11.0'
 
 setup(name='GazeParser',
       version=version,
