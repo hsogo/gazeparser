@@ -245,6 +245,7 @@ extern int checkAndCopyFile(std::string path, const char* filename, std::string 
 extern int openLocation(std::string location);
 extern std::string joinPath(const char* p1, const char* p2);
 extern std::string joinPath(std::string p1, std::string p2);
+extern std::string getCurrentWorkingDirectory(void);
 
 //USBIO
 extern bool g_useUSBIO;

@@ -17,11 +17,13 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <shlwapi.h>
+#include <direct.h>
 LARGE_INTEGER g_CounterFreq;
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <unistd.h>
 #endif
 
 #include <string>
@@ -342,4 +344,17 @@ std::string joinPath(std::string p1, std::string p2)
 	res.append(p2);
 
 	return res;
+}
+
+std::string getCurrentWorkingDirectory()
+{
+	std::string cwd;
+	char buff[FILENAME_MAX];
+#ifdef _WIN32
+	_getcwd(buff, FILENAME_MAX);
+#else
+	getcwd(buff, FILENAME_MAX);
+#endif
+	cwd.assign(buff);
+	return cwd;
 }
