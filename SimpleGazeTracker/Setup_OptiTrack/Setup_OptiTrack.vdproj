@@ -15,6 +15,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_00DCF315B51E44DB94172BDD91E121EE"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_13D8AEB7C9ED4A60BFA55D8D457FAAC0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -22,12 +28,6 @@
         "Entry"
         {
         "MsmKey" = "8:_435D1DF3CF5B40E1824497DCC0061819"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_5033FDFB522B482893E8928AEB3099B6"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -46,6 +46,12 @@
         "Entry"
         {
         "MsmKey" = "8:_7F028EEC8A344FFDAA22FFEABD90D4FB"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_7F6FD9E679264269AD04D12B1D92B40D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -75,19 +81,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_9677D8F5895D40C18C7EA2DC34D85E5F"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_AE5AD66EBB1C4FA3B85C4838E10DED7B"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_D18BB3F1AE924ED193A76AFB88659D19"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_D356A5F20C8D4A2C95E907185ACC273D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -202,6 +202,26 @@
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_00DCF315B51E44DB94172BDD91E121EE"
+            {
+            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world342.dll"
+            "TargetName" = "8:opencv_world342.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_13D8AEB7C9ED4A60BFA55D8D457FAAC0"
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_ttf.dll"
@@ -242,26 +262,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5033FDFB522B482893E8928AEB3099B6"
-            {
-            "SourcePath" = "8:C:\\Program Files (x86)\\OptiTrack\\Camera SDK\\lib\\CameraLibrary2010S.dll"
-            "TargetName" = "8:CameraLibrary2010S.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_72BB2653597D4449933B5A4948652BE8"
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_net.dll"
@@ -286,6 +286,26 @@
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\libfreetype-6.dll"
             "TargetName" = "8:libfreetype-6.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7F6FD9E679264269AD04D12B1D92B40D"
+            {
+            "SourcePath" = "8:C:\\Program Files (x86)\\Measurement Computing\\DAQ\\cbw64.dll"
+            "TargetName" = "8:cbw64.dll"
             "Tag" = "8:"
             "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
             "Condition" = "8:"
@@ -362,50 +382,30 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9677D8F5895D40C18C7EA2DC34D85E5F"
-            {
-            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world300.dll"
-            "TargetName" = "8:opencv_world300.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AE5AD66EBB1C4FA3B85C4838E10DED7B"
-            {
-            "SourcePath" = "8:C:\\Program Files (x86)\\Measurement Computing\\DAQ\\cbw32.dll"
-            "TargetName" = "8:cbw32.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D18BB3F1AE924ED193A76AFB88659D19"
             {
             "SourcePath" = "8:..\\FreeSans.ttf"
             "TargetName" = "8:FreeSans.ttf"
+            "Tag" = "8:"
+            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D356A5F20C8D4A2C95E907185ACC273D"
+            {
+            "SourcePath" = "8:C:\\Program Files (x86)\\OptiTrack\\Camera SDK\\lib\\CameraLibrary2015x64S.dll"
+            "TargetName" = "8:CameraLibrary2015x64S.dll"
             "Tag" = "8:"
             "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
             "Condition" = "8:"
@@ -458,6 +458,17 @@
             "Property" = "8:TARGETDIR"
                 "Folders"
                 {
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_4B2D34FC1B1741E08AAA9DCB83AD4B42"
+                    {
+                    "Name" = "8:doc"
+                    "AlwaysCreate" = "11:FALSE"
+                    "Condition" = "8:"
+                    "Transitive" = "11:FALSE"
+                    "Property" = "8:_A634A983A3CF475BA77C7BE4546FAB6B"
+                        "Folders"
+                        {
+                        }
+                    }
                 }
             }
             "{1525181F-901A-416C-8A58-119130FE478E}:_C9F22AE4416948619A9D020F15D2FB76"
@@ -532,7 +543,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(OptiTrack)"
         "ProductCode" = "8:{DD0BF6AF-52D1-431A-8C47-E974E41C0CF7}"
-        "PackageCode" = "8:{CF4EADAA-DD20-4154-B62A-161C83DB70C6}"
+        "PackageCode" = "8:{2EDC90E9-D29E-43A7-8D1C-F7487C3ADF33}"
         "UpgradeCode" = "8:{78979124-0A62-4AA8-ABAB-E9F3208CED90}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1154,6 +1165,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:Built"
             "OutputProjectGuid" = "8:{42A0F499-EE76-4E8E-9EAE-7EC5AF6C95B8}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_B408C758A5DC4B919073E96F5F01390D"
+            {
+            "SourcePath" = "8:"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_4B2D34FC1B1741E08AAA9DCB83AD4B42"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:ContentFiles"
+            "OutputProjectGuid" = "8:{3CA893A5-6842-4B0B-816F-622C3F2635CE}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
