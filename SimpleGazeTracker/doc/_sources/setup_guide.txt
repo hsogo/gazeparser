@@ -1,0 +1,62 @@
+Camera setup guide
+=================================================================
+
+1. Adjust camera position
+------------------------------------------------------------
+
+Camera should be positioned in front of participant's eye and below participant's eye-level.
+Elevation angle of the camera should not be too large.
+
+.. figure:: setup001.png
+
+Direction of the camera and the lighting should not be too close.
+Pupil must be darker than iris (called "dark pupil") for SimpleGazeTracker to detect puipl.  If direction of the camera and the lighting is too close, pupil looks brighter tha iris (called "bright pupil).
+
+.. figure:: setup002.png
+
+.. note::
+
+    Optitrack Flex3 has built-in LED lighting around the lens, which may cause bright pupil.  To avoid bright pupil, don't place Flex3 too distant from the participant's eye.
+
+The Purkinje image (reflection of the lighting) should be on the cornea.
+Confirm that the Purkinje image stays on the cornea regardless of participant's eye movement.
+
+.. figure:: setup003.png
+
+Here are examples of camera setup.
+
+.. figure:: example001.jpg
+
+    OptiTrack V100R2 (old name of Flex3) with 25mm lens, Manfrotto 3-way head and Etsumi sliding plate
+
+.. figure:: example002.jpg
+
+    IMPERX Bobcat ICL-B0620 with 10-40mm lens, Manfrotto 3-way head and Etsumi sliding plate
+
+2. Adjust PupilThreshold, MinPupilWidth and MaxPupilWidth
+------------------------------------------------------------
+
+SimpleGazeTracker considers areas darker than **PupilThreshold** as pupil candicates.
+Threfore, it is important to adjust **PupilThreshold** so that brightness of the pupil is below **PupilThreshold** while brightness of iris is above **PupilThreshold**.
+
+.. figure:: setup004.png
+
+In order to detect pupil effectively, SimpleGazeTracker ignores dark areas narrower than **MinPupilWidth** or wider than **MaxPupilWidth**.
+These values are represented as a percentage of the camera image width.  For example, when the camera image width is 640 pix and **MaxPupilWidth** is 10, areas wider than 64 pix (10% of 640 pix) are ignored.
+
+.. figure:: setup005.png
+
+
+3. Adjust PurkinjeSearchArea, PurkinjeExcludeArea
+------------------------------------------------------------
+
+After the pupil is detected, SimpleGazeTracker searches for the Purkinje image.
+**PurkinjeSearchArea** determines width and hight of the search area.
+The search area must be large enough to include the Purkinje area, but at the same time it should not be too large.
+
+.. figure:: setup006.png
+
+Finally, **PurkinjeSearchArea** should be adjusted so that a yellow circle drawn around the Purkinje image is slightly larger than the Purkinje image.
+The edges of the pupil within this yellow circle is excluded from calclating the center of the pupil to implove accuracy of calcuration.
+
+.. figure:: setup007.png

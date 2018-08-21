@@ -1,0 +1,14 @@
+Keys
+============================================================
+
+============ ==============================================================
+Key          Description
+============ ==============================================================
+Up/Down      Select menu item
+left/right   Decrease/increase parameter
+Q            Quit SimpleGazeTracker
+S            Save calibration data (to the current data file)
+I            Save camera image 
+L            Toggle "live view" durign recording
+H            Show HTML help on browser
+============ ==============================================================

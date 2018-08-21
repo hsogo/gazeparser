@@ -1,0 +1,47 @@
+Commandline options
+==========================================
+
+Changing configuration and data directories
+--------------------------------------------
+
+===================== ==================================================================================
+option                Description
+===================== ==================================================================================
+-configdir=DIR        Specify directory where SimpleGazeTracker's configuration files are located.
+                      If this parameter is not given, default directory is used. Spaces are not allowed
+                      before and after '='.
+-datadir=DIR          Specify directory where SimpleGazeTracker's log files and data files are 
+                      output. If this parameter is not given, default directory is used.
+                      Spaces are not allowed before and after '='.
+-config=FILE          Specify name of configuration file. Spaces are not allowed before and after '='.
+-cameraconfig=FILE    Specify name of camera-specific configuration file.
+                      Spaces are not allowed before and after '='.
+===================== ==================================================================================
+
+Examples
+^^^^^^^^^^^^^^^^^^^^^^
+
+Using C:\\work\\my_config.txt as configuration file (SimpleGazeTracker GPC5300 edition).::
+
+    SimpleGazeTracker_GPC5300.exe -configdir=C:\\work -config=my_config.txt
+
+Please note that -configdir and -config are combined to get full path of configuration file.
+Therefore, following option does't work.::
+
+    SimpleGazeTracker_GPC5300.exe -config=c:\\work\\my_config.txt
+
+Using "my config.txt" in the SimpleGazeTracker's default configuration directory as configuration file (SimpleGazeTracker FlyCapture2 edition).
+Note that the filename includes a space charactor.::
+
+    SimpleGazeTracker_FlyCapture2.exe "-config=my config.txt"
+
+
+Using C:\\work\\my_config.txt and C:\\work\\my_cameraconfig.txt as configuration file (SimpleGazeTracker OptiTrack edition).::
+
+    SimpleGazeTracker_OptiTrack.exe -configdir=C:\\work -config=my_config.txt -cameraconfig=my_cameraconfig.txt
+
+
+Setting ~/Desktop/data to SimpleGazeTracker Output directory (OpenCV edition on Ubuntu). Note that environment variable does not work on Windows.::
+
+    sgtsrv -datadir=$HOME/Desktop/data
+

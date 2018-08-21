@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Commandline options &mdash; SimpleGazeTracker Help 0.11.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.11.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SimpleGazeTracker Help 0.11.0 documentation" href="index.html" />
+    <link rel="next" title="Configuration file and Data directory" href="configdir.html" />
+    <link rel="prev" title="SimpleGazeTracker Help" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="commandline-options">
+<h1>Commandline options<a class="headerlink" href="#commandline-options" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="changing-configuration-and-data-directories">
+<h2>Changing configuration and data directories<a class="headerlink" href="#changing-configuration-and-data-directories" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="80%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>-configdir=DIR</td>
+<td>Specify directory where SimpleGazeTracker&#8217;s configuration files are located.
+If this parameter is not given, default directory is used. Spaces are not allowed
+before and after &#8216;=&#8217;.</td>
+</tr>
+<tr class="row-odd"><td>-datadir=DIR</td>
+<td>Specify directory where SimpleGazeTracker&#8217;s log files and data files are
+output. If this parameter is not given, default directory is used.
+Spaces are not allowed before and after &#8216;=&#8217;.</td>
+</tr>
+<tr class="row-even"><td>-config=FILE</td>
+<td>Specify name of configuration file. Spaces are not allowed before and after &#8216;=&#8217;.</td>
+</tr>
+<tr class="row-odd"><td>-cameraconfig=FILE</td>
+<td>Specify name of camera-specific configuration file.
+Spaces are not allowed before and after &#8216;=&#8217;.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>Using C:\work\my_config.txt as configuration file (SimpleGazeTracker GPC5300 edition).:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>SimpleGazeTracker_GPC5300.exe -configdir=C:\\work -config=my_config.txt
+</pre></div>
+</div>
+<p>Please note that -configdir and -config are combined to get full path of configuration file.
+Therefore, following option does&#8217;t work.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>SimpleGazeTracker_GPC5300.exe -config=c:\\work\\my_config.txt
+</pre></div>
+</div>
+<p>Using &#8220;my config.txt&#8221; in the SimpleGazeTracker&#8217;s default configuration directory as configuration file (SimpleGazeTracker FlyCapture2 edition).
+Note that the filename includes a space charactor.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>SimpleGazeTracker_FlyCapture2.exe &quot;-config=my config.txt&quot;
+</pre></div>
+</div>
+<p>Using C:\work\my_config.txt and C:\work\my_cameraconfig.txt as configuration file (SimpleGazeTracker OptiTrack edition).:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>SimpleGazeTracker_OptiTrack.exe -configdir=C:\\work -config=my_config.txt -cameraconfig=my_cameraconfig.txt
+</pre></div>
+</div>
+<p>Setting ~/Desktop/data to SimpleGazeTracker Output directory (OpenCV edition on Ubuntu). Note that environment variable does not work on Windows.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>sgtsrv -datadir=$HOME/Desktop/data
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Commandline options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configdir.html">Configuration file and Data directory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="keys.html">Keys</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup_guide.html">Camera setup guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="online.html">Online resources</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">SimpleGazeTracker Help</a></li>
+      <li>Next: <a href="configdir.html" title="next chapter">Configuration file and Data directory</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Hiroyuki Sogo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/commandline.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

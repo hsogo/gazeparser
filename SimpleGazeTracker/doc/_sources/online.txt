@@ -1,0 +1,4 @@
+Online resources
+======================================
+
+- `GazeParser/SimpleGazeTracker document <http://gazeparser.sourceforge.net/>`_
