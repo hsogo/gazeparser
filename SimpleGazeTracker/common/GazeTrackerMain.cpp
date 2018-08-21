@@ -425,6 +425,44 @@ int saveParameters( void )
 	return S_OK;
 }
 
+
+/*
+openHTMLdoc: open HTML help document
+
+@param[in] doc Name of document file
+
+@return E_FAIL if document is not found.
+@date 2018/08/21 Created.
+*/
+int openHTMLdoc(std::string doc)
+{
+	std::string path;
+	path.assign(g_AppDirPath);
+	path.append(PATH_SEPARATOR);
+	path.append("doc");
+
+	if (checkFile(path, doc.c_str())==E_FAIL) {
+		const size_t last_slash_idx = g_AppDirPath.rfind(PATH_SEPARATOR);
+		if (std::string::npos == last_slash_idx)
+			return E_FAIL;
+
+		path = g_AppDirPath.substr(0, last_slash_idx);
+		path.append(PATH_SEPARATOR);
+		path.append("doc");
+
+		if (checkFile(path, doc.c_str())==E_FAIL)
+			return E_FAIL;
+	}
+
+	path.insert(0, "file://");
+	path.append(PATH_SEPARATOR);
+	path.append(doc);
+
+	openLocation(path);
+
+	return S_OK;
+}
+
 /*!
 updateMenuText: update menu text.
 
@@ -1411,13 +1449,10 @@ int main(int argc, char** argv)
 			SDL_arraysize(sdlYesNoMessageBoxButtons), sdlYesNoMessageBoxButtons, NULL
 		};
 		if (SDL_ShowMessageBox(&messageboxdata, &sdlButtonID) >= 0 && sdlButtonID == 0) {
-			std::string tutorialPath("file://");
-			tutorialPath.append(g_AppDirPath);
-			tutorialPath.append(PATH_SEPARATOR);
-			tutorialPath.append("doc");
-			tutorialPath.append(PATH_SEPARATOR);
-			tutorialPath.append("setup_guide.html");
-			openLocation(tutorialPath);
+			if (openHTMLdoc("setup_guide.html") == E_FAIL) {
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+					"Error", "Help document is not installed.", NULL);
+			}
 		}
 		g_openSetupGuide = false;
 	}
@@ -1475,13 +1510,10 @@ int main(int argc, char** argv)
 							"SimpleGazeTracker Help",
 							"q: [Q]uit\ns: [S]ave calibration data\ni: save camera [I]mage\nl:toggle [L]ive view during recording\nh: show this [H]elp\n\nup/down: select menu item\nleft/right: adjust parameter",
 							NULL);*/
-						std::string tutorialPath("file://");
-						tutorialPath.append(g_AppDirPath);
-						tutorialPath.append(PATH_SEPARATOR);
-						tutorialPath.append("doc");
-						tutorialPath.append(PATH_SEPARATOR);
-						tutorialPath.append("keys.html");
-						openLocation(tutorialPath);
+						if (openHTMLdoc("index.html") == E_FAIL) {
+							SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+								"Error", "Help document is not installed.", NULL);
+						}
 					}
 					break;
 

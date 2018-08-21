@@ -316,11 +316,13 @@ int openLocation(std::string location)
 	std::string cmd;
 
 #ifdef _WIN32
-	cmd.assign("start ");
+	cmd.assign("start \"SimpleGazeTracker\" \"");
+	cmd.append(location);
+	cmd.append("\"");
 #else
 	cmd.assign("xdg-open ");
-#endif
 	cmd.append(location);
+#endif
 	return system(cmd.c_str());
 }
 
