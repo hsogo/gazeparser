@@ -3,9 +3,16 @@
 .. Copyright (C) 2012-2015 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
-import ConfigParser
+import sys
+if sys.version_info[0] == 2:
+    import ConfigParser as configparser
+else:
+    import configparser
 import GazeParser
 
 GazeParserDefaults = {
@@ -64,14 +71,14 @@ class Config(object):
             application directory.
             Default value is None.
         """
-        cfgp = ConfigParser.SafeConfigParser()
+        cfgp = configparser.SafeConfigParser()
         cfgp.optionxform = str
         if ConfigFile is None:
             ConfigFile = os.path.join(GazeParser.configDir, 'GazeParser.cfg')
             if not os.path.isfile(ConfigFile):
                 ConfigFile = os.path.join(GazeParser.appDir, 'GazeParser.cfg')
                 if not os.path.isfile(ConfigFile):
-                    print 'Warning: configuration file (%s) was not found. Default parameters were set.' % ConfigFile
+                    print('Warning: configuration file (%s) was not found. Default parameters were set.' % ConfigFile)
                     self.ConfigFile = None
         self.ConfigFile = ConfigFile
 
@@ -94,7 +101,7 @@ class Config(object):
                     setattr(self, option, value)
                     optionDict[option] = value
             except:
-                print 'Warning: %s is not properly defined in GazeParser configuration file(%s). Default value is used.' % (option, self.ConfigFile)
+                print('Warning: %s is not properly defined in GazeParser configuration file(%s). Default value is used.' % (option, self.ConfigFile))
                 setattr(self, option, GazeParserDefaults[option])
                 optionDict[option] = GazeParserDefaults[option]
 
@@ -122,8 +129,15 @@ class Config(object):
         """
         Print all parameters holded in this object.
         """
+        missing = []
         for key in GazeParserOptions:
-            print '%s = %s' % (key, getattr(self, key))
+            if hasattr(self, key):
+                print('%s = %s' % (key, getattr(self, key)))
+            else:
+                missing.append(key)
+            
+        if len(missing)>0:
+            print('Warining: missing parameters: {}'.format(', '.join(missing)))
 
     def getParametersAsDict(self):
         """
@@ -133,3 +147,43 @@ class Config(object):
         for key in GazeParserOptions:
             optionDict[key] = getattr(self, key)
         return optionDict
+    
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+        params = []
+        missing = []
+        for key in GazeParserOptions:
+            if hasattr(self, key):
+                params.append('{}:{}'.format(key, getattr(self, key)))
+            else:
+                missing.append(key)
+        
+        msg += ', '.join(params)
+        
+        if len(missing)>0:
+            msg += ', Warining: missing parameters:{}'.format(', '.join(missing))
+        
+        msg += '>'
+        
+        return msg
+
+    def __str__(self):
+        msg = '<{}.{}\n'.format(self.__class__.__module__,
+                                self.__class__.__name__)
+        params = []
+        missing = []
+        for key in GazeParserOptions:
+            if hasattr(self, key):
+                params.append(' {} = {}'.format(key, getattr(self, key)))
+            else:
+                missing.append(key)
+        
+        msg += '\n'.join(params)
+        
+        if len(missing)>0:
+            msg += '\nWarining: missing parameters:{}'.format(', '.join(missing))
+        
+        msg += '>'
+        
+        return msg

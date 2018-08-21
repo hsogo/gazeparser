@@ -3,11 +3,17 @@
 .. Copyright (C) 2012-2015 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import GazeParser
 import numpy
 import re
+import sys
+import locale
 
+float_tolerance = 0.000000000001
 
 class SaccadeData(object):
     """
@@ -143,6 +149,34 @@ class SaccadeData(object):
 
     def getPreviousEvent(self, step=1, eventType=None):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
+    
+    def __eq__(self, other):
+        if not isinstance(other, SaccadeData):
+            return False
+        for attr in ('startTime', 'endTime', 'duration', 'amplitude', 'length'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('direction',):
+            # return value of arctan2() may be different between 32bit and 64bit Python.
+            if getattr(self, attr) - getattr(other, attr) > float_tolerance:
+                return False
+        for attr in ('start', 'end'):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+        
+        msg += '{:.3f}s, [ {} {}], {:.1f}, {:.1f}>'.format(
+            self.startTime/1000.0, self.start[0], self.start[1],
+            numpy.rad2deg(self.direction), self.length)
+        
+        return msg
 
 
 class FixationData(object):
@@ -264,6 +298,28 @@ class FixationData(object):
     def getPreviousEvent(self, step=1, eventType=None):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
 
+    def __eq__(self, other):
+        if not isinstance(other, FixationData):
+            return False
+        for attr in ('startTime', 'endTime', 'duration'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('center', ):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+        
+        msg += '{:.3f}s, {:.1f}ms, [ {:.1f} {:.1f}]>'.format(self.startTime/1000.0, self.duration, self.center[0], self.center[1])
+        
+        return msg
+
 
 class MessageData(object):
     """
@@ -320,6 +376,46 @@ class MessageData(object):
         if self._parent is not None:
             self._parent.sortMessagesByTime()
             self._parent.sortEventListByTime()
+
+    def __eq__(self, other):
+        if not isinstance(other, MessageData):
+            return False
+        for attr in ('time', 'text'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+
+        if len(self.text) > 16:
+            text = self.text[:13]+'...'
+        else:
+            text = self.text
+        
+        msg += '{:.3f}s, {}>'.format(self.time/1000.0, repr(text))
+        
+        return msg
+
+    def __str__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+
+        if len(self.text) > 16:
+            text = self.text[:13]+'...'
+        else:
+            text = self.text
+        
+        if sys.version_info[0] == 2:
+            msg += '{:.3f}s, {}>'.format(self.time/1000.0, text.encode(locale.getpreferredencoding()))
+        else:
+            msg += '{:.3f}s, {}>'.format(self.time/1000.0, text)
+        
+        return msg
 
 
 class BlinkData(object):
@@ -408,6 +504,25 @@ class BlinkData(object):
     def getPreviousEvent(self, step=1, eventType=None):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
 
+    def __eq__(self, other):
+        if not isinstance(other, BlinkData):
+            return False
+        for attr in ('startTime', 'endTime', 'duration'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+        
+        msg += '{:.3f}s, {:.1f}ms>'.format(self.startTime/1000.0, self.duration)
+        
+        return msg
+
 
 class CalPointData(object):
     """
@@ -476,6 +591,28 @@ class CalPointData(object):
             return self._precision[2:4]
         else: # B
             return self._precision[0:4]
+
+    def __eq__(self, other):
+        if not isinstance(other, MessageData):
+            return False
+        for attr in ('recordedEye', ):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('point', 'accuracy', 'precision'):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+        
+        msg += '{accuracy:.3f}, {precision:.3f}>'.format(self.accuracy, self.precision)
+        
+        return msg
 
 
 class GazeData(object):
@@ -918,7 +1055,12 @@ class GazeData(object):
            gazedata.findNearestIndexFromMessage(msg) is equivalent to
            gazedata.findIndexFromTime(msg.time)
         """
-        return self.findNearestIndexFromTime(self.Msg[message].time)
+        if isinstance(message, int):
+            return self.findIndexFromTime(self.Msg[message].time)
+        elif isinstance(message, MessageData):
+            return self.findIndexFromTime(message.time)
+        else:
+            raise ValueError('message must be integer or MessageData object.')
 
     def findIndexFromTime(self, time):
         """
@@ -993,7 +1135,7 @@ class GazeData(object):
             try:
                 idxMsg = numpy.where(self._Msg == message)[0]
             except:
-                print 'Could not find message.'
+                print('Could not find message.')
                 raise
         else:
             raise ValueError('\'message\' must be an index or an instance of MessgeData object.')
@@ -1429,3 +1571,65 @@ class GazeData(object):
             return a
         else:
             raise ValueError('contents must be \'point\', \'accuracy\', \'precision\' or \'All\'.')
+
+    def __eq__(self, other):
+        if not isinstance(other, GazeData):
+            return False
+        for attr in ('L', 'R', 'T', 'Pupil'):
+            attr1 = getattr(self, attr)
+            attr2 = getattr(other, attr)
+            if isinstance(attr1, numpy.ndarray) and isinstance(attr2, numpy.ndarray):
+                if not numpy.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
+                    return False
+            elif attr1 is None and isinstance(attr2, numpy.ndarray):
+                return False
+            elif attr2 is None and isinstance(attr1, numpy.ndarray):
+                return False
+        for attr in ('nSac', 'nFix', 'nMsg', 'nBlink', 'recordedEye', 'recordingDate'):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        for attr in ('Sac', 'Fix', 'Msg', 'Blink'):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+
+        if hasattr(self, 'recordingDate'):
+            date = '{:d}/{:02d}/{:02d}-{:02d}:{:02d}:{:02d}'.format(*self.recordingDate)
+            msg += '{}, {}, {:.1f}s>'.format(date, self.recordedEye, self.T[-1]/1000.0)
+        else:
+            msg += 'no_date, {}, {:.1f}s>'.format(self.recordedEye, self.T[-1]/1000.0)
+        
+        return msg
+
+    def _compare(self, other):
+        """
+        This functions is basically equal to __eq__, but outputs difference.
+        """
+        if not isinstance(other, GazeData):
+            print('The parameter is not GazeData object.')
+            return
+        for attr in ('L', 'R', 'T', 'Pupil'):
+            attr1 = getattr(self, attr)
+            attr2 = getattr(other, attr)
+            if isinstance(attr1, numpy.ndarray) and isinstance(attr2, numpy.ndarray):
+                if not numpy.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
+                    print('"{}" is different'.format(attr))
+            elif attr1 is None and isinstance(attr2, numpy.ndarray):
+                print('"{}" is different'.format(attr))
+            elif attr2 is None and isinstance(attr1, numpy.ndarray):
+                print('"{}" is different'.format(attr))
+        for attr in ('nSac', 'nFix', 'nMsg', 'nBlink', 'recordedEye', 'recordingDate'):
+            if getattr(self, attr) != getattr(other, attr):
+                print('"{}" is different'.format(attr))
+                return
+        for attr in ('Sac', 'Fix', 'Msg', 'Blink'):
+            if (getattr(self, attr) != getattr(other, attr)).any():
+                print('"{}" is different'.format(attr))
+                return

@@ -51,9 +51,12 @@ SimpleGazeTracker/debian_flycap/simplegazetracker/
 *.tli
 *.tlog
 *.user
+*.opensdf
 SimpleGazeTracker/ipch
+SimpleGazeTracker/.vs
 [Dd]ebug*/
 [Rr]elease*/
 
 #Windows
 Thumbs.db
+

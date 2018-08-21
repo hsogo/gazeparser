@@ -67,11 +67,9 @@ if GazeParserInstallDir is None:
 ver = map(int, psychopy.__version__.split('.'))
 if ver[0]>1 or (ver[0] == 1 and ver[1] >= 84):
     componentsSourceDir = 'GazeParserComponents'
-elif ver[0] == 1 and (ver[1] == 83 or (ver[1] == 82 and ver[2] >= 2)):
-    componentsSourceDir = 'GazeParserComponents1.83'
 else: #old version
-    print 'To use GazeParser PsychoPy components, PsychoPy version must be 1.82.02 or later (current: %s).  Components were not set up.' % psychopy.__version__
-    dlg = psychopy.app.dialogs.MessageDialog(message='To use GazeParser PsychoPy components, PsychoPy version must be 1.82.02 or later (current: %s).\nComponents were not set up.' % psychopy.__version__, type='Info')
+    print 'To use GazeParser PsychoPy components, PsychoPy version must be 1.84.0 or later (current: %s).  Components were not set up.' % psychopy.__version__
+    dlg = psychopy.app.dialogs.MessageDialog(message='To use GazeParser PsychoPy components, PsychoPy version must be 1.84.00 or later (current: %s).\nComponents were not set up.' % psychopy.__version__, type='Info')
     dlg.Show()
     sys.exit(-1)
 

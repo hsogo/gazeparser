@@ -28,9 +28,11 @@ REFERENCE:
  of covert attention. Vision Res, 43(9), 1035-1045.
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy
-import scipy.stats
 from GazeParser.Core import SaccadeData
 
 
@@ -47,6 +49,21 @@ class MicroSacc(object):
             Default value is 6.
         :param int minSamples: Microsaccades must have samples equal or larger than this value.
             Default value is 3.
+
+        :return: An nx7 array which holds detected microsaccades
+
+        ====== ==================================================
+        column description
+        ====== ==================================================
+        0      index of the starting point of the microsaccade
+        1      index of the termination pointof the microsaccade
+        2      peak velocity
+        3      amplitude
+        4      direction
+        5      holizontal amplitude
+        6      vertical amplitude
+        ====== ==================================================
+
         """
         if velocityType not in ['slow', 'fast']:
             raise ValueError('Invalid velocityType.')
@@ -75,12 +92,13 @@ class MicroSacc(object):
         return v
 
     def _microsacc(self, data, vdata):
-        msdx = numpy.sqrt(scipy.stats.nanmedian(vdata[:, 0]**2) - scipy.stats.nanmedian(vdata[:, 0])**2)
-        msdy = numpy.sqrt(scipy.stats.nanmedian(vdata[:, 1]**2) - scipy.stats.nanmedian(vdata[:, 0])**2)
+        msdx = numpy.sqrt(numpy.nanmedian(vdata[:, 0]**2) - numpy.nanmedian(vdata[:, 0])**2)
+        msdy = numpy.sqrt(numpy.nanmedian(vdata[:, 1]**2) - numpy.nanmedian(vdata[:, 0])**2)
         radiusX = self.vfac * msdx
         radiusY = self.vfac * msdy
-
-        idx = numpy.where(((vdata[:, 0]/radiusX)**2 + (vdata[:, 1]/radiusY)**2) > 1)[0]
+        
+        #idx = numpy.where(((vdata[:, 0]/radiusX)**2 + (vdata[:, 1]/radiusY)**2) > 1)[0]
+        idx = numpy.where(nan_greater((vdata[:, 0]/radiusX)**2 + (vdata[:, 1]/radiusY)**2, 1))[0]
 
         N = len(idx)
         sac = []
@@ -125,21 +143,6 @@ class MicroSacc(object):
         return sac
 
     ms = None
-    """
-    An nx7 array which holds detected microsaccades
-
-    ====== ==================================================
-    column description
-    ====== ==================================================
-    0      index of the starting point of the microsaccade
-    1      index of the termination pointof the microsaccade
-    2      peak velocity
-    3      amplitude
-    4      direction
-    5      holizontal amplitude
-    6      vertical amplitude
-    ====== ==================================================
-    """
 
 
 def _binsacc(L, R):
@@ -276,3 +279,16 @@ def buildMicroSaccadeListBinocular(gazeData, samplingFreq=None, velocityType='sl
                                    T))
 
     return numpy.array(saclist)
+
+
+def nan_greater(v1, v2):
+    idx = numpy.where(v1!=v1)[0]
+    if idx == []:
+        return v1 > v2
+    
+    val = numpy.zeros(v1.shape, dtype=numpy.bool)
+    val[idx] = False
+    idx = numpy.where(v1==v1)[0]
+    val[idx] = (v1[idx] > v2)
+    
+    return val

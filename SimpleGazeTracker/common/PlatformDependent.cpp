@@ -17,11 +17,13 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <shlwapi.h>
+#include <direct.h>
 LARGE_INTEGER g_CounterFreq;
 #else
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <unistd.h>
 #endif
 
 #include <string>
@@ -104,7 +106,7 @@ int getDataDirectoryPath(std::string* path)
 int getApplicationDirectoryPath(std::string* path)
 {
 	char buff[1024];
-	int index;
+	size_t index;
 #ifdef _WIN32
 	GetModuleFileName(NULL,buff,sizeof(buff));
 	path->assign(buff);
@@ -342,4 +344,17 @@ std::string joinPath(std::string p1, std::string p2)
 	res.append(p2);
 
 	return res;
+}
+
+std::string getCurrentWorkingDirectory()
+{
+	std::string cwd;
+	char buff[FILENAME_MAX];
+#ifdef _WIN32
+	_getcwd(buff, FILENAME_MAX);
+#else
+	getcwd(buff, FILENAME_MAX);
+#endif
+	cwd.assign(buff);
+	return cwd;
 }

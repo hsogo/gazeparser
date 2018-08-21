@@ -3,6 +3,9 @@
 .. Copyright (C) 2012-2015 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy
 
@@ -59,12 +62,12 @@ class RectRegion(object):
         if hasattr(data[0], '__iter__'):  # assume list of points
             if mode.lower() == 'all':
                 for p in data:
-                    if not (self.x1 < data[0] < self.x2 and self.y1 < data[1] < self.y2):
+                    if not (self.x1 < p[0] < self.x2 and self.y1 < p[1] < self.y2):
                         return False
                 return True
             else:  # any
                 for p in data:
-                    if self.x1 < data[0] < self.x2 and self.y1 < data[1] < self.y2:
+                    if self.x1 < p[0] < self.x2 and self.y1 < p[1] < self.y2:
                         return True
                 return False
 
@@ -109,10 +112,7 @@ def getFixationsInRegion(data, region, period=[None, None], useCenter=True, cont
 
     :return:
         A list of :class:`~GazeParser.Core.FixationData` object.
-        If True, a list of indices are returned instead of
-
-        Default value is False.
-
+        If byIndices is True, a list of indices are returned.
     """
     fixlist = []
     if period[0] is None:

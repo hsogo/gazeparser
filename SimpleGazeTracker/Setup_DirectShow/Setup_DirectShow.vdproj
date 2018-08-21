@@ -103,6 +103,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -119,6 +127,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.6.1"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.6.1 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.6.1"
+                    }
+                }
+            }
         }
     }
     "Deployable"
@@ -368,7 +392,7 @@
         {
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_1F2AE73951D7478BA1C2A598034CCD3A"
             {
-            "DefaultLocation" = "8:[ProgramFilesFolder][Manufacturer]\\[ProductName]"
+            "DefaultLocation" = "8:[ProgramFiles64Folder][Manufacturer]\\[ProductName]"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
@@ -449,15 +473,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(DirectShow)"
-        "ProductCode" = "8:{268900B4-8F01-46B3-A505-DFB4D03F6266}"
-        "PackageCode" = "8:{7121B5AC-88CC-493A-A437-43F00C7F6CF2}"
+        "ProductCode" = "8:{B2725A2F-CE2C-4376-A319-B6F209531983}"
+        "PackageCode" = "8:{6B34E2DD-7228-41A7-80D0-D240518A5505}"
         "UpgradeCode" = "8:{425E09D6-3A4B-40E6-BDBF-03C264D80A27}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.10.0"
+        "ProductVersion" = "8:0.11.0"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -471,7 +495,7 @@
         "ARPIconIndex" = "3:0"
         "SearchPath" = "8:"
         "UseSystemSearchPath" = "11:TRUE"
-        "TargetPlatform" = "3:0"
+        "TargetPlatform" = "3:1"
         "PreBuildEvent" = "8:"
         "PostBuildEvent" = "8:"
         "RunPostBuildEvent" = "3:0"
@@ -1009,7 +1033,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6A4A0D5E7C4D4EAABE3D794B84736E24"
             {
-            "SourcePath" = "8:..\\Release\\SimpleGazeTracker_DirectShow.exe"
+            "SourcePath" = "8:..\\x64\\Release\\SimpleGazeTracker_DirectShow.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_1F2AE73951D7478BA1C2A598034CCD3A"

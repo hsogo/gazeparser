@@ -1,11 +1,10 @@
 #!/usr/bin/env python
+
 from setuptools import setup, find_packages
 import sys
 import os
 
-from GazeParser import __version__
-
-version = __version__
+version = '0.11.0'
 
 setup(name='GazeParser',
       version=version,
@@ -41,8 +40,7 @@ See http://sourceforge.net/p/gazeparser/ for detail.
       packages=['GazeParser', 'GazeParser.app'],
       package_data={'GazeParser': ['LICENSE.txt', '*.cfg',
                                    'GazeParserComponents/*.*',
-                                   'GazeParserComponents/GazeParserComponents/*.*',
-                                   'GazeParserComponents1.83/*.*'],
+                                   'GazeParserComponents/GazeParserComponents/*.*'],
                     'GazeParser.app': ['img/*.png', 'img/*.ico',
                                        'img/*.gif', '*.cfg']},
       scripts=['GazeParser_post_install.py', 'setup_for_psychopy.py']

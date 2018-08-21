@@ -160,7 +160,7 @@ http://goodjob.boy.jp/chirashinoura/id/100.html
 std::list<std::string> splitString(std::string targetstr, std::string delim)
 {
 	std::list<std::string> res;
-	int idx;
+	size_t idx;
 
 	while( (idx = targetstr.find_first_of(delim)) != std::string::npos )
 	{
@@ -381,7 +381,7 @@ int initUSBIO(void)
 
 			if((rangeval = getRangeValue(iter->c_str())) == BADRANGE)
 			{
-				snprintf(g_errorMessage, sizeof(g_errorMessage), "Unsupported range (%s) for channel %d. Please check %s.", iter->c_str(), chan, g_USBIOParamAD.c_str(), joinPath(g_ParamPath, g_ConfigFileName).c_str());
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Unsupported range (%s) for channel %d. Please check %s.", iter->c_str(), chan, joinPath(g_ParamPath, g_ConfigFileName).c_str());
 				g_LogFS << "ERROR: Bad range (" << iter->c_str() << ") for channel " << chan << "." << std::endl;
 				return E_FAIL;
 			}

@@ -24,11 +24,11 @@
 
 
 
-#define VERSION "0.10.0"
+#define VERSION "0.11.0"
 
 #ifdef _WIN32
 #include <windows.h>
-#define snprintf sprintf_s
+//#define snprintf sprintf_s
 #define strncpy(dst,src,size) strcpy_s(dst,size,src)
 #define PATH_SEPARATOR "\\"
 #else
@@ -245,6 +245,7 @@ extern int checkAndCopyFile(std::string path, const char* filename, std::string 
 extern int openLocation(std::string location);
 extern std::string joinPath(const char* p1, const char* p2);
 extern std::string joinPath(std::string p1, std::string p2);
+extern std::string getCurrentWorkingDirectory(void);
 
 //USBIO
 extern bool g_useUSBIO;

@@ -46,8 +46,10 @@ CallBackProc: Grab camera images.
 @param[in] IntFlg Event ID.
 @param[in] User User defined data.
 @return no value is returned.
+
+@date 2018/07/27 Change type of the second parameter to migrate to x64
  */
-void CALLBACK CallBackProc(DWORD IntFlg, DWORD User)
+void CALLBACK CallBackProc(DWORD IntFlg, PVOID User)
 {
 	//error check
 	/*

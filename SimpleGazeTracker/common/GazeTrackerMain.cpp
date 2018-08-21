@@ -146,6 +146,7 @@ int g_PortSend = PORT_SEND;
 int g_DelayCorrection = 0;
 
 bool g_isInhibitRendering = false;
+bool g_openSetupGuide = true;
 
 std::string g_USBIOBoard;
 std::string g_USBIOParamAD;
@@ -205,6 +206,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 @date 2015/06/15 RENDER_DURING_REC is supported.
 @date 2015/09/02 RENDER_DURING_REC is removed.
 @date 2015/09/08 set g_errorMessage when failed.
+@date 2018/08/09 OPEN_SETUP_GUIDE is supported.
  */
 int initParameters( void )
 {
@@ -281,6 +283,7 @@ int initParameters( void )
 		else if(strcmp(buff,"USBIO_AD")==0) g_USBIOParamAD = p+1;
 		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
 		else if(strcmp(buff,"USB_USE_THREAD")==0) g_useUSBThread = (param!=0)? true: false;
+		else if(strcmp(buff,"OPEN_SETUP_GUIDE") == 0) g_openSetupGuide = (param != 0) ? true : false;
 		//obsolete parameters
 		else if(strcmp(buff,"MAXPOINTS")==0){
 			printf("Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
@@ -357,6 +360,7 @@ Following parameters are wrote to the configuration file.
 @date 2015/06/15 RENDER_DURING_REC is supported.
 @date 2015/09/02 RENDER_DURING_REC is removed.
 @date 2015/09/08 return 
+@date 2018/08/10 OPEN_SETUP_GUIDE is supported.
 */
 int saveParameters( void )
 {
@@ -413,6 +417,7 @@ int saveParameters( void )
 	fs << "USBIO_AD=" << g_USBIOParamAD << std::endl;
 	fs << "USBIO_DI=" << g_USBIOParamDI << std::endl;
 	fs << "USB_USE_THREAD=" << (g_useUSBThread? "1" : "0") << std::endl;
+	fs << "OPEN_SETUP_GUIDE=" << (g_openSetupGuide ? "1" : "0") << std::endl;
 	
 	fs.close();
 
@@ -1049,9 +1054,13 @@ int main(int argc, char** argv)
 	char datestr[256];
 	int nInitMessage = 0;
 
-	const SDL_MessageBoxButtonData sdlMessageBoxButtons[] = {
+	const SDL_MessageBoxButtonData sdlConfigMessageBoxButtons[] = {
 		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Open Config" },
 		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Exit" },
+	};
+	const SDL_MessageBoxButtonData sdlYesNoMessageBoxButtons[] = {
+		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Yes" },
+		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "No" },
 	};
 	int sdlButtonID;
 
@@ -1074,11 +1083,11 @@ int main(int argc, char** argv)
 	bool useCustomConfigFile = false;
 	g_ConfigFileName.assign(DEFAULT_CONFIG_FILE);
 	g_CameraConfigFileName.assign("");
-	if (argc > 0){
-		for (int i = 0; i < argc; i++){
+	if (argc > 0) {
+		for (int i = 0; i < argc; i++) {
 			if (strncmp(argv[i], "-configdir=", 11) == 0)
 			{
-				if (strlen(argv[i]) <= 11){
+				if (strlen(argv[i]) <= 11) {
 					return -1;
 				}
 				g_ParamPath.assign(&argv[i][11]);
@@ -1086,21 +1095,21 @@ int main(int argc, char** argv)
 			}
 			else if (strncmp(argv[i], "-datadir=", 9) == 0)
 			{
-				if (strlen(argv[i]) <= 9){
+				if (strlen(argv[i]) <= 9) {
 					return -1;
 				}
 				g_DataPath.assign(&argv[i][9]);
 				useCustomDataPath = true;
 			}
-			else if (strncmp(argv[i], "-config=", 8) == 0){
-				if (strlen(argv[i]) <= 8){
+			else if (strncmp(argv[i], "-config=", 8) == 0) {
+				if (strlen(argv[i]) <= 8) {
 					return -1;
 				}
 				g_ConfigFileName.assign(&argv[i][8]);
 				useCustomConfigFile = true;
 			}
-			else if (strncmp(argv[i], "-cameraconfig=", 14) == 0){
-				if (strlen(argv[i]) <= 14){
+			else if (strncmp(argv[i], "-cameraconfig=", 14) == 0) {
+				if (strlen(argv[i]) <= 14) {
 					return -1;
 				}
 				g_CameraConfigFileName.assign(&argv[i][14]);
@@ -1109,11 +1118,11 @@ int main(int argc, char** argv)
 	}
 
 	//check directory and crate them if necessary.
-	if (!useCustomParamPath){
+	if (!useCustomParamPath) {
 		getParameterDirectoryPath(&g_ParamPath);
 		checkAndCreateDirectory(g_ParamPath);
 	}
-	if (!useCustomDataPath){
+	if (!useCustomDataPath) {
 		getDataDirectoryPath(&g_DataPath);
 		checkAndCreateDirectory(g_DataPath);
 	}
@@ -1122,8 +1131,8 @@ int main(int argc, char** argv)
 	std::string logFilePath;
 	getLogFilePath(&logFilePath);
 	g_LogFS.open(logFilePath.c_str(), std::ios::out);
-	if (!g_LogFS.is_open()){
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Log file (%s) can't be opened.", logFilePath.c_str());
+	if (!g_LogFS.is_open()) {
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Log file (%s) can't be opened.  Make sure that you have write permission to this file.", logFilePath.c_str());
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 			"SimpleGazeTracker initialization failed",
 			g_errorMessage, NULL);
@@ -1141,19 +1150,19 @@ int main(int argc, char** argv)
 
 	g_LogFS << "Searching AppDirPath directory..." << std::endl;
 	g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-	if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
+	if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
 		//try /usr/local/lib/simplegazetracker
 		g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
 		g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-		if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
+		if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
 			//try Debian directory (/usr/lib/simplegazetracker)
 			g_AppDirPath.assign("/usr/lib/simplegazetracker");
 			g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-			if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
+			if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
 				//try current directory
-				g_AppDirPath.assign(".");
+				g_AppDirPath.assign(getCurrentWorkingDirectory());
 				g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-				if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))){
+				if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
 					printf("ERROR: Could not determine AppDirPath directory.\n");
 					g_LogFS << "ERROR: Could not determine AppDirPath directory." << std::endl;
 					SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
@@ -1170,8 +1179,8 @@ int main(int argc, char** argv)
 	g_LogFS << "DataPath directory is " << g_DataPath << "." << std::endl;
 
 	//if CONFIG file is not found in g_ParamPath, copy it.
-	if (!useCustomConfigFile){
-		if (FAILED(checkAndCopyFile(g_ParamPath, DEFAULT_CONFIG_FILE, g_AppDirPath))){
+	if (!useCustomConfigFile) {
+		if (FAILED(checkAndCopyFile(g_ParamPath, DEFAULT_CONFIG_FILE, g_AppDirPath))) {
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "\"%s\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n", DEFAULT_CONFIG_FILE);
 			printf("%s\n", g_errorMessage);
 			g_LogFS << "Error: \"" << DEFAULT_CONFIG_FILE << "\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
@@ -1180,8 +1189,8 @@ int main(int argc, char** argv)
 			return -1;
 		}
 	}
-	else{
-		if (FAILED(checkFile(g_ParamPath, g_ConfigFileName.c_str()))){
+	else {
+		if (FAILED(checkFile(g_ParamPath, g_ConfigFileName.c_str()))) {
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "Error: configuration file (%s) is not found.", g_ConfigFileName.c_str());
 			printf("%s\n", g_errorMessage);
 			g_LogFS << "Error: configuration file (" << g_ConfigFileName.c_str() << ")is not found.";
@@ -1203,7 +1212,7 @@ int main(int argc, char** argv)
 		SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 	g_pSDLrenderer = SDL_CreateRenderer(g_pSDLwindow, -1, 0);
 
-	if (g_pSDLwindow == NULL){
+	if (g_pSDLwindow == NULL) {
 		printf("Error: Could not prepare SDL window.\n");
 		g_LogFS << "Error: Could not prepare SDL window." << std::endl;
 		SDL_Quit();
@@ -1222,7 +1231,7 @@ int main(int argc, char** argv)
 		SDL_TEXTUREACCESS_STREAMING,
 		SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	if (g_pSDLscreen == NULL || g_pSDLtexture == NULL){
+	if (g_pSDLscreen == NULL || g_pSDLtexture == NULL) {
 		printf("Error: Could not prepare SDL surface and texture.\n");
 		g_LogFS << "Error: Could not prepare SDL surface and texture." << std::endl;
 		SDL_Quit();
@@ -1232,17 +1241,17 @@ int main(int argc, char** argv)
 	}
 
 	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
-	if (FAILED(initParameters())){
-		if (strcmp(g_errorMessage, "") == 0){
+	if (FAILED(initParameters())) {
+		if (strcmp(g_errorMessage, "") == 0) {
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize parameters. Please check %s.", joinPath(g_ParamPath, g_ConfigFileName).c_str());
 		}
 		const SDL_MessageBoxData messageboxdata = {
-			SDL_MESSAGEBOX_ERROR, NULL, 
-			"SimpleGazeTracker initialization failed", g_errorMessage, 
-			SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
+			SDL_MESSAGEBOX_ERROR, NULL,
+			"SimpleGazeTracker initialization failed", g_errorMessage,
+			SDL_arraysize(sdlConfigMessageBoxButtons), sdlConfigMessageBoxButtons, NULL
 		};
-		if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
-			if (openLocation(g_ParamPath) != 0){
+		if (SDL_ShowMessageBox(&messageboxdata, &sdlButtonID) >= 0 && sdlButtonID == 0) {
+			if (openLocation(g_ParamPath) != 0) {
 				snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open %s. Please open this directory manually.", g_ParamPath.c_str());
 				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open location", g_errorMessage, NULL);
 			}
@@ -1256,7 +1265,7 @@ int main(int argc, char** argv)
 	initTimer();
 	//TODO output timer initialization results?
 
-	if (FAILED(initSDLTTF())){
+	if (FAILED(initSDLTTF())) {
 		printf("Error: Could not prepare font.\n");
 		g_LogFS << "initSDLTTF failed. check whether font (FreeSans.ttf) is properly installed.";
 		SDL_Quit();
@@ -1275,16 +1284,16 @@ int main(int argc, char** argv)
 	renderInitMessages(nInitMessage, "initSDLTTF ... OK.");
 	nInitMessage++;
 
-	if (FAILED(initBuffers())){
+	if (FAILED(initBuffers())) {
 		g_LogFS << "initBuffers failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage, "initBuffers failed. Exit.");
 		const SDL_MessageBoxData messageboxdata = {
-			SDL_MESSAGEBOX_ERROR, NULL, 
-			"SimpleGazeTracker initialization failed", "Failed to initialize image buffer. Settings of camera image size and preview image size may be wrong.", 
-			SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
+			SDL_MESSAGEBOX_ERROR, NULL,
+			"SimpleGazeTracker initialization failed", "Failed to initialize image buffer. Settings of camera image size and preview image size may be wrong.",
+			SDL_arraysize(sdlConfigMessageBoxButtons), sdlConfigMessageBoxButtons, NULL
 		};
-		if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
-			if (openLocation(g_ParamPath) != 0){
+		if (SDL_ShowMessageBox(&messageboxdata, &sdlButtonID) >= 0 && sdlButtonID == 0) {
+			if (openLocation(g_ParamPath) != 0) {
 				snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open %s. Please open this directory manually.", g_ParamPath.c_str());
 				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open location", g_errorMessage, NULL);
 			}
@@ -1292,11 +1301,12 @@ int main(int argc, char** argv)
 		SDL_Quit();
 		return -1;
 	}
+
 	g_LogFS << "initBuffers ... OK." << std::endl;
 	renderInitMessages(nInitMessage, "initBuffers ... OK.");
 	nInitMessage += 1;
 
-	if (FAILED(sockInit())){
+	if (FAILED(sockInit())) {
 		g_LogFS << "sockInit failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage, "sockInit failed. Exit.");
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
@@ -1308,7 +1318,7 @@ int main(int argc, char** argv)
 	renderInitMessages(nInitMessage, "sockInit ... OK.");
 	nInitMessage += 1;
 
-	if (FAILED(sockAccept())){
+	if (FAILED(sockAccept())) {
 		g_LogFS << "sockAccept failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage, "sockAccept failed. Exit.");
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
@@ -1321,17 +1331,17 @@ int main(int argc, char** argv)
 	nInitMessage += 1;
 
 	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
-	if (FAILED(initCamera())){
-		if (strcmp(g_errorMessage, "") == 0){
+	if (FAILED(initCamera())) {
+		if (strcmp(g_errorMessage, "") == 0) {
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize camera. Please check %s.\n\nDo you want to open Config Directory", joinPath(g_CameraConfigFileName, g_ParamPath).c_str());
 		}
 		const SDL_MessageBoxData messageboxdata = {
-			SDL_MESSAGEBOX_ERROR, NULL, 
-			"SimpleGazeTracker initialization failed", g_errorMessage, 
-			SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
+			SDL_MESSAGEBOX_ERROR, NULL,
+			"SimpleGazeTracker initialization failed", g_errorMessage,
+			SDL_arraysize(sdlConfigMessageBoxButtons), sdlConfigMessageBoxButtons, NULL
 		};
-		if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
-			if (openLocation(g_ParamPath) != 0){
+		if (SDL_ShowMessageBox(&messageboxdata, &sdlButtonID) >= 0 && sdlButtonID == 0) {
+			if (openLocation(g_ParamPath) != 0) {
 				snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open %s. Please open this directory manually.", g_ParamPath.c_str());
 				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open location", g_errorMessage, NULL);
 			}
@@ -1345,7 +1355,7 @@ int main(int argc, char** argv)
 	renderInitMessages(nInitMessage, "initCamera ... OK.");
 	nInitMessage += 1;
 
-	if (FAILED(initSDLSurfaces())){
+	if (FAILED(initSDLSurfaces())) {
 		g_LogFS << "initSDLSurfaces failed. Exit." << std::endl;
 		renderInitMessages(nInitMessage, "initSDLSurfaces failed. Exit.");
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
@@ -1358,18 +1368,18 @@ int main(int argc, char** argv)
 	nInitMessage += 1;
 
 	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
-	if (g_USBIOBoard.length() > 0 && g_USBIOBoard != "NONE"){
-		if (FAILED(initUSBIO())){
-			if (strcmp(g_errorMessage, "") == 0){
+	if (g_USBIOBoard.length() > 0 && g_USBIOBoard != "NONE") {
+		if (FAILED(initUSBIO())) {
+			if (strcmp(g_errorMessage, "") == 0) {
 				snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize USB I/O. Please check %s.", joinPath(g_ParamPath, g_ConfigFileName).c_str());
 			}
 			const SDL_MessageBoxData messageboxdata = {
-				SDL_MESSAGEBOX_ERROR, NULL, 
-				"SimpleGazeTracker initialization failed", g_errorMessage, 
-				SDL_arraysize(sdlMessageBoxButtons), sdlMessageBoxButtons, NULL
+				SDL_MESSAGEBOX_ERROR, NULL,
+				"SimpleGazeTracker initialization failed", g_errorMessage,
+				SDL_arraysize(sdlConfigMessageBoxButtons), sdlConfigMessageBoxButtons, NULL
 			};
-			if(SDL_ShowMessageBox(&messageboxdata, &sdlButtonID)>=0 && sdlButtonID==0){
-				if (openLocation(g_ParamPath) != 0){
+			if (SDL_ShowMessageBox(&messageboxdata, &sdlButtonID) >= 0 && sdlButtonID == 0) {
+				if (openLocation(g_ParamPath) != 0) {
 					snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open %s. Please open this directory manually.", g_ParamPath.c_str());
 					SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open location", g_errorMessage, NULL);
 				}
@@ -1383,7 +1393,7 @@ int main(int argc, char** argv)
 		renderInitMessages(nInitMessage, "initUSBIO ... OK.");
 		nInitMessage += 1;
 	}
-	else{
+	else {
 		g_LogFS << "USBIO is not used." << std::endl;
 	}
 
@@ -1391,6 +1401,26 @@ int main(int argc, char** argv)
 	nInitMessage += 1;
 	renderInitMessages(nInitMessage, "Start.");
 	sleepMilliseconds(2000);
+
+
+	//todo open set up tutorial?
+	if (g_openSetupGuide){
+		const SDL_MessageBoxData messageboxdata = {
+			SDL_MESSAGEBOX_ERROR, NULL,
+			"Welcome to SimpleGazeTracker", "Do you want to open setup guide in your borwser?\n(Hit H key to open help documents including the setup guide later.)",
+			SDL_arraysize(sdlYesNoMessageBoxButtons), sdlYesNoMessageBoxButtons, NULL
+		};
+		if (SDL_ShowMessageBox(&messageboxdata, &sdlButtonID) >= 0 && sdlButtonID == 0) {
+			std::string tutorialPath("file://");
+			tutorialPath.append(g_AppDirPath);
+			tutorialPath.append(PATH_SEPARATOR);
+			tutorialPath.append("doc");
+			tutorialPath.append(PATH_SEPARATOR);
+			tutorialPath.append("setup_guide.html");
+			openLocation(tutorialPath);
+		}
+		g_openSetupGuide = false;
+	}
 
 	SDL_Event SDLevent;
 	int done = false;
@@ -1440,10 +1470,18 @@ int main(int argc, char** argv)
 
 				case SDLK_h:
 					if (!g_isRecording){
+						/*
 						SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,
 							"SimpleGazeTracker Help",
 							"q: [Q]uit\ns: [S]ave calibration data\ni: save camera [I]mage\nl:toggle [L]ive view during recording\nh: show this [H]elp\n\nup/down: select menu item\nleft/right: adjust parameter",
-							NULL);
+							NULL);*/
+						std::string tutorialPath("file://");
+						tutorialPath.append(g_AppDirPath);
+						tutorialPath.append(PATH_SEPARATOR);
+						tutorialPath.append("doc");
+						tutorialPath.append(PATH_SEPARATOR);
+						tutorialPath.append("keys.html");
+						openLocation(tutorialPath);
 					}
 					break;
 

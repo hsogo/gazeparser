@@ -3,245 +3,23 @@
 .. Copyright (C) 2012-2015 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy
 import GazeParser
 import GazeParser.Configuration
 import os
 import re
+import sys
 import codecs
 from scipy.interpolate import interp1d
-from scipy.stats import nanmean
+try:
+    from numpy import nanmean
+except:
+    from scipy.stats import nanmean
 from scipy.signal import butter, lfilter, lfilter_zi, filtfilt
-
-
-def EyelinkToGazeParser(EDFfile, eye, overwrite=False, config=None):
-    """
-    Convert an Eyelink EDF file to a GazeParser file.
-    'edf2asc.exe' must be in a directory that is in your PATH.
-    If EDF file name is 'foo.edf', the output file name is 'foo.db'
-
-    :param str inputfile:
-        name of EDF file to be converted.
-    :param str eye:
-        Output both-eye ('B'), left-eye ('L') or right-eye ('R') data.
-    :param Boolean overwrite:
-        If this parameter is true, output file is overwritten.
-        The default value is False.
-    :param GazeParser.Configuration, str config:
-        An instance of GazeParser.Configuration that Specifies
-        conversion configurations.  If value is a string, it is
-        interpreted as a filename of GazeParser.configuration file.
-        If value is none, default configuration is used.
-        The default value is None.
-    """
-    (workDir, srcFilename) = os.path.split(os.path.abspath(EDFfile))
-    filenameRoot, ext = os.path.splitext(srcFilename)
-    EDFfileFullpath = os.path.join(workDir, srcFilename)
-    dstFileName = os.path.join(workDir, filenameRoot + '.db')
-    additionalDataFileName = os.path.join(workDir, filenameRoot + '.txt')
-
-    print 'EyelinkToGazeParser start.'
-    if os.path.exists(dstFileName) and (not overwrite):
-        print 'Can not open %s.' % dstFileName
-        return 'CANNOT_OPEN_OUTPUT_FILE'
-
-    if not isinstance(config, GazeParser.Configuration.Config):
-        if isinstance(config, str) or isinstance(config, unicode):
-            print 'Load configuration file: %s' % config
-            config = GazeParser.Configuration.Config(ConfigFile=config)
-        elif config is None:
-            print 'Use default configuration.'
-            config = GazeParser.Configuration.Config()
-        else:
-            raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
-
-    if eye == 'L':
-        flgL = True
-        flgR = False
-    elif eye == 'R':
-        flgL = False
-        flgR = True
-    elif eye == 'B':
-        flgL = True
-        flgR = True
-    else:
-        raise ValueError('Second argument must be L/R/B.')
-
-    T = []
-    RH = []
-    RV = []
-    Rp = []
-    LH = []
-    LV = []
-    Lp = []
-
-    if flgL:
-        tmpFile = os.path.join(workDir, '__left__.asc')
-        os.system('edf2asc.exe ' + EDFfileFullpath + ' -sg -s -miss 9999 -nflags -l ' + tmpFile)
-        fidLeft = open(tmpFile, 'r')
-        for line in fidLeft.readlines():
-            itemList = line[:-1].split('\t')
-            try:
-                T.append(int(itemList[0]))
-                if float(itemList[1]) == 9999.0:
-                    LH.append(numpy.NaN)
-                    LV.append(numpy.NaN)
-                    Lp.append(float(itemList[3]))
-                else:
-                    LH.append(float(itemList[1]))
-                    LV.append(float(itemList[2]))
-                    Lp.append(float(itemList[3]))
-            except:
-                continue
-        fidLeft.close()
-        os.remove(tmpFile)
-
-    if flgR:
-        tmpFile = os.path.join(workDir, '__right__.asc')
-        os.system('edf2asc.exe ' + EDFfileFullpath + ' -sg -s -miss 9999 -nflags -r ' + tmpFile)
-        fidRight = open(tmpFile, 'r')
-        for line in fidRight.readlines():
-            itemList = line[:-1].split('\t')
-            try:
-                if not flgL:  # if flgL is true, T has already bean built.
-                    T.append(int(itemList[0]))
-                if float(itemList[1]) == 9999.0:
-                    RH.append(numpy.NaN)
-                    RV.append(numpy.NaN)
-                    Rp.append(float(itemList[3]))
-                else:
-                    RH.append(float(itemList[1]))
-                    RV.append(float(itemList[2]))
-                    Rp.append(float(itemList[3]))
-            except:
-                continue
-        fidRight.close()
-        os.remove(tmpFile)
-
-    """
-    if len(LH)>0 and len(RH) == 0:
-        RH = LH
-        RV = LV
-        Rp = Lp
-
-    if len(LH) == 0 and len(RH)>0:
-        LH = RH
-        LV = RV
-        Lp = Rp
-    """
-
-    tmpFile = os.path.join(workDir, '__event__.asc')
-    os.system('edf2asc.exe ' + EDFfileFullpath + ' -e -miss 9999 ' + tmpFile)
-    fidEvent = open(tmpFile, 'r')
-
-    listBlock = []
-    listSaccadeTime = []
-    listFixationTime = []
-    listBlinkTime = []
-    listMessage = []
-
-    listSaccadeData = []
-    listFixationData = []
-    listBlinkData = []
-
-    flgInBlock = False
-
-    # Detect blocks, saccades, fixations, blinks, and messages
-
-    for line in fidEvent.readlines():
-        itemList = re.split('\s*', line[:-1])
-
-        if itemList[0] == "START" and not flgInBlock:  # Beginning of a block
-            flgInBlock = True
-            timeBlockStart = int(itemList[1])
-
-        elif itemList[0] == "END" and flgInBlock:  # End of a block
-            flgInBlock = False
-            listBlock.append([timeBlockStart, int(itemList[1])])
-
-        elif itemList[0] == "ESACC" and flgInBlock:  # End of a saccade
-            listSaccadeTime.append([int(itemList[2]), int(itemList[3])])
-            listSaccadeData.append([int(itemList[4]), float(itemList[5]), float(itemList[6]), float(itemList[7]), float(itemList[8]), float(itemList[9])])
-            # (Duration, start_X, start_Y, end_X, end_Y, amplitude)
-
-        elif itemList[0] == "EFIX" and flgInBlock:  # End of a fixation
-            listFixationTime.append([int(itemList[2]), int(itemList[3])])
-            listFixationData.append([int(itemList[4]), float(itemList[5]), float(itemList[6])])
-            # (Duration, COG_x, COG_Y)
-
-        elif itemList[0] == "MSG" and flgInBlock:
-            listMessage.append([int(itemList[1]), ' '.join(itemList[2:])])
-
-        elif itemList[0] == "EBLINK" and flgInBlock:  # End of a blink
-            listBlinkTime.append([int(itemList[2]), int(itemList[3])])
-            listBlinkData.append(int(itemList[4]))
-            # (Duration)
-
-    fidEvent.close()
-    os.remove(tmpFile)
-
-    # Generating a instance of GazeData
-
-    T = numpy.array(T)
-    Data = []
-
-    for blk in range(len(listBlock)):
-        idx = numpy.where((T >= listBlock[blk][0]) & (T <= listBlock[blk][1]))[0]
-        Tlist = T[idx[0]:idx[-1]+1]
-        if LH != []:
-            Llist = (numpy.array([LH[idx[0]:idx[-1]+1], LV[idx[0]:idx[-1]+1]])).transpose()
-        else:
-            Llist = []
-        if RH != []:
-            Rlist = (numpy.array([RH[idx[0]:idx[-1]+1], RV[idx[0]:idx[-1]+1]])).transpose()
-        else:
-            Rlist = []
-
-        SacList = []
-        for sac in range(len(listSaccadeTime)):
-            if listSaccadeTime[sac][0] >= listBlock[blk][0] and listSaccadeTime[sac][1] <= listBlock[blk][1]:
-                SacList.append(GazeParser.SaccadeData(listSaccadeTime[sac], listSaccadeData[sac], Tlist))
-
-        FixList = []
-        for fix in range(len(listFixationTime)):
-            if listFixationTime[fix][0] >= listBlock[blk][0] and listFixationTime[fix][1] <= listBlock[blk][1]:
-                FixList.append(GazeParser.FixationData(listFixationTime[fix], listFixationData[fix], Tlist))
-
-        MsgList = []
-        for msg in range(len(listMessage)):
-            if listBlock[blk][0] <= listMessage[msg][0] <= listBlock[blk][1]:
-                MsgList.append(GazeParser.MessageData(listMessage[msg]))
-
-        BlinkList = []
-        for b in range(len(listBlinkTime)):
-            if listBlinkTime[b][0] >= listBlock[blk][0] and listBlinkTime[b][1] <= listBlock[blk][1]:
-                BlinkList.append(GazeParser.BlinkData(listBlinkTime[b], listBlinkData[b], Tlist))
-
-        G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, eye, config=config)
-
-        Data.append(G)
-
-    if os.path.exists(additionalDataFileName):
-        print 'Additional data file is found.'
-        adfp = open(additionalDataFileName)
-        ad = []
-        for line in adfp:
-            data = line.split('\t')
-            for di in range(len(data)):
-                try:
-                    data[di] = int(data[di])
-                except:
-                    try:
-                        data[di] = float(data[di])
-                    except:
-                        pass
-            ad.append(data)
-        GazeParser.save(dstFileName, Data, additionalData=ad)
-    else:
-        GazeParser.save(dstFileName, Data)
-
-    return 'SUCCESS'
 
 
 def parseBlinkCandidates(T, HVs, config):
@@ -655,13 +433,13 @@ def applyFilter(T, HV, config, decimals=2):
     return numpy.vstack((filteredH, filteredV)).transpose()
 
 
-def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParameters=True):
+def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParameters=True, outputfile=None, verbose=False):
     """
     Convert an SimpleGazeTracker data file to a GazeParser file.
     If GazeTracker data file name is 'foo.csv', the output file name is 'foo.db'
 
     :param str inputfile:
-        name of GazeParser file to be converted.
+        Name of SimpleGazeTracker CSV file to be converted.
     :param Boolean overwrite:
         If this parameter is true, output file is overwritten.
         The default value is False.
@@ -675,27 +453,37 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
         If this parameter is true, conversion configurations are
         overwritten by parameters defined in the data file.
         The default value is True.
+    :param str outputfile:
+        Name of output file. If None, extension of input file name
+        is replaced with '.db'.
     """
     (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
     filenameRoot, ext = os.path.splitext(srcFilename)
     inputfileFullpath = os.path.join(workDir, srcFilename)
-    dstFileName = os.path.join(workDir, filenameRoot+'.db')
     additionalDataFileName = os.path.join(workDir, filenameRoot+'.txt')
+    if outputfile is None:
+        dstFileName = os.path.join(workDir, filenameRoot+'.db')
+    else:
+        dstFileName = os.path.join(workDir, outputfile)
     usbioFormat = None
 
-    print '------------------------------------------------------------'
-    print 'TrackerToGazeParser start.'
-    print 'source file: %s' % inputfile
+    if verbose:
+        print('------------------------------------------------------------')
+        print('TrackerToGazeParser start.')
+        print('source file: %s' % inputfile)
     if os.path.exists(dstFileName) and (not overwrite):
-        print 'Target file (%s) already exist.' % dstFileName
+        if vervose: print('Target file (%s) already exist.' % dstFileName)
         return 'TARGET_FILE_ALREADY_EXISTS'
 
     if not isinstance(config, GazeParser.Configuration.Config):
-        if isinstance(config, str) or isinstance(config, unicode):
-            print 'Load configuration file: %s' % config
+        if isinstance(config, str):
+            if verbose: print('Load configuration file: %s' % config)
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif sys.version_info[0] == 2 and isinstance(config, unicode):
+            if verbose: print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif config is None:
-            print 'Use default configuration.'
+            if verbose: print('Use default configuration.')
             config = GazeParser.Configuration.Config()
         else:
             raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
@@ -738,13 +526,13 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     flgInBlock = False
     isCheckedEffectiveDigit = False
     effectiveDigit = 2
-    print 'parsing...'
+    if verbose: print('parsing...')
 
     for line in fid:
         itemList = line[:-1].rstrip().split(',')
         if itemList[0][0] == '#':  # Messages
             if itemList[0] == '#START_REC':
-                startRec = map(int, itemList[1:])
+                startRec = list(map(int, itemList[1:]))
                 flgInBlock = True
 
             elif itemList[0] == '#STOP_REC':
@@ -847,37 +635,60 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 pass
             
             if not flgInBlock:
-                if useFileParameters:
-                    # SimpleGazeTracker options
-                    if itemList[0] == '#DATAFORMAT':
-                        idxT = idxX = idxY = idxP = idxC = idxUSBIO = None
-                        idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = idxC = None
-                        tmp = []
-                        for i in range(len(itemList)-1):
-                            if itemList[i+1].find('USBIO;') == 0:  # support USBIO
-                                cmd = 'idxUSBIO=' + str(i)
-                                usbioFormat = itemList[i+1][6:].split(';')
-                                if len(usbioFormat[-1]) == 0:  # remove last item if empty
-                                    usbioFormat.pop(-1)
-                            else:
-                                cmd = 'idx'+itemList[i+1] + '=' + str(i)
-                            exec cmd
-                            tmp.append(cmd)
-                        print 'DATAFORMAT: %s' % (','.join(tmp))
+                # #DATAFORMAT must be loaded regardless of useFileParameters
+                if itemList[0] == '#DATAFORMAT':
+                    idxT = idxX = idxY = idxP = idxC = idxUSBIO = None
+                    idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = None
+                    tmp = []
+                    if verbose: print(itemList)
+                    for i in range(len(itemList)-1):
+                        if itemList[i+1].find('USBIO;') == 0:  # support USBIO
+                            idxUSBIO = i
+                            cmd = 'USBIO={}'.format(i)
+                            usbioFormat = itemList[i+1][6:].split(';')
+                            if len(usbioFormat[-1]) == 0:  # remove last item if empty
+                                usbioFormat.pop(-1)
+                        else:
+                            if itemList[i+1] == 'T':
+                                idxT = i
+                            elif itemList[i+1] == 'X':
+                                idxX = i
+                            elif itemList[i+1] == 'Y':
+                                idxY = i
+                            elif itemList[i+1] == 'P':
+                                idxP = i
+                            elif itemList[i+1] == 'C':
+                                idxC = i
+                            elif itemList[i+1] == 'LX':
+                                idxLX = i
+                            elif itemList[i+1] == 'LY':
+                                idxLY = i
+                            elif itemList[i+1] == 'RX':
+                                idxRX = i
+                            elif itemList[i+1] == 'RY':
+                                idxRY = i
+                            elif itemList[i+1] == 'LP':
+                                idxLP = i
+                            elif itemList[i+1] == 'RP':
+                                idxRP = i
+                            cmd = '{}={}'.format(itemList[i+1],i)
+                        tmp.append(cmd)
+                    if verbose: print('DATAFORMAT: %s' % (','.join(tmp)))
 
-                    # GazeParser options
+                # load GazeParser options if useFileParameters is True
+                elif useFileParameters:
                     optName = itemList[0][1:]
                     if optName in GazeParser.Configuration.GazeParserDefaults:
                         if type(GazeParser.Configuration.GazeParserDefaults[optName]) == float:
                             setattr(config, optName, float(itemList[1]))
-                            print '%s = %f' % (optName, getattr(config, optName))
+                            if verbose: print('%s = %f' % (optName, getattr(config, optName)))
                         elif type(GazeParser.Configuration.GazeParserDefaults[optName]) == int:
                             setattr(config, optName, int(itemList[1]))
-                            print '%s = %d' % (optName, getattr(config, optName))
+                            if verbose: print('%s = %d' % (optName, getattr(config, optName)))
                         else:  # str
                             setattr(config, optName, itemList[1])
-                            print '%s = %s' % (optName, getattr(config, optName))
 
+                            if verbose: print('%s = %s' % (optName, getattr(config, optName)))
         else:  # gaze data
             if not isCheckedEffectiveDigit:
                 if config.RECORDED_EYE == 'B':
@@ -942,12 +753,12 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                     tmp = itemList[idxUSBIO].split(';')
                     if len(tmp[-1]) == 0:
                         tmp.pop(-1)
-                    tmp = map(int, tmp)
+                    tmp = list(map(int, tmp))
                     USBIO.append(tmp)
                 except:
                     C.append(itemList[idxUSBIO])
 
-    print 'saving...'
+    if verbose: print('saving...')
     if os.path.exists(additionalDataFileName):
         adfp = codecs.open(additionalDataFileName, 'r', 'utf-8')
         ad = []
@@ -966,159 +777,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     else:
         GazeParser.save(dstFileName, Data)
 
-    print 'done.'
+    if verbose: print('done.')
     return 'SUCCESS'
 
 
-def TobiiToGazeParser(inputfile, overwrite=False, config=None):
-    """
-    Convert an Tobii TSV file to a GazeParser file.
-    Text export configuration should be 'All data'.
-    If TSV file name is 'foo.tsv', the output file name is 'foo.db'
-
-    :param str inputfile:
-        name of TSV file to be converted.
-    :param Boolean overwrite:
-        If this parameter is true, output file is overwritten.
-        The default value is False.
-    :param GazeParser.Configuration, str config:
-        An instance of GazeParser.Configuration that Specifies
-        conversion configurations.  If value is a string, it is
-        interpreted as a filename of GazeParser.configuration file.
-        If value is none, default configuration is used.
-        The default value is None.
-    """
-    (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
-    filenameRoot, ext = os.path.splitext(srcFilename)
-    inputfileFullpath = os.path.join(workDir, srcFilename)
-    dstFileName = os.path.join(workDir, filenameRoot+'.db')
-    additionalDataFileName = os.path.join(workDir, filenameRoot+'.txt')
-
-    print 'TobiiToGazeParser start.'
-    if os.path.exists(dstFileName) and (not overwrite):
-        print 'Can not open %s.' % dstFileName
-        return 'CANNOT_OPEN_OUTPUT_FILE'
-
-    if not isinstance(config, GazeParser.Configuration.Config):
-        if isinstance(config, str) or isinstance(config, unicode):
-            print 'Load configuration file: %s' % config
-            config = GazeParser.Configuration.Config(ConfigFile=config)
-        elif config is None:
-            print 'Use default configuration.'
-            config = GazeParser.Configuration.Config()
-        else:
-            raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
-
-    fid = open(inputfileFullpath, "r")
-
-    field = {}
-    # read header part
-    for line in fid:
-        itemList = line.rstrip().split('\t')
-        if itemList[0] == 'Recording resolution:':
-            config.SCREEN_WIDTH = int(itemList[1].split('x')[0])
-            config.SCREEN_HEIGHT = int(itemList[1].split('x')[1])
-            print 'SCREEN_WIDTH: %d' % config.SCREEN_WIDTH
-            print 'SCREEN_HEIGHT: %d' % config.SCREEN_HEIGHT
-        elif itemList[0] == 'Timestamp':
-            # read column header
-            for i in range(len(itemList)):
-                field[itemList[i]] = i
-            break
-
-    Data = []
-
-    T = []
-    LHV = []
-    RHV = []
-    M = []
-    FIX = []
-    GAZE = []
-
-    currentFixationIndex = -1
-
-    for line in fid:
-        itemList = line.rstrip().split('\t')
-
-        isGazeDataAvailable = False
-        # record gaze position
-        if itemList[field['GazePointXLeft']] != '':
-            isGazeDataAvailable = True
-            if itemList[field['ValidityLeft']] != '4':
-                LHV.append((float(itemList[field['GazePointXLeft']]), float(itemList[field['GazePointYLeft']])))
-            else:  # pupil was not found
-                LHV.append((numpy.NaN, numpy.NaN))
-
-        if itemList[field['GazePointXRight']] != '':
-            isGazeDataAvailable = True
-            if itemList[field['ValidityRight']] != '4':
-                RHV.append((float(itemList[field['GazePointXRight']]), float(itemList[field['GazePointYRight']])))
-            else:  # pupil was not found
-                RHV.append((numpy.NaN, numpy.NaN))
-
-        # record timestamp if gaze data is available
-        if isGazeDataAvailable:
-            T.append(int(itemList[field['Timestamp']]))
-            GAZE.append((float(itemList[field['GazePointX']]), float(itemList[field['GazePointY']])))
-
-        # record fixation
-        if itemList[field['FixationIndex']] != '':
-            if int(itemList[field['FixationIndex']]) > currentFixationIndex:
-                FIX.append(int(itemList[field['Timestamp']]))
-                currentFixationIndex = int(itemList[field['FixationIndex']])
-
-        # record event
-        if itemList[field['Event']] != '':
-            message = ','.join((itemList[field['Event']], itemList[field['EventKey']], itemList[field['Data1']], itemList[field['Data2']], itemList[field['Descriptor']]))
-            M.append((int(itemList[field['Timestamp']]), message))
-
-    # last fixation ... check exact format of Tobii data later.
-    # FIX.append(int(itemList[field['Timestamp']]))
-
-    # convert to numpy.ndarray
-    Tlist = numpy.array(T)
-    Llist = numpy.array(LHV)
-    Rlist = numpy.array(RHV)
-    Glist = numpy.array(GAZE)
-
-    # build FixationData
-    FixList = []
-    for fi in range(len(FIX)-1):
-        startTime = FIX[fi]
-        endTime = FIX[fi+1]
-        startIndex = numpy.where(startTime == Tlist)[0][0]
-        endIndex = numpy.where(endTime == Tlist)[0][0]-1
-        duration = endTime-startTime
-        (cogx, cogy) = numpy.mean(Glist[startIndex:endIndex, :], axis=0)
-        FixList.append(GazeParser.FixationData((startTime, endTime), (duration, cogx, cogy), Tlist))
-
-    # build MessageData
-    MsgList = []
-    for msg in range(len(M)):
-        MsgList.append(GazeParser.MessageData(M[msg]))
-
-    # build GazeData
-    G = GazeParser.GazeData(Tlist, Llist, Rlist, [], FixList, MsgList, [], 'B', config=config)
-
-    Data.append(G)
-
-    if os.path.exists(additionalDataFileName):
-        print 'Additional data file is found.'
-        adfp = open(additionalDataFileName)
-        ad = []
-        for line in adfp:
-            data = line.split('\t')
-            for di in range(len(data)):
-                try:
-                    data[di] = int(data[di])
-                except:
-                    try:
-                        data[di] = float(data[di])
-                    except:
-                        pass
-            ad.append(data)
-        GazeParser.save(dstFileName, Data, additionalData=ad)
-    else:
-        GazeParser.save(dstFileName, Data)
-
-    return 'SUCCESS'
