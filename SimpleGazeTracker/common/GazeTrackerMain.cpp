@@ -1887,7 +1887,7 @@ void deleteCalibrationDataSubset(char* points)
 			}
 		}
 		datalen = newdatalen;
-		if (*p == NULL) break;
+		if (*p == 0) break;
 		p++;
 	}
 	g_DataCounter = datalen;

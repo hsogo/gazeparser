@@ -354,9 +354,13 @@ std::string getCurrentWorkingDirectory()
 	char buff[FILENAME_MAX];
 #ifdef _WIN32
 	_getcwd(buff, FILENAME_MAX);
-#else
-	getcwd(buff, FILENAME_MAX);
-#endif
 	cwd.assign(buff);
+#else
+	if(getcwd(buff, FILENAME_MAX)!=NULL){
+		cwd.assign(buff);
+	}else{
+		cwd.assign(".");
+	}
+#endif
 	return cwd;
 }
