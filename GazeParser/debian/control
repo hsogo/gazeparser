@@ -10,6 +10,7 @@ X-Python-Version: >= 2.7
 Package: gazeparser
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}, python-scipy, python-matplotlib, python-imaging-tk 
+Build-Depends: dh-python
 Recommends: psychopy
 Description: Gaze data analysis
  Gaze data analysis package
