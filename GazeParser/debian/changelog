@@ -1,3 +1,13 @@
+gazeparser (0.11.0) unstable; urgency=medium
+
+  * Python3 is supported.
+  * PsychoPyComponent supports PsychoPy 1.90.0 or later.
+  * PsychoPyComponent don't support PsychoPy older than 1.84.0.
+  * VisionEgg backend in TrackingTools is no longer supporeted.
+  * EyelinkToGazeParser() and TobiiToGazeParser() is no longer supported.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Fri, 22 Aug 2018 18:00:00 +0900
+
 gazeparser (0.10.0) unstable; urgency=medium
 
   * Manual calibration mode is added.

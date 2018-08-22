@@ -1,4 +1,0 @@
-[SimpleGazeTrackerOpenCV]
-SLEEP_DURATION=0
-FRAME_RATE=60
-USE_THREAD=1

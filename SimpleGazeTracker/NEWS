@@ -1,3 +1,8 @@
+New in 0.11.0
+
+  * Dialog for camera setup guide is shown at the first run.
+  * HTML help can be opened by "H" key.
+
 New in 0.10.0
 
   * Manual calibration mode is added.
