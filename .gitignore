@@ -31,7 +31,7 @@ compile
 #dpkg-buildpackage
 GazeParser/debian/gazeparser/
 SimpleGazeTracker/debian_opencv/simplegazetracker/
-SimpleGazeTracker/debian_flycap/simplegazetracker/
+SimpleGazeTracker/debian_flycap/simplegazetracker-flycap/
 
 #VisualStudio
 *.bak
