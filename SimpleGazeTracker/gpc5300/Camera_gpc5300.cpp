@@ -23,6 +23,7 @@
 HANDLE g_CameraDeviceHandle; /*!< Holds camera device handle */
 HANDLE g_CameraMemHandle; /*!< Holds camera buffer handle */
 BOOL g_isWow64; /*!< Process is running on WOW64? */
+BOOL g_is64bit; /*!< Process is 64bit?*/
 
 unsigned char* g_TmpFrameBuffer; /*!< Temporary buffer to hold camera image until CallBackProc() is called.*/
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
@@ -185,8 +186,17 @@ int initCamera( void )
 	std::string cfgfname;
 
 	HANDLE hProc;
+	SYSTEM_INFO sysinfo;
+
 	hProc = GetCurrentProcess();
 	IsWow64Process(hProc, &g_isWow64);
+	GetNativeSystemInfo(&sysinfo);
+	if (sysinfo.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64) {
+		g_is64bit = true;
+	}
+	else{
+		g_is64bit = false;
+	}
 
 	g_CameraDeviceHandle = CmlOpen("IFIMGCML1");
 	if(g_CameraDeviceHandle == INVALID_HANDLE_VALUE){
@@ -242,8 +252,13 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	if(g_isWow64){
-		g_LogFS << "Running on WOW64... Yes" << std::endl;
+	if(g_isWow64 || g_is64bit){
+		if (g_isWow64) {
+			g_LogFS << "Running on WOW64." << std::endl;
+		}
+		else {
+			g_LogFS << "Running on 64bit." << std::endl;
+		}
 		PVOID MemoryAddress;
 		// Allocate the buffer for storing the image data.
 		BufSize = CapFmt.FrameSize_Buf;
@@ -265,7 +280,7 @@ int initCamera( void )
 		g_TmpFrameBuffer = (unsigned char*)MemoryAddress;
 
 	}else{
-		g_LogFS << "Running on WOW64... No" << std::endl;
+		g_LogFS << "Running on 32bit." << std::endl;
 		g_TmpFrameBuffer = (unsigned char*)malloc(g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
 		if(g_TmpFrameBuffer==NULL)
 		{
@@ -372,7 +387,7 @@ void cleanupCamera()
 	ret = CmlFreeMemInfo(g_CameraDeviceHandle,g_CameraMemHandle);
 	ret = CmlClose(g_CameraDeviceHandle);
 	CmlOutputPower(g_CameraDeviceHandle,IFCML_PWR_OFF);
-	if(g_TmpFrameBuffer!=NULL && !g_isWow64)
+	if(g_TmpFrameBuffer!=NULL && !(g_isWow64 || g_is64bit))
 	{
 		free(g_TmpFrameBuffer);
 		g_TmpFrameBuffer = NULL;
