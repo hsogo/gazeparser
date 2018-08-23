@@ -1,5 +1,8 @@
 rd /S /Q Debug
 rd /S /Q Release
+rd /S /Q x64\Debug
+rd /S /Q x64\Release
+rd /S /Q x64
 
 rd /S /Q directshow\Debug
 rd /S /Q directshow\Release
@@ -11,6 +14,22 @@ rd /S /Q optitrack\Debug
 rd /S /Q optitrack\Release
 rd /S /Q opencv\Debug
 rd /S /Q opencv\Release
+
+rd /S /Q directshow\x64\Debug
+rd /S /Q directshow\x64\Release
+rd /S /Q directshow\x64
+rd /S /Q flycapture2\x64\Debug
+rd /S /Q flycapture2\x64\Release
+rd /S /Q flycapture2\x64
+rd /S /Q gpc5300\x64\Debug
+rd /S /Q gpc5300\x64\Release
+rd /S /Q gpc5300\x64
+rd /S /Q opencv\x64\Debug
+rd /S /Q opencv\x64\Release
+rd /S /Q opencv\x64
+rd /S /Q optitrack\x64\Debug
+rd /S /Q optitrack\x64\Release
+rd /S /Q optitrack\x64
 
 rd /S /Q Setup_DirectShow\Debug
 rd /S /Q Setup_DirectShow\Release
