@@ -33,7 +33,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_406631ECFFEC4697B4A7C8017D518846"
+        "MsmKey" = "8:_51D1EEA7A7714C9D858D03FBD0C21147"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -45,7 +45,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_64CB7F27E9BF47DDB7EA738CCE0971FA"
+        "MsmKey" = "8:_6BA6AB286AC34D8AA863BCCB6A892DA9"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -57,13 +57,19 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_A726FE474D7240F687DFF4671CA6CE90"
+        "MsmKey" = "8:_98805AA770EE418FB7D9FDF5AE8E7E02"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_AAFAB019F2574E3B9CB0CC582B1D9905"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_ADE47D3E16584B6DA63B624126131654"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -82,12 +88,6 @@
         "Entry"
         {
         "MsmKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_CF71FC2DA8974450A171448A09F400A3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -167,16 +167,6 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.0"
-                    {
-                    "Name" = "8:Microsoft .NET Framework 4 (x86 and x64)"
-                    "ProductCode" = "8:.NETFramework,Version=v4.0"
-                    }
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.4.5"
-                    {
-                    "Name" = "8:Windows Installer 4.5"
-                    "ProductCode" = "8:Microsoft.Windows.Installer.4.5"
-                    }
                 }
             }
         }
@@ -248,10 +238,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_406631ECFFEC4697B4A7C8017D518846"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_51D1EEA7A7714C9D858D03FBD0C21147"
             {
-            "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin\\libiomp5md.dll"
-            "TargetName" = "8:libiomp5md.dll"
+            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world342.dll"
+            "TargetName" = "8:opencv_world342.dll"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
             "Condition" = "8:"
@@ -288,10 +278,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_64CB7F27E9BF47DDB7EA738CCE0971FA"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6BA6AB286AC34D8AA863BCCB6A892DA9"
             {
-            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world300.dll"
-            "TargetName" = "8:opencv_world300.dll"
+            "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64\\vs2015\\libiomp5md.dll"
+            "TargetName" = "8:libiomp5md.dll"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
             "Condition" = "8:"
@@ -328,10 +318,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A726FE474D7240F687DFF4671CA6CE90"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_98805AA770EE418FB7D9FDF5AE8E7E02"
             {
-            "SourcePath" = "8:C:\\Program Files (x86)\\Measurement Computing\\DAQ\\cbw32.dll"
-            "TargetName" = "8:cbw32.dll"
+            "SourcePath" = "8:C:\\Program Files (x86)\\Measurement Computing\\DAQ\\cbw64.dll"
+            "TargetName" = "8:cbw64.dll"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
             "Condition" = "8:"
@@ -352,6 +342,26 @@
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_ttf.dll"
             "TargetName" = "8:SDL2_ttf.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_ADE47D3E16584B6DA63B624126131654"
+            {
+            "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64\\vs2015\\FlyCapture2_v140.dll"
+            "TargetName" = "8:FlyCapture2_v140.dll"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
             "Condition" = "8:"
@@ -405,26 +415,6 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CF71FC2DA8974450A171448A09F400A3"
-            {
-            "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin\\FlyCapture2.dll"
-            "TargetName" = "8:FlyCapture2.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
@@ -558,7 +548,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(FlyCapture2)"
         "ProductCode" = "8:{1996D1BA-0483-42CC-859C-6BC68F772E5B}"
-        "PackageCode" = "8:{7DF50026-35F3-4FCE-9341-138D0E155583}"
+        "PackageCode" = "8:{E284FDE1-0142-4BB5-B15C-0EC0425F8738}"
         "UpgradeCode" = "8:{6C186834-C51A-486A-B228-9BF8956470A1}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"

@@ -27,7 +27,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_5343895FC61644F4BCAB9AEDB73AAD59"
+        "MsmKey" = "8:_218744BEBBE7456F80D4532E6E1EBB77"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_36A1FAF8045641AFBC0F3CBD0105D8B6"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -40,12 +46,6 @@
         "Entry"
         {
         "MsmKey" = "8:_74DA4646B892437CB894A023A901DA28"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_76D82D3A84754941B105FAC5F43222D5"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -155,16 +155,6 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.0"
-                    {
-                    "Name" = "8:Microsoft .NET Framework 4 (x86 and x64)"
-                    "ProductCode" = "8:.NETFramework,Version=v4.0"
-                    }
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.4.5"
-                    {
-                    "Name" = "8:Windows Installer 4.5"
-                    "ProductCode" = "8:Microsoft.Windows.Installer.4.5"
-                    }
                 }
             }
         }
@@ -216,10 +206,30 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5343895FC61644F4BCAB9AEDB73AAD59"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_218744BEBBE7456F80D4532E6E1EBB77"
             {
-            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world300.dll"
-            "TargetName" = "8:opencv_world300.dll"
+            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world342.dll"
+            "TargetName" = "8:opencv_world342.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_36A1FAF8045641AFBC0F3CBD0105D8B6"
+            {
+            "SourcePath" = "8:C:\\Program Files (x86)\\Measurement Computing\\DAQ\\cbw64.dll"
+            "TargetName" = "8:cbw64.dll"
             "Tag" = "8:"
             "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
             "Condition" = "8:"
@@ -273,26 +283,6 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_76D82D3A84754941B105FAC5F43222D5"
-            {
-            "SourcePath" = "8:C:\\Program Files (x86)\\Measurement Computing\\DAQ\\cbw32.dll"
-            "TargetName" = "8:cbw32.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_383886B2FA5F4188B79D506B44476EAC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
@@ -506,7 +496,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(OpenCV)"
         "ProductCode" = "8:{6DB75485-C012-466B-AA14-7CEA70AD98E5}"
-        "PackageCode" = "8:{E367D9AB-159C-4342-B7E9-9529A4284C63}"
+        "PackageCode" = "8:{693740AD-AD7F-496F-90E7-DEE790A3F491}"
         "UpgradeCode" = "8:{610C0CEF-E8C6-4EFB-A337-99E54CD03DFD}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
