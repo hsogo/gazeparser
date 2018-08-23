@@ -455,6 +455,17 @@
             "Property" = "8:TARGETDIR"
                 "Folders"
                 {
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_C0845FEAC778410FAFEF22B48AB5CC80"
+                    {
+                    "Name" = "8:doc"
+                    "AlwaysCreate" = "11:FALSE"
+                    "Condition" = "8:"
+                    "Transitive" = "11:FALSE"
+                    "Property" = "8:_2261BB08894C47B199467E56DD475A77"
+                        "Folders"
+                        {
+                        }
+                    }
                 }
             }
             "{1525181F-901A-416C-8A58-119130FE478E}:_B0EB9246D4334568B721C2D33DCA8D83"
@@ -496,7 +507,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(OpenCV)"
         "ProductCode" = "8:{6DB75485-C012-466B-AA14-7CEA70AD98E5}"
-        "PackageCode" = "8:{693740AD-AD7F-496F-90E7-DEE790A3F491}"
+        "PackageCode" = "8:{D0943D15-A2C9-4C57-AE07-E22FA8B1B894}"
         "UpgradeCode" = "8:{610C0CEF-E8C6-4EFB-A337-99E54CD03DFD}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1118,6 +1129,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:ContentFiles"
             "OutputProjectGuid" = "8:{2C28F1D3-A363-4D23-8D82-9BDD441428D1}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_CCD43E14DCD8493997AA6CAA1A54642D"
+            {
+            "SourcePath" = "8:"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_C0845FEAC778410FAFEF22B48AB5CC80"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:ContentFiles"
+            "OutputProjectGuid" = "8:{3CA893A5-6842-4B0B-816F-622C3F2635CE}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {

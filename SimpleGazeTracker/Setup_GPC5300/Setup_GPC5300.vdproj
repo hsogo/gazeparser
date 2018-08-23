@@ -39,6 +39,18 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_26E0BBCE6D9B4BE69C43C7ABF2DA7E1F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3C2DF12C72F44A609E7D3A013EBA60B8"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_4C15AA1CEC124C3CB02933123996BAE5"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -69,25 +81,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_96ABC2E4913249BB8E8DC72AB6E21202"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_A1E1B9F271384D968DED2790AB5937FD"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_A330E160FC184A1097AF1DAB9852D874"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_C0F627AFCF444D0FA0B1B805C443A0AC"
+        "MsmKey" = "8:_AED598BE83FB44D0AA60636C9B7CDE11"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -264,6 +264,46 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_26E0BBCE6D9B4BE69C43C7ABF2DA7E1F"
+            {
+            "SourcePath" = "8:C:\\Program Files (x86)\\Interface\\GPC5300\\bin\\x64\\FbiDevio.dll"
+            "TargetName" = "8:FbiDevio.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_E26D0EE1F6B54F0AB5A0BF5CB42BF5DF"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3C2DF12C72F44A609E7D3A013EBA60B8"
+            {
+            "SourcePath" = "8:C:\\Program Files (x86)\\Interface\\GPC5300\\bin\\x64\\IFCml.dll"
+            "TargetName" = "8:IFCml.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_E26D0EE1F6B54F0AB5A0BF5CB42BF5DF"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4C15AA1CEC124C3CB02933123996BAE5"
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_net.dll"
@@ -364,46 +404,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_96ABC2E4913249BB8E8DC72AB6E21202"
-            {
-            "SourcePath" = "8:C:\\Program Files (x86)\\Interface\\GPC5300\\bin\\ifdma.dll"
-            "TargetName" = "8:ifdma.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_E26D0EE1F6B54F0AB5A0BF5CB42BF5DF"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A1E1B9F271384D968DED2790AB5937FD"
-            {
-            "SourcePath" = "8:C:\\Program Files (x86)\\Interface\\GPC5300\\bin\\FbiDevio.dll"
-            "TargetName" = "8:FbiDevio.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_E26D0EE1F6B54F0AB5A0BF5CB42BF5DF"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A330E160FC184A1097AF1DAB9852D874"
             {
             "SourcePath" = "8:..\\common\\logo02.jpg"
@@ -424,10 +424,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C0F627AFCF444D0FA0B1B805C443A0AC"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AED598BE83FB44D0AA60636C9B7CDE11"
             {
-            "SourcePath" = "8:C:\\Program Files (x86)\\Interface\\GPC5300\\bin\\IFCML.dll"
-            "TargetName" = "8:IFCML.dll"
+            "SourcePath" = "8:C:\\Program Files (x86)\\Interface\\GPC5300\\bin\\x64\\ifdma.dll"
+            "TargetName" = "8:ifdma.dll"
             "Tag" = "8:"
             "Folder" = "8:_E26D0EE1F6B54F0AB5A0BF5CB42BF5DF"
             "Condition" = "8:"
@@ -555,6 +555,17 @@
             "Property" = "8:TARGETDIR"
                 "Folders"
                 {
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_81224D4C66E74425AD46B4C0838D1D8F"
+                    {
+                    "Name" = "8:doc"
+                    "AlwaysCreate" = "11:FALSE"
+                    "Condition" = "8:"
+                    "Transitive" = "11:FALSE"
+                    "Property" = "8:_737682B072B647D1B5A4D62FC0FEE439"
+                        "Folders"
+                        {
+                        }
+                    }
                 }
             }
         }
@@ -574,7 +585,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(GPC5300)"
         "ProductCode" = "8:{8CD0646B-DB45-48B0-BF0F-A99EB79DA872}"
-        "PackageCode" = "8:{4DD02D3A-1DA0-47D0-8330-884B6EB42C51}"
+        "PackageCode" = "8:{041949F4-60F3-4126-93EE-44A11D2B34A5}"
         "UpgradeCode" = "8:{068A955B-6967-4CF2-BB6B-0C9F3A3D4F01}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -1168,6 +1179,34 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:ContentFiles"
             "OutputProjectGuid" = "8:{F64918EA-DD9F-4213-ABE2-28B571DC1AAB}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_90C6243791AC4B4CBFA91E686C4C3AEB"
+            {
+            "SourcePath" = "8:"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_E26D0EE1F6B54F0AB5A0BF5CB42BF5DF"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:ContentFiles"
+            "OutputProjectGuid" = "8:{3CA893A5-6842-4B0B-816F-622C3F2635CE}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {
