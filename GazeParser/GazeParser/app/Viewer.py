@@ -2299,7 +2299,7 @@ class ViewerOptions(object):
                 sys.exit()
 
         if doMerge:
-            appNewConf = configParser.SafeConfigParser()
+            appNewConf = configparser.SafeConfigParser()
             appNewConf.optionxform = str
             appNewConf.read(initialConfigFile)
             newOpts = []
