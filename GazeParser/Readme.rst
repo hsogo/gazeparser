@@ -20,7 +20,7 @@ For Linux users
     - GazeParser-0.11.0/GazeParser-0.11.0.zip
 
 * If you plan to record gaze data, download source code for SimpleGazeTracker and build it.
-    - SimpleGazeTracker-0.11.0/SimpleGazeTracker-0.11.0.tar.gz
+    - SimpleGazeTracker-0.11.0/SimpleGazeTracker-0.11.0.tar.xz
 
 .. note::
     Debian .deb packages of GazeParser and SimpleGazeTracker are testing now.
@@ -28,6 +28,7 @@ For Linux users
     
     - GazeParser-0.11.0/gazeparser_0.11.0_all.deb
     - SimpleGazeTracker-0.11.0/simplegazetracker_0.11.0_amd64.deb
+    - SimpleGazeTracker-0.11.0/simplegazetracker-flycap_0.11.0_amd64.deb
 
 For MacOS users
 ============================
