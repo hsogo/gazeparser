@@ -472,7 +472,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
         print('TrackerToGazeParser start.')
         print('source file: %s' % inputfile)
     if os.path.exists(dstFileName) and (not overwrite):
-        if vervose: print('Target file (%s) already exist.' % dstFileName)
+        if verbose: print('Target file (%s) already exist.' % dstFileName)
         return 'TARGET_FILE_ALREADY_EXISTS'
 
     if not isinstance(config, GazeParser.Configuration.Config):
@@ -527,6 +527,12 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     isCheckedEffectiveDigit = False
     effectiveDigit = 2
     if verbose: print('parsing...')
+    
+    line = fid.readline()
+    if line.rstrip() != '#SimpleGazeTrackerDataFile':
+        fid.close()
+        if verbose: print('Not a SimpleGazeTracker data file.')
+        return 'NOT_SIMPLEGAZETRACKER_FILE'
 
     for line in fid:
         itemList = line[:-1].rstrip().split(',')
@@ -675,6 +681,10 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                         tmp.append(cmd)
                     if verbose: print('DATAFORMAT: %s' % (','.join(tmp)))
 
+                # Nothing to do against these options
+                elif itemList[0] in ['#STOP_REC', '#TRACKER_VERSION']:
+                    pass
+
                 # load GazeParser options if useFileParameters is True
                 elif useFileParameters:
                     optName = itemList[0][1:]
@@ -689,6 +699,12 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                             setattr(config, optName, itemList[1])
 
                             if verbose: print('%s = %s' % (optName, getattr(config, optName)))
+                    else:
+                        if verbose: print('Warning: unknown option ({})'.format(optName))
+
+                # output unprocessed parameters if verbose==True
+                else:
+                    if verbose: print('Warning: ignored option ({})'.format(optName))
         else:  # gaze data
             if not isCheckedEffectiveDigit:
                 if config.RECORDED_EYE == 'B':
