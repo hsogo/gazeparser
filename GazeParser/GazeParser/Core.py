@@ -1045,6 +1045,45 @@ class GazeData(object):
                     evlist = numpy.append(evlist, m)
         return evlist, evtimelist
 
+    def extractTraj(self, period, eye=None):
+        """
+        Extract trajectory in the specified period of time.
+        
+        :param tuple period:
+            Specify time period.  The first element of the tuple specifies
+            the start time of the period.  Use None to specify the beginning
+            of the data.  The second element is the end time of the period.
+            Use None to specify the end of the data.
+            The unit of these values are millisecond.
+        :param str eye:
+            'L', 'R' or 'B'.  If none, recorded eye is used.
+        :return:
+            The first element is timestamp.  If monocular data is requested,
+            The second element is extracted trajectory.  If binocular, 
+            The second element is left eye's data 
+        """
+        if eye is None:
+            eye = self._recordedEye
+
+        if period[0] is None:
+            si = 0
+        else:
+            si = numpy.where(self.T >= period[0])[0][0]
+        
+        if period[1] is None:
+            ei = -1
+        else:
+            ei = numpy.where(self.T <= period[1])[0][-1]
+
+        if eye == 'L':
+            return (self.T[si:ei], self.L[si:ei])
+        elif eye == 'R':
+            return (self.T[si:ei], self.R[si:ei])
+        elif eye == 'B':
+            return (self.T[si:ei], self.L[si:ei], self.R[si:ei])
+        else:
+            raise ValueError('Eye must be \'L\', \'R\', \'B\' or None.')
+
     def findNearestIndexFromMessage(self, message):
         """
         Return index of the timestamp of the sample that is nearest to the time
