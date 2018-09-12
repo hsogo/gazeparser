@@ -134,8 +134,7 @@ class GazeParserInitComponent(BaseVisualComponent):
         buff.writeIndented(getControllerCommand)
         buff.writeIndented('GazeParserTracker.connect(%(ipaddress)s)\n' % (self.params))
         if self.params['datafile'].val != '':
-            buff.writeIndented('GazeParserTracker.openDataFile(%(datafile)s)\n' % (self.params))
-        buff.writeIndented('GazeParserTracker.sendSettings(GazeParser.config.getParametersAsDict())\n')
+            buff.writeIndented('GazeParserTracker.openDataFile(%(datafile)s, config=GazeParser.config)\n' % (self.params))
         buff.writeIndented('GazeParserTracker.setCalibrationScreen(win)\n')
         if self.params['fitImageBuffer'].val:
             buff.writeIndented('GazeParserTracker.fitImageBufferToTracker()\n')

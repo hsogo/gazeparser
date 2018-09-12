@@ -23,6 +23,8 @@ import random
 
 import os
 import sys
+import warnings
+
 if sys.version_info[0] == 2:
     import ConfigParser as configparser
 else:
@@ -299,7 +301,7 @@ class BaseController(object):
         except:
             print('Warning: server socket may not be correctly closed.')
 
-    def openDataFile(self, filename, overwrite=False):
+    def openDataFile(self, filename, overwrite=False, config=None):
         """
         Send a command to open data file on the Tracker Host PC.
         The data file is created in the DATA directory at the
@@ -311,15 +313,37 @@ class BaseController(object):
         :param bool overwrite: If true, SimpleGazeTracker overwrites
             existing data file.  If false, SimpleGazeTracker renames
             existing data file. Default value is False.
+        :param config: If parameters of GazeParser is provided as
+            a dict or :class:`GazeParser.Configuration.Config` object,
+            parameters are inserted in SimpleGazeTracker data file.
+            Default value is None.
 
         .. note::
             Non-ascii code is not supprted as a file name.
         """
+        if config is None:
+            pass
+        elif isinstance(config, GazeParser.Configuration.Config):
+            config_dict = config.getParametersAsDict()
+        elif isinstance(config, dict):
+            config_dict = config
+        else:
+            raise ValueError('config must be dict or GazeParser.Configuration.Config obejct.')
+
         if overwrite:
             self.sendCommand('openDataFile'+chr(0)+filename+chr(0)+'1'+chr(0))
         else:
             self.sendCommand('openDataFile'+chr(0)+filename+chr(0)+'0'+chr(0))
         self.datafilename = filename
+        
+        if config is not None:
+            configlist = []
+            for key in GazeParser.Configuration.GazeParserOptions:
+                if key in config_dict:
+                    configlist.append('#'+key+','+str(config_dict[key]))
+
+            message = '/'.join(configlist)
+            self.sendCommand('insertSettings'+chr(0)+message+chr(0))
 
     def closeDataFile(self):
         """
@@ -345,10 +369,11 @@ class BaseController(object):
 
     def sendSettings(self, configDict):
         """
-        Send a command to insert recording settings to data file.
-
-        :param dict configDict: a dictionary object which holds recording settings.
+        This method is deprecated. Use "config" option of 
+        :func:`~GazeParser.TrackingTools.BaseController.openDataFile` instead.
         """
+        warnings.warn('sendSettings is deprecated. Use "config" option of openDataFile instead.')
+
         configlist = []
         # for key in configDict.keys():
         #    configlist.append('#'+key+','+str(configDict[key]))
@@ -2989,7 +3014,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         Dummy function for debugging. This method does nothing.
         """
-        print('sendSettings (dummy)')
+        warnings.warn('sendSettings is deprecated. Use "config" option of openDataFile instead.')
 
     def startRecording(self, message='', wait=0.2):
         """
