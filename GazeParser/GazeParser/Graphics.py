@@ -78,7 +78,7 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
         Specify the period for data plotting *when the data is an instance of
         GazeParser.Core.GazeData*. The first element of the tuple specifies the
         start time of the period. If None is given as the first element, the
-        data is plotted from the begenning. The second element is the end time
+        data is plotted from the beginning. The second element is the end time
         of the period. I None is given as the second element, the data is
         plotted to the end. The unit of these values are millisecond.
         Default value is (None, None).
