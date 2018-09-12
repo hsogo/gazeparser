@@ -29,8 +29,7 @@ tracker.setCalibrationTargetPositions(calarea, calTargetPos)
 # (in centimeters), give them as arguments of setCurrentScreenParamsToConfig().
 # NOTE: setCalibrationScreen() must be called IN ADVANCE.
 tracker.setCurrentScreenParamsToConfig(GazeParser.config)
-
-tracker.sendSettings(GazeParser.config.getParametersAsDict())
+tracker.openDataFile('sample08.csv', config=GazeParser.config)
 
 
 

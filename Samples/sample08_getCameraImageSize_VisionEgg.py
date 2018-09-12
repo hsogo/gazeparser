@@ -63,7 +63,7 @@ tracker.setCalibrationTargetPositions(calarea, calTargetPos)
 # Setting current screen parameters to configuration object.
 # NOTE: setCalibrationScreen() must be called IN ADVANCE.
 tracker.setCurrentScreenParamsToConfig(GazeParser.config, screenSize, distance)
-tracker.sendSettings(GazeParser.config.getParametersAsDict())
+tracker.openDataFile('sample08.csv', config=GazeParser.config)
 
 while True:
     res = tracker.calibrationLoop()

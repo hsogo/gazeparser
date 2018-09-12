@@ -72,8 +72,6 @@ tracker.connect(FileWindowValues['address'])
 
 win = psychopy.visual.Window(size=(1024,768),units='pix')
 
-tracker.sendSettings(GazeParser.config.getParametersAsDict())
-
 calarea = (-400,-300,400,300)
 calTargetPos = [[   0,   0],
                 [-350,-250],[-350,  0],[-350,250],

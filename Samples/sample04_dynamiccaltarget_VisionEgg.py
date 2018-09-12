@@ -50,7 +50,7 @@ if wf.isDummy.get():
 screen = VisionEgg.Core.get_default_screen();
 SX,SY = screen.size
 
-tracker.sendSettings(GazeParser.config.getParametersAsDict())
+tracker.openDataFile(dataFileName+'.csv', config=GazeParser.config)
 
 calarea = (SX/2-400,SY/2-300,SX/2+400,SY/2+300)
 calTargetPos = [[   0,   0],

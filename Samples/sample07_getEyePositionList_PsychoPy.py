@@ -129,8 +129,7 @@ tracker.connect(FileWindowValues['address'])
 
 win = psychopy.visual.Window(size=(1024,768),units='pix',monitor='testMonitor', fullscr=True)
 
-tracker.openDataFile(dataFileName+'.csv')
-tracker.sendSettings(GazeParser.config.getParametersAsDict())
+tracker.openDataFile(dataFileName+'.csv', config=GazeParser.config)
 
 
 calarea = [-400,-300,400,300]

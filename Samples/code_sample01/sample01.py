@@ -67,10 +67,9 @@ tracker = GazeParser.TrackingTools.getController(backend='PsychoPy',dummy=useDum
 #SimpleGazeTrackerと接続する
 tracker.connect(IPAddress)
 #SimpleGazeTracker側でデータファイルを開く
-tracker.openDataFile(params['participant']+'.csv')
-#GazeParserの設定をSimpleGazeTrackerに転送する
-#これを行っておくと計測後のデータ処理時に便利
-tracker.sendSettings(GazeParserConfigFile)
+#configで設定を転送しておくとデータ変換の際に反映される
+tracker.openDataFile(params['participant']+'.csv',
+    config=GazeParser.Configuration.Config(GazeParserConfigFile))
 #先ほど作成したPsychopyのウィンドウをキャリブレーション用画面として登録
 tracker.setCalibrationScreen(win)
 #キャリブレーション範囲とキャリブレーションターゲットの位置を登録
