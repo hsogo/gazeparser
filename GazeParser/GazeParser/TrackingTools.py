@@ -2056,7 +2056,7 @@ class BaseController(object):
                         data += newData
         
         try:
-            size = list(map(int,data.split(',')))
+            size = list(map(int,data.split(b',')))
         except:
             return None
 
