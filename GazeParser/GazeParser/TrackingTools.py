@@ -2914,12 +2914,17 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         else:
             print('connect to %s (dummy)' % (address))
 
-    def openDataFile(self, filename):
+    def openDataFile(self, filename, config=None):
         """
         Dummy function for debugging. This method does nothing.
         """
         print('openDataFile (dummy): ' + filename)
         self.datafilename = filename
+        
+        if config is None:
+            print('no config object is specified.')
+        else:
+            print(config)
 
     def closeDataFile(self):
         """
