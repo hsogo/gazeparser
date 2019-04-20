@@ -93,7 +93,7 @@ class MicroSacc(object):
 
     def _microsacc(self, data, vdata):
         msdx = numpy.sqrt(numpy.nanmedian(vdata[:, 0]**2) - numpy.nanmedian(vdata[:, 0])**2)
-        msdy = numpy.sqrt(numpy.nanmedian(vdata[:, 1]**2) - numpy.nanmedian(vdata[:, 0])**2)
+        msdy = numpy.sqrt(numpy.nanmedian(vdata[:, 1]**2) - numpy.nanmedian(vdata[:, 1])**2)
         radiusX = self.vfac * msdx
         radiusY = self.vfac * msdy
         
