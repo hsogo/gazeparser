@@ -1,3 +1,9 @@
+gazeparser (0.11.1) unstable; urgency=medium
+
+  * Bug in calcurating threshold for Microsaccade detection is fixed.
+  * Bug in getCameraImageSize() is fixed.
+  * "config" option is added to Dummy backend of GazeParser.TrackingTools.
+
 gazeparser (0.11.0) unstable; urgency=medium
 
   * Python3 is supported.

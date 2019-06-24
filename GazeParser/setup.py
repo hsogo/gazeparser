@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 import sys
 import os
 
-version = '0.11.0.post1'
+version = '0.11.1'
 
 setup(name='GazeParser',
       version=version,

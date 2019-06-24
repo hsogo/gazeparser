@@ -17,9 +17,9 @@ files = ['GazeParser/setup.py',
          ]
 
 for file in files:
-    print file
+    print(file)
     fp = open(file,'r')
     for line in fp:
         m =s.search(line)
         if m != None:
-            print m.group(0)
+            print(m.group(0))
