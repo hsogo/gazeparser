@@ -2214,49 +2214,54 @@ class configGridDialog(wx.Dialog):
     def cancel(self, event=None):
         self.Close()
 
+
 class ViewerOptions(object):
+    if sys.version_info[0] == 2:
+        stringType = unicode
+    else:
+        stringType = str
     options = [
         ['Version',
-         [['VIEWER_VERSION', str]]],
+         [['VIEWER_VERSION', stringType]]],
         ['Appearance',
          [['CANVAS_WIDTH', int],
           ['CANVAS_HEIGHT', int],
-          ['CANVAS_DEFAULT_VIEW', str],
+          ['CANVAS_DEFAULT_VIEW', stringType],
           ['CANVAS_SHOW_FIXNUMBER', bool],
           ['CANVAS_SHOW_STIMIMAGE', bool],
-          ['CANVAS_FONT_FILE', str],
-          ['CANVAS_XYAXES_UNIT', str],
-          ['CANVAS_GRID_ABSCISSA_XY', str],
-          ['CANVAS_GRID_ORDINATE_XY', str],
-          ['CANVAS_GRID_ABSCISSA_XYT', str],
-          ['CANVAS_GRID_ORDINATE_XYT', str],
-          ['COLOR_TRAJECTORY_L_SAC', str],
-          ['COLOR_TRAJECTORY_R_SAC', str],
-          ['COLOR_TRAJECTORY_L_FIX', str],
-          ['COLOR_TRAJECTORY_R_FIX', str],
-          ['COLOR_TRAJECTORY_L_X', str],
-          ['COLOR_TRAJECTORY_L_Y', str],
-          ['COLOR_TRAJECTORY_R_X', str],
-          ['COLOR_TRAJECTORY_R_Y', str],
-          ['COLOR_FIXATION_FC', str],
-          ['COLOR_FIXATION_BG', str],
-          ['COLOR_FIXATION_FC_E', str],
-          ['COLOR_FIXATION_BG_E', str],
-          ['COLOR_SACCADE_HATCH', str],
-          ['COLOR_SACCADE_HATCH_E', str],
-          ['COLOR_BLINK_HATCH', str],
-          ['COLOR_MESSAGE_CURSOR', str],
-          ['COLOR_MESSAGE_FC', str],
-          ['COLOR_MESSAGE_BG', str]]],
+          ['CANVAS_FONT_FILE', stringType],
+          ['CANVAS_XYAXES_UNIT', stringType],
+          ['CANVAS_GRID_ABSCISSA_XY', stringType],
+          ['CANVAS_GRID_ORDINATE_XY', stringType],
+          ['CANVAS_GRID_ABSCISSA_XYT', stringType],
+          ['CANVAS_GRID_ORDINATE_XYT', stringType],
+          ['COLOR_TRAJECTORY_L_SAC', stringType],
+          ['COLOR_TRAJECTORY_R_SAC', stringType],
+          ['COLOR_TRAJECTORY_L_FIX', stringType],
+          ['COLOR_TRAJECTORY_R_FIX', stringType],
+          ['COLOR_TRAJECTORY_L_X', stringType],
+          ['COLOR_TRAJECTORY_L_Y', stringType],
+          ['COLOR_TRAJECTORY_R_X', stringType],
+          ['COLOR_TRAJECTORY_R_Y', stringType],
+          ['COLOR_FIXATION_FC', stringType],
+          ['COLOR_FIXATION_BG', stringType],
+          ['COLOR_FIXATION_FC_E', stringType],
+          ['COLOR_FIXATION_BG_E', stringType],
+          ['COLOR_SACCADE_HATCH', stringType],
+          ['COLOR_SACCADE_HATCH_E', stringType],
+          ['COLOR_BLINK_HATCH', stringType],
+          ['COLOR_MESSAGE_CURSOR', stringType],
+          ['COLOR_MESSAGE_FC', stringType],
+          ['COLOR_MESSAGE_BG', stringType]]],
         ['Command',
-         [['COMMAND_SEPARATOR', str],
-          ['COMMAND_STIMIMAGE_PATH', str]]],
+         [['COMMAND_SEPARATOR', stringType],
+          ['COMMAND_STIMIMAGE_PATH', stringType]]],
         ['Recent',
-         [['RECENT_DIR01', str],
-          ['RECENT_DIR02', str],
-          ['RECENT_DIR03', str],
-          ['RECENT_DIR04', str],
-          ['RECENT_DIR05', str]]]
+         [['RECENT_DIR01', stringType],
+          ['RECENT_DIR02', stringType],
+          ['RECENT_DIR03', stringType],
+          ['RECENT_DIR04', stringType],
+          ['RECENT_DIR05', stringType]]]
     ]
 
     def __init__(self):
@@ -2271,7 +2276,12 @@ class ViewerOptions(object):
 
         appConf = configparser.SafeConfigParser()
         appConf.optionxform = str
-        appConf.read(self.viewerConfigFile)
+        try:
+            # appConf.read(self.viewerConfigFile)
+            appConf.readfp(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
+        except UnicodeDecodeError:
+            messageDialogShowinfo(None, 'info', 'Could not open %s.\nCheck if the file is encoded in UTF-8.' % (self.viewerConfigFile))
+            sys.exit()
 
         try:
             self.VIEWER_VERSION = appConf.get('Version', 'VIEWER_VERSION')
@@ -2282,7 +2292,8 @@ class ViewerOptions(object):
                 shutil.copyfile(initialConfigFile, self.viewerConfigFile)
                 appConf = configparser.SafeConfigParser()
                 appConf.optionxform = str
-                appConf.read(self.viewerConfigFile)
+                # appConf.read(self.viewerConfigFile)
+                appConf.readfp(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
                 self.VIEWER_VERSION = appConf.get('Version', 'VIEWER_VERSION')
             else:
                 messageDialogShowinfo(None, 'info', 'Please correct configuration file manually.')
@@ -2319,6 +2330,7 @@ class ViewerOptions(object):
         else:
             for section, params in self.options:
                 for optName, optType in params:
+                    setattr(self, optName, optType(appConf.get(section, optName)))
                     try:
                         setattr(self, optName, optType(appConf.get(section, optName)))
                     except:
@@ -2328,10 +2340,11 @@ class ViewerOptions(object):
         # set recent directories
         self.RecentDir = []
         for i in range(5):
-            if sys.version_info[0] == 2:
-                d = getattr(self, 'RECENT_DIR%02d' % (i+1)).decode(sys.getfilesystemencoding())
-            else:
-                d = getattr(self, 'RECENT_DIR%02d' % (i+1))
+            # if sys.version_info[0] == 2:
+            #     d = getattr(self, 'RECENT_DIR%02d' % (i+1)).decode(sys.getfilesystemencoding())
+            # else:
+            #     d = getattr(self, 'RECENT_DIR%02d' % (i+1))
+            d = getattr(self, 'RECENT_DIR%02d' % (i+1))
             self.RecentDir.append(d)
 
     def _write(self):
@@ -2339,7 +2352,8 @@ class ViewerOptions(object):
         for i in range(5):
             setattr(self, 'RECENT_DIR%02d' % (i+1), self.RecentDir[i])
 
-        with codecs.open(self.viewerConfigFile, 'w', sys.getfilesystemencoding()) as fp:
+        # with codecs.open(self.viewerConfigFile, 'w', sys.getfilesystemencoding()) as fp:
+        with codecs.open(self.viewerConfigFile, 'w', 'utf8') as fp:
             for section, params in self.options:
                 fp.write('[%s]\n' % section)
                 for optName, optType in params:
