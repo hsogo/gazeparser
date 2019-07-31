@@ -194,6 +194,13 @@ def getComplementaryColorStr(col):
     """
     return '#'+hex(16777215-int(col[1:], base=16))[2:].upper()
 
+def findGazeParserObjectIndex(obj, objlist):
+    idxs = []
+    for i, o in enumerate(objlist):
+        if obj == o:
+            idxs.append(i)
+
+    return idxs
 
 def getTextColor(backgroundColor, thresh=0.3):
     g = int(backgroundColor[1:3], base=16)*0.298912 + int(backgroundColor[3:5], base=16)*0.586611 + int(backgroundColor[5:7], base=16)*0.114478
@@ -3384,13 +3391,13 @@ class mainFrame(wx.Frame):
         for s in selected:
             e = self.D[self.tr].EventList[int(s)]
             if isinstance(e, GazeParser.SaccadeData):
-                self.selectionlist['Sac'].append(numpy.where(e == self.D[self.tr].Sac)[0][0])
+                self.selectionlist['Sac'].append(findGazeParserObjectIndex(e, self.D[self.tr].Sac)[0])
             elif isinstance(e, GazeParser.FixationData):
-                self.selectionlist['Fix'].append(numpy.where(e == self.D[self.tr].Fix)[0][0])
+                self.selectionlist['Fix'].append(findGazeParserObjectIndex(e, self.D[self.tr].Fix)[0])
             elif isinstance(e, GazeParser.MessageData):
-                self.selectionlist['Msg'].append(numpy.where(e == self.D[self.tr].Msg)[0][0])
+                self.selectionlist['Msg'].append(findGazeParserObjectIndex(e, self.D[self.tr].Msg)[0])
             elif isinstance(e, GazeParser.BlinkData):
-                self.selectionlist['Blink'].append(numpy.where(e == self.D[self.tr].Blink)[0][0])
+                self.selectionlist['Blink'].append(findGazeParserObjectIndex(e, self.D[self.tr].Blink)[0])
 
         # self.currentPlotArea = self.ax.get_xlim()+self.ax.get_ylim()
         self.plotData()
