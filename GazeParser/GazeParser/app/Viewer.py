@@ -540,7 +540,7 @@ class convertSGTDialog(wx.Dialog):
                 if sys.version_info[0] == 2:
                     self.paramEntryDict[key] = wx.TextCtrl(self.paramPanel, wx.ID_ANY, unicode(getattr(self.configuration, key)))
                 else:
-                    self.paramEntryDict[key] = wx.TextCtrl(self.paramPanel, wx.ID_ANY, getattr(self.configuration, key))
+                    self.paramEntryDict[key] = wx.TextCtrl(self.paramPanel, wx.ID_ANY, str(getattr(self.configuration, key)))
             box.Add(self.paramEntryDict[key])
         self.paramPanel.SetSizer(box)
         self.onClickRadiobutton()
