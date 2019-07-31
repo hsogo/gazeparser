@@ -920,7 +920,7 @@ class interactiveConfigFrame(wx.Frame):
 
         for s in range(self.D[self.tr].nSac):
             self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart, -10000], self.D[self.tr].Sac[s].duration, 20000,
-                              hatch='///', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
+                              fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))  # hatch='///', 
 
         if self.newSacList is not None and self.newFixList is not None:
             for f in range(len(self.newFixList)):
@@ -931,7 +931,7 @@ class interactiveConfigFrame(wx.Frame):
             hatchColor = getComplementaryColorStr(self.conf.COLOR_SACCADE_HATCH)
             for s in range(len(self.newSacList)):
                 self.ax.add_patch(matplotlib.patches.Rectangle([self.newSacList[s].startTime-tStart, -10000], self.newSacList[s].duration, 20000,
-                                  hatch='\\\\\\', fc=hatchColor, alpha=0.3))
+                                  fc=hatchColor, alpha=0.3))  # hatch='\\\\\\', 
 
         self.ax.axis(self.currentPlotArea)
         self.ax.set_title('%s: Trial %d / %d' % (os.path.basename(self.dataFileName), self.tr+1, len(self.D)), fontproperties=self.fontPlotText)
@@ -3295,21 +3295,21 @@ class mainFrame(wx.Frame):
                     if s in self.selectionlist['Sac']:
                         self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart, -10000],
                                                                        self.D[self.tr].Sac[s].duration, 20000,
-                                                                       hatch='///', fc=self.conf.COLOR_SACCADE_HATCH_E, alpha=0.8))
+                                                                       fc=self.conf.COLOR_SACCADE_HATCH_E, alpha=0.8))  # hatch='///', 
                     else:
                         self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart, -10000],
                                                                        self.D[self.tr].Sac[s].duration, 20000,
-                                                                       hatch='///', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
+                                                                       fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))  # hatch='///', 
                 else:
                     if s in self.selectionlist['Sac']:
                         self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Sac[s].startTime-tStart, -10000],
                                                                        self.D[self.tr].Sac[s].duration, 20000,
-                                                                       hatch='///', fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))
+                                                                       fc=self.conf.COLOR_SACCADE_HATCH, alpha=0.3))  # hatch='///', 
 
             for b in range(self.D[self.tr].nBlink):
                 self.ax.add_patch(matplotlib.patches.Rectangle([self.D[self.tr].Blink[b].startTime-tStart, -10000],
                                                                self.D[self.tr].Blink[b].duration, 20000,
-                                                               hatch='\\\\\\', fc=self.conf.COLOR_BLINK_HATCH, alpha=0.3))
+                                                               fc=self.conf.COLOR_BLINK_HATCH, alpha=0.3))  # hatch='\\\\\\', 
 
             for m in range(self.D[self.tr].nMsg):
                 mObj = self.D[self.tr].Msg[m]
