@@ -2467,8 +2467,16 @@ class mainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.toScatterView, id=ID_VIEW_SCATTER)
         self.Bind(wx.EVT_MENU, self.toHeatmapView, id=ID_VIEW_HEATMAP)
         self.menu_view.AppendSeparator()
-        self.menu_view.AppendCheckItem(ID_SHOW_FIXNUM, 'Show Fixation Number')
-        self.menu_view.AppendCheckItem(ID_SHOW_STIMIMAGE, 'Show Stimulus Image')
+        show_fix_num = self.menu_view.AppendCheckItem(ID_SHOW_FIXNUM, 'Show Fixation Number')
+        if self.conf.CANVAS_SHOW_FIXNUMBER:
+            show_fix_num.Check(True)
+        else:
+            show_fix_num.Check(False)
+        show_stim_img = self.menu_view.AppendCheckItem(ID_SHOW_STIMIMAGE, 'Show Stimulus Image')
+        if self.conf.CANVAS_SHOW_FIXNUMBER:
+            show_stim_img.Check(True)
+        else:
+            show_stim_img.Check(False)
         self.Bind(wx.EVT_MENU, self.toggleFixNum, id=ID_SHOW_FIXNUM)
         self.Bind(wx.EVT_MENU, self.toggleStimImage, id=ID_SHOW_STIMIMAGE)
         self.menu_view.AppendSeparator()
@@ -2653,20 +2661,20 @@ class mainFrame(wx.Frame):
     def toggleFixNum(self, event=None):
         if self.conf.CANVAS_SHOW_FIXNUMBER:
             self.conf.CANVAS_SHOW_FIXNUMBER = False
-            self.showFixationNumberItem.set(0)
+            #self.showFixationNumberItem.set(0)
         else:
             self.conf.CANVAS_SHOW_FIXNUMBER = True
-            self.showFixationNumberItem.set(1)
+            #self.showFixationNumberItem.set(1)
 
         self.plotData()
 
     def toggleStimImage(self, event=None):
         if self.conf.CANVAS_SHOW_STIMIMAGE:
             self.conf.CANVAS_SHOW_STIMIMAGE = False
-            self.showStimulusImageItem.set(0)
+            # self.showStimulusImageItem.set(0)
         else:
             self.conf.CANVAS_SHOW_STIMIMAGE = True
-            self.showStimulusImageItem.set(1)
+            # self.showStimulusImageItem.set(1)
 
         self.plotData()
 
