@@ -2431,7 +2431,7 @@ class mainFrame(wx.Frame):
         self.menu_bar.Append(self.menu_tools,'Tools')
 
         self.menu_file.Append(wx.ID_OPEN,'Open')
-        if hasattr(menu_file, 'AppendSubMenu'):
+        if hasattr(self.menu_file, 'AppendSubMenu'):
             self.menu_file.AppendSubMenu(self.menu_recent, 'Recent Dir')
         else:
             self.menu_file.Append(wx.ID_ANY, 'Recent Dir', self.menu_recent)
