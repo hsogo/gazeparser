@@ -58,35 +58,35 @@ PLOT_OFFSET = 10
 XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
 SELECTMODES = ['Emphasize', 'Extract']
 
-ID_RECENT1 = wx.NewId()
-ID_RECENT2 = wx.NewId()
-ID_RECENT3 = wx.NewId()
-ID_RECENT4 = wx.NewId()
-ID_RECENT5 = wx.NewId()
+ID_RECENT1 = wx.NewIdRef()
+ID_RECENT2 = wx.NewIdRef()
+ID_RECENT3 = wx.NewIdRef()
+ID_RECENT4 = wx.NewIdRef()
+ID_RECENT5 = wx.NewIdRef()
 recentIDList = [ID_RECENT1, ID_RECENT2, ID_RECENT3, ID_RECENT4, ID_RECENT5]
-ID_EXPORT = wx.NewId()
-ID_COMBINE = wx.NewId()
-ID_PREV_TR = wx.NewId()
-ID_NEXT_TR = wx.NewId()
-ID_VIEW_TXY = wx.NewId()
-ID_VIEW_XY = wx.NewId()
-ID_VIEW_SCATTER = wx.NewId()
-ID_VIEW_HEATMAP = wx.NewId()
-ID_SHOW_FIXNUM = wx.NewId()
-ID_SHOW_STIMIMAGE = wx.NewId()
-ID_CONF_GRID = wx.NewId()
-ID_CONF_COLOR = wx.NewId()
-ID_CONF_FONT = wx.NewId()
-ID_CONF_STIMIMAGE = wx.NewId()
-ID_TOOL_CONVERT = wx.NewId()
-ID_TOOL_EDITCONFIG = wx.NewId()
-ID_TOOL_GETLATENCY = wx.NewId()
-ID_TOOL_GETFIXREG = wx.NewId()
-ID_TOOL_ANIMATION = wx.NewId()
-ID_JUMPLIST_CURRENT = wx.NewId()
-ID_JUMPLIST_REGISTERED = wx.NewId()
-ID_JUMPLIST_EVENT = wx.NewId()
-ID_JUMP_TO = wx.NewId()
+ID_EXPORT = wx.NewIdRef()
+ID_COMBINE = wx.NewIdRef()
+ID_PREV_TR = wx.NewIdRef()
+ID_NEXT_TR = wx.NewIdRef()
+ID_VIEW_TXY = wx.NewIdRef()
+ID_VIEW_XY = wx.NewIdRef()
+ID_VIEW_SCATTER = wx.NewIdRef()
+ID_VIEW_HEATMAP = wx.NewIdRef()
+ID_SHOW_FIXNUM = wx.NewIdRef()
+ID_SHOW_STIMIMAGE = wx.NewIdRef()
+ID_CONF_GRID = wx.NewIdRef()
+ID_CONF_COLOR = wx.NewIdRef()
+ID_CONF_FONT = wx.NewIdRef()
+ID_CONF_STIMIMAGE = wx.NewIdRef()
+ID_TOOL_CONVERT = wx.NewIdRef()
+ID_TOOL_EDITCONFIG = wx.NewIdRef()
+ID_TOOL_GETLATENCY = wx.NewIdRef()
+ID_TOOL_GETFIXREG = wx.NewIdRef()
+ID_TOOL_ANIMATION = wx.NewIdRef()
+ID_JUMPLIST_CURRENT = wx.NewIdRef()
+ID_JUMPLIST_REGISTERED = wx.NewIdRef()
+ID_JUMPLIST_EVENT = wx.NewIdRef()
+ID_JUMP_TO = wx.NewIdRef()
 
 def messageDialogAskyesno(parent=None, caption='Ask Yes/No', message='Ask Yes/No'):
     dlg = wx.MessageDialog(parent, message=message, caption=caption, style=wx.YES_NO)
@@ -229,12 +229,12 @@ class animationDialog(wx.Dialog):
         elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
             self.sf = self.D[self.tr]._pix2deg
         
-        self.ID_STARTSLIDER = wx.NewId()
-        self.ID_STOPSLIDER = wx.NewId()
-        self.ID_STARTCTRL = wx.NewId()
-        self.ID_STOPCTRL = wx.NewId()
+        self.ID_STARTSLIDER = wx.NewIdRef()
+        self.ID_STOPSLIDER = wx.NewIdRef()
+        self.ID_STARTCTRL = wx.NewIdRef()
+        self.ID_STOPCTRL = wx.NewIdRef()
         
-        TIMER_ID = wx.NewId()
+        TIMER_ID = wx.NewIdRef()
         self.timer = wx.Timer(self, TIMER_ID)
         wx.EVT_TIMER(self, TIMER_ID, self.onTimer) 
         
@@ -752,7 +752,7 @@ class interactiveConfigFrame(wx.Frame):
         keys = ((wx.WXK_LEFT,self.prevTrial),
                 (wx.WXK_RIGHT,self.nextTrial))
         for key in keys:
-            _id = wx.NewId()
+            _id = wx.NewIdRef()
             ac.append((wx.ACCEL_NORMAL, key[0], _id))
             self.Bind(wx.EVT_MENU, key[1], id=_id)
         tbl = wx.AcceleratorTable(ac)
@@ -2521,10 +2521,11 @@ class mainFrame(wx.Frame):
         self.sidePane = wx.Notebook(self, wx.ID_ANY)
         
         self.eventPanel = wx.Panel(self.sidePane, wx.ID_ANY)
-        self.selectradiobox = wx.RadioBox(self.eventPanel,wx.ID_ANY,'Selection',choices=SELECTMODES,style=wx.RA_VERTICAL)
+        self.selectradiobox = wx.RadioBox(self.eventPanel,wx.ID_ANY,'Selection',choices=SELECTMODES,style=wx.RA_HORIZONTAL)
         self.selectradiobox.SetSelection(SELECTMODES.index(self.selectiontype))
         self.msglistbox = wx.ListCtrl(self.eventPanel,ID_JUMPLIST_EVENT,style=wx.LC_REPORT)
         self.msglistbox.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.jumpToTime)
+        self.msglistbox.Bind(wx.EVT_LIST_ITEM_SELECTED, self.updateInfo)
         self.msglistbox.InsertColumn(0, 'Time')
         self.msglistbox.InsertColumn(1, 'Event')
         
@@ -2538,10 +2539,15 @@ class mainFrame(wx.Frame):
         hbox.Add(cancelButton)
         buttonPanel.SetSizer(hbox)
         
+        self.infoTextCtrl = wx.TextCtrl(self.eventPanel, wx.ID_ANY, 
+            '\n\n\n',
+            style = wx.TE_MULTILINE|wx.TE_READONLY)
+
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(self.selectradiobox, flag=wx.EXPAND, proportion=0)
         vbox.Add(buttonPanel, flag=wx.EXPAND, proportion=0)
         vbox.Add(self.msglistbox, flag=wx.EXPAND, proportion=1)
+        vbox.Add(self.infoTextCtrl, flag=wx.EXPAND, proportion=0)
         self.eventPanel.SetSizerAndFit(vbox)
 
         self.trialPanel = wx.Panel(self.sidePane, wx.ID_ANY)
@@ -2584,7 +2590,7 @@ class mainFrame(wx.Frame):
                 (wx.WXK_RIGHT,self.nextTrial),
                 (ord('v'),self.toggleView))
         for key in keys:
-            _id = wx.NewId()
+            _id = wx.NewIdRef()
             ac.append((wx.ACCEL_NORMAL, key[0], _id))
             self.Bind(wx.EVT_MENU, key[1], id=_id)
         tbl = wx.AcceleratorTable(ac)
@@ -3038,6 +3044,28 @@ class mainFrame(wx.Frame):
         for row in range(rows):
             for col in range(cols):
                 self.jumplistbox.SetStringItem(row, col, items[indexList[row]][col])
+
+    def updateInfo(self, event=None):
+        if event.Id == ID_JUMPLIST_EVENT:
+            i = event.GetIndex()
+            if isinstance(self.D[self.tr].EventList[i], GazeParser.Core.SaccadeData):
+                msg = 'Amp:{:.2f} ({:.2f}pix)\nDur:{} ms\nFrom:{} To:{}'.format(
+                    self.D[self.tr].EventList[i].amplitude,
+                    self.D[self.tr].EventList[i].length,
+                    self.D[self.tr].EventList[i].duration,
+                    self.D[self.tr].EventList[i].start,
+                    self.D[self.tr].EventList[i].end)
+                pos = (self.D[self.tr].EventList[i].start + self.D[self.tr].EventList[i].end)/2.0
+            elif isinstance(self.D[self.tr].EventList[i], GazeParser.Core.FixationData):
+                pos = self.D[self.tr].EventList[i].center
+                msg = 'Dur:{} ms\nCenter:({:.1f},{:.1f})'.format(
+                    self.D[self.tr].EventList[i].duration,
+                    self.D[self.tr].EventList[i].center[0],
+                    self.D[self.tr].EventList[i].center[1])
+            else:
+                msg = ''
+            
+            self.infoTextCtrl.SetValue(msg)
 
     def showPopupMsglistbox(self, event=None):
         pos = event.GetPosition()
