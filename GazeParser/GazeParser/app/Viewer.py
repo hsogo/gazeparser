@@ -16,9 +16,9 @@ from __future__ import print_function
 import os
 import sys
 if sys.version_info[0] == 2:
-    import ConfigParser as configparser
+    from ConfigParser import SafeConfigParser as ConfigParser
 else:
-    import configparser
+    from configparser import ConfigParser
 import shutil
 try:
     import Image
@@ -2281,11 +2281,13 @@ class ViewerOptions(object):
         if not os.path.isfile(self.viewerConfigFile):
             shutil.copyfile(initialConfigFile, self.viewerConfigFile)
 
-        appConf = configparser.SafeConfigParser()
+        appConf = ConfigParser()
         appConf.optionxform = str
         try:
-            # appConf.read(self.viewerConfigFile)
-            appConf.readfp(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
+            if hasattr(appConf, 'read_file'):
+                appConf.read_file(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
+            else: # Python2 ?
+                appConf.readfp(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
         except UnicodeDecodeError:
             messageDialogShowinfo(None, 'info', 'Could not open %s.\nCheck if the file is encoded in UTF-8.' % (self.viewerConfigFile))
             sys.exit()
@@ -2297,10 +2299,12 @@ class ViewerOptions(object):
             if ans:
                 shutil.copyfile(self.viewerConfigFile, self.viewerConfigFile+'.bak')
                 shutil.copyfile(initialConfigFile, self.viewerConfigFile)
-                appConf = configparser.SafeConfigParser()
+                appConf = ConfigParser()
                 appConf.optionxform = str
-                # appConf.read(self.viewerConfigFile)
-                appConf.readfp(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
+                if hasattr(appConf, 'read_file'):
+                    appConf.read_file(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
+                else: # Python2 ?
+                    appConf.readfp(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
                 self.VIEWER_VERSION = appConf.get('Version', 'VIEWER_VERSION')
             else:
                 messageDialogShowinfo(None, 'info', 'Please correct configuration file manually.')
@@ -2317,9 +2321,12 @@ class ViewerOptions(object):
                 sys.exit()
 
         if doMerge:
-            appNewConf = configparser.SafeConfigParser()
+            appNewConf = ConfigParser()
             appNewConf.optionxform = str
-            appNewConf.read(initialConfigFile)
+            if hasattr(appNewConf, 'read_file'):
+                appNewConf.read_file(codecs.open(initialConfigFile, 'r', 'utf8'))
+            else:
+                appNewConf.readfp(codecs.open(initialConfigFile, 'r', 'utf8'))
             newOpts = []
             for section, params in self.options:
                 for optName, optType in params:
