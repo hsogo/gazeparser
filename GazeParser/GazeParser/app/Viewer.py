@@ -35,6 +35,10 @@ import re
 import codecs
 import functools
 import wx
+if hasattr(wx, 'NewIdRef'):
+    wx_NewIdRef = wx.NewIdRef
+else:
+    wx_NewIdRef = wx.NewId
 import wx.aui
 import matplotlib
 #import functools
@@ -58,35 +62,35 @@ PLOT_OFFSET = 10
 XYPLOTMODES = ['XY', 'SCATTER', 'HEATMAP']
 SELECTMODES = ['Emphasize', 'Extract']
 
-ID_RECENT1 = wx.NewIdRef()
-ID_RECENT2 = wx.NewIdRef()
-ID_RECENT3 = wx.NewIdRef()
-ID_RECENT4 = wx.NewIdRef()
-ID_RECENT5 = wx.NewIdRef()
+ID_RECENT1 = wx_NewIdRef()
+ID_RECENT2 = wx_NewIdRef()
+ID_RECENT3 = wx_NewIdRef()
+ID_RECENT4 = wx_NewIdRef()
+ID_RECENT5 = wx_NewIdRef()
 recentIDList = [ID_RECENT1, ID_RECENT2, ID_RECENT3, ID_RECENT4, ID_RECENT5]
-ID_EXPORT = wx.NewIdRef()
-ID_COMBINE = wx.NewIdRef()
-ID_PREV_TR = wx.NewIdRef()
-ID_NEXT_TR = wx.NewIdRef()
-ID_VIEW_TXY = wx.NewIdRef()
-ID_VIEW_XY = wx.NewIdRef()
-ID_VIEW_SCATTER = wx.NewIdRef()
-ID_VIEW_HEATMAP = wx.NewIdRef()
-ID_SHOW_FIXNUM = wx.NewIdRef()
-ID_SHOW_STIMIMAGE = wx.NewIdRef()
-ID_CONF_GRID = wx.NewIdRef()
-ID_CONF_COLOR = wx.NewIdRef()
-ID_CONF_FONT = wx.NewIdRef()
-ID_CONF_STIMIMAGE = wx.NewIdRef()
-ID_TOOL_CONVERT = wx.NewIdRef()
-ID_TOOL_EDITCONFIG = wx.NewIdRef()
-ID_TOOL_GETLATENCY = wx.NewIdRef()
-ID_TOOL_GETFIXREG = wx.NewIdRef()
-ID_TOOL_ANIMATION = wx.NewIdRef()
-ID_JUMPLIST_CURRENT = wx.NewIdRef()
-ID_JUMPLIST_REGISTERED = wx.NewIdRef()
-ID_JUMPLIST_EVENT = wx.NewIdRef()
-ID_JUMP_TO = wx.NewIdRef()
+ID_EXPORT = wx_NewIdRef()
+ID_COMBINE = wx_NewIdRef()
+ID_PREV_TR = wx_NewIdRef()
+ID_NEXT_TR = wx_NewIdRef()
+ID_VIEW_TXY = wx_NewIdRef()
+ID_VIEW_XY = wx_NewIdRef()
+ID_VIEW_SCATTER = wx_NewIdRef()
+ID_VIEW_HEATMAP = wx_NewIdRef()
+ID_SHOW_FIXNUM = wx_NewIdRef()
+ID_SHOW_STIMIMAGE = wx_NewIdRef()
+ID_CONF_GRID = wx_NewIdRef()
+ID_CONF_COLOR = wx_NewIdRef()
+ID_CONF_FONT = wx_NewIdRef()
+ID_CONF_STIMIMAGE = wx_NewIdRef()
+ID_TOOL_CONVERT = wx_NewIdRef()
+ID_TOOL_EDITCONFIG = wx_NewIdRef()
+ID_TOOL_GETLATENCY = wx_NewIdRef()
+ID_TOOL_GETFIXREG = wx_NewIdRef()
+ID_TOOL_ANIMATION = wx_NewIdRef()
+ID_JUMPLIST_CURRENT = wx_NewIdRef()
+ID_JUMPLIST_REGISTERED = wx_NewIdRef()
+ID_JUMPLIST_EVENT = wx_NewIdRef()
+ID_JUMP_TO = wx_NewIdRef()
 
 def messageDialogAskyesno(parent=None, caption='Ask Yes/No', message='Ask Yes/No'):
     dlg = wx.MessageDialog(parent, message=message, caption=caption, style=wx.YES_NO)
@@ -229,12 +233,12 @@ class animationDialog(wx.Dialog):
         elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
             self.sf = self.D[self.tr]._pix2deg
         
-        self.ID_STARTSLIDER = wx.NewIdRef()
-        self.ID_STOPSLIDER = wx.NewIdRef()
-        self.ID_STARTCTRL = wx.NewIdRef()
-        self.ID_STOPCTRL = wx.NewIdRef()
+        self.ID_STARTSLIDER = wx_NewIdRef()
+        self.ID_STOPSLIDER = wx_NewIdRef()
+        self.ID_STARTCTRL = wx_NewIdRef()
+        self.ID_STOPCTRL = wx_NewIdRef()
         
-        TIMER_ID = wx.NewIdRef()
+        TIMER_ID = wx_NewIdRef()
         self.timer = wx.Timer(self, TIMER_ID)
         wx.EVT_TIMER(self, TIMER_ID, self.onTimer) 
         
@@ -752,7 +756,7 @@ class interactiveConfigFrame(wx.Frame):
         keys = ((wx.WXK_LEFT,self.prevTrial),
                 (wx.WXK_RIGHT,self.nextTrial))
         for key in keys:
-            _id = wx.NewIdRef()
+            _id = wx_NewIdRef()
             ac.append((wx.ACCEL_NORMAL, key[0], _id))
             self.Bind(wx.EVT_MENU, key[1], id=_id)
         tbl = wx.AcceleratorTable(ac)
@@ -2600,7 +2604,7 @@ class mainFrame(wx.Frame):
                 (wx.WXK_RIGHT,self.nextTrial),
                 (ord('v'),self.toggleView))
         for key in keys:
-            _id = wx.NewIdRef()
+            _id = wx_NewIdRef()
             ac.append((wx.ACCEL_NORMAL, key[0], _id))
             self.Bind(wx.EVT_MENU, key[1], id=_id)
         tbl = wx.AcceleratorTable(ac)
