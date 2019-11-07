@@ -137,13 +137,18 @@ int initCamera(void)
 	tmpframe = cv::imread(imageSourceName.c_str(), 0);
 
 	if (tmpframe.empty()) {
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to load image %s.", imageSourceName.c_str());
-		g_LogFS << "ERROR: failed to load image " << imageSourceName << std::endl;
-		return E_FAIL;
+		// try data directory
+		tmpframe = cv::imread(joinPath(g_DataPath.c_str(), imageSourceName.c_str()), 0);
+
+		if (tmpframe.empty()) {
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to load image %s.", imageSourceName.c_str());
+			g_LogFS << "ERROR: failed to load image " << imageSourceName << std::endl;
+			return E_FAIL;
+		}
 	}
-	else {
-		g_LogFS << "Load image " << imageSourceName << std::endl;
-	}
+
+	g_LogFS << "Load image " << imageSourceName << std::endl;
+
 
 	if(tmpframe.rows != g_CameraHeight || tmpframe.cols != g_CameraWidth){
 		cv::resize(tmpframe, frame, cv::Size(g_CameraWidth, g_CameraHeight));
