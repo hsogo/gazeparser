@@ -34,8 +34,8 @@
 #include <process.h>
 #endif
 
-#define MENU_ITEM_HEIGHT 24
-#define MENU_FONT_SIZE 20
+#define MENU_ITEM_HEIGHT 22
+#define MENU_FONT_SIZE 18
 
 #define PANEL_WIDTH  256
 #define PANEL_HEIGHT 512
@@ -71,6 +71,7 @@ int g_PreviewWidth;
 int g_PreviewHeight;
 int g_ROIWidth;
 int g_ROIHeight;
+int g_MorphologicalTrans;
 
 int g_Threshold = 55;  /*!< Pupil candidates are sought from image areas darker than this value. */
 int g_MaxPupilWidth = 30; /*!< Dark areas wider than this value is removed from pupil candidates. */
@@ -187,6 +188,8 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 -USBIO_AD (g_USBIOParamAD)
 -USBIO_DI (g_USBIOParamDI)
 -USB_USE_THREAD (g_useUSBThread)
+-OPEN_SETUP_GUIDE (g_openSetupGuide)
+-MORPH_TRANS (g_MorphologicalTrans)
 
 @return int
 @retval S_OK Camera is successfully initialized.
@@ -207,6 +210,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 @date 2015/09/02 RENDER_DURING_REC is removed.
 @date 2015/09/08 set g_errorMessage when failed.
 @date 2018/08/09 OPEN_SETUP_GUIDE is supported.
+@date 2019/11/27 MORPH_TRANS is supported.
  */
 int initParameters( void )
 {
@@ -284,6 +288,7 @@ int initParameters( void )
 		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
 		else if(strcmp(buff,"USB_USE_THREAD")==0) g_useUSBThread = (param!=0)? true: false;
 		else if(strcmp(buff,"OPEN_SETUP_GUIDE") == 0) g_openSetupGuide = (param != 0) ? true : false;
+		else if (strcmp(buff, "MORPH_TRANS") == 0) g_MorphologicalTrans = param;
 		//obsolete parameters
 		else if(strcmp(buff,"MAXPOINTS")==0){
 			printf("Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
@@ -343,6 +348,8 @@ Following parameters are wrote to the configuration file.
 -USBIO_AD (g_USBIOParamAD)
 -USBIO_DI (g_USBIOParamDI)
 -USB_USE_THREAD (g_useUSBThread)
+-OPEN_SETUP_GUIDE (g_openSetupGuide)
+-MORPH_TRANS (g_MorphologicalTrans)
 
 @return int
 @retval S_OK Camera is successfully initialized.
@@ -361,6 +368,8 @@ Following parameters are wrote to the configuration file.
 @date 2015/09/02 RENDER_DURING_REC is removed.
 @date 2015/09/08 return 
 @date 2018/08/10 OPEN_SETUP_GUIDE is supported.
+@date 2019/11/27 MORPH_TRANS is supported.
+
 */
 int saveParameters( void )
 {
@@ -418,7 +427,8 @@ int saveParameters( void )
 	fs << "USBIO_DI=" << g_USBIOParamDI << std::endl;
 	fs << "USB_USE_THREAD=" << (g_useUSBThread? "1" : "0") << std::endl;
 	fs << "OPEN_SETUP_GUIDE=" << (g_openSetupGuide ? "1" : "0") << std::endl;
-	
+	fs << "MORPH_TRANS=" << g_MorphologicalTrans << std::endl;
+
 	fs.close();
 
 	g_LogFS << "OK." << std::endl;
@@ -490,7 +500,10 @@ void updateMenuText( void )
 	ss.str("");
 	ss  << "PurkinjeExcludeArea(" << g_PurkinjeExcludeArea << ")";
 	g_MenuString[MENU_EXCLUDEAREA] = ss.str();
-	
+	ss.str("");
+	ss << "MorphologicalTrans(" << g_MorphologicalTrans << ")";
+	g_MenuString[MENU_MORPHTRANS] = ss.str();
+
 	return;
 }
 
@@ -1565,6 +1578,10 @@ int main(int argc, char** argv)
 						if (g_PurkinjeExcludeArea < 2)
 							g_PurkinjeExcludeArea = 2;
 						break;
+					case MENU_MORPHTRANS:
+						g_MorphologicalTrans--;
+						if (g_MorphologicalTrans < -100)
+							g_MorphologicalTrans = -100;
 					default:
 						customCameraMenu(&SDLevent, g_CurrentMenuPosition);
 						break;
@@ -1607,6 +1624,10 @@ int main(int argc, char** argv)
 						if (g_PurkinjeExcludeArea > g_PurkinjeSearchArea)
 							g_PurkinjeExcludeArea = g_PurkinjeSearchArea;
 						break;
+					case MENU_MORPHTRANS:
+						g_MorphologicalTrans++;
+						if (g_MorphologicalTrans > 100)
+							g_MorphologicalTrans = 100;
 					default:
 						customCameraMenu(&SDLevent, g_CurrentMenuPosition);
 						break;

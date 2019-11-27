@@ -117,7 +117,8 @@
 #define MENU_MAX_PUPILWIDTH 3
 #define MENU_SEARCHAREA 4
 #define MENU_EXCLUDEAREA 5
-#define MENU_GENERAL_NUM 6
+#define MENU_MORPHTRANS 6
+#define MENU_GENERAL_NUM 7
 
 #define MENU_MAX_ITEMS 12
 #define MENU_STRING_MAX 24
@@ -154,6 +155,7 @@ extern int g_PreviewWidth;
 extern int g_PreviewHeight;
 extern int g_ROIWidth;
 extern int g_ROIHeight;
+extern int g_MorphologicalTrans;
 
 extern bool g_isRecording;
 extern bool g_isShowingCameraImage;
