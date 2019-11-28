@@ -1583,6 +1583,7 @@ int main(int argc, char** argv)
 						if (g_MorphologicalTrans < -100)
 							g_MorphologicalTrans = -100;
 						updateMorphTransKernel();
+						break;
 					default:
 						customCameraMenu(&SDLevent, g_CurrentMenuPosition);
 						break;
@@ -1630,6 +1631,7 @@ int main(int argc, char** argv)
 						if (g_MorphologicalTrans > 100)
 							g_MorphologicalTrans = 100;
 						updateMorphTransKernel();
+						break;
 					default:
 						customCameraMenu(&SDLevent, g_CurrentMenuPosition);
 						break;

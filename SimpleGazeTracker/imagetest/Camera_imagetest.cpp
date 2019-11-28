@@ -21,6 +21,12 @@ unsigned char* g_TmpFrameBuffer; /*!< Temporary buffer to hold camera image unti
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
 DWORD g_DigitalInput = 0;
 
+int g_CurrentImageFileIndex;
+std::vector<std::string> g_ImageSourceNameList;
+
+#define CUSTOMMENU_IMAGEFILE	(MENU_GENERAL_NUM+0)
+#define CUSTOMMENU_NUM			1
+
 /*!
 getEditionString: Get edition string.
 
@@ -31,6 +37,69 @@ getEditionString: Get edition string.
 const char* getEditionString(void)
 {
 	return EDITION;
+}
+
+/*!
+Split stirng (helper function)
+*/
+std::vector<std::string> split_string(std::string str, char del) {
+	size_t first = 0;
+	size_t last = str.find_first_of(del);
+
+	std::vector<std::string> result;
+
+	while (first < str.size()) {
+		std::string subStr(str, first, last - first);
+
+		result.push_back(subStr);
+
+		first = last + 1;
+		last = str.find_first_of(del, first);
+
+		if (last == std::string::npos) {
+			last = str.size();
+		}
+	}
+
+	return result;
+}
+
+/*!
+Load image file
+*/
+HRESULT load_image_to_buffer(std::string imageSourceName)
+{
+	cv::Mat frame, tmpframe;
+	// 0=read as monochrome
+	tmpframe = cv::imread(imageSourceName.c_str(), 0);
+
+	if (tmpframe.empty()) {
+		// try data directory
+		tmpframe = cv::imread(joinPath(g_DataPath.c_str(), imageSourceName.c_str()), 0);
+
+		if (tmpframe.empty()) {
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to load image %s.", imageSourceName.c_str());
+			g_LogFS << "ERROR: failed to load image " << imageSourceName << std::endl;
+			return E_FAIL;
+		}
+	}
+
+	g_LogFS << "Load image " << imageSourceName << std::endl;
+
+
+	if (tmpframe.rows != g_CameraHeight || tmpframe.cols != g_CameraWidth) {
+		cv::resize(tmpframe, frame, cv::Size(g_CameraWidth, g_CameraHeight));
+	}
+	else {
+		frame = tmpframe;
+	}
+
+	for (int idx = 0; idx < g_CameraWidth*g_CameraHeight; idx++)
+	{
+		g_frameBuffer[idx] = (unsigned char)frame.data[idx];
+	}
+
+	return S_OK;
 }
 
 /*!
@@ -132,35 +201,14 @@ int initCamera(void)
 	}
 
 	// load image file
-	cv::Mat frame, tmpframe;
-    // 0=read as monochrome
-	tmpframe = cv::imread(imageSourceName.c_str(), 0);
 
-	if (tmpframe.empty()) {
-		// try data directory
-		tmpframe = cv::imread(joinPath(g_DataPath.c_str(), imageSourceName.c_str()), 0);
+	g_ImageSourceNameList = split_string(imageSourceName, ',');
+	g_CurrentImageFileIndex = 0;
 
-		if (tmpframe.empty()) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to load image %s.", imageSourceName.c_str());
-			g_LogFS << "ERROR: failed to load image " << imageSourceName << std::endl;
-			return E_FAIL;
-		}
-	}
+	load_image_to_buffer(g_ImageSourceNameList.at(g_CurrentImageFileIndex));
 
-	g_LogFS << "Load image " << imageSourceName << std::endl;
-
-
-	if(tmpframe.rows != g_CameraHeight || tmpframe.cols != g_CameraWidth){
-		cv::resize(tmpframe, frame, cv::Size(g_CameraWidth, g_CameraHeight));
-	}
-	else {
-		frame = tmpframe;
-	}
-
-	for (int idx = 0; idx < g_CameraWidth*g_CameraHeight; idx++)
-	{
-		g_frameBuffer[idx] = (unsigned char)frame.data[idx];
-	}
+	//prepare custom menu
+	g_CustomMenuNum = CUSTOMMENU_NUM;
 
 	return S_OK;
 }
@@ -223,7 +271,59 @@ This function is called when left or right cursor key is pressed.
 */
 int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 {
-	// no custom menu for this camera
+	switch (SDLevent->type) {
+	case SDL_KEYDOWN:
+		switch (SDLevent->key.keysym.sym)
+		{
+		case SDLK_LEFT:
+			switch (currentMenuPosition)
+			{
+			case CUSTOMMENU_IMAGEFILE:
+				g_CurrentImageFileIndex--;
+				if (g_CurrentImageFileIndex < 0)
+					g_CurrentImageFileIndex = (int)g_ImageSourceNameList.size()-1;
+				if (FAILED(load_image_to_buffer(g_ImageSourceNameList.at(g_CurrentImageFileIndex))))
+				{
+					//clear buffer
+					for (int idx = 0; idx < g_CameraWidth*g_CameraHeight; idx++)
+					{
+						g_frameBuffer[idx] = 0;
+					}
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+
+		case SDLK_RIGHT:
+			switch (currentMenuPosition)
+			{
+			case CUSTOMMENU_IMAGEFILE:
+				g_CurrentImageFileIndex++;
+				if (g_CurrentImageFileIndex >= g_ImageSourceNameList.size())
+					g_CurrentImageFileIndex = 0;
+				if (FAILED(load_image_to_buffer(g_ImageSourceNameList.at(g_CurrentImageFileIndex))))
+				{
+					//clear buffer
+					for (int idx = 0; idx < g_CameraWidth*g_CameraHeight; idx++)
+					{
+						g_frameBuffer[idx] = 0;
+					}
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+
+		default:
+			break;
+		}
+	default:
+		break;
+	}
+
 	return S_OK;
 }
 
@@ -240,7 +340,10 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 */
 void updateCustomMenuText(void)
 {
-	// no custom parameters for this camera
+	std::stringstream ss;
+	ss << "ImageFile(" << g_CurrentImageFileIndex << ")";
+	g_MenuString[CUSTOMMENU_IMAGEFILE] = ss.str();
+
 	return;
 }
 
