@@ -23,6 +23,7 @@
 cv::Mat g_SrcImg;
 cv::Mat g_DstImg;
 cv::Mat g_CalImg;
+cv::Mat g_MorphTransKernel;
 static cv::Rect g_ROI;
 
 #define OBLATENESS_LOW  0.67
@@ -30,6 +31,21 @@ static cv::Rect g_ROI;
 #define MAX_FIRST_CANDIDATES 5
 
 static const double PI = 6*asin( 0.5 );
+
+
+/*!
+Update kernel for morphological transformation.
+
+@date 2019/11/28 created.
+*/
+void updateMorphTransKernel(void)
+{
+	if (g_MorphologicalTrans > 1)
+		g_MorphTransKernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(g_MorphologicalTrans, g_MorphologicalTrans));
+	else if (g_MorphologicalTrans < -1)
+		g_MorphTransKernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(-g_MorphologicalTrans, -g_MorphologicalTrans));
+}
+
 
 /*!
 Allocate buffers for receiving, processing and sending camera image.
@@ -44,6 +60,7 @@ buffers must be allocated before camera initialization.
 @retval E_FAIL Initialization failed.
 
 @date 2012/04/06 created.
+@date 2019/11/28 call updateMorphTransKernel.
 */
 int initBuffers(void)
 {
@@ -76,9 +93,10 @@ int initBuffers(void)
 	                 int((g_CameraHeight-g_ROIHeight)/2),
 	                 g_ROIWidth,g_ROIHeight);
 
+	updateMorphTransKernel();
+
 	return S_OK;
 }
-
 
 /*!
 detectPupilPurkinjeMono: Detect pupil and purkinje image (monocular recording)
@@ -146,10 +164,10 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	//Find areas darker than Threshold1
 	cv::threshold(g_SrcImg(g_ROI), tmp0, Threshold1, 127, CV_THRESH_BINARY);
 	if (g_MorphologicalTrans > 1) {
-		cv::morphologyEx(tmp0, tmp, cv::MORPH_CLOSE, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(g_MorphologicalTrans, g_MorphologicalTrans)));
+		cv::morphologyEx(tmp0, tmp, cv::MORPH_CLOSE, g_MorphTransKernel);
 	}
 	else if (g_MorphologicalTrans < -1) {
-		cv::morphologyEx(tmp0, tmp, cv::MORPH_OPEN, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(-g_MorphologicalTrans, -g_MorphologicalTrans)));
+		cv::morphologyEx(tmp0, tmp, cv::MORPH_OPEN, g_MorphTransKernel);
 	}
 	else {
 		tmp = tmp0;
@@ -427,10 +445,10 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 	//Find areas darker than Threshold1
 	cv::threshold(g_SrcImg(g_ROI), tmp0, Threshold1, 127, CV_THRESH_BINARY);
 	if (g_MorphologicalTrans > 1) {
-		cv::morphologyEx(tmp0, tmp, cv::MORPH_CLOSE, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(g_MorphologicalTrans, g_MorphologicalTrans)));
+		cv::morphologyEx(tmp0, tmp, cv::MORPH_CLOSE, g_MorphTransKernel);
 	}
 	else if (g_MorphologicalTrans < -1) {
-		cv::morphologyEx(tmp0, tmp, cv::MORPH_OPEN, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(-g_MorphologicalTrans, -g_MorphologicalTrans)));
+		cv::morphologyEx(tmp0, tmp, cv::MORPH_OPEN, g_MorphTransKernel);
 	}
 	else {
 		tmp = tmp0;
