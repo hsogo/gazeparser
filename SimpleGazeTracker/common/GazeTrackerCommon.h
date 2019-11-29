@@ -24,7 +24,7 @@
 
 
 
-#define VERSION "0.11.0"
+#define VERSION "0.11.1"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -117,7 +117,8 @@
 #define MENU_MAX_PUPILWIDTH 3
 #define MENU_SEARCHAREA 4
 #define MENU_EXCLUDEAREA 5
-#define MENU_GENERAL_NUM 6
+#define MENU_MORPHTRANS 6
+#define MENU_GENERAL_NUM 7
 
 #define MENU_MAX_ITEMS 12
 #define MENU_STRING_MAX 24
@@ -138,7 +139,8 @@ extern void getGazePositionBin(double* im, double* xy);
 extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], double calArea[4]);
 extern void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], double Goodness[4], double MaxError[2], double MeanError[2] );
 extern void setCalibrationError( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALPOINT][2], double calPointAccuracy[MAXCALPOINT][4], double calPointPrecision[MAXCALPOINT][4] );
-extern void drawRecordingMessage( void );
+//extern void drawRecordingMessage( void );
+extern void updateMorphTransKernel( void );
 
 extern int sockInit(void);
 extern int sockAccept(void);
@@ -154,6 +156,7 @@ extern int g_PreviewWidth;
 extern int g_PreviewHeight;
 extern int g_ROIWidth;
 extern int g_ROIHeight;
+extern int g_MorphologicalTrans;
 
 extern bool g_isRecording;
 extern bool g_isShowingCameraImage;

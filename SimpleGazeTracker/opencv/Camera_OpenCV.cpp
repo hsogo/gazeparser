@@ -218,7 +218,7 @@ int initCamera( void )
 	g_VideoCapture = cv::VideoCapture(cameraID);
 	if(!g_VideoCapture.isOpened())
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "No VideCapture device was found.");
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "No VideoCapture device was found.");
 		g_LogFS << "ERROR: no VideoCapture device was found." << std::endl;
 		return E_FAIL;
 	}
