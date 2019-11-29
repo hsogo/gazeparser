@@ -650,7 +650,7 @@ class GazeData(object):
         self._CalPointData = None
         self._recordingDate = recordingDate
 
-        self._EventList = self._getEventListByTime(self.T[0], self.T[-1])[0]
+        self._EventList = self._getEventList(self.T[0], self.T[-1])[0]
         for s in self._Sac:
             s._setParent(self)
 
@@ -994,19 +994,30 @@ class GazeData(object):
                 l[i, :] = [self.Sac[index[i]].startTime, self.Sac[index[i]].endTime]
             return l
 
-    def _getEventListByTime(self, fromTime, toTime):
+    def _getEventList(self, since=None, until=None, extend=True):
         """
-        Build a list which contains all saccades, fixations, blinks and
+        Build a list which contains saccades, fixations, blinks and
         messages arranged in chronological order.
 
-        :param float fromTime:
-            Events that recorded after this time are included to the list.
-        :param float endTime:
-            Events that recorded before this time are included to the list.
+        :param float since:
+            Events that recorded after this time are appended to the list.
+            If None, events are appended from the earliest one.
+            Default value is None.
+        :param float until:
+            Events that recorded before this time are appended to the list.
+            If None, events are appended to the last one.
+            Default value is None.
+        :param bool extend:
+            If True, events partly included in the interval are appended to
+            the list.  For example, a fixation started before "since" 
+            and ended after "since" is appended to the list if extend=True.
+            Default value is True.
         """
-        st = self.getSacTime()[:, 0]
-        evtimelist = st[(fromTime <= st) & (st <= toTime)]
-        evlist = self.Sac[(fromTime <= st) & (st <= toTime)]
+        if (since is not None and until is not None) and since >= until:
+            return [], []
+        
+        evtimelist = self.getSacTime()[:, 0]
+        evlist = self.Sac.copy()
         for f in self.Fix:
             if len(evtimelist) == 0:
                 evtimelist = numpy.array([float(f.startTime)])
@@ -1043,7 +1054,42 @@ class GazeData(object):
                 else:
                     evtimelist = numpy.append(evtimelist, m.time)
                     evlist = numpy.append(evlist, m)
-        return evlist, evtimelist
+        
+        if since is None:
+            since = evtimelist[0]
+        
+        if until is None:
+            until = evtimelist[-1]
+        
+        target_idx = (since <= evtimelist) & (evtimelist <= until)
+        if len(numpy.where(target_idx==True)[0]) == 0:
+            return [], []
+        
+        # If extend==True, events that end after "since" must be added.
+        if extend:
+            p_idx = numpy.where(target_idx == True)[0][0]
+            if p_idx > 0: # are there previous events?
+                p_idx -= 1
+                while p_idx >= 0:
+                    if hasattr(evlist[p_idx], 'endTime'):
+                        if evlist[p_idx].endTime >= since:
+                            # this event ends after "since", so add it.
+                            target_idx[p_idx] = True
+                    p_idx -= 1
+        # If extend==False, events that end after "until" must be removed.
+        else:
+            p_idx = numpy.where(target_idx == True)[0][-1]
+            while p_idx >= 0:
+                if hasattr(evlist[p_idx], 'endTime'):
+                    if evlist[p_idx].endTime > until:
+                        # this event ends after "until", so remove it.
+                        target_idx[p_idx] = False
+                p_idx -= 1
+
+        target_evtimelist = evtimelist[target_idx]
+        target_evlist = evlist[target_idx]
+        
+        return target_evlist, target_evtimelist
 
     def extractTraj(self, period, eye=None):
         """
