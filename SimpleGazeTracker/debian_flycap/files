@@ -1,1 +1,3 @@
-simplegazetracker-flycap_0.11.0_amd64.deb science extra
+simplegazetracker-flycap-dbgsym_0.11.1_amd64.ddeb debug optional
+simplegazetracker-flycap_0.11.1_amd64.buildinfo science extra
+simplegazetracker-flycap_0.11.1_amd64.deb science extra

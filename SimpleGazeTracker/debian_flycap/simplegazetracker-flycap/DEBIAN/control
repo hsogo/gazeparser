@@ -1,9 +1,9 @@
 Package: simplegazetracker-flycap
-Version: 0.11.0
+Version: 0.11.1
 Architecture: amd64
 Maintainer: Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
-Installed-Size: 225
-Depends: libc6 (>= 2.17), libflycapture2 (>= 2.12.3.31), libgcc1 (>= 1:3.0), libopencv-core2.4v5, libopencv-highgui2.4v5, libopencv-imgproc2.4v5, libsdl2-2.0-0 (>= 2.0.4), libsdl2-net-2.0-0 (>= 2.0.1), libsdl2-ttf-2.0-0 (>= 2.0.14), libstdc++6 (>= 5.2), libusb-1.0-0 (>= 2:1.0.8)
+Installed-Size: 260
+Depends: libc6 (>= 2.17), libflycapture2 (>= 2.12.3.31), libgcc1 (>= 1:3.0), libopencv-core3.2, libopencv-imgcodecs3.2, libopencv-imgproc3.2, libsdl2-2.0-0 (>= 2.0.8), libsdl2-net-2.0-0 (>= 2.0.1), libsdl2-ttf-2.0-0 (>= 2.0.14), libstdc++6 (>= 5.2), libusb-1.0-0 (>= 2:1.0.8)
 Recommends: gazeparser, psychopy, octave-psychtoolbox-3, fonts-freefont-ttf, ttf-freefont
 Section: science
 Priority: extra
