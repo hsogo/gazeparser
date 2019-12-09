@@ -2155,7 +2155,7 @@ class ControllerPsychoPyBackend(BaseController):
         if self.showCalImage:
             self.imgCal.draw()
         if self.showCalTarget:
-            if isinstance(self.caltarget, tuple):
+            if hasattr(self.caltarget, '__iter__'):
                 for s in self.caltarget:
                     s.setPos(self.calTargetPosition, log=False)
                     s.draw()
@@ -2699,10 +2699,7 @@ class ControllerPsychoPyBackend(BaseController):
             the order of drawing.
         """
 
-        if isinstance(stim, list) or isinstance(stim, tuple):
-            self.caltarget = tuple(stim)
-        else:  # suppose VisionEgg.Core.Stimulus
-            self.caltarget = stim
+        self.caltarget = stim
 
     def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None, position=None,
                        gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey='m',
