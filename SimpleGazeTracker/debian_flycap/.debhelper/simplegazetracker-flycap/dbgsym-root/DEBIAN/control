@@ -1,0 +1,13 @@
+Package: simplegazetracker-flycap-dbgsym
+Package-Type: ddeb
+Source: simplegazetracker-flycap
+Version: 0.11.1
+Auto-Built-Package: debug-symbols
+Architecture: amd64
+Maintainer: Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
+Installed-Size: 762
+Depends: simplegazetracker-flycap (= 0.11.1)
+Section: debug
+Priority: optional
+Description: debug symbols for simplegazetracker-flycap
+Build-Ids: 1a54205695cca3825824610f1e6bf653f86ccb1f

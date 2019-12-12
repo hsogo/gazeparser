@@ -1,10 +1,10 @@
-a29923b6a8a7ac66bf29c1d3dd4f5542  usr/bin/sgtsrv-flycap
-b006b477dc79d7155a3b4272b6434e09  usr/lib/simplegazetracker/CONFIG
+ebbfffff4fecb8caf9c39e45603e820a  usr/bin/sgtsrv-flycap
+fdec33d60c7df292e345374918e24d25  usr/lib/simplegazetracker/CONFIG
 b6f75676fae56186004f6d9a676b05ae  usr/lib/simplegazetracker/CONFIG_FLYCAPTURE2
 eecbb153f66e7aeffe357dc7364bc942  usr/share/applications/simplegazetracker-flycap.desktop
-42ce8f1de3fa4d619e9faca1d4d483ee  usr/share/doc/simplegazetracker-flycap/NEWS.gz
+d0eadb2abf88ce781b5b53dd54bb2225  usr/share/doc/simplegazetracker-flycap/NEWS.gz
 52b2eccf397cf2d7ec59334e2a77e011  usr/share/doc/simplegazetracker-flycap/README
-9e67a873f053ad498ed71e7aad849400  usr/share/doc/simplegazetracker-flycap/changelog.gz
+b603cf26516df87eb1f10352d2fe2328  usr/share/doc/simplegazetracker-flycap/changelog.gz
 ef92efcb51a60116d4f3bc5db2219280  usr/share/doc/simplegazetracker-flycap/copyright
 9b952ad0a1ee5a2848ba4a2b05110a25  usr/share/man/man1/sgtsrv-flycap.1.gz
 a0b2e92efdb18f009ac73d341cd1892c  usr/share/menu/simplegazetracker-flycap

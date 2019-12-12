@@ -1,3 +1,9 @@
+simplegazetracker (0.11.1) unstable; urgency=medium
+
+  * Morphological transformation can be applied during pupil detection.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Sat, 30 Nov 2019 18:00:00 +0900
+
 simplegazetracker (0.11.0) unstable; urgency=medium
 
   * Dialog for camera setup guide is shown at the first run.
