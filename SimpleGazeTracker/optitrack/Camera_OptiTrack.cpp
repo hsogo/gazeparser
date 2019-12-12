@@ -272,8 +272,8 @@ int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 			{
 			case CUSTOMMENU_INTENSITY:
 				g_Intensity--;
-				if(g_Intensity<1)
-					g_Intensity = 1;
+				if(g_Intensity<0)
+					g_Intensity = 0;
 				g_camera->SetIntensity(g_Intensity);
 				break;
 			case CUSTOMMENU_EXPOSURE:
