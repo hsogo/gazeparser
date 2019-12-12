@@ -46,6 +46,8 @@ ControllerDefaults = {
     'CALTARGET_MOTION_DURATION': 1.0,
     'CALTARGET_DURATION_PER_POS': 2.0,
     'CAL_GETSAMPLE_DEALAY': 0.4,
+    'CAL_SELF_PACED': False,
+    'CAL_GETSAMPLE_DEALAY_SELFPACED': 1.0,
     'TRACKER_IP_ADDRESS': '192.168.1.1'
 }
 
@@ -1226,29 +1228,55 @@ class BaseController(object):
                 self.updateCalibrationTargetStimulusCallBack(0, 0, self.calTargetPos[self.indexList[0]], self.calTargetPosition)
                 self.updateScreen()
 
-            isCalibrating = True
+            prevTargetPosition = 0  # 0 is starting position
+            currentTargetPosition = 1 # 1 is the first position
             startTime = self.clock()
-            while isCalibrating:
-                keys = self.getKeys()  # necessary to prevent freezing
-                currentTime = self.clock()-startTime
-                t = currentTime % self.CALTARGET_DURATION_PER_POS
-                prevTargetPosition = int((currentTime-t)/self.CALTARGET_DURATION_PER_POS)
-                currentTargetPosition = prevTargetPosition+1
-                if currentTargetPosition >= len(self.indexList):
-                    isCalibrating = False
-                    break
-                if t < self.CALTARGET_MOTION_DURATION:
+            samplingStartTime = None
+
+            while True:
+                keys = self.getKeys()
+                if self.CAL_SELF_PACED:
+                    t = self.clock()-startTime
+                    if not calCheckList[prevTargetPosition] and t > self.CALTARGET_MOTION_DURATION:
+                        if 'space' in keys:
+                            self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[self.indexList[currentTargetPosition]][0])
+                                             + ','+str(self.calTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
+                            calCheckList[prevTargetPosition] = True
+                            samplingStartTime = t
+                    if samplingStartTime is not None:
+                        if t > samplingStartTime+self.CAL_GETSAMPLE_DEALAY_SELFPACED:
+                            # prepare for next position
+                            startTime = self.clock()
+                            samplingStartTime = None
+                            prevTargetPosition = currentTargetPosition
+                            currentTargetPosition += 1
+                            if currentTargetPosition >= len(self.indexList): # all positions have been measured
+                                break
+                            continue
+                else:
+                    currentTime = self.clock()-startTime
+                    t = currentTime % self.CALTARGET_DURATION_PER_POS
+                    prevTargetPosition = int((currentTime-t)/self.CALTARGET_DURATION_PER_POS)
+                    currentTargetPosition = prevTargetPosition+1
+                    if currentTargetPosition >= len(self.indexList): # all positions have been measured
+                        break
+                    if t > self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DEALAY:
+                        if not calCheckList[prevTargetPosition]:
+                            self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[self.indexList[currentTargetPosition]][0])
+                                             + ','+str(self.calTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
+                            calCheckList[prevTargetPosition] = True
+                
+                # calc target position
+                if t < self.CALTARGET_MOTION_DURATION: # target is moving
                     p1 = t/self.CALTARGET_MOTION_DURATION
                     p2 = 1.0-t/self.CALTARGET_MOTION_DURATION
                     x = p1*self.calTargetPos[self.indexList[currentTargetPosition]][0] + p2*self.calTargetPos[self.indexList[prevTargetPosition]][0]
                     y = p1*self.calTargetPos[self.indexList[currentTargetPosition]][1] + p2*self.calTargetPos[self.indexList[prevTargetPosition]][1]
                     self.calTargetPosition = (x, y)
-                else:
+                else: # target is at the position
                     self.calTargetPosition = self.calTargetPos[self.indexList[currentTargetPosition]]
-                if not calCheckList[prevTargetPosition] and t > self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DEALAY:
-                    self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[self.indexList[currentTargetPosition]][0])
-                                     + ','+str(self.calTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
-                    calCheckList[prevTargetPosition] = True
+                
+                # draw screen
                 self.updateCalibrationTargetStimulusCallBack(t, currentTargetPosition, self.calTargetPos[self.indexList[currentTargetPosition]], self.calTargetPosition)
                 self.updateScreen()
 
@@ -1386,17 +1414,45 @@ class BaseController(object):
                     break
             self.updateScreen()
 
-        isCalibrating = True
+        prevTargetPosition = 0  # 0 is starting position
+        currentTargetPosition = 1 # 1 is the first position
         startTime = self.clock()
-        while isCalibrating:
-            keys = self.getKeys()  # necessary to prevent freezing
-            currentTime = self.clock()-startTime
-            t = currentTime % self.CALTARGET_DURATION_PER_POS
-            prevTargetPosition = int((currentTime-t)/self.CALTARGET_DURATION_PER_POS)
-            currentTargetPosition = prevTargetPosition+1
-            if currentTargetPosition >= len(self.valTargetPos):
-                isCalibrating = False
-                break
+        samplingStartTime = None
+
+        while True:
+            keys = self.getKeys()
+            if self.CAL_SELF_PACED:
+                t = self.clock()-startTime
+                if not calCheckList[prevTargetPosition] and t > self.CALTARGET_MOTION_DURATION:
+                    if 'space' in keys:
+                        self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[self.indexList[currentTargetPosition]][0])
+                                         + ','+str(self.valTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
+                        calCheckList[prevTargetPosition] = True
+                        samplingStartTime = t
+                if samplingStartTime is not None:
+                    if t > samplingStartTime+self.CAL_GETSAMPLE_DEALAY_SELFPACED:
+                        # prepare for next position
+                        startTime = self.clock()
+                        samplingStartTime = None
+                        prevTargetPosition = currentTargetPosition
+                        currentTargetPosition += 1
+                        continue
+                if currentTargetPosition >= len(self.indexList): # all positions have been measured
+                    break
+            else:
+                currentTime = self.clock()-startTime
+                t = currentTime % self.CALTARGET_DURATION_PER_POS
+                prevTargetPosition = int((currentTime-t)/self.CALTARGET_DURATION_PER_POS)
+                currentTargetPosition = prevTargetPosition+1
+                if currentTargetPosition >= len(self.indexList):
+                    break
+                if t > self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DEALAY:
+                    if not calCheckList[prevTargetPosition]:
+                        self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[self.indexList[currentTargetPosition]][0])
+                                         + ','+str(self.valTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
+                        calCheckList[prevTargetPosition] = True
+            
+            # calc target position
             if t < self.CALTARGET_MOTION_DURATION:
                 p1 = t/self.CALTARGET_MOTION_DURATION
                 p2 = 1.0-t/self.CALTARGET_MOTION_DURATION
@@ -1405,10 +1461,7 @@ class BaseController(object):
                 self.calTargetPosition = (x, y)
             else:
                 self.calTargetPosition = self.valTargetPos[self.indexList[currentTargetPosition]]
-            if not calCheckList[prevTargetPosition] and t > self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DEALAY:
-                self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[self.indexList[currentTargetPosition]][0])
-                                 + ','+str(self.valTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
-                calCheckList[prevTargetPosition] = True
+
             self.updateCalibrationTargetStimulusCallBack(t, currentTargetPosition, self.valTargetPos[self.indexList[currentTargetPosition]], self.calTargetPosition)
             self.updateScreen()
 
@@ -1723,7 +1776,7 @@ class BaseController(object):
             stays on the position indicated by this parameter.
         :param currentPosition: A tuple of two values that represents current
             calibration target position.  This parameter is equal to targetPosition
-            when CALTARGET_MOTION_DURATION<=t<CALTARGET_DURATION_PER_POS.
+            when CALTARGET_MOTION_DURATION<=t.
 
         This is an example of using this method.
         Suppose that parameters are defined as following.
