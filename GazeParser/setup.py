@@ -37,7 +37,7 @@ See http://sourceforge.net/p/gazeparser/ for detail.
       url='http://sourceforge.net/p/gazeparser/',
       license='GNU GPL',
       install_requires=['scipy', 'numpy', 'matplotlib'],
-      packages=['GazeParser', 'GazeParser.app'],
+      packages=['GazeParser', 'GazeParser.app', 'GazeParser.TrackingTools'],
       package_data={'GazeParser': ['LICENSE.txt', '*.cfg',
                                    'GazeParserComponents/*.*',
                                    'GazeParserComponents/GazeParserComponents/*.*'],

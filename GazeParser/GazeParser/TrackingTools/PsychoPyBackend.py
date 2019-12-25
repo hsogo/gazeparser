@@ -44,7 +44,7 @@ class ControllerPsychoPyBackend(BaseController):
         # pix2deg has bug (PsychoPy 1.85.1)
         # self.pix2deg = pix2deg
         self.backend = 'PsychoPy'
-        BaseController.__init__(self, configFile)
+        super().__init__(configFile)
         self.getKeys = getKeys  # for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
         self.PPmouse = Mouse
 
@@ -138,7 +138,7 @@ class ControllerPsychoPyBackend(BaseController):
         """
         pixArea = self.convertToPix(area, units, forceToInt=True)
         pixCalposlist = [self.convertToPix(calpos, units, forceToInt=True) for calpos in calposlist]
-        BaseController.setCalibrationTargetPositions(self, pixArea, pixCalposlist)
+        super().setCalibrationTargetPositions(pixArea, pixCalposlist)
 
     # Override
     def getEyePosition(self, timeout=0.02, units='pix', getPupil=False, ma=1):
@@ -167,7 +167,7 @@ class ControllerPsychoPyBackend(BaseController):
         """
         if ma < 1:
             raise ValueError('ma must be equal or larger than 1.')
-        e = BaseController.getEyePosition(self, timeout, getPupil=getPupil, ma=ma)
+        e = super().getEyePosition(timeout, getPupil=getPupil, ma=ma)
         if getPupil:
             return self.convertFromPix(e, units)
         else:
@@ -215,7 +215,7 @@ class ControllerPsychoPyBackend(BaseController):
             If length of received data is zero or data conversion is failed,
             None is returned.
         """
-        e = BaseController.getEyePositionList(self, n, timeout, getPupil)
+        e = super().getEyePositionList(n, timeout, getPupil)
 
         if units == 'pix':
             return e
@@ -262,7 +262,7 @@ class ControllerPsychoPyBackend(BaseController):
             If length of received data is zero or data conversion is failed,
             None is returned.
         """
-        e = BaseController.getWholeEyePositionList(self, timeout, getPupil)
+        e = super().getWholeEyePositionList(timeout, getPupil)
 
         if units == 'pix':
             return e

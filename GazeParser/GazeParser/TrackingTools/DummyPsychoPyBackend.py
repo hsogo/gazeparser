@@ -8,6 +8,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+try:
+    import Image
+    import ImageDraw
+except ImportError:
+    from PIL import Image
+    from PIL import ImageDraw
+
+import warnings
+
 from .PsychoPyBackend import ControllerPsychoPyBackend
 
 class DummyPsychoPyBackend(ControllerPsychoPyBackend):
@@ -15,7 +24,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
     Dummy controller for PsychoPy.
     """
     def __init__(self, configFile):
-        ControllerPsychoPyBackend.__init__(self, configFile)
+        super().__init__(configFile)
         # from psychopy.event import Mouse
         # self.mouse = Mouse
         self.mousePosList = []
@@ -226,7 +235,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         Emurates calibration procedure.
         """
-        BaseController.doCalibration(self)
+        super().doCalibration(self)
         if self.SHOW_CALDISPLAY:
             self.showCalImage = True
         else:
@@ -237,7 +246,7 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         Emurates validation procedure.
         """
-        BaseController.doValidation(self)
+        super().doValidation(self)
         if self.SHOW_CALDISPLAY:
             self.showCalImage = True
         else:
