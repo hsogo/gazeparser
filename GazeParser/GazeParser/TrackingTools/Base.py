@@ -45,9 +45,9 @@ ControllerDefaults = {
     'NUM_SAMPLES_PER_TRGPOS': 10,
     'CALTARGET_MOTION_DURATION': 1.0,
     'CALTARGET_DURATION_PER_POS': 2.0,
-    'CAL_GETSAMPLE_DEALAY': 0.4,
+    'CAL_GETSAMPLE_DELAY': 0.4,
     'CAL_SELF_PACED': False,
-    'CAL_GETSAMPLE_DEALAY_SELFPACED': 1.0,
+    'CAL_GETSAMPLE_DELAY_SELFPACED': 1.0,
     'TRACKER_IP_ADDRESS': '192.168.1.1'
 }
 
@@ -69,6 +69,7 @@ class BaseController(object):
     - self.setCalibrationTargetStimulus(self, stim)
     - self.setCalibrationTargetPositions(self, area, calposlist)
     - self.getKeys(self)
+    - self.getMousePressed(self)
     - self.verifyFixation(self, maxTry, permissibleError, key, message, ...)
     - self.setCurrentScreenParamsToConfig(self)
     """
@@ -1244,7 +1245,7 @@ class BaseController(object):
                             calCheckList[prevTargetPosition] = True
                             samplingStartTime = t
                     if samplingStartTime is not None:
-                        if t > samplingStartTime+self.CAL_GETSAMPLE_DEALAY_SELFPACED:
+                        if t > samplingStartTime+self.CAL_GETSAMPLE_DELAY_SELFPACED:
                             # prepare for next position
                             startTime = self.clock()
                             samplingStartTime = None
@@ -1260,7 +1261,7 @@ class BaseController(object):
                     currentTargetPosition = prevTargetPosition+1
                     if currentTargetPosition >= len(self.indexList): # all positions have been measured
                         break
-                    if t > self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DEALAY:
+                    if t > self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY:
                         if not calCheckList[prevTargetPosition]:
                             self.sendCommand('getCalSample'+chr(0)+str(self.calTargetPos[self.indexList[currentTargetPosition]][0])
                                              + ','+str(self.calTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
@@ -1430,7 +1431,7 @@ class BaseController(object):
                         calCheckList[prevTargetPosition] = True
                         samplingStartTime = t
                 if samplingStartTime is not None:
-                    if t > samplingStartTime+self.CAL_GETSAMPLE_DEALAY_SELFPACED:
+                    if t > samplingStartTime+self.CAL_GETSAMPLE_DELAY_SELFPACED:
                         # prepare for next position
                         startTime = self.clock()
                         samplingStartTime = None
@@ -1446,7 +1447,7 @@ class BaseController(object):
                 currentTargetPosition = prevTargetPosition+1
                 if currentTargetPosition >= len(self.indexList):
                     break
-                if t > self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DEALAY:
+                if t > self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY:
                     if not calCheckList[prevTargetPosition]:
                         self.sendCommand('getValSample'+chr(0)+str(self.valTargetPos[self.indexList[currentTargetPosition]][0])
                                          + ','+str(self.valTargetPos[self.indexList[currentTargetPosition]][1])+','+str(self.NUM_SAMPLES_PER_TRGPOS)+chr(0))
@@ -1756,7 +1757,7 @@ class BaseController(object):
 
         * CALTARGET_MOTION_DURATION
         * CALTARGET_DURATION_PER_POS
-        * CAL_GETSAMPLE_DEALAY
+        * CAL_GETSAMPLE_DELAY
 
         These parameters can be overwrited by using
         :func:`~GazeParser.TrackingTools.BaseController.setCalibrationTargetMotionParameters`
@@ -1768,7 +1769,7 @@ class BaseController(object):
             the calibration target is moving to the current position.  When
             CALTARGET_MOTION_DURATION<=t<CALTARGET_DURATION_PER_POS, the calibration
             target stays on the current position. Acquisition of calibration samples
-            starts when (CALTARGET_MOTION_DURATION+CAL_GETSAMPLE_DEALAY)<t.
+            starts when (CALTARGET_MOTION_DURATION+CAL_GETSAMPLE_DELAY)<t.
         :param index: This value represents the order of current target position.
             This value is 0 before calibration is initiated by space key press.
             If the target is moving to or stays on 5th position, this value is 5.
@@ -1894,9 +1895,9 @@ class BaseController(object):
         :param float getSampleDelay:
             Delay of starting sample acquisition from target arrived at calibration
             position. Unit is second. This value must not be negative.
-            Default value is defined by CAL_GETSAMPLE_DEALAY parameter of
+            Default value is defined by CAL_GETSAMPLE_DELAY parameter of
             GazeParser.TrackingTools configuration file.
-            By default, CAL_GETSAMPLE_DEALAY=0.4.
+            By default, CAL_GETSAMPLE_DELAY=0.4.
 
         .. note::
             If no configuration file is specified when Controller object is
@@ -1908,7 +1909,7 @@ class BaseController(object):
         if getSampleDelay < 0:
             raise ValueError('getSampleDelay must not be negative.')
         self.NUM_SAMPLES_PER_TRGPOS = numSamplesPerPos
-        self.CAL_GETSAMPLE_DEALAY = getSampleDelay
+        self.CAL_GETSAMPLE_DELAY = getSampleDelay
 
     def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None, position=None,
                        gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey='m',
