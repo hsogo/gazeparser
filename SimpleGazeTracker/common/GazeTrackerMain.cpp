@@ -774,7 +774,7 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 - g_CalSamplesAtCurrentPoint
 
 @param[in] detectionResults Center of pupil and Purkinje image.  Only four elements are used when recording mode is monocular.
-@param[in] TimeImageAquired Timestamp
+@param[in] TimeImageAcquired Timestamp
 
 @return No value is returned.
 
@@ -783,7 +783,7 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 @date 2012/10/25 output warning when g_DataCounter > MAXCAldata during calibration/validation
 @date 2012/10/26 record current pupil size.
 */
-void getGazeMono( double detectionResults[8], double TimeImageAquired )
+void getGazeMono( double detectionResults[8], double TimeImageAcquired )
 {
 	if(g_isCalibrating || g_isValidating){
 		if(detectionResults[MONO_PUPIL_X] <= E_FIRST_ERROR_CODE) //A value smaller than E_FIRST_ERROR_CODE is treated as an error.
@@ -810,7 +810,7 @@ void getGazeMono( double detectionResults[8], double TimeImageAquired )
 		}
 
 	}else if(g_isRecording){
-		g_TickData[g_DataCounter] = TimeImageAquired;
+		g_TickData[g_DataCounter] = TimeImageAcquired;
 		if(detectionResults[MONO_PUPIL_X] <= E_FIRST_ERROR_CODE) //A value smaller than E_FIRST_ERROR_CODE is treated as an error.
 		{
 			g_EyeData[g_DataCounter][MONO_X] = detectionResults[MONO_PUPIL_X];
@@ -862,7 +862,7 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 - g_CalSamplesAtCurrentPoint
 
 @param[in] detectionResults Center of pupil and Purkinje image.
-@param[in] TimeImageAquired Timestamp
+@param[in] TimeImageAcquired Timestamp
 
 @return No value is returned.
 
@@ -872,7 +872,7 @@ flushed to the data file and g_DataCounter is rewinded to zero.
 @date 2012/10/26 record current pupil size.
 @date 2015/03/05 record pupil size during calibration/validation
 */
-void getGazeBin( double detectionResults[8], double TimeImageAquired )
+void getGazeBin( double detectionResults[8], double TimeImageAcquired )
 {
 	if(g_isCalibrating || g_isValidating){
 		if(detectionResults[BIN_PUPIL_LX] <= E_FIRST_ERROR_CODE && 
@@ -903,7 +903,7 @@ void getGazeBin( double detectionResults[8], double TimeImageAquired )
 		}
 
 	}else if(g_isRecording){
-		g_TickData[g_DataCounter] = TimeImageAquired;
+		g_TickData[g_DataCounter] = TimeImageAcquired;
 		g_EyeData[g_DataCounter][BIN_LX] = detectionResults[BIN_PUPIL_LX]-detectionResults[BIN_PURKINJE_LX];
 		g_EyeData[g_DataCounter][BIN_LY] = detectionResults[BIN_PUPIL_LY]-detectionResults[BIN_PURKINJE_LY];
 		g_EyeData[g_DataCounter][BIN_RX] = detectionResults[BIN_PUPIL_RX]-detectionResults[BIN_PURKINJE_RX];
@@ -1448,11 +1448,81 @@ int main(int argc, char** argv)
 		g_LogFS << "USBIO is not used." << std::endl;
 	}
 
-	g_LogFS << "Start." << "\n" << std::endl;
-	nInitMessage += 1;
-	renderInitMessages(nInitMessage, "Start.");
-	sleepMilliseconds(2000);
 
+	g_LogFS << "Start." << "\n" << std::endl;
+	nInitMessage += 1; //blank line
+	renderInitMessages(nInitMessage, "Start.");
+	//sleepMilliseconds(2000);
+
+	{
+		double ifi[2000];
+		double detectionResults[MAX_DETECTION_RESULTS];
+		double t1, t2, startTime, mean_render, mean_without_render, std_render, std_without_render;
+		int index, res;
+
+		startTime = getCurrentTime();
+		t1 = 0;
+		index = 0;
+		while (t1 < 1000 && index < 2000) {
+			if (getCameraImage() == S_OK) {
+				t2 = getCurrentTime() - startTime;
+				ifi[index] = t2 - t1;
+				t1 = t2;
+				index++;
+				if (g_RecordingMode == RECORDING_MONOCULAR) {
+					res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
+				}
+				else {
+					res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
+				}
+			}
+		}
+		mean_without_render = 0;
+		for (int i = 0; i < index; i++) {
+			mean_without_render += ifi[i];
+		}
+		mean_without_render /= index;
+		std_without_render = 0;
+		for (int i = 0; i < index; i++) {
+			std_without_render += (ifi[i]-mean_without_render)*(ifi[i] - mean_without_render);
+		}
+		std_without_render /= index;
+		std_without_render = sqrt(std_without_render);
+		g_LogFS << "IFI (without render)= " << mean_without_render << "(" << std_without_render<< ")" << std::endl;
+
+		startTime = getCurrentTime();
+		t1 = 0;
+		index = 0;
+		while (t1 < 1000 && index < 2000) {
+			if (getCameraImage() == S_OK) {
+				t2 = getCurrentTime() - startTime;
+				ifi[index] = t2 - t1;
+				t1 = t2;
+				index++;
+
+				if (g_RecordingMode == RECORDING_MONOCULAR) {
+					res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
+				}
+				else {
+					res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
+				}
+				render();
+			}
+		}
+		mean_render = 0;
+		for (int i = 0; i < index; i++) {
+			mean_render += ifi[i];
+		}
+		mean_render /= index;
+		std_render = 0;
+		for (int i = 0; i < index; i++) {
+			std_render += (ifi[i] - mean_render)*(ifi[i] - mean_render);
+		}
+		std_render /= index;
+		std_render = sqrt(std_render);
+		g_LogFS << "Mean IFI (with render)= " << mean_render << "(" << std_render << ")" << std::endl;
+
+	}
 
 	//todo open set up tutorial?
 	if (g_openSetupGuide){
@@ -1661,8 +1731,8 @@ int main(int argc, char** argv)
 		else if (getCameraImage() == S_OK)
 		{ //retrieve camera image and process it.
 			int res;
-			double detectionResults[MAX_DETECTION_RESULTS], TimeImageAquired;
-			TimeImageAquired = getCurrentTime() - g_RecStartTime;
+			double detectionResults[MAX_DETECTION_RESULTS], TimeImageAcquired;
+			TimeImageAcquired = getCurrentTime() - g_RecStartTime;
 			//USB IO
 			if (g_useUSBIO){
 				setUSBIOData(g_DataCounter);
@@ -1679,7 +1749,7 @@ int main(int argc, char** argv)
 					detectionResults[MONO_PUPIL_X] = detectionResults[MONO_PUPIL_Y] = res;
 					detectionResults[MONO_PURKINJE_X] = detectionResults[MONO_PURKINJE_Y] = res;
 				}
-				getGazeMono(detectionResults, TimeImageAquired);
+				getGazeMono(detectionResults, TimeImageAcquired);
 			}
 			else{
 				res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
@@ -1690,7 +1760,7 @@ int main(int argc, char** argv)
 					detectionResults[BIN_PUPIL_RX] = detectionResults[BIN_PUPIL_RY] = res;
 					detectionResults[BIN_PURKINJE_RX] = detectionResults[BIN_PURKINJE_RY] = res;
 				}
-				getGazeBin(detectionResults, TimeImageAquired);
+				getGazeBin(detectionResults, TimeImageAcquired);
 			}
 		}
 
