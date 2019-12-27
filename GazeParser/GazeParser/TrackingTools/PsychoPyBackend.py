@@ -17,6 +17,13 @@ except ImportError:
     from PIL import Image
     from PIL import ImageDraw
 
+import numpy
+import time
+
+import psychopy.visual
+import psychopy.event
+import psychopy.misc
+import psychopy.monitors
 
 class ControllerPsychoPyBackend(BaseController):
     """
@@ -28,25 +35,11 @@ class ControllerPsychoPyBackend(BaseController):
             Controller configuration file. If None, default configurations
             are used.
         """
-        from psychopy.visual import TextStim, SimpleImageStim, Rect, Circle
-        from psychopy.event import getKeys, Mouse
-        from psychopy.misc import cm2pix, deg2pix, pix2cm #, pix2deg
-        from psychopy import monitors
-        self.PPSimpleImageStim = SimpleImageStim
-        self.PPTextStim = TextStim
-        self.PPmouse = Mouse
-        self.PPRect = Rect
-        self.PPCircle = Circle
-        self.PPmonitors = monitors
-        self.cm2pix = cm2pix
-        self.deg2pix = deg2pix
-        self.pix2cm = pix2cm
         # pix2deg has bug (PsychoPy 1.85.1)
         # self.pix2deg = pix2deg
         self.backend = 'PsychoPy'
         super().__init__(configFile)
-        self.getKeys = getKeys  # for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
-        self.PPmouse = Mouse
+        self.getKeys = psychopy.event.getKeys  # for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
 
     def setCalibrationScreen(self, win, font=''):
         """
@@ -59,13 +52,14 @@ class ControllerPsychoPyBackend(BaseController):
         self.win = win
         (self.screenWidth, self.screenHeight) = win.size
         self.screenCenter = (0, 0)
-        self.caltarget = self.PPRect(self.win, width=10, height=10, units='pix', lineWidth=1, fillColor=(1, 1, 1), lineColor=(1, 1, 1), name='GazeParserCalTarget')
+        self.caltarget = [psychopy.visual.Rect(self.win, width=10, height=10, units='pix', lineWidth=1, fillColor=(1, 1, 1), lineColor=(1, 1, 1), name='GazeParserCalTarget'),
+                          psychopy.visual.Rect(self.win, width=10, height=10, units='pix', lineWidth=1, fillColor=(1, 1, -1), lineColor=(-1, -1, -1), name='GazeParserCalTarget2')]
         self.PILimgCAL = Image.new('L', (self.screenWidth-self.screenWidth % 4, self.screenHeight-self.screenHeight % 4))
-        self.img = self.PPSimpleImageStim(self.win, self.PILimg, name='GazeParserCameraImage')
-        self.imgCal = self.PPSimpleImageStim(self.win, self.PILimgCAL, name='GazeParserCalibrationImage')
-        self.msgtext = self.PPTextStim(self.win, pos=(0, -self.PREVIEW_HEIGHT/2-12), units='pix', text=self.getCurrentMenuItem(), font=font, name='GazeParserMenuText')
+        self.img = psychopy.visual.SimpleImageStim(self.win, self.PILimg, name='GazeParserCameraImage')
+        self.imgCal = psychopy.visual.SimpleImageStim(self.win, self.PILimgCAL, name='GazeParserCalibrationImage')
+        self.msgtext = psychopy.visual.TextStim(self.win, pos=(0, -self.PREVIEW_HEIGHT/2-12), units='pix', text=self.getCurrentMenuItem(), font=font, name='GazeParserMenuText')
         self.calResultScreenOrigin = (self.screenWidth/2, self.screenHeight/2)
-        self.mouse = self.PPmouse(win=self.win)
+        self.mouse = psychopy.event.Mouse(win=self.win)
 
     def updateScreen(self):
         """
@@ -360,9 +354,9 @@ class ControllerPsychoPyBackend(BaseController):
         isMarkerVisible = showMarker
         isBackgroundVisible = showBackground
         if gazeMarker is None:
-            gazeMarker = self.PPRect(self.win, width=3, height=3, units='pix', lineWidth=1, fillColor=(1, 1, 0), lineColor=(1, 1, 0), name='GazeParserGazeMarker')
+            gazeMarker = psychopy.visual.Rect(self.win, width=3, height=3, units='pix', lineWidth=1, fillColor=(1, 1, 0), lineColor=(1, 1, 0), name='GazeParserGazeMarker')
         if backgroundStimuli is None:
-            backgroundStimuli = [self.PPCircle(self.win, radius=100, units='pix', lineWidth=1, lineColor=(0.5, 0.5, 0.5), name='GazeParserFPCircle')]
+            backgroundStimuli = [psychopy.visual.Circle(self.win, radius=100, units='pix', lineWidth=1, lineColor=(0.5, 0.5, 0.5), name='GazeParserFPCircle')]
 
         self.startMeasurement()
 
@@ -575,7 +569,7 @@ class ControllerPsychoPyBackend(BaseController):
         (PsychoPy version<=1.85.1).
         """
         
-        if not isinstance(monitor, self.PPmonitors.Monitor):
+        if not isinstance(monitor, psychopy.monitors.Monitor):
             msg = ("cm2deg requires a monitors.Monitor object as the second "
                    "argument but received %s")
             raise ValueError(msg % str(type(monitor)))
@@ -628,6 +622,133 @@ class ControllerPsychoPyBackend(BaseController):
 
         self.caltarget = stim
 
+    # Override
+    def updateCalibrationTargetStimulusCallBack(self, t, index, targetPosition, currentPosition):
+        """
+        This method is called every time before updating calibration screen.
+        In default, This method does nothing.  If you want to update calibration
+        target during calibration, override this method.
+
+        Following parameters defined in the configuration file determine
+        target motion and acquisition of calibration samples.
+
+        * CALTARGET_MOTION_DURATION
+        * CALTARGET_DURATION_PER_POS
+        * CAL_GETSAMPLE_DELAY
+
+        These parameters can be overwrited by using
+        :func:`~GazeParser.TrackingTools.BaseController.setCalibrationTargetMotionParameters`
+        and
+        :func:`~GazeParser.TrackingTools.BaseController.setCalibrationSampleAcquisitionParameters`.
+
+        :param float t: time spent for current target position. The range of t is
+            0<=t<CALTARGET_DURATION_PER_POS.  When 0<=t<CALTARGET_MOTION_DURATION,
+            the calibration target is moving to the current position.  When
+            CALTARGET_MOTION_DURATION<=t<CALTARGET_DURATION_PER_POS, the calibration
+            target stays on the current position. Acquisition of calibration samples
+            starts when (CALTARGET_MOTION_DURATION+CAL_GETSAMPLE_DELAY)<t.
+        :param index: This value represents the order of current target position.
+            This value is 0 before calibration is initiated by space key press.
+            If the target is moving to or stays on 5th position, this value is 5.
+        :param targetPosition: A tuple of two values.  The target is moving to or
+            stays on the position indicated by this parameter.
+        :param currentPosition: A tuple of two values that represents current
+            calibration target position.  This parameter is equal to targetPosition
+            when CALTARGET_MOTION_DURATION<=t.
+
+        This is an example of using this method.
+        Suppose that parameters are defined as following.
+
+        * CALTARGET_MOTION_DURATION = 1.0
+        * CALTARGET_DURATION_PER_POS = 2.0
+
+        ::
+
+            tracker = GazeParser.TrackingTools.getController(backend='PsychoPy')
+            calstim = [psychopy.visual.Rect(win, width=4, height=4, units='pix'),
+                       psychopy.visual.Rect(win, width=2, height=2, units='pix')]
+            tracker.setCalibrationTargetStimulus(calstim)
+
+            def callback(self, t, index, targetPos, currentPos):
+                if t<1.0:
+                    self.caltarget[0].setSize(((10-9*t)*4,(10-9*t)*4))
+                else:
+                    self.caltarget[0].setSize((4,4))
+
+            type(tracker).updateCalibrationTargetStimulusCallBack = callback
+        """
+        
+        t1 = self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY
+        t2 = t1 + 1.0/60 * self.NUM_SAMPLES_PER_TRGPOS
+        
+        if index != 0 and (t1 < t < t2):
+            self.caltarget[0].opacity = 0.0
+            self.caltarget[1].opacity = 1.0
+        else:
+            self.caltarget[0].opacity = 1.0
+            self.caltarget[1].opacity = 0.0
+        
+        return
+    
+    # Override
+    def updateManualCalibrationTargetStimulusCallBack(self, t, currentPosition, prevPosition):
+        """
+        This method is called every time before updating calibration screen.
+        In default, This method set "currentPos" parameter to caliration 
+        target position.  If the first element of currentPos is None, 
+        calibration target position is set to (100*screen width, 100*
+        screen height) not to display calibration target.
+        
+        If you want to modify this behavior, override this method.
+
+        :param float t: time spent for current target position.
+        :param currentPosition: A tuple of two values that represents
+            current calibration target position. This value is
+            (None, None) if calibration target is not presented
+            now.
+        :param prevPosition: A tuple of two values that represents
+            previous calibration target position. This value is
+            (None, None) if calibration target was not presented
+            previously.
+
+        This is an example of using this method.
+
+        ::
+
+            tracker = GazeParser.TrackingTools.getController(backend='PsychoPy')
+            calstim = [psychopy.visual.Rect(win, width=4, height=4, units='pix'),
+                       psychopy.visual.Rect(win, width=2, height=2, units='pix')]
+            tracker.setCalibrationTargetStimulus(calstim)
+
+            def callback(self, t, targetPos, prevPos):
+                self.calTargetPosition = currentPosition
+
+                if t<1.0:
+                    self.caltarget[0].setSize(((10-9*t)*4,(10-9*t)*4))
+                else:
+                    self.caltarget[0].setSize((4,4))
+
+            type(tracker).updateManualCalibrationTargetStimulusCallBack = callback
+        """
+
+        if currentPosition[0] is None:
+            self.calTargetPosition = (self.screenWidth*100, self.screenHeight*100)
+        else:
+            self.calTargetPosition = currentPosition
+        
+        t1 = self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY
+        t2 = t1 + 1.0/60 * NUM_SAMPLES_PER_POS
+        
+        if index != 0 and (t1 < t < t2):
+            self.caltarget[0].visible=True
+            self.caltarget[1].visible=False
+        else:
+            self.caltarget[1].visible=True
+            self.caltarget[0].visible=False
+        
+        return
+
+    # Override
     def verifyFixation(self, maxTry, permissibleError, key='space', mouseButton=None, message=None, position=None,
                        gazeMarker=None, backgroundStimuli=None, toggleMarkerKey='m', toggleBackgroundKey='m',
                        showMarker=False, showBackground=False, ma=1, units='pix'):
@@ -702,7 +823,7 @@ class ControllerPsychoPyBackend(BaseController):
         if backgroundStimuli is None:
             if position is None:
                 position = self.screenCenter
-            backgroundStimuli = [self.PPCircle(self.win, radius=permissibleError, units=units, lineWidth=1, lineColor=(0.5, 0.5, 0.5), name='GazeParserFPCircle')]
+            backgroundStimuli = [psychopy.visual.Circle(self.win, radius=permissibleError, units=units, lineWidth=1, lineColor=(0.5, 0.5, 0.5), name='GazeParserFPCircle')]
 
         numTry = 0
         error = self.getSpatialError(message=message[0], responseKey=key, responseMouseButton=mouseButton, position=None,
