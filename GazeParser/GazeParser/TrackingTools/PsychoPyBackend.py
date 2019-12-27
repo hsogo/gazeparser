@@ -339,7 +339,7 @@ class ControllerPsychoPyBackend(BaseController):
             position = (0.0, 0.0)
             posInPix = (0.0, 0.0)
 
-        if isinstance(self.caltarget, tuple):
+        if hasattr(self.caltarget, '__iter__'):
             for s in self.caltarget:
                 s.setPos(posInPix, log=False)
         else:
@@ -390,7 +390,7 @@ class ControllerPsychoPyBackend(BaseController):
             if isBackgroundVisible:
                 for s in backgroundStimuli:
                     s.draw()
-            if isinstance(self.caltarget, tuple):
+            if hasattr(self.caltarget, '__iter__'):
                 for s in self.caltarget:
                     s.draw()
             else:
