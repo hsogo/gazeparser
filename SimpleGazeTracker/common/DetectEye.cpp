@@ -683,9 +683,9 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 /*!
 estimateParametersMono: Estimating calibration parameters (for monocular recording).
 
-@param[in] dataCounter Number of data aquired during calibration procedure.
-@param[in] eyeData Data aquired during calibration procedure.
-@param[in] calPointData Calibraition target positions when data is aquired.
+@param[in] dataCounter Number of data acquired during calibration procedure.
+@param[in] eyeData Data acquired during calibration procedure.
+@param[in] calPointData Calibraition target positions when data is acquired.
 @return No value is returned.
 */
 void estimateParametersMono( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2] )
@@ -732,9 +732,9 @@ void estimateParametersMono( int dataCounter, double eyeData[MAXDATA][4], double
 /*!
 estimateParametersBin: Estimating calibration parameters (for binocular recording).
 
-@param[in] dataCounter Number of data aquired during calibration procedure.
-@param[in] eyeData Data aquired during calibration procedure.
-@param[in] calPointData Calibraition target positions when data is aquired.
+@param[in] dataCounter Number of data acquired during calibration procedure.
+@param[in] eyeData Data acquired during calibration procedure.
+@param[in] calPointData Calibraition target positions when data is acquired.
 @return No value is returned.
 */
 void estimateParametersBin( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2] )
@@ -865,8 +865,8 @@ void getGazePositionBin(double* im, double* xy)
 drawCalResult: Draw calibration result to a buffer.
 
 @param[in] dataCounter Number of calibration data.
-@param[in] eyeData Relative Purkinje image position aquired during calibration procedure.
-@param[in] calPointData Calibraition target positions when data is aquired.
+@param[in] eyeData Relative Purkinje image position acquired during calibration procedure.
+@param[in] calPointData Calibraition target positions when data is acquired.
 @param[in] numCalPoint Number of all calibration positions.
 @param[in] calPointList List of x, y components of calibration positions.
 @param[in] calArea top-left and bottom-right position of calibration area.
@@ -943,8 +943,8 @@ void drawCalResult( int dataCounter, double eyeData[MAXDATA][4], double calPoint
 setCalibrationResults: Calculate goodness, mean and maximum error of calibration.
 
 @param[in] dataCounter Number of calibration data.
-@param[in] eyeData Relative Purkinje image position aquired during calibration procedure.
-@param[in] calPointData Calibraition target positions when data is aquired.
+@param[in] eyeData Relative Purkinje image position acquired during calibration procedure.
+@param[in] calPointData Calibraition target positions when data is acquired.
 @param[out] Goodness Goodness of calibration results, defined as a ratio of linear regression coefficients to screen size. Only two elements are used when recording mode is monocular.
 @param[out] MaxError Maximum calibration error. Only one element is used when recording mode is monocular.
 @param[out] MeanError mean calibration error. Only one element is used when recording mode is monocular.
@@ -1001,8 +1001,8 @@ void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double 
 setCalibrationResults: Calculate error for each calibration point.
 
 @param[in] dataCounter Number of calibration data.
-@param[in] eyeData Relative Purkinje image position aquired during calibration procedure.
-@param[in] calPointData Calibraition target positions when data is aquired.
+@param[in] eyeData Relative Purkinje image position acquired during calibration procedure.
+@param[in] calPointData Calibraition target positions when data is acquired.
 @param[in] numCalPoint Length of calPointList.
 @param[in] calPointList Localition of calibration points.
 @param[out] calPointAccuracy Accuracy at each calibration point.
