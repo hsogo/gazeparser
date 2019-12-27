@@ -680,6 +680,8 @@ class ControllerPsychoPyBackend(BaseController):
         
         t1 = self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY
         t2 = t1 + 1.0/60 * self.NUM_SAMPLES_PER_TRGPOS
+        if t2-t1 < 1.0/60*2: # flash at reast 2 frames (@60fps)
+            t2 = t1+1.0/60*2
         
         if index != 0 and (t1 < t < t2):
             self.caltarget[0].opacity = 0.0
@@ -738,6 +740,8 @@ class ControllerPsychoPyBackend(BaseController):
         
         t1 = self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY
         t2 = t1 + 1.0/60 * NUM_SAMPLES_PER_POS
+        if t2-t1 < 1.0/60*2: # flash at reast 2 frames (@60fps)
+            t2 = t1+1.0/60*2
         
         if index != 0 and (t1 < t < t2):
             self.caltarget[0].visible=True
