@@ -149,6 +149,9 @@ int g_DelayCorrection = 0;
 bool g_isInhibitRendering = false;
 bool g_openSetupGuide = true;
 
+double g_MeanInterFrameInterval;
+double g_StdInterFrameInterval;
+
 std::string g_USBIOBoard;
 std::string g_USBIOParamAD;
 std::string g_USBIOParamDI;
@@ -1073,6 +1076,52 @@ void renderInitMessages(int n, const char* message)
 	SDL_RenderPresent(g_pSDLrenderer);
 }
 
+
+/*
+measureInterFrameInterval: measure inter-frame interval
+
+@return No value is returned.
+*/
+void measureInterFrameInterval(void){
+	double ifi[2000];
+	double detectionResults[MAX_DETECTION_RESULTS];
+	double t1, t2, startTime;
+	int index, res;
+
+	startTime = getCurrentTime();
+	t1 = 0;
+	index = 0;
+	while (t1 < 1000 && index < 2000) {  // 1000ms or 2000 samples
+		if (getCameraImage() == S_OK) {
+			t2 = getCurrentTime() - startTime;
+			ifi[index] = t2 - t1;
+			t1 = t2;
+			index++;
+			if (g_RecordingMode == RECORDING_MONOCULAR) {
+				res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
+			}
+			else {
+				res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
+			}
+		}
+	}
+	g_MeanInterFrameInterval = 0;
+	for (int i = 1; i < index; i++) {  // drop first sample (so index starts from 1)
+		g_MeanInterFrameInterval += ifi[i];
+	}
+	g_MeanInterFrameInterval /= (index - 1);
+
+	g_StdInterFrameInterval = 0;
+	for (int i = 1; i < index; i++) {
+		g_StdInterFrameInterval += (ifi[i] - g_MeanInterFrameInterval)*(ifi[i] - g_StdInterFrameInterval);
+	}
+	g_StdInterFrameInterval /= (index - 1);
+	g_StdInterFrameInterval = sqrt(g_StdInterFrameInterval);
+
+	g_LogFS << "Average inter-frame interval (without render) = " << g_MeanInterFrameInterval << "ms (sd: " << g_StdInterFrameInterval << "ms)" << std::endl;
+}
+
+
 /*
 main: Entry point of the application
 
@@ -1103,6 +1152,7 @@ int main(int argc, char** argv)
 	time_t t;
 	struct tm *ltm;
 	char datestr[256];
+	char msg[256];
 	int nInitMessage = 0;
 
 	const SDL_MessageBoxButtonData sdlConfigMessageBoxButtons[] = {
@@ -1449,80 +1499,20 @@ int main(int argc, char** argv)
 	}
 
 
+	renderInitMessages(nInitMessage, "Measuring inter-frame interval... .");
+	nInitMessage += 1;
+
+	measureInterFrameInterval();
+
+	snprintf(msg, sizeof(msg), "Average: %.1fms (%.1fHz)", g_MeanInterFrameInterval, 1000 / g_MeanInterFrameInterval);
+	renderInitMessages(nInitMessage, msg);
+	nInitMessage += 1;
+
 	g_LogFS << "Start." << "\n" << std::endl;
 	nInitMessage += 1; //blank line
 	renderInitMessages(nInitMessage, "Start.");
-	//sleepMilliseconds(2000);
+	sleepMilliseconds(3000);
 
-	{
-		double ifi[2000];
-		double detectionResults[MAX_DETECTION_RESULTS];
-		double t1, t2, startTime, mean_render, mean_without_render, std_render, std_without_render;
-		int index, res;
-
-		startTime = getCurrentTime();
-		t1 = 0;
-		index = 0;
-		while (t1 < 1000 && index < 2000) {
-			if (getCameraImage() == S_OK) {
-				t2 = getCurrentTime() - startTime;
-				ifi[index] = t2 - t1;
-				t1 = t2;
-				index++;
-				if (g_RecordingMode == RECORDING_MONOCULAR) {
-					res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
-				}
-				else {
-					res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
-				}
-			}
-		}
-		mean_without_render = 0;
-		for (int i = 0; i < index; i++) {
-			mean_without_render += ifi[i];
-		}
-		mean_without_render /= index;
-		std_without_render = 0;
-		for (int i = 0; i < index; i++) {
-			std_without_render += (ifi[i]-mean_without_render)*(ifi[i] - mean_without_render);
-		}
-		std_without_render /= index;
-		std_without_render = sqrt(std_without_render);
-		g_LogFS << "IFI (without render)= " << mean_without_render << "(" << std_without_render<< ")" << std::endl;
-
-		startTime = getCurrentTime();
-		t1 = 0;
-		index = 0;
-		while (t1 < 1000 && index < 2000) {
-			if (getCameraImage() == S_OK) {
-				t2 = getCurrentTime() - startTime;
-				ifi[index] = t2 - t1;
-				t1 = t2;
-				index++;
-
-				if (g_RecordingMode == RECORDING_MONOCULAR) {
-					res = detectPupilPurkinjeMono(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
-				}
-				else {
-					res = detectPupilPurkinjeBin(g_Threshold, g_PurkinjeSearchArea, g_PurkinjeThreshold, g_PurkinjeExcludeArea, g_MinPupilWidth, g_MaxPupilWidth, detectionResults);
-				}
-				render();
-			}
-		}
-		mean_render = 0;
-		for (int i = 0; i < index; i++) {
-			mean_render += ifi[i];
-		}
-		mean_render /= index;
-		std_render = 0;
-		for (int i = 0; i < index; i++) {
-			std_render += (ifi[i] - mean_render)*(ifi[i] - mean_render);
-		}
-		std_render /= index;
-		std_render = sqrt(std_render);
-		g_LogFS << "Mean IFI (with render)= " << mean_render << "(" << std_render << ")" << std::endl;
-
-	}
 
 	//todo open set up tutorial?
 	if (g_openSetupGuide){
