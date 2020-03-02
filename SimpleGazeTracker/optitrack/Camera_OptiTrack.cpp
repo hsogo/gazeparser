@@ -7,10 +7,6 @@
 #include <sstream>
 #include <string>
 
-int getCameraImage( void );
-void CleanupCamera( void );
-
-
 CameraLibrary::Camera *g_camera;
 CameraLibrary::Frame *g_frame;
 
