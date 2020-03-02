@@ -34,6 +34,7 @@ SimpleGazeTracker/debian_opencv/simplegazetracker/
 SimpleGazeTracker/debian_flycap/simplegazetracker-flycap/
 
 #VisualStudio
+*.aps
 *.bak
 *.cache
 *.exe
