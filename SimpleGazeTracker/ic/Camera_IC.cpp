@@ -13,7 +13,6 @@
 
 #include "GazeTracker.h"
 #include <tisudshl.h>
-#include "cmdhelper.h"
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
@@ -37,12 +36,10 @@ int g_OffsetY = 0;
 int g_Binning = 1;
 float g_FrameRate = 200;
 float g_Exposure = 1000;
+std::string g_ImageFormat = "auto";
 
 SDL_Thread *g_pThread;
 bool g_runThread;
-
-int g_SleepDuration = 0;
-bool g_isThreadMode = true;
 
 bool g_UseBlurFilter = true;
 int g_BlurFilterSize = 3;
@@ -65,31 +62,6 @@ getEditionString: Get edition string.
 const char* getEditionString(void)
 {
 	return EDITION;
-}
-
-/*!
-captureCameraThread: Capture camera image using thread.
-
-@date 2013/03/29 created.
-*/
-int captureCameraThread(void *unused)
-{
-	while(g_runThread)
-	{
-		DWORD currentFrame = g_ICGrabber.getFrameCount();
-		if(currentFrame>g_ICFrameCount)
-		{
-			g_NewFrameAvailable = true;
-			g_ICFrameCount = currentFrame;
-			
-            if(g_SleepDuration>0.0)
-            {
-                sleepMilliseconds(g_SleepDuration);
-            }
-		}
-	}
-
-    return 0;
 }
 
 
@@ -180,6 +152,10 @@ int initCamera( void )
 			{
 				g_Binning = (int)param;
 			}
+			else if (strcmp(buff, "IMAGE_FORMAT") == 0)
+			{
+				g_ImageFormat = p + 1;  // string
+			}
 			else if(strcmp(buff,"FRAME_RATE")==0)
 			{
 				g_FrameRate = (float)param;
@@ -187,21 +163,6 @@ int initCamera( void )
 			else if (strcmp(buff, "EXPOSURE") == 0)
 			{
 				g_Exposure = (float)param;
-			}
-			else if(strcmp(buff,"SLEEP_DURATION")==0)
-			{
-				g_SleepDuration = (int)param;
-			}
-			else if(strcmp(buff,"USE_THREAD")==0)
-			{
-				if((int)param!=0)
-				{
-					g_isThreadMode = true;
-				}
-				else
-				{
-					g_isThreadMode = false;
-				}
 			}
 			else if(strcmp(buff,"BLUR_FILTER_SIZE")==0)
 			{
@@ -253,6 +214,66 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
+	// get available video format
+	DShowLib::Grabber::tVidFmtListPtr pVidFmtList = g_ICGrabber.getAvailableVideoFormats();
+
+	if (g_ImageFormat == "auto")
+	{
+		// search best video format
+		bool found_y800 = false;
+		int index = 0, best_index = 0, cx, cy, max_cxcy = 0;
+		std::string format_string;
+		for (DShowLib::Grabber::tVidFmtList::const_iterator it = pVidFmtList->begin(); it != pVidFmtList->end(); it++) {
+			format_string = it->toString();
+			if (format_string.find("Y800 ") != std::string::npos) {
+				found_y800 = true;
+				size_t from, to;
+				from = format_string.find("(");
+				to = format_string.find("x");
+				cx = std::stoi(format_string.substr(from + 1, to - from));
+				from = format_string.find("x");
+				to = format_string.find(")");
+				cy = std::stoi(format_string.substr(from + 1, to - from));
+				if (cx*cy > max_cxcy) {
+					best_index = index;
+					max_cxcy = cx * cy;
+				}
+			}
+			index++;
+		}
+		if (!found_y800) {
+			g_LogFS << "Y800 format is not available" << std::endl;
+			return E_FAIL;
+		}
+
+		// set to best video format
+		g_LogFS << "Selected video format: " << (pVidFmtList->at(best_index)).toString() << std::endl;
+		g_ICGrabber.setVideoFormat(pVidFmtList->at(best_index));
+	}
+	else
+	{
+		int index = 0;
+		bool found = false;
+		std::string format_string;
+		for (DShowLib::Grabber::tVidFmtList::const_iterator it = pVidFmtList->begin(); it != pVidFmtList->end(); it++) {
+			format_string = it->toString();
+			if (format_string == g_ImageFormat) {
+				found = true;
+				break;
+			}
+			index++;
+		}
+
+		if (found) {
+			g_LogFS << "Set video format: " << (pVidFmtList->at(index)).toString() << std::endl;
+			g_ICGrabber.setVideoFormat(pVidFmtList->at(index));
+		}
+		else{
+			g_LogFS << "Video format (" << g_ImageFormat << ") is not available. Check format string. Use \"auto\" to select format automatically (note: \"auto\" is case sensitive)." << std::endl;
+			return E_FAIL;
+		}
+	}
+
 	/*
 	DShowLib::Grabber::tFPSListPtr pFPSlist = g_ICGrabber.getAvailableFPS();
 	for (DShowLib::Grabber::tFPSList::iterator it = pFPSlist->begin(); it != pFPSlist->end(); it++) {
@@ -260,39 +281,11 @@ int initCamera( void )
 	}
 	*/
 
-	// get available video format
-	DShowLib::Grabber::tVidFmtListPtr pVidFmtList = g_ICGrabber.getAvailableVideoFormats();
-
-	// search best video format
-	bool found_y800 = false;
-	int index = 0,  best_index = 0, cx, cy, max_cxcy = 0;
-	std::string format_string;
-	for (DShowLib::Grabber::tVidFmtList::const_iterator it = pVidFmtList->begin(); it != pVidFmtList->end(); it++) {
-		format_string = it->toString();
-		if (format_string.find("Y800 ") != std::string::npos) {
-			found_y800 = true;
-			size_t from, to;
-			from = format_string.find("(");
-			to = format_string.find("x");
-			cx = std::stoi(format_string.substr(from + 1, to - from));
-			from = format_string.find("x");
-			to = format_string.find(")");
-			cy = std::stoi(format_string.substr(from + 1, to - from));
-			if (cx*cy > max_cxcy) {
-				best_index = index;
-				max_cxcy = cx * cy;
-			}
-		}
-		index++;
-	}
-	if (!found_y800) {
-		g_LogFS << "Y800 format is not available" << std::endl;
+	// set fps
+	if (!g_ICGrabber.setFPS(g_FrameRate)) {
+		g_LogFS << "Could not set frame rate to " << g_FrameRate << " fps.";
 		return E_FAIL;
 	}
-
-	// set to best video format
-	g_ICGrabber.setVideoFormat(pVidFmtList->at(best_index));
-	g_LogFS << "Bset video format: " << (pVidFmtList->at(best_index)).toString() << std::endl;
 
 	// prepare buffer
 	g_pSink = DShowLib::FrameHandlerSink::create(DShowLib::eY800, 1);
@@ -328,32 +321,13 @@ int initCamera( void )
 	}
 	g_ICFrameCount = 0;
 
-	
+	/*
 	g_LogFS << "Grabber.getFPS:" << g_ICGrabber.getFPS() << std::endl;
 	g_LogFS << "Grabber.Format:" << g_ICGrabber.getVideoFormat().toString() << std::endl;
+	*/
 	
 
-	//start thread if necessary
-	if (g_isThreadMode)
-	{
-		g_runThread = true;
-		g_pThread = SDL_CreateThread(captureCameraThread, "CaptureThread", NULL);
-		if (g_pThread == NULL)
-		{
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start a new thread for asynchronous capturing.");
-			g_LogFS << "ERROR: failed to start thread" << std::endl;
-			g_runThread = false;
-			return E_FAIL;
-		}
-		else
-		{
-			g_LogFS << "Start CameraThread" << std::endl;
-		}
-	}
-	else
-	{
-		g_LogFS << "Start without threading" << std::endl;
-	}
+	g_LogFS << "Camera is started." << std::endl;
 
 	Sleep(5);
 
@@ -376,25 +350,12 @@ getCameraImage: Get new camera image.
 */
 int getCameraImage( void )
 {
+	DWORD currentFrame = g_pSink->getFrameCount();
 
-
-    if(g_isThreadMode)
-    {
-        if(g_NewFrameAvailable)
-        {
-            g_NewFrameAvailable = false;
-            return S_OK;
-        }
-    }
-    else // non-threading mode
-    {
-		DWORD currentFrame = g_pSink->getFrameCount();
-
-		if(currentFrame > g_ICFrameCount)
-		{
-			g_ICFrameCount = currentFrame;
-			return S_OK;
-		}
+	if(currentFrame > g_ICFrameCount)
+	{
+		g_ICFrameCount = currentFrame;
+		return S_OK;
 	}
 
 	return E_FAIL;
@@ -412,14 +373,10 @@ cleanupCamera: release camera resources.
 */
 void cleanupCamera()
 {
-	if(g_isThreadMode && g_runThread){
-		g_runThread = false;
-		SDL_WaitThread(g_pThread, NULL);
-		g_LogFS << "Camera capture thread is stopped." << std::endl;
-	}
-
 	g_ICGrabber.stopLive();
 	g_ICGrabber.closeDev();
+
+	g_LogFS << "Camera is stopped." << std::endl;
 
 	return;
 }
@@ -452,10 +409,9 @@ void saveCameraParameters( void )
 	fs << "OFFSET_X=" << g_OffsetX << std::endl;
 	fs << "OFFSET_Y=" << g_OffsetY << std::endl;
 	fs << "BINNING_SIZE=" << g_Binning << std::endl;
+	fs << "IMAGE_FORMAT=" << g_ImageFormat << std::endl;
 	fs << "FRAME_RATE=" << g_FrameRate << std::endl;
 	fs << "EXPOSURE=" << g_Exposure << std::endl;
-	fs << "USE_THREAD=" << g_isThreadMode << std::endl;
-	fs << "SLEEP_DURATION=" << g_SleepDuration << std::endl;
 
 	fs.close();
 
