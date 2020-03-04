@@ -28,14 +28,7 @@ DShowLib::tMemBufferCollectionPtr g_pCollection;
 
 DWORD g_ICFrameCount;
 
-#define CUSTOMMENU_EXPOSURE		(MENU_GENERAL_NUM+0)
-#define CUSTOMMENU_NUM			1
-
-int g_OffsetX = 0;
-int g_OffsetY = 0;
-int g_Binning = 1;
 float g_FrameRate = 200;
-float g_Exposure = 1000;
 std::string g_ImageFormat = "auto";
 
 SDL_Thread *g_pThread;
@@ -140,29 +133,13 @@ int initCamera( void )
 			while(*(p+1)==0x09 || *(p+1)==0x20) p++;
 			param = strtod(p+1,&pp); //paramete is not int but double
 
-			if(strcmp(buff,"OFFSET_X")==0)
-			{
-				g_OffsetX = (int)param;
-			}
-			else if(strcmp(buff,"OFFSET_Y")==0)
-			{
-				g_OffsetY = (int)param;
-			}
-			else if (strcmp(buff, "BINNING_SIZE") == 0)
-			{
-				g_Binning = (int)param;
-			}
-			else if (strcmp(buff, "IMAGE_FORMAT") == 0)
+			if (strcmp(buff, "IMAGE_FORMAT") == 0)
 			{
 				g_ImageFormat = p + 1;  // string
 			}
 			else if(strcmp(buff,"FRAME_RATE")==0)
 			{
 				g_FrameRate = (float)param;
-			}
-			else if (strcmp(buff, "EXPOSURE") == 0)
-			{
-				g_Exposure = (float)param;
 			}
 			else if(strcmp(buff,"BLUR_FILTER_SIZE")==0)
 			{
@@ -184,15 +161,6 @@ int initCamera( void )
 		g_TmpImg = cv::Mat(g_CameraHeight,g_CameraWidth,CV_8UC1,g_frameBuffer);
 	}else{
 		g_LogFS << "BlurFilter: use raw image." << std::endl;
-	}
-
-	if (g_Exposure >= 1000000 / g_FrameRate) {
-		g_Exposure = 1000000 / g_FrameRate - 100;
-		g_LogFS << "Exposure is too long. Adjusted to " << g_Exposure << std::endl;
-	}
-	else if (g_Exposure <= 0) {
-		g_Exposure = 100;
-		g_LogFS << "Exposure is too short. Adjusted to " << g_Exposure << std::endl;
 	}
 
 
@@ -331,9 +299,6 @@ int initCamera( void )
 
 	Sleep(5);
 
-	//prepare custom menu
-	g_CustomMenuNum = CUSTOMMENU_NUM;
-
 	return S_OK;
 }
 
@@ -392,29 +357,7 @@ saveCameraParameters: Save current camera parameters to the camera configuration
  */
 void saveCameraParameters( void )
 {
-	std::fstream fs;
-	std::string fname(g_ParamPath.c_str());
-
-	fname.append(PATH_SEPARATOR);
-	fname.append(CAMERA_CONFIG_FILE);
-
-	fs.open(fname.c_str(), std::ios::out);
-	if (!fs.is_open())
-	{
-		return;
-	}
-
-	fs << "#If you want to recover original settings, delete this file and start eye tracker program." << std::endl;
-	fs << "[SimpleGazeTrackerIC]" << std::endl;
-	fs << "OFFSET_X=" << g_OffsetX << std::endl;
-	fs << "OFFSET_Y=" << g_OffsetY << std::endl;
-	fs << "BINNING_SIZE=" << g_Binning << std::endl;
-	fs << "IMAGE_FORMAT=" << g_ImageFormat << std::endl;
-	fs << "FRAME_RATE=" << g_FrameRate << std::endl;
-	fs << "EXPOSURE=" << g_Exposure << std::endl;
-
-	fs.close();
-
+	// no custom parameters for this camera
 	return;
 }
 
@@ -434,45 +377,7 @@ This function is called when left or right cursor key is pressed.
 */
 int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 {
-	switch (SDLevent->type) {
-	case SDL_KEYDOWN:
-		switch (SDLevent->key.keysym.sym)
-		{
-		case SDLK_LEFT:
-			switch (currentMenuPosition)
-			{
-			case CUSTOMMENU_EXPOSURE:
-				g_Exposure -= 100;
-				if (g_Exposure < 0)
-					g_Exposure = 100;
-				//g_pSpinnakerCam->ExposureTime.SetValue(g_Exposure);
-				break;
-			default:
-				break;
-			}
-			break;
-
-		case SDLK_RIGHT:
-			switch (currentMenuPosition)
-			{
-			case CUSTOMMENU_EXPOSURE:
-				g_Exposure += 100;
-				if (g_Exposure >= 1000000 / g_FrameRate)
-					g_Exposure = (1000000 / g_FrameRate) - 100;
-				//g_pSpinnakerCam->ExposureTime.SetValue(g_Exposure);
-				break;
-			default:
-				break;
-			}
-			break;
-
-		default:
-			break;
-		}
-	default:
-		break;
-	}
-
+	// no custom menu for this camera
 	return S_OK;
 
 }
@@ -490,10 +395,7 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 */
 void updateCustomMenuText( void )
 {
-	std::stringstream ss;
-	ss << "Exposure(" << g_Exposure << ")";
-	g_MenuString[CUSTOMMENU_EXPOSURE] = ss.str();
-
+	// no custom parameters for this camera
 	return;
 }
 
