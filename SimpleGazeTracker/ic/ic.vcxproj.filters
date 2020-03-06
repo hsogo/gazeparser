@@ -49,4 +49,8 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CONFIG" />
+    <None Include="CONFIG_IC" />
+  </ItemGroup>
 </Project>

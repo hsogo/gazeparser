@@ -141,14 +141,15 @@
     <ClInclude Include="GazeTracker.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CONFIG">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="CONFIG_SPINNAKER">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <ResourceCompile Include="..\common\GazeTracker.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\common\simplegazetracker.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="CONFIG" />
-    <None Include="CONFIG_SPINNAKER" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

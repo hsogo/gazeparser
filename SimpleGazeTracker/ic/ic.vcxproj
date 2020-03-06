@@ -146,6 +146,14 @@
   <ItemGroup>
     <ClInclude Include="GazeTracker.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CONFIG">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="CONFIG_IC">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
