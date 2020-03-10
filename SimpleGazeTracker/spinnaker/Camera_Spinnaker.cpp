@@ -299,12 +299,20 @@ int initCamera( void )
 		g_pSpinnakerCam->Height.SetValue(g_CameraHeight);
 		g_pSpinnakerCam->OffsetX.SetValue(g_OffsetX);
 		g_pSpinnakerCam->OffsetY.SetValue(g_OffsetY);
+	}
+	catch (Spinnaker::Exception &e) {
+		g_LogFS << "Error: " << e.what() << std::endl;
+		cleanupCamera();
+		return E_FAIL;
+	}
 
+
+	try{
 		// start recording
 		g_pSpinnakerCam->BeginAcquisition();
 	}
 	catch (Spinnaker::Exception &e) {
-		g_LogFS << "Error: " << e.what() << std::endl;
+		g_LogFS << "Couldn't start cameara.  On Linux, make sure that enough USB-FS memory is allocated." << std::endl;
 		cleanupCamera();
 		return E_FAIL;
 	}
@@ -330,8 +338,6 @@ int initCamera( void )
 	{
 		g_LogFS << "Start without threading" << std::endl;
 	}
-
-	Sleep(5);
 
 	//prepare custom menu
 	g_CustomMenuNum = CUSTOMMENU_NUM;
