@@ -52,7 +52,7 @@ AM_CONDITIONAL(FONTLESS, test x$fontless = xtrue)
 
 AC_ARG_WITH(
 	[flycapture],
-	[  --with-flycapture is yes, FlyCapture2 version is installed [default no]],
+	[  --with-flycapture if yes, FlyCapture2 version is installed [default no]],
 	[case "${withval}" in
 		yes) flycapture=true  ;;
 		no)  flycapture=false ;;
@@ -61,6 +61,18 @@ AC_ARG_WITH(
 	[flycapture=false]
 )
 AM_CONDITIONAL(FLYCAPTURE, test x$flycapture = xtrue)
+
+AC_ARG_WITH(
+	[spinnaker],
+	[  --with-spinnaker if yes, Spinnaker version is installed [default no]],
+	[case "${withval}" in
+		yes) spinnaker=true  ;;
+		no)  spinnaker=false ;;
+		*) AC_MSG_ERROR(bad value ${withval} for --with-spinnaker) ;
+	esac],
+	[spinnaker=false]
+)
+AM_CONDITIONAL(SPINNAKER, test x$spinnaker = xtrue)
 
 AC_CONFIG_FILES([makefile])
 AC_OUTPUT

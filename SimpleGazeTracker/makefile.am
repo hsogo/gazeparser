@@ -12,7 +12,18 @@ sgtsrv_flycap_LDADD=$(OPENCV_LIBS) $(SDL2_LIBS) $(LIBUSB_LIBS) -lflycapture
 sgtsrv_flycap_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL2_CFLAGS) $(LIBUSB_CFLAGS) -I/usr/include/flycapture
 
 else
+if SPINNAKER
 
+bin_PROGRAMS = sgtsrv-spinnaker
+
+sgtsrv_spinnaker_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
+    common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
+    spinnaker/Camera_Spinnaker.cpp spinnaker/GazeTracker.h
+
+sgtsrv_spinnaker_LDADD=$(OPENCV_LIBS) $(SDL2_LIBS) $(LIBUSB_LIBS) -lSpinnaker
+sgtsrv_spinnaker_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL2_CFLAGS) $(LIBUSB_CFLAGS) -I/usr/include/spinnaker
+
+else
 bin_PROGRAMS=sgtsrv
 
 sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
@@ -21,7 +32,7 @@ sgtsrv_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFle
 
 sgtsrv_LDADD=$(OPENCV_LIBS) $(SDL2_LIBS) $(LIBUSB_LIBS)
 sgtsrv_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL2_CFLAGS) $(LIBUSB_CFLAGS)
-
+endif
 endif
 
 if FONTLESS
@@ -39,7 +50,10 @@ nobase_dist_data_DATA = $(doc_files)
 if FLYCAPTURE
 dist_data_DATA = flycapture2/CONFIG flycapture2/CONFIG_FLYCAPTURE2 $(freesans)
 else
+if SPINNAKER
+dist_data_DATA = spinnaker/CONFIG spinnaker/CONFIG_SPINNAKER $(freesans)
+else
 dist_data_DATA = opencv/CONFIG opencv/CONFIG_OPENCV $(freesans)
 endif
-
+endif
 
