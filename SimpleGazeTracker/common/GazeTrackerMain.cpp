@@ -137,7 +137,7 @@ FILE* g_DataFP;
 std::fstream g_LogFS;
 
 std::string g_ConfigFileName;
-std::string g_CameraConfigFileName;
+//std::string g_CameraConfigFileName;
 
 char g_MessageBuffer[MAXMESSAGE];
 int g_MessageEnd;
@@ -214,6 +214,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 @date 2015/09/08 set g_errorMessage when failed.
 @date 2018/08/09 OPEN_SETUP_GUIDE is supported.
 @date 2019/11/27 MORPH_TRANS is supported.
+@date 2020/03/16 
  */
 int initParameters( void )
 {
@@ -222,7 +223,8 @@ int initParameters( void )
 	char buff[1024];
 	char *p,*pp;
 	int param;
-	bool isInSection = true; //default is True to support old config file
+	bool inCommonSection = false;
+	bool inCameraSection = false;
 
 	fname.assign(g_ParamPath);
 	fname.append(PATH_SEPARATOR);
@@ -243,69 +245,89 @@ int initParameters( void )
 		//in Section "[SimpleGazeTrackerCommon]"
 		if(buff[0]=='['){
 			if(strcmp(buff,"[SimpleGazeTrackerCommon]")==0){
-				isInSection = true;
+				inCommonSection = true;
+				inCameraSection = false;
 			}
-			else
+			else if (strcmp(buff, "[SimpleGazeTrackerCamera]") == 0)
 			{
-				isInSection = false;
+				inCommonSection = false;
+				inCameraSection = true;
+
+			}else
+			{
+				inCommonSection = false;
+				inCameraSection = false;
 			}
 			continue;
 		}
 		
-		if(!isInSection) continue; //not in section
+		if(!(inCommonSection || inCameraSection)) continue; //not in section
 		
 		//Check options.
 		//If "=" is not included, this line is not option.
 		if((p=strchr(buff,'='))==NULL) continue;
-		
+
 		//remove space/tab
 		*p = '\0';
-		while(*(p-1)==0x09 || *(p-1)==0x20) 
+		while (*(p - 1) == 0x09 || *(p - 1) == 0x20)
 		{
 			p--;
-			*p= '\0';
+			*p = '\0';
 		}
-		while(*(p+1)==0x09 || *(p+1)==0x20) p++;
-		param = strtol(p+1,&pp,10);
+		while (*(p + 1) == 0x09 || *(p + 1) == 0x20) p++;
 
-		if(strcmp(buff,"THRESHOLD")==0) g_Threshold = param;
-		else if(strcmp(buff,"MAX_PUPIL_WIDTH")==0) g_MaxPupilWidth = param;
-		else if(strcmp(buff,"MIN_PUPIL_WIDTH")==0) g_MinPupilWidth = param;
-		else if(strcmp(buff,"PURKINJE_THRESHOLD")==0) g_PurkinjeThreshold = param;
-		else if(strcmp(buff,"PURKINJE_SEARCHAREA")==0) g_PurkinjeSearchArea = param;
-		else if(strcmp(buff,"PURKINJE_EXCLUDEAREA")==0) g_PurkinjeExcludeArea = param;
-		else if(strcmp(buff,"BINOCULAR")==0) g_RecordingMode = param;
-		else if(strcmp(buff,"CAMERA_WIDTH")==0) g_CameraWidth = param;
-		else if(strcmp(buff,"CAMERA_HEIGHT")==0) g_CameraHeight = param;
-		else if(strcmp(buff,"PREVIEW_WIDTH")==0) g_PreviewWidth = param;
-		else if(strcmp(buff,"PREVIEW_HEIGHT")==0) g_PreviewHeight = param;
-		else if(strcmp(buff,"ROI_WIDTH")==0) g_ROIWidth = param;
-		else if(strcmp(buff,"ROI_HEIGHT")==0) g_ROIHeight = param;
-		else if(strcmp(buff,"SHOW_DETECTIONERROR_MSG")==0) g_isShowDetectionErrorMsg = param;
-		else if(strcmp(buff,"PORT_SEND")==0) g_PortSend = param;
-		else if(strcmp(buff,"PORT_RECV")==0) g_PortRecv = param;
-		else if(strcmp(buff,"DELAY_CORRECTION")==0) g_DelayCorrection = param;
-		else if(strcmp(buff,"OUTPUT_PUPILSIZE")==0) g_isOutputPupilSize = param;
-		else if(strcmp(buff,"USBIO_BOARD")==0) g_USBIOBoard = p+1;
-		else if(strcmp(buff,"USBIO_AD")==0) g_USBIOParamAD = p+1;
-		else if(strcmp(buff,"USBIO_DI")==0) g_USBIOParamDI = p+1;
-		else if(strcmp(buff,"USB_USE_THREAD")==0) g_useUSBThread = (param!=0)? true: false;
-		else if(strcmp(buff,"OPEN_SETUP_GUIDE") == 0) g_openSetupGuide = (param != 0) ? true : false;
-		else if (strcmp(buff, "MORPH_TRANS") == 0) g_MorphologicalTrans = param;
-		//obsolete parameters
-		else if(strcmp(buff,"MAXPOINTS")==0){
-			printf("Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
-			g_LogFS << "Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead." << std::endl;
+		// get first character of the parameter value
+		p += 1;
+
+		if (inCommonSection) {
+			//interpret as integer
+			param = strtol(p, &pp, 10);
+
+			if (strcmp(buff, "THRESHOLD") == 0) g_Threshold = param;
+			else if (strcmp(buff, "MAX_PUPIL_WIDTH") == 0) g_MaxPupilWidth = param;
+			else if (strcmp(buff, "MIN_PUPIL_WIDTH") == 0) g_MinPupilWidth = param;
+			else if (strcmp(buff, "PURKINJE_THRESHOLD") == 0) g_PurkinjeThreshold = param;
+			else if (strcmp(buff, "PURKINJE_SEARCHAREA") == 0) g_PurkinjeSearchArea = param;
+			else if (strcmp(buff, "PURKINJE_EXCLUDEAREA") == 0) g_PurkinjeExcludeArea = param;
+			else if (strcmp(buff, "BINOCULAR") == 0) g_RecordingMode = param;
+			else if (strcmp(buff, "CAMERA_WIDTH") == 0) g_CameraWidth = param;
+			else if (strcmp(buff, "CAMERA_HEIGHT") == 0) g_CameraHeight = param;
+			else if (strcmp(buff, "PREVIEW_WIDTH") == 0) g_PreviewWidth = param;
+			else if (strcmp(buff, "PREVIEW_HEIGHT") == 0) g_PreviewHeight = param;
+			else if (strcmp(buff, "ROI_WIDTH") == 0) g_ROIWidth = param;
+			else if (strcmp(buff, "ROI_HEIGHT") == 0) g_ROIHeight = param;
+			else if (strcmp(buff, "SHOW_DETECTIONERROR_MSG") == 0) g_isShowDetectionErrorMsg = param;
+			else if (strcmp(buff, "PORT_SEND") == 0) g_PortSend = param;
+			else if (strcmp(buff, "PORT_RECV") == 0) g_PortRecv = param;
+			else if (strcmp(buff, "DELAY_CORRECTION") == 0) g_DelayCorrection = param;
+			else if (strcmp(buff, "OUTPUT_PUPILSIZE") == 0) g_isOutputPupilSize = param;
+			else if (strcmp(buff, "USBIO_BOARD") == 0) g_USBIOBoard = p;
+			else if (strcmp(buff, "USBIO_AD") == 0) g_USBIOParamAD = p;
+			else if (strcmp(buff, "USBIO_DI") == 0) g_USBIOParamDI = p;
+			else if (strcmp(buff, "USB_USE_THREAD") == 0) g_useUSBThread = (param != 0) ? true : false;
+			else if (strcmp(buff, "OPEN_SETUP_GUIDE") == 0) g_openSetupGuide = (param != 0) ? true : false;
+			else if (strcmp(buff, "MORPH_TRANS") == 0) g_MorphologicalTrans = param;
+			//obsolete parameters
+			else if (strcmp(buff, "MAXPOINTS") == 0) {
+				printf("Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
+				g_LogFS << "Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead." << std::endl;
+			}
+			else if (strcmp(buff, "MINPOINTS") == 0) {
+				printf("Warning: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead.");
+				g_LogFS << "Warning: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead." << std::endl;
+			}
+			//unknown option
+			else {
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Unknown option (\"%s\")\nPlease check %s", buff, joinPath(g_ParamPath, g_ConfigFileName).c_str());
+				g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
+				return E_FAIL;
+			}
 		}
-		else if(strcmp(buff,"MINPOINTS")==0){
-			printf("Warning: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead.");
-			g_LogFS << "Warning: MINPINTS is obsolete in this version. Use MIN_PUPIL_WIDTH instead." << std::endl;
-		}
-		//unknown option
-		else{
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Unknown option (\"%s\")\nPlease check %s", buff, joinPath(g_ParamPath, g_ConfigFileName).c_str());
-			g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
-			return E_FAIL;
+		else if(inCameraSection){
+			if (FAILED(initCameraParameters(buff, p))) {
+				g_LogFS << "Warning: Unknown camera specific option in configuration file (" << buff << ")" << std::endl;
+				// return E_FAIL;
+			}
 		}
 	}
 	
@@ -431,6 +453,9 @@ int saveParameters( void )
 	fs << "USB_USE_THREAD=" << (g_useUSBThread? "1" : "0") << std::endl;
 	fs << "OPEN_SETUP_GUIDE=" << (g_openSetupGuide ? "1" : "0") << std::endl;
 	fs << "MORPH_TRANS=" << g_MorphologicalTrans << std::endl;
+
+	fs << std::endl << "[SimpleGazeTrackerCamera]" <<std::endl;
+	saveCameraParameters( &fs );
 
 	fs.close();
 
@@ -1183,7 +1208,6 @@ int main(int argc, char** argv)
 	bool useCustomDataPath = false;
 	bool useCustomConfigFile = false;
 	g_ConfigFileName.assign(DEFAULT_CONFIG_FILE);
-	g_CameraConfigFileName.assign("");
 	if (argc > 0) {
 		for (int i = 0; i < argc; i++) {
 			if (strncmp(argv[i], "-configdir=", 11) == 0)
@@ -1210,10 +1234,11 @@ int main(int argc, char** argv)
 				useCustomConfigFile = true;
 			}
 			else if (strncmp(argv[i], "-cameraconfig=", 14) == 0) {
-				if (strlen(argv[i]) <= 14) {
-					return -1;
-				}
-				g_CameraConfigFileName.assign(&argv[i][14]);
+				printf("Camera specific config file is  deprecated, Write camera specific parameters to CONFIG file");
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+					"Camera specific config file is  deprecated, Write camera specific parameters to CONFIG file",
+					g_errorMessage, NULL);
+				return -1;
 			}
 		}
 	}
@@ -1434,7 +1459,7 @@ int main(int argc, char** argv)
 	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
 	if (FAILED(initCamera())) {
 		if (strcmp(g_errorMessage, "") == 0) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize camera. Please check %s.\n\nDo you want to open Config Directory", joinPath(g_CameraConfigFileName, g_ParamPath).c_str());
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Could not initialize camera. Please check %s.\n\nDo you want to open Config Directory", joinPath(g_ConfigFileName, g_ParamPath).c_str());
 		}
 		const SDL_MessageBoxData messageboxdata = {
 			SDL_MESSAGEBOX_ERROR, NULL,
@@ -1774,8 +1799,6 @@ int main(int argc, char** argv)
 			"SimpleGazeTracker warning", g_errorMessage, NULL);
 
 	}
-	g_LogFS << "Saving Camera-specific parameters..." << std::endl;
-	saveCameraParameters();
 	cleanup();
 	g_LogFS << "Shutdown SDL...";
 	SDL_Quit();

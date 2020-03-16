@@ -41,7 +41,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CONFIG" />
-    <None Include="CONFIG_SPINNAKER" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\common\GazeTracker.rc">

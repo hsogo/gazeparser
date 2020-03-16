@@ -28,6 +28,7 @@ int g_SleepDuration = 0;
 double g_FrameRate = 30;
 bool g_isThreadMode = false;
 
+int g_cameraID = 0;
 double g_Intensity = 1.0;
 double g_Exposure = 1.0;
 double g_Brightness = 1.0;
@@ -93,6 +94,72 @@ int captureCameraThread(void *unused)
 	return 0;
 }
 
+/*!
+initCameraParameters: Initialize camera specific parameters
+
+@param[in] buff Pointer to parameter name
+@param[in] parambuff Pointer to parameter value (in char)
+@return int
+@retval S_OK Parameter is successfully initialized.
+@retval E_FAIL Parameter is name unknown or value is wrong.
+@note This function is necessary when you customize this file for your camera.
+@todo check whether number of custom menus are too many.
+
+@date 2020/03/16
+Created.
+*/
+int initCameraParameters(char* buff, char* parambuff)
+{
+	char *p, *pp;
+	double param;
+
+	p = parambuff;
+	param = strtod(p, &pp); //paramete is not int but double
+
+	if (strcmp(buff, "SLEEP_DURATION") == 0)
+	{
+		g_SleepDuration = (int)param;
+	}
+	else if (strcmp(buff, "USE_THREAD") == 0)
+	{
+		g_isThreadMode = ((int)param != 0) ? true : false;
+	}
+	else if (strcmp(buff, "CAMERA_ID") == 0)
+	{
+		g_cameraID = (int)param;
+	}
+	else if (strcmp(buff, "FRAME_RATE") == 0)
+	{
+		g_FrameRate = param;
+		g_isParameterSpecified[CAMERA_PARAM_FRAMERATE] = true;
+	}
+	else if (strcmp(buff, "EXPOSURE") == 0)
+	{
+		g_Exposure = param;
+		g_isParameterSpecified[CAMERA_PARAM_EXPOSURE] = true;
+	}
+	else if (strcmp(buff, "BRIGHTNESS") == 0)
+	{
+		g_Brightness = param;
+		g_isParameterSpecified[CAMERA_PARAM_BRIGHTNESS] = true;
+	}
+	else if (strcmp(buff, "CONTRAST") == 0)
+	{
+		g_Contrast = param;
+		g_isParameterSpecified[CAMERA_PARAM_CONTRAST] = true;
+	}
+	else if (strcmp(buff, "GAIN") == 0)
+	{
+		g_Gain = param;
+		g_isParameterSpecified[CAMERA_PARAM_GAIN] = true;
+	}
+	else {
+	// unknown parameter
+	return E_FAIL;
+	}
+
+	return S_OK;
+}
 
 /*!
 initCamera: Initialize camera.
@@ -116,106 +183,9 @@ Read parameters from the configuration file, start camera and set callback funct
  */
 int initCamera( void )
 {
-	std::fstream fs;
-	std::string fname;
-	char *p,*pp;
-	char buff[1024];
 	double param;
-	bool isInSection = true; //default is True to support old config file
-	
-	int cameraID = 0;
 
-	fname = g_ParamPath.c_str();
-	fname.append(PATH_SEPARATOR);
-	if(g_CameraConfigFileName==""){
-		g_CameraConfigFileName = CAMERA_CONFIG_FILE;
-		checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
-	}
-	fname.append(g_CameraConfigFileName.c_str());
-
-	fs.open(fname.c_str(),std::ios::in);
-	if(fs.is_open())
-	{
-		g_LogFS << "Open camera configuration file (" << fname << ")" << std::endl;
-		while(fs.getline(buff,sizeof(buff)-1))
-		{
-			if(buff[0]=='#') continue;
-
-			//in Section "[SimpleGazeTrackerOpenCV]"
-			if(buff[0]=='['){
-				if(strcmp(buff,"[SimpleGazeTrackerOpenCV]")==0){
-					isInSection = true;
-				}
-				else
-				{
-					isInSection = false;
-				}
-				continue;
-			}
-		
-			if(!isInSection) continue; //not in section
-		
-
-			//Check options.
-			//If "=" is not included, this line is not option.
-			if((p=strchr(buff,'='))==NULL) continue;
-
-			//remove space/tab
-			*p = '\0';
-			while(*(p-1)==0x09 || *(p-1)==0x20)
-			{
-				p--;
-				*p= '\0';
-			}
-			while(*(p+1)==0x09 || *(p+1)==0x20) p++;
-			param = strtod(p+1,&pp); //paramete is not int but double
-
-			if(strcmp(buff,"SLEEP_DURATION")==0)
-			{
-				g_SleepDuration = (int)param;
-			}
-			else if(strcmp(buff,"USE_THREAD")==0)
-			{
-				g_isThreadMode = ((int)param!=0)? true : false;
-			}
-			else if(strcmp(buff,"CAMERA_ID")==0)
-			{
-				cameraID = (int)param;
-			}
-			else if(strcmp(buff,"FRAME_RATE")==0)
-			{
-				g_FrameRate = param;
-				g_isParameterSpecified[CAMERA_PARAM_FRAMERATE]=true;
-			}
-			else if(strcmp(buff,"EXPOSURE")==0)
-			{
-				g_Exposure = param;
-				g_isParameterSpecified[CAMERA_PARAM_EXPOSURE]=true;
-			}
-			else if(strcmp(buff,"BRIGHTNESS")==0)
-			{
-				g_Brightness = param;
-				g_isParameterSpecified[CAMERA_PARAM_BRIGHTNESS]=true;
-			}
-			else if(strcmp(buff,"CONTRAST")==0)
-			{
-				g_Contrast = param;
-				g_isParameterSpecified[CAMERA_PARAM_CONTRAST]=true;
-			}
-			else if(strcmp(buff,"GAIN")==0)
-			{
-				g_Gain = param;
-				g_isParameterSpecified[CAMERA_PARAM_GAIN]=true;
-			}
-		}
-		fs.close();
-	}else{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open camera configuration file (%s)", fname.c_str());
-		g_LogFS << "ERROR: failed to open camera configuration file (" << fname << ")" << std::endl;
-		return E_FAIL;
-	}
-
-	g_VideoCapture = cv::VideoCapture(cameraID);
+	g_VideoCapture = cv::VideoCapture(g_cameraID);
 	if(!g_VideoCapture.isOpened())
 	{
 		snprintf(g_errorMessage, sizeof(g_errorMessage), "No VideoCapture device was found.");
@@ -228,12 +198,12 @@ int initCamera( void )
 
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.\nCheck %s.", g_CameraWidth, g_CameraHeight, fname.c_str());
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.", g_CameraWidth, g_CameraHeight);
 		return E_FAIL;
 	}
 	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.\nCheck %s.", g_CameraWidth, g_CameraHeight, fname.c_str());
+		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.", g_CameraWidth, g_CameraHeight);
 		return E_FAIL;
 	}
 
@@ -371,9 +341,38 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 @date 2013/03/15
 - Argument "ParamPath" was removed. Use g_ParamPath instead.
  */
-void saveCameraParameters( void )
+void saveCameraParameters( std::fstream* fs )
 {
-	// no custom parameters for this camera
+	*fs << "# Camera specific parameters for " << EDITION << std::endl;
+	*fs << "SLEEP_DURATION=" << g_SleepDuration << std::endl;
+	*fs << "CAMERA_ID=" << g_cameraID << std::endl;
+	*fs << "USE_THREAD=" << ((g_isThreadMode) ? 1: 0) << std::endl;
+
+	if (g_isParameterSpecified[CAMERA_PARAM_FRAMERATE])
+		*fs << "FRAME_RATE=" << g_FrameRate << std::endl;
+	else
+		*fs << "#FRAME_RATE=" << std::endl;
+
+	if (g_isParameterSpecified[CAMERA_PARAM_EXPOSURE])
+		*fs << "EXPOSURE=" << g_Exposure << std::endl;
+	else
+		*fs << "#EXPOSURE=" << std::endl;
+
+	if (g_isParameterSpecified[CAMERA_PARAM_BRIGHTNESS])
+		*fs << "BRIGHTNESS=" << g_Brightness << std::endl;
+	else
+		*fs << "#BRIGHTNESS=" << std::endl;
+
+	if (g_isParameterSpecified[CAMERA_PARAM_CONTRAST])
+		*fs << "CONTRAST=" << g_Contrast << std::endl;
+	else
+		*fs << "#CONTRAST=" << std::endl;
+
+	if (g_isParameterSpecified[CAMERA_PARAM_GAIN])
+		*fs << "GAIN=" << g_Gain << std::endl;
+	else
+		*fs << "#GAIN=" << std::endl;
+
 	return;
 }
 

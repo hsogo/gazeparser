@@ -49,6 +49,5 @@
       <Filter>リソース ファイル</Filter>
     </None>
     <None Include="CONFIG" />
-    <None Include="CONFIG_OPTITRACK" />
   </ItemGroup>
 </Project>

@@ -59,6 +59,51 @@ const char* getEditionString(void)
 
 
 /*!
+initCameraParameters: Initialize camera specific parameters
+
+@param[in] buff Pointer to parameter name
+@param[in] parambuff Pointer to parameter value (in char)
+@return int
+@retval S_OK Parameter is successfully initialized.
+@retval E_FAIL Parameter is name unknown or value is wrong.
+@note This function is necessary when you customize this file for your camera.
+@todo check whether number of custom menus are too many.
+
+@date 2020/03/16
+Created.
+*/
+int initCameraParameters(char* buff, char* parambuff)
+{
+	char *p, *pp;
+	double param;
+
+	p = parambuff;
+	param = strtod(p, &pp); //paramete is not int but double
+
+	if (strcmp(buff, "IMAGE_FORMAT") == 0)
+	{
+		g_ImageFormat = p;  // string
+	}
+	else if (strcmp(buff, "FRAME_RATE") == 0)
+	{
+		g_FrameRate = (float)param;
+	}
+	else if (strcmp(buff, "BLUR_FILTER_SIZE") == 0)
+	{
+		g_BlurFilterSize = (int)param;
+		if (g_BlurFilterSize > 1) g_UseBlurFilter = true;
+		else g_UseBlurFilter = false;
+	}
+	else {
+		// unknown parameter
+		return E_FAIL;
+	}
+
+	return S_OK;
+}
+
+
+/*!
 initCamera: Initialize camera.
 
 Read parameters from the configuration file, start camera and set callback function.
@@ -78,83 +123,11 @@ Read parameters from the configuration file, start camera and set callback funct
 - USE_THREAD and SLEEP_DURATION options are supported.
 @date 2013/10/23
 - Camera configuration file is customizable.
+@date 2020/03/16
+- reading parameters from configuration file is moved to initCameraParameters().
  */
 int initCamera( void )
 {
-	std::fstream fs;
-	std::string fname;
-	char *p,*pp;
-	char buff[1024];
-	double param;
-	bool isInSection = true; //default is True to support old config file
-	
-	fname = g_ParamPath.c_str();
-	fname.append(PATH_SEPARATOR);
-	if(g_CameraConfigFileName==""){
-		g_CameraConfigFileName = CAMERA_CONFIG_FILE;
-		checkAndCopyFile(g_ParamPath,CAMERA_CONFIG_FILE,g_AppDirPath);
-	}
-	fname.append(g_CameraConfigFileName.c_str());
-	
-	fs.open(fname.c_str(),std::ios::in);
-	if(fs.is_open())
-	{
-		g_LogFS << "Open camera configuration file (" << fname << ")" << std::endl;
-		while(fs.getline(buff,sizeof(buff)-1))
-		{
-			if(buff[0]=='#') continue;
-
-			//in Section "[SimpleGazeTrackerSpinnaker]"
-			if(buff[0]=='['){
-				if(strcmp(buff,"[SimpleGazeTrackerIC]")==0){
-					isInSection = true;
-				}
-				else
-				{
-					isInSection = false;
-				}
-				continue;
-			}
-		
-			if(!isInSection) continue; //not in section
-		
-
-			//Check options.
-			//If "=" is not included, this line is not option.
-			if((p=strchr(buff,'='))==NULL) continue;
-
-			//remove space/tab
-			*p = '\0';
-			while(*(p-1)==0x09 || *(p-1)==0x20)
-			{
-				p--;
-				*p= '\0';
-			}
-			while(*(p+1)==0x09 || *(p+1)==0x20) p++;
-			param = strtod(p+1,&pp); //paramete is not int but double
-
-			if (strcmp(buff, "IMAGE_FORMAT") == 0)
-			{
-				g_ImageFormat = p + 1;  // string
-			}
-			else if(strcmp(buff,"FRAME_RATE")==0)
-			{
-				g_FrameRate = (float)param;
-			}
-			else if(strcmp(buff,"BLUR_FILTER_SIZE")==0)
-			{
-				g_BlurFilterSize = (int)param;
-				if(g_BlurFilterSize>1) g_UseBlurFilter = true;
-				else g_UseBlurFilter = false;
-			}
-		}
-		fs.close();
-	}else{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open camera configuration file (%s)", fname.c_str());
-		g_LogFS << "ERROR: failed to open camera configuration file (" << fname << ")" << std::endl;
-		return E_FAIL;
-	}
-
 	// create cv::Mat for blurring
 	if(g_UseBlurFilter){
 		g_LogFS << "BlurFilter: use blur filter (size=" << g_BlurFilterSize << ")." << std::endl;
@@ -162,7 +135,6 @@ int initCamera( void )
 	}else{
 		g_LogFS << "BlurFilter: use raw image." << std::endl;
 	}
-
 
 	//Init IC camera
 	DShowLib::InitLibrary();
@@ -355,9 +327,13 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 @date 2013/03/15
 - Argument "ParamPath" was removed. Use g_ParamPath instead.
  */
-void saveCameraParameters( void )
+void saveCameraParameters( std::fstream* fs )
 {
-	// no custom parameters for this camera
+	*fs << "# Camera specific parameters for " << EDITION << std::endl;
+	*fs << "IMAGE_FORMAT=" << g_ImageFormat << std::endl;
+	*fs << "FRAME_RATE=" << g_FrameRate << std::endl;
+	*fs << "BLUR_FILTER_SIZE=" << g_BlurFilterSize << std::endl;
+
 	return;
 }
 

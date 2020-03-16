@@ -55,6 +55,5 @@
       <Filter>リソース ファイル</Filter>
     </None>
     <None Include="CONFIG" />
-    <None Include="CONFIG_FLYCAPTURE2" />
   </ItemGroup>
 </Project>

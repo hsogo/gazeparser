@@ -177,7 +177,7 @@ extern std::string g_ParamPath;
 extern std::string g_ConfigFileName;
 
 extern std::fstream g_LogFS;
-extern std::string g_CameraConfigFileName;
+// extern std::string g_CameraConfigFileName;
 
 extern void startCalibration(int x1, int y1, int x2, int y2, int clear);
 extern void getCalSample(double x, double y, int samples);
@@ -217,10 +217,11 @@ extern void deleteCalibrationDataSubset(char* points);
 extern char g_errorMessage[1024];
 
 //Camera.cpp
+extern int initCameraParameters( char* buff, char* parambuff );
 extern int initCamera( void );
 extern int getCameraImage( void );
 extern void cleanupCamera( void );
-extern void saveCameraParameters( void );
+extern void saveCameraParameters( std::fstream* fs );
 extern const char* getEditionString( void );
 extern unsigned int getCameraSpecificData( void );
 
