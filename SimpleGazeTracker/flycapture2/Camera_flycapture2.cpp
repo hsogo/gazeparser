@@ -25,6 +25,7 @@ FlyCapture2::Camera g_FC2Camera;
 FlyCapture2::PGRGuid g_FC2CameraGUID;
 FlyCapture2::Image g_rawImage;
 
+int g_CameraN = 0;
 int g_OffsetX = 0;
 int g_OffsetY = 0;
 int g_CameraMode = 1;
@@ -123,7 +124,11 @@ int initCameraParameters(char* buff, char* parambuff)
 	p = parambuff;
 	param = strtod(p, &pp); //paramete is not int but double
 
-	if (strcmp(buff, "OFFSET_X") == 0)
+	if (strcmp(buff, "CAMERA_N") == 0)
+	{
+		g_CameraN = (int)param;
+	}
+	else if (strcmp(buff, "OFFSET_X") == 0)
 	{
 		g_OffsetX = (int)param;
 	}
@@ -160,7 +165,6 @@ int initCameraParameters(char* buff, char* parambuff)
 		if (g_BlurFilterSize > 1) g_UseBlurFilter = true;
 		else g_UseBlurFilter = false;
 	}
-
 	else {
 		// unknown parameter
 		return E_FAIL;
@@ -239,7 +243,7 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	error = busMgr.GetCameraFromIndex(0, &g_FC2CameraGUID);
+	error = busMgr.GetCameraFromIndex(g_CameraN, &g_FC2CameraGUID);
 	if(error != FlyCapture2::PGRERROR_OK)
 	{
 		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to get the first Flycapture2 camera.");
@@ -483,6 +487,7 @@ saveCameraParameters: Save current camera parameters to the camera configuration
 void saveCameraParameters( std::fstream* fs )
 {
 	*fs << "# Camera specific parameters for " << EDITION << std::endl;
+	*fs << "CAMERA_N=" << g_CameraN << std::endl;
 	*fs << "OFFSET_X=" << g_OffsetX << std::endl;
 	*fs << "OFFSET_Y=" << g_OffsetY << std::endl;
 	*fs << "FRAME_RATE=" << g_FrameRate << std::endl;

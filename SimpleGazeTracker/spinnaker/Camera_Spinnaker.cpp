@@ -29,6 +29,7 @@ Spinnaker::CameraPtr g_pSpinnakerCam = nullptr;
 #define CUSTOMMENU_EXPOSURE		(MENU_GENERAL_NUM+0)
 #define CUSTOMMENU_NUM			1
 
+int g_CameraN = 0;
 int g_OffsetX = 0;
 int g_OffsetY = 0;
 int g_Binning = 1;
@@ -121,7 +122,11 @@ int initCameraParameters(char* buff, char* parambuff)
 	p = parambuff;
 	param = strtod(p, &pp); //paramete is not int but double
 
-	if (strcmp(buff, "OFFSET_X") == 0)
+	if (strcmp(buff, "CAMERA_N") == 0)
+	{
+		g_CameraN = (int)param;
+	}
+	else if (strcmp(buff, "OFFSET_X") == 0)
 	{
 		g_OffsetX = (int)param;
 	}
@@ -230,7 +235,7 @@ int initCamera( void )
 		}
 
 		// get first camera
-		g_pSpinnakerCam = g_CameraList.GetByIndex(0);
+		g_pSpinnakerCam = g_CameraList.GetByIndex(g_CameraN);
 
 		if (g_pSpinnakerCam == nullptr)
 		{
@@ -419,6 +424,7 @@ saveCameraParameters: Save current camera parameters to the configuration file.
 void saveCameraParameters( std::fstream* fs )
 {
 	*fs << "# Camera specific parameters for " << EDITION << std::endl;
+	*fs << "CAMERA_N=" << g_CameraN << std::endl;
 	*fs << "OFFSET_X=" << g_OffsetX << std::endl;
 	*fs << "OFFSET_Y=" << g_OffsetY << std::endl;
 	*fs << "BINNING_SIZE=" << g_Binning << std::endl;
