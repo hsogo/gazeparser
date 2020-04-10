@@ -108,7 +108,9 @@ int getApplicationDirectoryPath(std::string* path)
 	char buff[1024];
 	size_t index;
 #ifdef _WIN32
-	GetModuleFileName(NULL,buff,sizeof(buff));
+	wchar_t wbuff[1024];
+	GetModuleFileName(NULL, wbuff, sizeof(buff));
+	wcstombs(buff, wbuff, sizeof(buff));
 	path->assign(buff);
 	index = path->find_last_of("\\");
 	path->erase(index);
@@ -150,14 +152,6 @@ int getParameterDirectoryPath(std::string* path)
 	return 0;
 }
 
-int getLogFilePath(std::string* path)
-{
-	path->assign(g_DataPath);
-	path->append(PATH_SEPARATOR);
-	path->append("SimpleGazeTracker.log");
-	return 0;
-}
-
 int checkAndCreateDirectory(std::string path)
 /*
 @date 2012/09/27
@@ -166,8 +160,10 @@ int checkAndCreateDirectory(std::string path)
 */
 {
 #ifdef _WIN32
-	if(!PathIsDirectory(path.c_str())){
-		CreateDirectory(path.c_str(),NULL);
+	wchar_t wbuff[1024];
+	mbstowcs(wbuff, path.c_str(), sizeof(wbuff));
+	if(!PathIsDirectory(wbuff)){
+		CreateDirectory(wbuff, NULL);
 	}
 #else
 	int res;
@@ -196,14 +192,17 @@ Check whether file exists. If the file exists, ".n" (n=0,1,2,...) is appended to
 	std::stringstream ss;
 	int n = 0;
 #ifdef _WIN32
-	if(PathFileExists(strTo.c_str())){
+	wchar_t strToW[1024], pathW[1024];
+	mbstowcs(pathW, path.c_str(), sizeof(pathW));
+	if(PathFileExists(strToW)){
 		while(true)
 		{
 			ss.str("");
 			ss << path << "." << n;
 			strTo = ss.str();
-			if(!PathFileExists(strTo.c_str())){
-				if(MoveFile(path.c_str(),strTo.c_str())){
+			mbstowcs(strToW, strTo.c_str(), sizeof(strToW));
+			if(!PathFileExists(strToW)){
+				if(MoveFile(pathW, strToW)){
 					g_LogFS << "Datafile is renamed." << std::endl;
 					return S_OK;
 				}
@@ -245,7 +244,9 @@ int checkFile(std::string path, const char* filename)
 	str.append(filename);
 
 #ifdef _WIN32
-	if(!PathFileExists(str.c_str())){
+	wchar_t strW[1024];
+	mbstowcs(strW, str.c_str(), sizeof(strW));
+	if(!PathFileExists(strW)){
 		return E_FAIL;
 	}
 #else
@@ -271,14 +272,18 @@ int checkAndCopyFile(std::string path, const char* filename, std::string sourceP
 	str.append(filename);
 
 #ifdef _WIN32
-	if(!PathFileExists(str.c_str())){
+	wchar_t strW[1024], fromW[1024];
+	mbstowcs(strW, str.c_str(), sizeof(strW));
+
+	if(!PathFileExists(strW)){
 		std::string strFrom(sourcePath);
 		strFrom.append(PATH_SEPARATOR);
 		strFrom.append(filename);
-		if(!PathFileExists(strFrom.c_str())){
+		mbstowcs(fromW, strFrom.c_str(), sizeof(strW));
+		if(!PathFileExists(fromW)){
 			return E_FAIL;
 		}
-		CopyFile(strFrom.c_str(),str.c_str(),true);
+		CopyFile(fromW, strW, true);
 	}
 #else
 	int res;

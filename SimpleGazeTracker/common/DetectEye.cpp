@@ -149,8 +149,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	int indexPupilPurkinjeCandidate;
 	float PurkinjeCandidateCenterX, PurkinjeCandidateCenterY;
 
-	//If g_isShowingCameraImage is true, copy g_frameBuffer to g_pCameraTextureBuffer
-	if(g_isShowingCameraImage){
+	//If g_ShowingCameraImage is true, copy g_frameBuffer to g_pCameraTextureBuffer
+	if(g_ShowingCameraImage){
 		for(int idx=0; idx<g_CameraHeight*g_CameraWidth; idx++){ //convert 8bit to 24bit color.
 			g_pCameraTextureBuffer[idx] = g_frameBuffer[idx]<<16 | g_frameBuffer[idx]<<8 | g_frameBuffer[idx];
 		}
@@ -174,8 +174,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	}
 	cv::findContours(tmp, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(g_ROI.x,g_ROI.y));
 
-	//If g_isShowingCameraImage is true, paint dark areas.
-	if(g_isShowingCameraImage){
+	//If g_ShowingCameraImage is true, paint dark areas.
+	if(g_ShowingCameraImage){
 		for (int iy=0; iy<g_ROI.height; iy++){
 			unsigned char* p = tmp.ptr<unsigned char>(iy);
 			for (int ix=0; ix<g_ROI.width; ix++)
@@ -249,8 +249,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		}
 		
 		//This may be a pupil
-		//If g_isShowingCameraImage is true, draw ellipse with thick line and draw cross.
-		if(g_isShowingCameraImage){
+		//If g_ShowingCameraImage is true, draw ellipse with thick line and draw cross.
+		if(g_ShowingCameraImage){
 			cv::ellipse(g_DstImg,r,CV_RGB(0,255,0));
 			cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-20),cv::Point2f(r.center.x,r.center.y+20),CV_RGB(0,255,0));
 			cv::line(g_DstImg,cv::Point2f(r.center.x-20,r.center.y),cv::Point2f(r.center.x+20,r.center.y),CV_RGB(0,255,0));
@@ -264,12 +264,12 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 
 	if(numCandidates>=MAX_FIRST_CANDIDATES){
 		//Too many candidates are found.
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"MULTIPLE_PUPIL_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PUPIL_CANDIDATES;
 	}else if(numCandidates==0){
 		//No candidate is found.
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PUPIL_CANDIDATE;
 	}
@@ -323,7 +323,7 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 			PurkinjeCandidateCenterY = cogy;
 			numPurkinjeCandidates++;
 
-			if(g_isShowingCameraImage){
+			if(g_ShowingCameraImage){
 				cv::rectangle(g_DstImg,cv::Rect(x,y,w,h),CV_RGB(255,255,255));
 				cv::line(g_DstImg,cv::Point2f(cogx,cogy-20),cv::Point2f(cogx,cogy+20),CV_RGB(255,192,0));
 				cv::line(g_DstImg,cv::Point2f(cogx-20,cogy),cv::Point2f(cogx+20,cogy),CV_RGB(255,192,0));
@@ -334,13 +334,13 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 
 	if(numPurkinjeCandidates==0)
 	{
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_PURKINJE_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PURKINJE_CANDIDATE;
 	}
 	else if(numPurkinjeCandidates>1)
 	{
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"MULTIPLE_PURKINJE_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PURKINJE_CANDIDATES;
 	}
@@ -351,20 +351,20 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		 
 		if( ((*itFine).x-PurkinjeCandidateCenterX)*((*itFine).x-PurkinjeCandidateCenterX) + ((*itFine).y-PurkinjeCandidateCenterY)*((*itFine).y-PurkinjeCandidateCenterY) >PurkinjeExclude*PurkinjeExclude){
 			candidatePointsFine.push_back(*itFine);
-			if(g_isShowingCameraImage) cv::circle(g_DstImg,*itFine,1,CV_RGB(255,255,255));
+			if(g_ShowingCameraImage) cv::circle(g_DstImg,*itFine,1,CV_RGB(255,255,255));
 		}
 	}
 
 	if(candidatePointsFine.size()<10)
 	{
 		//Re-fitted ellipse is too small
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_FINE_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_FINE_PUPIL_CANDIDATE;
 	}
 	
 	candidateRectFine = cv::fitEllipse(cv::Mat(candidatePointsFine));
-	if(g_isShowingCameraImage){
+	if(g_ShowingCameraImage){
 		cv::ellipse(g_DstImg,candidateRectFine,CV_RGB(0,255,192),2);
 		cv::line(g_DstImg,cv::Point2f(candidateRectFine.center.x,candidateRectFine.center.y-20),cv::Point2f(candidateRectFine.center.x,candidateRectFine.center.y+20),CV_RGB(0,255,192));
 		cv::line(g_DstImg,cv::Point2f(candidateRectFine.center.x-20,candidateRectFine.center.y),cv::Point2f(candidateRectFine.center.x+20,candidateRectFine.center.y),CV_RGB(0,255,192));
@@ -430,8 +430,8 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 	int numPurkinjeCandidates = 0;
 	int numFinalPupilPurkinje = 0;
 
-	//If g_isShowingCameraImage is true, copy g_frameBuffer to g_pCameraTextureBuffer
-	if(g_isShowingCameraImage){
+	//If g_ShowingCameraImage is true, copy g_frameBuffer to g_pCameraTextureBuffer
+	if(g_ShowingCameraImage){
 		for(int idx=0; idx<g_CameraHeight*g_CameraWidth; idx++){ //convert 8bit to 24bit color.
 			g_pCameraTextureBuffer[idx] = g_frameBuffer[idx]<<16 | g_frameBuffer[idx]<<8 | g_frameBuffer[idx];
 		}
@@ -455,8 +455,8 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 	}
 	cv::findContours(tmp, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(g_ROI.x, g_ROI.y));
 
-	//If g_isShowingCameraImage is true, paint dark areas.
-	if(g_isShowingCameraImage){
+	//If g_ShowingCameraImage is true, paint dark areas.
+	if(g_ShowingCameraImage){
 		for (int iy=0; iy<g_ROI.height; iy++){
 			unsigned char* p = tmp.ptr<unsigned char>(iy);
 			for (int ix=0; ix<g_ROI.width; ix++)
@@ -530,8 +530,8 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 		}
 
 		//This may be a pupil
-		//If g_isShowingCameraImage is true, draw ellipse with thick line and draw cross.
-		if(g_isShowingCameraImage){
+		//If g_ShowingCameraImage is true, draw ellipse with thick line and draw cross.
+		if(g_ShowingCameraImage){
 			cv::ellipse(g_DstImg,r,CV_RGB(0,255,0));
 			cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-20),cv::Point2f(r.center.x,r.center.y+20),CV_RGB(0,255,0));
 			cv::line(g_DstImg,cv::Point2f(r.center.x-20,r.center.y),cv::Point2f(r.center.x+20,r.center.y),CV_RGB(0,255,0));
@@ -545,12 +545,12 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 
 	if(numCandidates>=MAX_FIRST_CANDIDATES){
 		//Too many candidates are found.
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"MULTIPLE_PUPIL_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PUPIL_CANDIDATES;
 	}else if(numCandidates==0){
 		//No candidate is found.
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PUPIL_CANDIDATE;
 	}
@@ -609,7 +609,7 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 		}
 		numPurkinjeCandidates++;
 		
-		if(g_isShowingCameraImage){
+		if(g_ShowingCameraImage){
 			cv::rectangle(g_DstImg,cv::Rect(x,y,w,h),CV_RGB(255,255,255));
 			cv::line(g_DstImg,cv::Point2f(cogx,cogy-20),cv::Point2f(cogx,cogy+20),CV_RGB(255,192,0));
 			cv::line(g_DstImg,cv::Point2f(cogx-20,cogy),cv::Point2f(cogx+20,cogy),CV_RGB(255,192,0));
@@ -623,7 +623,7 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 				 
 				if( ((*itFine).x-cogx)*((*itFine).x-cogx) + ((*itFine).y-cogy)*((*itFine).y-cogy) >PurkinjeExclude*PurkinjeExclude){
 					candidatePointsFine[numFinalPupilPurkinje].push_back(*itFine);
-					if(g_isShowingCameraImage) cv::circle(g_DstImg,*itFine,1,CV_RGB(255,255,255));
+					if(g_ShowingCameraImage) cv::circle(g_DstImg,*itFine,1,CV_RGB(255,255,255));
 				}
 			}
 
@@ -634,7 +634,7 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 			}
 
 			candidateRectFine[numFinalPupilPurkinje] = cv::fitEllipse(cv::Mat(candidatePointsFine[numFinalPupilPurkinje]));
-			if(g_isShowingCameraImage){
+			if(g_ShowingCameraImage){
 				cv::ellipse(g_DstImg,candidateRectFine[numFinalPupilPurkinje],CV_RGB(0,255,192),2);
 				cv::line(g_DstImg,cv::Point2f(candidateRectFine[numFinalPupilPurkinje].center.x,candidateRectFine[numFinalPupilPurkinje].center.y-20),cv::Point2f(candidateRectFine[numFinalPupilPurkinje].center.x,candidateRectFine[numFinalPupilPurkinje].center.y+20),CV_RGB(0,255,192));
 				cv::line(g_DstImg,cv::Point2f(candidateRectFine[numFinalPupilPurkinje].center.x-20,candidateRectFine[numFinalPupilPurkinje].center.y),cv::Point2f(candidateRectFine[numFinalPupilPurkinje].center.x+20,candidateRectFine[numFinalPupilPurkinje].center.y),CV_RGB(0,255,192));
@@ -660,19 +660,19 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 
 	if(numPurkinjeCandidates==0)
 	{
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_PURKINJE_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_PURKINJE_CANDIDATE;
 	}
 	else if(numPurkinjeCandidates>2)
 	{
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"MULTIPLE_PURKINJE_CANDIDATES",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_MULTIPLE_PURKINJE_CANDIDATES;
 	}
 	else if(numFinalPupilPurkinje==0)
 	{
-		if(g_isShowingCameraImage && g_isShowDetectionErrorMsg==1)
+		if(g_ShowingCameraImage && g_ShowDetectionErrorMsg==1)
 			cv::putText(g_DstImg,"NO_FINE_PUPIL_CANDIDATE",cv::Point2d(0,16), cv::FONT_HERSHEY_PLAIN, 1.0, CV_RGB(255,255,255));
 		return E_NO_FINE_PUPIL_CANDIDATE;
 	}

@@ -80,7 +80,7 @@ int g_PurkinjeThreshold = 240;  /*!<  */
 int g_PurkinjeSearchArea = 60;  /*!<  */
 int g_PurkinjeExcludeArea = 20; /*!<  */
 
-bool g_isShowingCameraImage = true; /*!< If true, camera image is rendered. This must be false while recording.*/
+bool g_ShowingCameraImage = true; /*!< If true, camera image is rendered. This must be false while recording.*/
 
 
 std::string g_ParamPath; /*!< Holds path to the parameter file directory*/
@@ -111,8 +111,8 @@ double g_CalMaxError[2]; /*!< Holds maximum calibration error. Only one element 
 double g_CalMeanError[2]; /*!< Holds mean calibration error. Only one element is used when recording mode is monocular.*/
 
 int g_RecordingMode = RECORDING_BINOCULAR; /*!< Holds recording mode. @note This value is modified only when application is being initialized (i.e. in initParameters()).*/
-int g_isShowDetectionErrorMsg = 0; /*!< Holds DetectionError message visibility.*/
-int g_isOutputPupilSize = 1; /*!< Holds whether pupil size is output to datafile.*/
+int g_ShowDetectionErrorMsg = 0; /*!< Holds DetectionError message visibility.*/
+int g_OutputPupilSize = 1; /*!< Holds whether pupil size is output to datafile.*/
 int g_isOutputCameraSpecificData = NO_CAMERASPECIFIC_DATA;/*!< Holds whether camera-specific data is output to datafile.*/
 
 int g_DataCounter = 0;
@@ -182,7 +182,7 @@ Following parameters are read from a configuration file (specified by g_ConfigFi
 -CAMERA_HEIGHT  (g_CameraHeight)
 -PREVIEW_WIDTH  (g_PreviewWidth)
 -PREVIEW_HEIGHT  (g_PreviewHeight)
--SHOW_DETECTIONERROR_MSG  (g_isShowDetectionErrorMsg)
+-SHOW_DETECTIONERROR_MSG  (g_ShowDetectionErrorMsg)
 -PORT_RECV  (g_PortRecv)
 -PORT_SEND  (g_PortSend)
 -DELAY_CORRECTION  (g_DelayCorrection)
@@ -296,11 +296,11 @@ int initParameters( void )
 			else if (strcmp(buff, "PREVIEW_HEIGHT") == 0) g_PreviewHeight = param;
 			else if (strcmp(buff, "ROI_WIDTH") == 0) g_ROIWidth = param;
 			else if (strcmp(buff, "ROI_HEIGHT") == 0) g_ROIHeight = param;
-			else if (strcmp(buff, "SHOW_DETECTIONERROR_MSG") == 0) g_isShowDetectionErrorMsg = param;
+			else if (strcmp(buff, "SHOW_DETECTIONERROR_MSG") == 0) g_ShowDetectionErrorMsg = param;
 			else if (strcmp(buff, "PORT_SEND") == 0) g_PortSend = param;
 			else if (strcmp(buff, "PORT_RECV") == 0) g_PortRecv = param;
 			else if (strcmp(buff, "DELAY_CORRECTION") == 0) g_DelayCorrection = param;
-			else if (strcmp(buff, "OUTPUT_PUPILSIZE") == 0) g_isOutputPupilSize = param;
+			else if (strcmp(buff, "OUTPUT_PUPILSIZE") == 0) g_OutputPupilSize = param;
 			else if (strcmp(buff, "USBIO_BOARD") == 0) g_USBIOBoard = p;
 			else if (strcmp(buff, "USBIO_AD") == 0) g_USBIOParamAD = p;
 			else if (strcmp(buff, "USBIO_DI") == 0) g_USBIOParamDI = p;
@@ -364,11 +364,11 @@ Following parameters are wrote to the configuration file.
 -PREVIEW_HEIGHT  (g_PreviewHeight)
 -ROI_WIDTH  (g_ROIWidth)
 -ROI_HEIGHT  (g_ROIHeight)
--SHOW_DETECTIONERROR_MSG  (g_isShowDetectionErrorMsg)
+-SHOW_DETECTIONERROR_MSG  (g_ShowDetectionErrorMsg)
 -PORT_RECV  (g_PortRecv)
 -PORT_SEND  (g_PortSend)
 -DELAY_CORRECTION  (g_DelayCorrection)
--OUTPUT_PUPILSIZE  (g_isOutputPupilSize)
+-OUTPUT_PUPILSIZE  (g_OutputPupilSize)
 -USBIO_BOARD (g_USBIOBoard)
 -USBIO_AD (g_USBIOParamAD)
 -USBIO_DI (g_USBIOParamDI)
@@ -442,11 +442,11 @@ int saveParameters( void )
 	{
 		fs << "ROI_HEIGHT=" <<  g_ROIHeight << std::endl;
 	}
-	fs << "SHOW_DETECTIONERROR_MSG=" << g_isShowDetectionErrorMsg << std::endl;
+	fs << "SHOW_DETECTIONERROR_MSG=" << g_ShowDetectionErrorMsg << std::endl;
 	fs << "PORT_SEND=" <<  g_PortSend << std::endl;
 	fs << "PORT_RECV=" <<  g_PortRecv << std::endl;
 	fs << "DELAY_CORRECTION=" << g_DelayCorrection << std::endl;
-	fs << "OUTPUT_PUPILSIZE=" << g_isOutputPupilSize << std::endl;
+	fs << "OUTPUT_PUPILSIZE=" << g_OutputPupilSize << std::endl;
 	fs << "USBIO_BOARD=" << g_USBIOBoard << std::endl;
 	fs << "USBIO_AD=" << g_USBIOParamAD << std::endl;
 	fs << "USBIO_DI=" << g_USBIOParamDI << std::endl;
@@ -693,12 +693,12 @@ void flushGazeData(void)
 				else
 					fprintf(g_DataFP,"FAIL,FAIL");
 				
-				if(g_isOutputPupilSize)
+				if(g_OutputPupilSize)
 					fprintf(g_DataFP,",FAIL");
 
 			}else{
 				getGazePositionMono(g_EyeData[i], xy);
-				if(g_isOutputPupilSize)
+				if(g_OutputPupilSize)
 					fprintf(g_DataFP,"%.1f,%.1f,%.1f" ,xy[MONO_X],xy[MONO_Y],g_PupilSizeData[i][MONO_P]);
 				else
 					fprintf(g_DataFP,"%.1f,%.1f" ,xy[MONO_X],xy[MONO_Y]);
@@ -757,7 +757,7 @@ void flushGazeData(void)
 			}
 			
 			//pupil
-			if(g_isOutputPupilSize){
+			if(g_OutputPupilSize){
 				//left
 				if(g_EyeData[i][BIN_LX]<E_PUPIL_PURKINJE_DETECTION_FAIL)
 					fprintf(g_DataFP,",FAIL");
@@ -825,7 +825,7 @@ void getGazeMono( double detectionResults[8], double TimeImageAcquired )
 			g_CalPointData[g_DataCounter][MONO_Y] = g_CurrentCalPoint[MONO_Y];
 			g_EyeData[g_DataCounter][MONO_X] = detectionResults[MONO_PUPIL_X]-detectionResults[MONO_PURKINJE_X];
 			g_EyeData[g_DataCounter][MONO_Y] = detectionResults[MONO_PUPIL_Y]-detectionResults[MONO_PURKINJE_Y];
-			if(g_isOutputPupilSize)
+			if(g_OutputPupilSize)
 			{
 				g_PupilSizeData[g_DataCounter][MONO_P] = detectionResults[MONO_PUPILSIZE];
 			}
@@ -845,7 +845,7 @@ void getGazeMono( double detectionResults[8], double TimeImageAcquired )
 			g_EyeData[g_DataCounter][MONO_Y] = detectionResults[MONO_PUPIL_X];
 			g_CurrentEyeData[MONO_X] = detectionResults[MONO_PUPIL_X];
 			g_CurrentEyeData[MONO_Y] = detectionResults[MONO_PUPIL_X];
-			if(g_isOutputPupilSize)
+			if(g_OutputPupilSize)
 			{
 				g_PupilSizeData[g_DataCounter][MONO_P] = detectionResults[MONO_PUPILSIZE];
 				g_CurrentPupilSize[MONO_P] = detectionResults[MONO_PUPILSIZE];
@@ -856,7 +856,7 @@ void getGazeMono( double detectionResults[8], double TimeImageAcquired )
 			g_EyeData[g_DataCounter][MONO_X] = detectionResults[MONO_PUPIL_X]-detectionResults[MONO_PURKINJE_X];
 			g_EyeData[g_DataCounter][MONO_Y] = detectionResults[MONO_PUPIL_Y]-detectionResults[MONO_PURKINJE_Y];
 			getGazePositionMono(g_EyeData[g_DataCounter], g_CurrentEyeData);
-			if(g_isOutputPupilSize)
+			if(g_OutputPupilSize)
 			{
 				g_PupilSizeData[g_DataCounter][MONO_P] = detectionResults[MONO_PUPILSIZE];
 				g_CurrentPupilSize[MONO_P] = detectionResults[MONO_PUPILSIZE];
@@ -917,7 +917,7 @@ void getGazeBin( double detectionResults[8], double TimeImageAcquired )
 			g_EyeData[g_DataCounter][BIN_LY] = detectionResults[BIN_PUPIL_LY]-detectionResults[BIN_PURKINJE_LY];
 			g_EyeData[g_DataCounter][BIN_RX] = detectionResults[BIN_PUPIL_RX]-detectionResults[BIN_PURKINJE_RX];
 			g_EyeData[g_DataCounter][BIN_RY] = detectionResults[BIN_PUPIL_RY]-detectionResults[BIN_PURKINJE_RY];
-			if(g_isOutputPupilSize)
+			if(g_OutputPupilSize)
 			{
 				g_PupilSizeData[g_DataCounter][BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
 				g_PupilSizeData[g_DataCounter][BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
@@ -938,7 +938,7 @@ void getGazeBin( double detectionResults[8], double TimeImageAcquired )
 		g_EyeData[g_DataCounter][BIN_RY] = detectionResults[BIN_PUPIL_RY]-detectionResults[BIN_PURKINJE_RY];
 		getGazePositionBin(g_EyeData[g_DataCounter], g_CurrentEyeData);
 		//pupil
-		if(g_isOutputPupilSize)
+		if(g_OutputPupilSize)
 		{
 			g_PupilSizeData[g_DataCounter][BIN_LP] = detectionResults[BIN_PUPILSIZE_L];
 			g_PupilSizeData[g_DataCounter][BIN_RP] = detectionResults[BIN_PUPILSIZE_R];
@@ -1156,7 +1156,7 @@ main: Entry point of the application
 @date 2012/07/30
 - EOG-SimpleGazeTracker concurrent recording mode is appended.
 @date 2012/12/13
-- Change conditions for rendering screen (!g_isRecording -> g_isShowingCameraImage)
+- Change conditions for rendering screen (!g_isRecording -> g_ShowingCameraImage)
 @date 2013/03/26
 - Add log messages.
 @date 2013/05/27
@@ -1588,12 +1588,12 @@ int main(int argc, char** argv)
 
 				case SDLK_l:
 					if (g_isRecording){
-						if (!g_isShowingCameraImage){
-							g_isShowingCameraImage = true;
+						if (!g_ShowingCameraImage){
+							g_ShowingCameraImage = true;
 							g_LogFS << "WANING: Enable Camera Preview during recording.";
 						}
 						else{
-							g_isShowingCameraImage = false;
+							g_ShowingCameraImage = false;
 							//draw message on calimage
 							renderRecordingMessage(g_recordingMessage, true);
 							g_LogFS << "WANING: Stop Camera Preview during recording.";
@@ -1779,7 +1779,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if (g_isShowingCameraImage && !g_isInhibitRendering)
+		if (g_ShowingCameraImage && !g_isInhibitRendering)
 		{ // if it is not under recording, flip screen in a regular way.
 			render();
 		}
@@ -2124,7 +2124,7 @@ void saveCalValResultsDetail(void)
 				fprintf(g_DataFP,"#CALDATA,%.1f,%.1f,%.2f,%.2f,",g_CalPointData[i][0],g_CalPointData[i][1],g_EyeData[i][MONO_X],g_EyeData[i][MONO_Y]);
 				getGazePositionMono(g_EyeData[i], pos);
 				fprintf(g_DataFP,"%.2f,%.2f",pos[0],pos[1]);
-				if(g_isOutputPupilSize){
+				if(g_OutputPupilSize){
 					fprintf(g_DataFP,",%.2f\n",g_PupilSizeData[i][MONO_P]);
 				}else				{
 					fprintf(g_DataFP,"\n");
@@ -2133,7 +2133,7 @@ void saveCalValResultsDetail(void)
 				fprintf(g_DataFP,"#CALDATA,%.1f,%.1f,%.2f,%.2f,%.2f,%.2f,",g_CalPointData[i][0],g_CalPointData[i][1],g_EyeData[i][BIN_LX],g_EyeData[i][BIN_LY],g_EyeData[i][BIN_RX],g_EyeData[i][BIN_RY]);
 				getGazePositionBin(g_EyeData[i], pos);
 				fprintf(g_DataFP,"%.2f,%.2f,%.2f,%.2f",pos[0],pos[1],pos[2],pos[3]);
-				if(g_isOutputPupilSize){
+				if(g_OutputPupilSize){
 					fprintf(g_DataFP,",%.2f,%f2\n",g_PupilSizeData[i][BIN_LP],g_PupilSizeData[i][BIN_RP]);
 				}else{
 					fprintf(g_DataFP,"\n");
@@ -2242,7 +2242,7 @@ void startRecording(const char* message)
 		renderRecordingMessage(g_recordingMessage, true);
 
 		//don't render camera image
-		g_isShowingCameraImage = false;
+		g_ShowingCameraImage = false;
 
 		g_LogFS << "Camera preview during recording is disabled." << std::endl;
 
@@ -2293,7 +2293,7 @@ void stopRecording(const char* message)
 		}
 
 		g_isRecording = false;
-		g_isShowingCameraImage = true;
+		g_ShowingCameraImage = true;
 	}
 	else
 	{
@@ -2344,12 +2344,12 @@ void openDataFile(char* filename, int overwrite)
 
 	fprintf(g_DataFP,"#DATAFORMAT,T,");
 	if(g_RecordingMode==RECORDING_MONOCULAR){
-		if(g_isOutputPupilSize)
+		if(g_OutputPupilSize)
 			fprintf(g_DataFP,"X,Y,P");
 		else
 			fprintf(g_DataFP,"X,Y");
 	}else{
-		if(g_isOutputPupilSize)
+		if(g_OutputPupilSize)
 			fprintf(g_DataFP,"LX,LY,RX,RY,LP,RP");
 		else
 			fprintf(g_DataFP,"LX,LY,RX,RY");
@@ -2794,7 +2794,7 @@ This function is called from sockProcess() when sockProcess() received "startMea
 @param[in] maxlen Size of buffer pointed by p.
 @return No value is returned.
 @date 2012/07/17 Created.
-@date 2012/12/13 g_isShowingCameraImage = true during measurement.
+@date 2012/12/13 g_ShowingCameraImage = true during measurement.
 @date 2013/03/27 clear g_MessageBuffer.
 */
 void startMeasurement(void)
@@ -2805,7 +2805,7 @@ void startMeasurement(void)
 		g_MessageEnd = 0;
 		g_MessageBuffer[0] = '\0';
 		g_isRecording = true;
-		g_isShowingCameraImage = true;
+		g_ShowingCameraImage = true;
 		g_isShowingCalResult = false;
 
 		g_RecStartTime = getCurrentTime();
@@ -2833,7 +2833,7 @@ void stopMeasurement(void)
 		g_LogFS << "StopMeasurement" << std::endl;
 	
 		g_isRecording = false;
-		g_isShowingCameraImage = true;
+		g_ShowingCameraImage = true;
 	}
 	else
 	{

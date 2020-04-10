@@ -13,7 +13,7 @@
 
 #include "GazeTracker.h"
 #include "Spinnaker.h"
-//#include "SpinGenApi/SpinnakerGenApi.h"
+#include "SpinGenApi/SpinnakerGenApi.h"
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
@@ -28,6 +28,12 @@ Spinnaker::CameraPtr g_pSpinnakerCam = nullptr;
 
 #define CUSTOMMENU_EXPOSURE		(MENU_GENERAL_NUM+0)
 #define CUSTOMMENU_NUM			1
+int g_CustomMenuNum = CUSTOMMENU_NUM;
+
+
+std::string g_CustomMenuString[] = {
+	"Exposure"
+};
 
 int g_CameraN = 0;
 int g_OffsetX = 0;
@@ -35,12 +41,6 @@ int g_OffsetY = 0;
 int g_Binning = 1;
 float g_FrameRate = 200;
 float g_Exposure = 1000;
-
-SDL_Thread *g_pThread;
-bool g_runThread;
-
-int g_SleepDuration = 0;
-bool g_isThreadMode = true;
 
 bool g_UseBlurFilter = true;
 int g_BlurFilterSize = 3;
@@ -63,40 +63,6 @@ getEditionString: Get edition string.
 const char* getEditionString(void)
 {
 	return EDITION;
-}
-
-/*!
-captureCameraThread: Capture camera image using thread.
-
-@date 2013/03/29 created.
-*/
-int captureCameraThread(void *unused)
-{
-	Spinnaker::ImagePtr pResultImage;
-
-	while(g_runThread)
-	{
-		pResultImage = g_pSpinnakerCam->GetNextImage();
-		if(!pResultImage->IsIncomplete())
-		{
-			memcpy(g_frameBuffer, pResultImage->GetData(), g_CameraWidth*g_CameraHeight * sizeof(unsigned char));
-			if(g_UseBlurFilter){
-				//cv::GaussianBlur takes approx 1.9ms while cv::blur takes only approx 0.9ms in i7-2600k machine.
-				//cv::GaussianBlur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize),0,0);
-				cv::blur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize));
-			}
-
-			g_NewFrameAvailable = true;
-			
-            if(g_SleepDuration>0.0)
-            {
-                sleepMilliseconds(g_SleepDuration);
-            }
-		}
-		pResultImage->Release();
-	}
-
-    return 0;
 }
 
 
@@ -145,21 +111,6 @@ int initCameraParameters(char* buff, char* parambuff)
 	else if (strcmp(buff, "EXPOSURE") == 0)
 	{
 		g_Exposure = (float)param;
-	}
-	else if (strcmp(buff, "SLEEP_DURATION") == 0)
-	{
-		g_SleepDuration = (int)param;
-	}
-	else if (strcmp(buff, "USE_THREAD") == 0)
-	{
-		if ((int)param != 0)
-		{
-			g_isThreadMode = true;
-		}
-		else
-		{
-			g_isThreadMode = false;
-		}
 	}
 	else if (strcmp(buff, "BLUR_FILTER_SIZE") == 0)
 	{
@@ -250,12 +201,18 @@ int initCamera( void )
 		// init first camera
 		g_pSpinnakerCam->Init();
 
+		// Acquisition may be stopped if application was failed in the previous run.
+		// So  acquisition must be stopped.
+		g_pSpinnakerCam->AcquisitionStop();
+
 		// get sensor resolution
 		// int widthMax = g_pSpinnakerCam->WidthMax.GetValue();
 		// int heightMax = g_pSpinnakerCam->HeightMax.GetValue();
 		
 		// continuous acquisition mode
 		g_pSpinnakerCam->AcquisitionMode.SetValue(Spinnaker::AcquisitionMode_Continuous);
+
+		g_pSpinnakerCam->TLStream.StreamBufferHandlingMode.SetValue(Spinnaker::StreamBufferHandlingMode_NewestOnly);
 
 		// manual frame rate
 		g_pSpinnakerCam->AcquisitionFrameRateEnable.SetValue(true);
@@ -269,6 +226,7 @@ int initCamera( void )
 		g_pSpinnakerCam->BinningSelector.SetValue(Spinnaker::BinningSelector_All);
 		//g_pSpinnakerCam->BinningHorizontalMode.SetValue(Spinnaker::BinningHorizontalMode_Average);
 		//g_pSpinnakerCam->BinningVerticalMode.SetValue(Spinnaker::BinningVerticalMode_Average);
+
 		g_pSpinnakerCam->BinningHorizontal.SetValue(g_Binning);
 		g_pSpinnakerCam->BinningVertical.SetValue(g_Binning);
 
@@ -284,7 +242,6 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-
 	try{
 		// start recording
 		g_pSpinnakerCam->BeginAcquisition();
@@ -296,30 +253,7 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	//start thread if necessary
-	if (g_isThreadMode)
-	{
-		g_runThread = true;
-		g_pThread = SDL_CreateThread(captureCameraThread, "CaptureThread", NULL);
-		if (g_pThread == NULL)
-		{
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start a new thread for asynchronous capturing.");
-			g_LogFS << "ERROR: failed to start thread" << std::endl;
-			g_runThread = false;
-			return E_FAIL;
-		}
-		else
-		{
-			g_LogFS << "Start CameraThread" << std::endl;
-		}
-	}
-	else
-	{
-		g_LogFS << "Start without threading" << std::endl;
-	}
-
-	//prepare custom menu
-	g_CustomMenuNum = CUSTOMMENU_NUM;
+	g_LogFS << "Start capturing." << std::endl;
 
 	return S_OK;
 }
@@ -337,33 +271,20 @@ getCameraImage: Get new camera image.
 */
 int getCameraImage( void )
 {
+	Spinnaker::ImagePtr pResultImage = g_pSpinnakerCam->GetNextImage();
 
-
-    if(g_isThreadMode)
-    {
-        if(g_NewFrameAvailable)
-        {
-            g_NewFrameAvailable = false;
-            return S_OK;
-        }
-    }
-    else // non-threading mode
-    {
-		Spinnaker::ImagePtr pResultImage = g_pSpinnakerCam->GetNextImage();
-
-		if(!pResultImage->IsIncomplete())
-		{
-			memcpy(g_frameBuffer, pResultImage->GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-			if(g_UseBlurFilter){
-				//cv::GaussianBlur takes approx 1.9ms while cv::blur takes only approx 0.9ms in i7-2600k machine.
-				//cv::GaussianBlur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize),0,0);
-				cv::blur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize));
-			}
-			pResultImage->Release();
-			return S_OK;
+	if(!pResultImage->IsIncomplete())
+	{
+		memcpy(g_frameBuffer, pResultImage->GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
+		if(g_UseBlurFilter){
+			//cv::GaussianBlur takes approx 1.9ms while cv::blur takes only approx 0.9ms in i7-2600k machine.
+			//cv::GaussianBlur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize),0,0);
+			cv::blur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize));
 		}
 		pResultImage->Release();
+		return S_OK;
 	}
+	pResultImage->Release();
 
 	return E_FAIL;
 }
@@ -381,13 +302,7 @@ cleanupCamera: release camera resources.
 void cleanupCamera()
 {
 
-	if(g_isThreadMode && g_runThread){
-		g_runThread = false;
-		SDL_WaitThread(g_pThread, NULL);
-		g_LogFS << "Camera capture thread is stopped." << std::endl;
-	}
-
-	try{
+	try {
 		if (g_pSpinnakerCam != nullptr) {
 			g_pSpinnakerCam->EndAcquisition();
 			g_pSpinnakerCam->DeInit();
@@ -402,10 +317,6 @@ void cleanupCamera()
 		return;
 	}
 
-	// for debugging
-	//for(int i=0; i<4999; i++){
-	//	g_LogFS << g_timestamp[i+1].microSeconds - g_timestamp[i].microSeconds << std::endl;
-	//}
 }
 
 /*!
@@ -430,8 +341,6 @@ void saveCameraParameters( std::fstream* fs )
 	*fs << "BINNING_SIZE=" << g_Binning << std::endl;
 	*fs << "FRAME_RATE=" << g_FrameRate << std::endl;
 	*fs << "EXPOSURE=" << g_Exposure << std::endl;
-	*fs << "USE_THREAD=" << g_isThreadMode << std::endl;
-	*fs << "SLEEP_DURATION=" << g_SleepDuration << std::endl;
 	*fs << "BLUR_FILTER_SIZE=" << g_BlurFilterSize << std::endl;
 
 	return;
@@ -451,51 +360,52 @@ This function is called when left or right cursor key is pressed.
 @retval E_FAIL 
 @note This function is necessary when you customize this file for your camera.
 */
-int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
+int customCameraMenu(int code, int currentMenuPosition)
 {
-	switch (SDLevent->type) {
-	case SDL_KEYDOWN:
-		switch (SDLevent->key.keysym.sym)
+	switch (code)
+	{
+	case MENU_LEFT_KEY:
+		switch (currentMenuPosition)
 		{
-		case SDLK_LEFT:
-			switch (currentMenuPosition)
-			{
-			case CUSTOMMENU_EXPOSURE:
-				g_Exposure -= 100;
-				if (g_Exposure < 0)
-					g_Exposure = 100;
-				g_pSpinnakerCam->ExposureTime.SetValue(g_Exposure);
-				break;
-			default:
-				break;
-			}
+		case CUSTOMMENU_EXPOSURE:
+			g_Exposure -= 100;
+			if (g_Exposure < 0)
+				g_Exposure = 100;
+			g_pSpinnakerCam->ExposureTime.SetValue(g_Exposure);
 			break;
-
-		case SDLK_RIGHT:
-			switch (currentMenuPosition)
-			{
-			case CUSTOMMENU_EXPOSURE:
-				g_Exposure += 100;
-				if (g_Exposure >= 1000000 / g_FrameRate)
-					g_Exposure = (1000000 / g_FrameRate) - 100;
-				g_pSpinnakerCam->ExposureTime.SetValue(g_Exposure);
-				break;
-			default:
-				break;
-			}
-			break;
-
 		default:
 			break;
 		}
+		break;
+
+	case MENU_RIGHT_KEY:
+		switch (currentMenuPosition)
+		{
+		case CUSTOMMENU_EXPOSURE:
+			g_Exposure += 100;
+			if (g_Exposure >= 1000000 / g_FrameRate)
+				g_Exposure = (1000000 / g_FrameRate) - 100;
+			g_pSpinnakerCam->ExposureTime.SetValue(g_Exposure);
+			break;
+		default:
+			break;
+		}
+		break;
+
 	default:
 		break;
 	}
 
 	return S_OK;
-
 }
 
+void updateCustomCameraParameterFromMenu(int id, std::string val)
+{
+	char *p;
+	if (id == CUSTOMMENU_EXPOSURE) {
+		g_Exposure = std::strtof(val.c_str(), &p);
+	}
+}
 
 /*!
 updateCustomMenuText: update menu text of custom camera menu items.
@@ -507,13 +417,16 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
 */
-void updateCustomMenuText( void )
+std::string updateCustomMenuText( int id )
 {
-	std::stringstream ss;
-	ss << "Exposure(" << g_Exposure << ")";
-	g_MenuString[CUSTOMMENU_EXPOSURE] = ss.str();
+	char buff[256];
+	snprintf(buff, sizeof(buff), "%.0f", g_Exposure);
 
-	return;
+	if (id == CUSTOMMENU_EXPOSURE) {
+		return std::string(buff);
+	}
+
+	return std::string("--");
 }
 
 /*!

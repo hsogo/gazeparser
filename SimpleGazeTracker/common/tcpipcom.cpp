@@ -16,18 +16,17 @@
 #endif
 
 #include	"GazeTrackerCommon.h"
-#include	<SDL2/SDL_net.h>
-#include	<SDL2/SDL.h>
 #include	<stdio.h>
 #include	<fstream>
 
 #define RECV_BUFFER_SIZE	4096
 
-TCPsocket g_SockRecv; /*!< Socket for receiving */
-TCPsocket g_SockSend; /*!< Socket for sending */
-TCPsocket g_SockServ; /*!< @deprecated Socket for service */
+//TCPsocket g_SockRecv; /*!< Socket for receiving */
+//TCPsocket g_SockSend; /*!< Socket for sending */
+//TCPsocket g_SockServ; /*!< @deprecated Socket for service */
 
-SDLNet_SocketSet g_SocketSet;
+//SDLNet_SocketSet g_SocketSet;
+
 
 unsigned char* g_SendImageBuffer;  /*!< Buffer for sending camera image. Additional 1 byte is necessary for the END code.*/
 int g_Received; /*!< */
@@ -41,12 +40,13 @@ sockInit: Initialize socket.
 */
 int sockInit(void)
 {
+	/*
 	SDLNet_Init();
 	g_SocketSet = SDLNet_AllocSocketSet(1);
 	if(!g_SocketSet){
 		g_LogFS << "ERROR: failed to allocate socket set" << std::endl;
 		return E_FAIL;
-	}
+	}*/
 
     return S_OK;
 }
@@ -62,7 +62,7 @@ sockClose: Close sockets.
 int sockClose(void)
 {
 	g_LogFS << "Closing sockets... ";
-
+	/*
 	if(g_SockRecv){
 		SDLNet_TCP_Close(g_SockRecv);
 		SDLNet_TCP_DelSocket(g_SocketSet, g_SockRecv);
@@ -72,7 +72,7 @@ int sockClose(void)
 	}
 	g_SockRecv = NULL;
 	g_SockSend = NULL;
-
+	*/
 	g_LogFS << "OK." << std::endl;
 	return S_OK;
 }
@@ -90,6 +90,7 @@ sockConnect: Connect socket to the client PC to send data.
 */
 int sockConnect(const char* host)
 {
+	/*
 	IPaddress ip;
 
 	g_LogFS << "Opening sending socket... ";
@@ -104,7 +105,7 @@ int sockConnect(const char* host)
 		g_LogFS << "ERROR: failed to open sending socket" << std::endl;
 		return E_FAIL;
 	}
-	
+	*/
 	g_LogFS << "OK." << std::endl;
 
     return S_OK;
@@ -120,6 +121,7 @@ sockConnectIP: Connect socket to the client PC to send data.
 
 @date 2013/03/25 edit log message.
 */
+/*
 int sockConnectIP(IPaddress* ip)
 {
 	g_LogFS << "Open sending socket...";
@@ -134,7 +136,7 @@ int sockConnectIP(IPaddress* ip)
 	
 	g_LogFS << "OK." << std::endl;
     return S_OK;
-}
+}*/
 
 /*!
 sockAccept: Accept connection request from the client PC.
@@ -147,6 +149,7 @@ sockAccept: Accept connection request from the client PC.
 */
 int sockAccept(void)
 {
+	/*
 	IPaddress ip;
 	
 	g_LogFS << "Opening server socket... " ;
@@ -161,6 +164,7 @@ int sockAccept(void)
 		g_LogFS << std::endl << "ERROR: failed to open server socket" << std::endl;
 		return E_FAIL;
 	}
+	*/
 
 	g_LogFS << "OK." << std::endl;
 	
@@ -212,6 +216,7 @@ This function parses commands sent from the Client PC and call appropriate funct
 */
 int sockProcess( void )
 {
+	/*
 	char buff[RECV_BUFFER_SIZE];
 	SDL_Event sdlEvent;
 
@@ -777,6 +782,7 @@ int sockProcess( void )
 			}
 		}
 	}
+	*/
 
 	return S_OK;
 }

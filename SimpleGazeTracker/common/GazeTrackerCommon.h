@@ -39,9 +39,10 @@
 #define PATH_SEPARATOR "/"
 #endif
 
-#include <SDL2/SDL.h>
 #include <string>
 #include <iostream> 
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
 
 #define PREVIEW_WIDTH  640
 #define PREVIEW_HEIGHT 480
@@ -49,11 +50,6 @@
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
-#define MAXDATA 432000 //120*60min, 393*18min
-#define MAXCALDATA 7200 // 120*60sec, 393*18.3sec
-#define MAXCALPOINT 60
-#define MAXCALSAMPLEPERPOINT (MAXCALDATA/MAXCALPOINT)
-#define MAXMESSAGE 262144
 
 #define PORT_RECV        10000
 #define PORT_SEND        10001
@@ -68,48 +64,9 @@
 #define E_NO_FINE_PUPIL_CANDIDATE       -10005
 #define E_NAN_IN_MOVING_AVERAGE         -10006
 #define E_NO_CALIBRATION_DATA			-11001
+
 #define S_PUPIL_PURKINJE                     0
 #define E_NO_PUPILSIZE                       0
-
-//Recording Mode
-#define RECORDING_MONOCULAR 0
-#define RECORDING_BINOCULAR 1
-
-//for g_Eyedata
-#define MONO_X 0
-#define MONO_Y 1
-#define MONO_1 0
-#define BIN_LX 0
-#define BIN_LY 1
-#define BIN_RX 2
-#define BIN_RY 3
-#define BIN_L 0
-#define BIN_R 1
-#define BIN_X 0
-#define BIN_Y 1
-
-//for g_PupilData
-#define MONO_P 0
-#define BIN_LP 0
-#define BIN_RP 1
-
-//for detectionResults
-#define MONO_PUPIL_X    0
-#define MONO_PUPIL_Y    1
-#define MONO_PURKINJE_X 2
-#define MONO_PURKINJE_Y 3
-#define MONO_PUPILSIZE  4
-#define BIN_PUPIL_LX    0
-#define BIN_PUPIL_LY    1
-#define BIN_PURKINJE_LX 2
-#define BIN_PURKINJE_LY 3
-#define BIN_PUPIL_RX    4
-#define BIN_PUPIL_RY    5
-#define BIN_PURKINJE_RX 6
-#define BIN_PURKINJE_RY 7
-#define BIN_PUPILSIZE_L 8
-#define BIN_PUPILSIZE_R 9
-#define MAX_DETECTION_RESULTS 10
 
 #define MENU_THRESH_PUPIL 0
 #define MENU_THRESH_PURKINJE 1
@@ -123,28 +80,13 @@
 #define MENU_MAX_ITEMS 12
 #define MENU_STRING_MAX 24
 
+#define MENU_LEFT_KEY 0
+#define MENU_RIGHT_KEY 1
+
 #define USE_CAMERASPECIFIC_DATA 1
 #define NO_CAMERASPECIFIC_DATA 0
 #define NO_USBIO -1
 
-#define TYPE_CALIBRATION 0
-#define TYPE_VALIDATION 1
-
-extern int detectPupilPurkinjeMono( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS] );
-extern int detectPupilPurkinjeBin( int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int PointMin, int PointMax, double results[MAX_DETECTION_RESULTS] );
-extern void estimateParametersMono(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
-extern void estimateParametersBin(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2]);
-extern void getGazePositionMono(double* im, double* xy);
-extern void getGazePositionBin(double* im, double* xy);
-extern void drawCalResult(int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALDATA][2], double calArea[4]);
-extern void setCalibrationResults( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], double Goodness[4], double MaxError[2], double MeanError[2] );
-extern void setCalibrationError( int dataCounter, double eyeData[MAXDATA][4], double calPointData[MAXDATA][2], int numCalPoint, double calPointList[MAXCALPOINT][2], double calPointAccuracy[MAXCALPOINT][4], double calPointPrecision[MAXCALPOINT][4] );
-//extern void drawRecordingMessage( void );
-extern void updateMorphTransKernel( void );
-
-extern int sockInit(void);
-extern int sockAccept(void);
-extern int sockProcess(void);
 
 extern unsigned char* g_frameBuffer;
 extern int* g_pCameraTextureBuffer;
@@ -157,64 +99,43 @@ extern int g_PreviewHeight;
 extern int g_ROIWidth;
 extern int g_ROIHeight;
 extern int g_MorphologicalTrans;
+extern int g_DelayCorrection;
 
-extern bool g_isRecording;
-extern bool g_isShowingCameraImage;
-extern int g_isShowDetectionErrorMsg;
-extern int g_isOutputCameraSpecificData;
+extern int g_ShowDetectionErrorMsg;
+extern int g_OutputCameraSpecificData;
+extern int g_OutputPupilSize;
 
 extern int g_PortRecv;
 extern int g_PortSend;
 
-extern double g_ParamX[6],g_ParamY[6]; //Monocular: 3 params, Binocular 6 parameters.
 extern int g_Threshold;
+extern int g_MaxPupilWidth;
+extern int g_MinPupilWidth;
+extern int g_PurkinjeThreshold;
+extern int g_PurkinjeSearchArea;
+extern int g_PurkinjeExcludeArea;
 
 extern int g_RecordingMode;
+extern bool g_ShowCameraImage;
+
+extern cv::Mat g_SrcImg;
+extern cv::Mat g_DstImg;
+extern cv::Mat g_CalImg;
+extern cv::Rect g_ROI;
+extern cv::Mat g_MorphTransKernel;
+extern void updateMorphTransKernel(void);
 
 extern std::string g_DataPath;
 extern std::string g_AppDirPath;
 extern std::string g_ParamPath;
 extern std::string g_ConfigFileName;
 
+
 extern std::fstream g_LogFS;
-// extern std::string g_CameraConfigFileName;
-
-extern void startCalibration(int x1, int y1, int x2, int y2, int clear);
-extern void getCalSample(double x, double y, int samples);
-extern void endCalibration(void);
-
-extern void startValidation(int x1, int y1, int x2, int y2);
-extern void getValSample(double x, double y, int samples);
-extern void endValidation(void);
-extern void getCalibrationResults( double*, double*, double* );
-extern void getCalibrationResultsDetail( char* errorstr, int size, int* len);
-extern void getCurrentMenuString(char *p, int maxlen);
-
-extern void toggleCalResult(int param);
-extern void saveCalValResultsDetail(void);
-
-// extern void prepareRecordingScreen(void);
-extern void startRecording(const char* message);
-extern void stopRecording(const char* message);
-extern void openDataFile(char* filename, int overwrite);
-extern void closeDataFile(void);
-extern void insertMessage(char* message);
-extern void insertSettings(char* settings);
-extern void connectionClosed(void);
-extern void getEyePosition(double* pos, int nSamples);
-extern int getPreviousEyePositionForward(double* pos, int offset);
-extern int getPreviousEyePositionReverse(double* pos, int offset, bool newDataOnly);
-extern char* getMessageBufferPointer( void );
-extern void updateLastSentDataCounter(void);
-extern void saveCameraImage(const char* filename);
-extern void startMeasurement(void);
-extern void stopMeasurement(void);
-extern void allowRendering(void);
-extern void inhibitRendering(void);
-extern bool isBinocularMode(void);
-extern void deleteCalibrationDataSubset(char* points);
 
 extern char g_errorMessage[1024];
+
+extern int initBuffers(void);
 
 //Camera.cpp
 extern int initCameraParameters( char* buff, char* parambuff );
@@ -225,14 +146,14 @@ extern void saveCameraParameters( std::fstream* fs );
 extern const char* getEditionString( void );
 extern unsigned int getCameraSpecificData( void );
 
-//DetectEye.cpp
-extern int initBuffers(void);
 
 //custom menu
-extern int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition);
-extern int g_CustomMenuNum;
-extern void updateCustomMenuText( void );
 extern std::string g_MenuString[MENU_MAX_ITEMS];
+extern int g_CustomMenuNum;
+extern std::string updateCustomMenuText(int id);
+extern int customCameraMenu(int code, int currentMenuPosition);
+extern void updateCustomCameraParameterFromMenu(int id, std::string val);
+
 
 //Platform dependent
 extern int initTimer(void);
@@ -241,7 +162,6 @@ extern void sleepMilliseconds(int);
 extern int getDataDirectoryPath(std::string* path);
 extern int getApplicationDirectoryPath(std::string* path);
 extern int getParameterDirectoryPath(std::string* path);
-extern int getLogFilePath(std::string* path);
 extern int checkAndCreateDirectory(std::string path);
 extern int checkAndRenameFile(std::string path);
 extern int checkFile(std::string path, const char* filename);
@@ -253,13 +173,8 @@ extern std::string getCurrentWorkingDirectory(void);
 
 //USBIO
 extern bool g_useUSBIO;
-extern bool g_useUSBThread;
-extern int g_numUSBADChannels;
-extern int initUSBIO(void);
-extern std::string g_USBIOBoard;
-extern std::string g_USBIOParamAD;
-extern std::string g_USBIOParamDI;
-extern void setUSBIOData(int dataCounter);
-extern void getUSBIODataFormatString(char* buff, int buffsize);
-extern void getUSBIODataString(int index, char* buff, int buffsize);
-extern void cleanupUSBIO(void);
+
+extern std::string g_MenuString[];
+extern std::string g_CustomMenuString[];
+
+extern bool g_runMainThread;
