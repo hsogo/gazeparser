@@ -20,21 +20,7 @@
 
 #ifdef _WIN32
 #include "resource.h"
-#include <windows.h>
-#include <atlbase.h>
-#include <time.h>
-#include <process.h>
 #endif
-
-#define MENU_ITEM_HEIGHT 22
-#define MENU_FONT_SIZE 18
-
-#define PANEL_WIDTH  256
-#define PANEL_HEIGHT 512
-#define	PANEL_OFFSET_X 25
-#define	PANEL_OFFSET_Y 20
-#define CURSOR_SIZE 12
-#define CURSOR_OFFSET 5
 
 #define DEFAULT_CONFIG_FILE "CONFIG"
 
@@ -232,8 +218,8 @@ bool SGTApp::OnInit()
 	Log("Ok");
 
 	// now we can open main frame
-	ss.str("SimpleGazeTracker version ");
-	ss << VERSION << " " << getEditionString();
+	ss.str("");
+	ss << "SimpleGazeTracker version " << VERSION << " " << getEditionString();
 	m_pData = new SGTData(g_RecordingMode);
 	m_pMainFrame = new SGTMainFrame(NULL, ss.str(), wxPoint(-1,-1), wxSize(1024,768), this);
 	m_pMainFrame->Show();
