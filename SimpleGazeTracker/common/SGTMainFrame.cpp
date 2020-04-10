@@ -39,8 +39,8 @@ std::string g_MenuString[] = {
 SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint& pos, const wxSize& size, SGTApp* app) :
 	wxFrame(frame, -1, title, pos, size, wxSYSTEM_MENU | wxCLOSE_BOX | wxCAPTION)
 {
-	//wxIcon icon();
-	//SetIcon(icon);
+	wxIcon icon("simplegazetracker.ico");
+	SetIcon(icon);
 
 	m_pApp = app;
 	m_pData = app->m_pData;
