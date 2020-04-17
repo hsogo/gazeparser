@@ -2,9 +2,9 @@
 
 #include "opencv2/opencv.hpp"
 
-#include "GazeTrackerCommon.h"
-#include "SGTData.hpp"
-#include "SGTusbIO_UL.hpp"
+#include "SGTCommon.h"
+#include "SGTData.h"
+#include "SGTusbIO_UL.h"
 
 
 void SGTData::clearData(void)

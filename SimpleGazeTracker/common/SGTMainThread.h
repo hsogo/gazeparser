@@ -7,9 +7,9 @@
 #include "wx/wx.h"
 #endif
 
-#include "SGTMainFrame.hpp"
-#include "SGTData.hpp"
-#include "SGTCameraView.hpp"
+#include "SGTMainFrame.h"
+#include "SGTData.h"
+#include "SGTCameraView.h"
 
 class SGTMainFrame;
 class SGTData;

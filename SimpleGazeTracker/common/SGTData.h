@@ -1,61 +1,8 @@
 #pragma once
 
 #include <stdio.h>
-#include "SGTusbIO_UL.hpp"
-
-#define MAXDATA 432000 //120*60min, 393*18min
-#define MAXCALDATA 7200 // 120*60sec, 393*18.3sec
-#define MAXCALPOINT 60
-#define MAXCALSAMPLEPERPOINT (MAXCALDATA/MAXCALPOINT)
-#define MAXMESSAGE 262144
-
-//for g_Eyedata
-#define MONO_X 0
-#define MONO_Y 1
-#define MONO_1 0
-#define BIN_LX 0
-#define BIN_LY 1
-#define BIN_RX 2
-#define BIN_RY 3
-#define BIN_L 0
-#define BIN_R 1
-#define BIN_X 0
-#define BIN_Y 1
-
-//for g_PupilData
-#define MONO_P 0
-#define BIN_LP 0
-#define BIN_RP 1
-
-//for detectionResults
-#define MONO_PUPIL_X    0
-#define MONO_PUPIL_Y    1
-#define MONO_PURKINJE_X 2
-#define MONO_PURKINJE_Y 3
-#define MONO_PUPILSIZE  4
-#define BIN_PUPIL_LX    0
-#define BIN_PUPIL_LY    1
-#define BIN_PURKINJE_LX 2
-#define BIN_PURKINJE_LY 3
-#define BIN_PUPIL_RX    4
-#define BIN_PUPIL_RY    5
-#define BIN_PURKINJE_RX 6
-#define BIN_PURKINJE_RY 7
-#define BIN_PUPILSIZE_L 8
-#define BIN_PUPILSIZE_R 9
-#define MAX_DETECTION_RESULTS 10
-
-//Recording Mode
-#define RECORDING_MONOCULAR 0
-#define RECORDING_BINOCULAR 1
-
-#define TYPE_CALIBRATION 0
-#define TYPE_VALIDATION 1
-
-#define STATE_FREE 0
-#define STATE_RECORDING 1
-#define STATE_VALIDATION 2
-#define STATE_CALIBRATION 3
+#include "SGTCommon.h"
+#include "SGTusbIO_UL.h"
 
 
 

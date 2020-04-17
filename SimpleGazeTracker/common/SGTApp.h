@@ -6,9 +6,9 @@
 #endif
 #include <wx/cmdline.h>
 
-#include "SGTMainFrame.hpp"
-#include "SGTData.hpp"
-#include "SGTusbIO_UL.hpp"
+#include "SGTMainFrame.h"
+#include "SGTData.h"
+#include "SGTusbIO_UL.h"
 #include <fstream>
 
 class SGTMainFrame;

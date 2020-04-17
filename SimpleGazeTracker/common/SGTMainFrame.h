@@ -7,12 +7,10 @@
 
 #include <wx/sckipc.h>
 
-#include "SGTApp.hpp"
-#include "SGTCameraView.hpp"
-#include "SGTMainThread.hpp"
-#include "SGTData.hpp"
-
-#include "../common/GazeTrackerCommon.h"
+#include "SGTApp.h"
+#include "SGTCameraView.h"
+#include "SGTMainThread.h"
+#include "SGTData.h"
 
 class SGTApp;
 class SGTMainThread;

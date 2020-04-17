@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\PlatformDependent.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="Camera_Spinnaker.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -39,27 +36,30 @@
     <ClCompile Include="..\common\SGTusbIO_UL.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\SGTGlobal.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\SGTPlatformDependent.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GazeTracker.h">
+    <ClInclude Include="..\common\SGTCameraView.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\SGTApp.hpp">
+    <ClInclude Include="..\common\SGTApp.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\SGTCameraView.hpp">
+    <ClInclude Include="..\common\SGTData.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\SGTData.hpp">
+    <ClInclude Include="..\common\SGTMainFrame.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\SGTMainFrame.hpp">
+    <ClInclude Include="..\common\SGTMainThread.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\SGTMainThread.hpp">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\SGTusbIO_UL.hpp">
+    <ClInclude Include="..\common\SGTusbIO_UL.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

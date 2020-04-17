@@ -3,8 +3,8 @@
 #include <iostream>
 #include <list>
 
-#include "GazeTrackerCommon.h"
-#include "SGTusbIO_UL.hpp"
+#include "SGTCommon.h"
+#include "SGTusbIO_UL.h"
 #include <cbw.h>
 
 

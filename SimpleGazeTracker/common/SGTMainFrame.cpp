@@ -19,22 +19,12 @@ typedef wxIPV6address IPaddress;
 typedef wxIPV4address IPaddress;
 #endif
 
-#include "SGTApp.hpp"
-#include "SGTMainFrame.hpp"
+#include "SGTApp.h"
+#include "SGTMainFrame.h"
 
-#include "GazeTrackerCommon.h"
+#include "SGTCommon.h"
 
-#define RECV_BUFFER_SIZE 4096
 
-std::string g_MenuString[] = {
-	"PupilThreshold",
-	"PurkinjeThreshold",
-	"MinPupilWidth",
-	"MaxPupilWidth",
-	"PurkinjeSearchArea",
-	"PurkinjeExcludeArea",
-	"MorphologicalTrans"
-};
 
 SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint& pos, const wxSize& size, SGTApp* app) :
 	wxFrame(frame, -1, title, pos, size, wxSYSTEM_MENU | wxCLOSE_BOX | wxCAPTION)

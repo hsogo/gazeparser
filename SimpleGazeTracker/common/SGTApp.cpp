@@ -14,17 +14,15 @@
 #endif
 #include <wx/cmdline.h>
 
-#include "GazeTrackerCommon.h"
-#include "SGTApp.hpp"
+#include "SGTCommon.h"
+#include "SGTApp.h"
 
 
 #ifdef _WIN32
 #include "resource.h"
 #endif
 
-#define DEFAULT_CONFIG_FILE "CONFIG"
 
-std::fstream g_LogFS;
 
 
 // common parameters (read from CONFIG)

@@ -143,22 +143,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\common\SGTData.cpp" />
+    <ClCompile Include="..\common\SGTGlobal.cpp" />
     <ClCompile Include="..\common\SGTMainThread.cpp" />
     <ClCompile Include="..\common\SGTCameraView.cpp" />
     <ClCompile Include="..\common\SGTApp.cpp" />
     <ClCompile Include="..\common\SGTMainFrame.cpp" />
-    <ClCompile Include="..\common\PlatformDependent.cpp" />
+    <ClCompile Include="..\common\SGTPlatformDependent.cpp" />
     <ClCompile Include="..\common\SGTusbIO_UL.cpp" />
     <ClCompile Include="Camera_Spinnaker.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\SGTData.hpp" />
-    <ClInclude Include="..\common\SGTMainThread.hpp" />
-    <ClInclude Include="..\common\SGTCameraView.hpp" />
-    <ClInclude Include="..\common\SGTApp.hpp" />
-    <ClInclude Include="..\common\SGTMainFrame.hpp" />
-    <ClInclude Include="..\common\SGTusbIO_UL.hpp" />
-    <ClInclude Include="GazeTracker.h" />
+    <ClInclude Include="..\common\SGTData.h" />
+    <ClInclude Include="..\common\SGTMainThread.h" />
+    <ClInclude Include="..\common\SGTCameraView.h" />
+    <ClInclude Include="..\common\SGTApp.h" />
+    <ClInclude Include="..\common\SGTMainFrame.h" />
+    <ClInclude Include="..\common\SGTusbIO_UL.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CONFIG">

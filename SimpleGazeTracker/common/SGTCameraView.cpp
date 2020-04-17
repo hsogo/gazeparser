@@ -5,8 +5,8 @@
 
 #include "wx/wxprec.h"
 
-#include "GazeTrackerCommon.h"
-#include "SGTCameraView.hpp"
+#include "SGTCommon.h"
+#include "SGTCameraView.h"
 
 
 SGTCameraView::SGTCameraView(wxWindow *frame, const wxPoint& pos, const wxSize& size) :
