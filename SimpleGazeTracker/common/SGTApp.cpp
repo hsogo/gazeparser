@@ -71,8 +71,6 @@ unsigned char* g_SendImageBuffer;
 int initParameters(void);
 int saveParameters(void);
 
-char g_errorMessage[1024];
-
 int g_PortRecv = PORT_RECV;
 int g_PortSend = PORT_SEND;
 
@@ -98,6 +96,8 @@ static const wxCmdLineEntryDesc g_cmdLineDesc[] =
 
 bool SGTApp::OnInit()
 {
+	char error_message[1024];
+
 	//init pointer
 	m_pMainFrame = NULL;
 
@@ -125,9 +125,9 @@ bool SGTApp::OnInit()
 	logFilePath.append("SimpleGazeTracker.log");
 	g_LogFS.open(logFilePath.c_str(), std::ios::out);
 	if (!g_LogFS.is_open()) {
-		snprintf(g_errorMessage, sizeof(g_errorMessage), 
+		snprintf(error_message, sizeof(error_message), 
 			"Log file (%s) can't be opened.  Make sure that you have write permission to this file.", logFilePath.c_str());
-		MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+		Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 		return false;
 	}
 
@@ -140,8 +140,8 @@ bool SGTApp::OnInit()
 	Log( datestr );
 
 	Log( "Searching AppDirPath directory..." );
-	snprintf(g_errorMessage, sizeof(g_errorMessage), "check %s ...", g_AppDirPath.c_str());
-	Log( g_errorMessage );
+	snprintf(error_message, sizeof(error_message), "check %s ...", g_AppDirPath.c_str());
+	Log( error_message );
 
 	if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
 		//try /usr/local/lib/simplegazetracker
@@ -157,7 +157,7 @@ bool SGTApp::OnInit()
 				g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
 				if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
 					g_LogFS << "ERROR: Could not determine AppDirPath directory." << std::endl;
-					MessageDialogWithLog(
+					Log(
 						"Default CONFIG file was not found. Please confirm if SimpleGazeTracker is properly installed.",
 						"SimpleGazeTracker initialization failed", wxICON_ERROR);
 					return false;
@@ -165,49 +165,49 @@ bool SGTApp::OnInit()
 			}
 		}
 	}
-	snprintf(g_errorMessage, sizeof(g_errorMessage),
+	snprintf(error_message, sizeof(error_message),
 		"AppDirPath directory is %s\nParamPath directory is %s\nDataPath directory is %s",
 		g_AppDirPath.c_str(), g_ParamPath.c_str(), g_DataPath.c_str());
-	Log(g_errorMessage);
+	Log(error_message);
 
 	//if CONFIG file is not found in g_ParamPath, copy it.
 	if (!m_useCustomConfigFile) {
 		if (FAILED(checkAndCopyFile(g_ParamPath, DEFAULT_CONFIG_FILE, g_AppDirPath))) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage),
+			snprintf(error_message, sizeof(error_message),
 				"\"%s\" file is not found. SimpleGazeTracker may not be properly installed.\n", DEFAULT_CONFIG_FILE);
-			MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+			Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			return false;
 		}
 	}
 	else {
 		if (FAILED(checkFile(g_ParamPath, g_ConfigFileName.c_str()))) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage),
+			snprintf(error_message, sizeof(error_message),
 				"Error: configuration file (%s) is not found.", g_ConfigFileName.c_str());
-			MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+			Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			return false;
 		}
 	}
 
 	Log("initParameters ... ");
-	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
+	strncpy(error_message, "", sizeof(error_message));//clear errorMessage
 	if (FAILED(initParameters())) {
-		if (strcmp(g_errorMessage, "") == 0) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage),
+		if (strcmp(error_message, "") == 0) {
+			snprintf(error_message, sizeof(error_message),
 				"Could not initialize parameters.\nDo you want to open Config Directory and log file?");
 		}
-		wxMessageDialog* dlg = new wxMessageDialog(NULL, g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
+		wxMessageDialog* dlg = new wxMessageDialog(NULL, error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 		if (dlg->ShowModal() == wxID_YES)
 		{
 			if (openLocation(g_ParamPath) != 0) {
-				snprintf(g_errorMessage, sizeof(g_errorMessage),
+				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open config directory manually.", g_ParamPath.c_str());
-				MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+				Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
 			g_LogFS.close();
 			if (openLocation(logFilePath) != 0) {
-				snprintf(g_errorMessage, sizeof(g_errorMessage),
+				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
-				MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+				Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
 		}
 		Log( "Error: Could not initialize parameters. Check configuration file." );
@@ -237,15 +237,15 @@ bool SGTApp::OnInit()
 		if (dlg->ShowModal() == wxID_YES)
 		{
 			if (openLocation(g_ParamPath) != 0) {
-				snprintf(g_errorMessage, sizeof(g_errorMessage),
+				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open config directory manually.", g_ParamPath.c_str());
-				MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+				Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
 			g_LogFS.close();
 			if (openLocation(logFilePath) != 0) {
-				snprintf(g_errorMessage, sizeof(g_errorMessage),
+				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
-				MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+				Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
 		}
 		return false;
@@ -256,26 +256,26 @@ bool SGTApp::OnInit()
 	m_pMainFrame->initTCPConnection();
 
 	Log("Initializing camera...");
-	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
+	strncpy(error_message, "", sizeof(error_message));//clear errorMessage
 	if (FAILED(initCamera())) {
-		if (strcmp(g_errorMessage, "") == 0) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage),
+		if (strcmp(error_message, "") == 0) {
+			snprintf(error_message, sizeof(error_message),
 				"Could not initialize camera. Please check %s.\n\nDo you want to open Config Directory and log file?",
 				joinPath(g_ConfigFileName, g_ParamPath).c_str());
 		}
-		wxMessageDialog* dlg = new wxMessageDialog(NULL, g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
+		wxMessageDialog* dlg = new wxMessageDialog(NULL, error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 		if (dlg->ShowModal() == wxID_YES)
 		{
 			if (openLocation(g_ParamPath) != 0) {
-				snprintf(g_errorMessage, sizeof(g_errorMessage),
+				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open config directory manually.", g_ParamPath.c_str());
-				MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+				Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
 			g_LogFS.close();
 			if (openLocation(logFilePath) != 0) {
-				snprintf(g_errorMessage, sizeof(g_errorMessage),
+				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
-				MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+				Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
 		}
 		g_LogFS << "initCamera failed. Exit." << std::endl;
@@ -285,28 +285,28 @@ bool SGTApp::OnInit()
 
 	// USB
 	m_pUSBIO = new SGTusbIO();
-	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
+	strncpy(error_message, "", sizeof(error_message));//clear errorMessage
 	if (g_USBIOBoard.length() > 0 && g_USBIOBoard != "NONE") {
 		Log("Initalizing USB I/O...");
 		if (FAILED(m_pUSBIO->init(g_USBIOBoard, g_USBIOParamAD, g_USBIOParamDI, MAXDATA))) {
-			if (strcmp(g_errorMessage, "") == 0) {
-				snprintf(g_errorMessage, sizeof(g_errorMessage),
+			if (strcmp(error_message, "") == 0) {
+				snprintf(error_message, sizeof(error_message),
 					"Could not initialize USB I/O. Please check %s.", joinPath(g_ParamPath, g_ConfigFileName).c_str());
 			}
-			wxMessageDialog* dlg = new wxMessageDialog(NULL, g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
+			wxMessageDialog* dlg = new wxMessageDialog(NULL, error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 			dlg->SetYesNoLabels("Open config directory", "Cancel");
 			if (dlg->ShowModal() == wxID_YES)
 			{
 				if (openLocation(g_ParamPath) != 0) {
-					snprintf(g_errorMessage, sizeof(g_errorMessage),
+					snprintf(error_message, sizeof(error_message),
 						"Failed to open %s. Please open config directory manually.", g_ParamPath.c_str());
-					MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+					Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 				}
 				g_LogFS.close();
 				if (openLocation(logFilePath) != 0) {
-					snprintf(g_errorMessage, sizeof(g_errorMessage),
+					snprintf(error_message, sizeof(error_message),
 						"Failed to open %s. Please open log file manually.", logFilePath.c_str());
-					MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+					Log(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 				}
 			}
 			g_LogFS << "initUSBIO failed. Exit." << std::endl;
@@ -340,17 +340,18 @@ int SGTApp::OnExit()
 {
 	time_t t;
 	struct tm *ltm;
+	char error_message[1024];
 	char datestr[256];
 
 	Log( "Camera-specific cleanup..." );
 	cleanupCamera();
 
-	strncpy(g_errorMessage, "", sizeof(g_errorMessage));//clear errorMessage
+	strncpy(error_message, "", sizeof(error_message));//clear errorMessage
 	if (FAILED(saveParameters())) {
-		if (strcmp(g_errorMessage, "") == 0) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to save parameters.");
+		if (strcmp(error_message, "") == 0) {
+			snprintf(error_message, sizeof(error_message), "Failed to save parameters.");
 		}
-		MessageDialogWithLog(g_errorMessage, "SimpleGazeTracker warning", wxICON_ERROR);
+		Log(error_message, "SimpleGazeTracker warning", wxICON_ERROR);
 	}
 
 	//TODO release buffers, USB I/O
@@ -400,7 +401,7 @@ bool SGTApp::OnCmdLineParsed(wxCmdLineParser& parser)
 	return true;
 }
 
-int SGTApp::MessageDialogWithLog(const wxString &message, const wxString &caption, long	style)
+int SGTApp::Log(const wxString &message, const wxString &caption, long	style)
 {
 	if(g_LogFS.is_open()) g_LogFS << message << std::endl;
 	m_logVecotr.push_back(std::string(message));
@@ -429,6 +430,7 @@ int initParameters(void)
 	std::fstream fs;
 	std::string fname;
 	char buff[1024];
+	char error_message[1024];
 	char *p, *pp;
 	int param;
 	bool inCommonSection = false;
@@ -440,7 +442,7 @@ int initParameters(void)
 	fs.open(fname.c_str(), std::ios::in);
 	if (!fs.is_open())
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open  %s", fname.c_str());
+		snprintf(error_message, sizeof(error_message), "Failed to open  %s", fname.c_str());
 		g_LogFS << "Failed to open " << fname << "." << std::endl;
 		return E_FAIL;
 	}
@@ -525,7 +527,7 @@ int initParameters(void)
 			}
 			//unknown option
 			else {
-				snprintf(g_errorMessage, sizeof(g_errorMessage), "Unknown option (\"%s\")\nPlease check %s", buff, joinPath(g_ParamPath, g_ConfigFileName).c_str());
+				snprintf(error_message, sizeof(error_message), "Unknown option (\"%s\")\nPlease check %s", buff, joinPath(g_ParamPath, g_ConfigFileName).c_str());
 				g_LogFS << "Error: Unknown option in configuration file (" << buff << ")" << std::endl;
 				//return E_FAIL;
 			}
@@ -540,7 +542,7 @@ int initParameters(void)
 
 	if (g_CameraWidth*g_CameraHeight == 0)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero.\nCheck  %s", joinPath(g_ParamPath, g_ConfigFileName).c_str());
+		snprintf(error_message, sizeof(error_message), "Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero.\nCheck  %s", joinPath(g_ParamPath, g_ConfigFileName).c_str());
 		g_LogFS << "Error: Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero. Please check configration file." << std::endl;
 		return E_FAIL;
 	}
@@ -555,6 +557,7 @@ int initParameters(void)
 
 int saveParameters(void)
 {
+	char error_message[1024];
 	std::fstream fs;
 	std::string fname(g_ParamPath);
 
@@ -566,7 +569,7 @@ int saveParameters(void)
 	fs.open(fname.c_str(), std::ios::out);
 	if (!fs.is_open())
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to save parameters to %s.\nThe file may be write protected or opened by another program.", fname.c_str());
+		snprintf(error_message, sizeof(error_message), "Failed to save parameters to %s.\nThe file may be write protected or opened by another program.", fname.c_str());
 		g_LogFS << std::endl << "Error: can't open " << fname << "." << std::endl;
 		return E_FAIL;
 	}
@@ -623,6 +626,7 @@ void SGTApp::measureInterFrameInterval()
 	double meanInterFrameInterval, stdInterFrameInterval;
 	double tick[2011], ifi[2000], startTime;
 	int numSamples;
+	char error_message[1024];
 
 	// Run 2000ms
 	startTime = getCurrentTime();
@@ -703,6 +707,6 @@ void SGTApp::measureInterFrameInterval()
 	stdInterFrameInterval = sqrt(stdInterFrameInterval);
 
 	//g_LogFS << "Average inter-frame interval (without render) = " << meanInterFrameInterval << "ms (sd: " << stdInterFrameInterval << "ms)" << std::endl;
-	snprintf(g_errorMessage, sizeof(g_errorMessage), "Average: %.1fms (%.1fHz)", meanInterFrameInterval, 1000 / meanInterFrameInterval);
-	Log(g_errorMessage);
+	snprintf(error_message, sizeof(error_message), "Average: %.1fms (%.1fHz)", meanInterFrameInterval, 1000 / meanInterFrameInterval);
+	Log(error_message);
 }

@@ -174,7 +174,7 @@ void SGTMainFrame::OnHTMLDoc(wxCommandEvent& event)
 		const size_t last_slash_idx = g_AppDirPath.rfind(PATH_SEPARATOR);
 		if (std::string::npos == last_slash_idx)
 		{
-			m_pApp->MessageDialogWithLog("Cound not find HTML document.", "Error", wxICON_ERROR);
+			m_pApp->Log("Cound not find HTML document.", "Error", wxICON_ERROR);
 			return;
 		}
 
@@ -184,7 +184,7 @@ void SGTMainFrame::OnHTMLDoc(wxCommandEvent& event)
 
 		if (checkFile(path, "index.html") == E_FAIL)
 		{
-			m_pApp->MessageDialogWithLog("Cound not find HTML document.", "Error", wxICON_ERROR);
+			m_pApp->Log("Cound not find HTML document.", "Error", wxICON_ERROR);
 			return;
 		}
 	}
@@ -868,7 +868,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					if (FAILED(m_pData->openDataFile(param, overwrite)))
 					{
 						snprintf(logstr, sizeof(logstr), "Failed to open datafile: %s", param);
-						m_pApp->MessageDialogWithLog(logstr, "Error", wxICON_ERROR);
+						m_pApp->Log(logstr, "Error", wxICON_ERROR);
 					}
 					else
 					{
@@ -1219,7 +1219,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 		// middle of a test or something. Destroy() takes care of all
 		// this for us.
 
-		m_pApp->MessageDialogWithLog("Client is disconnected", "Info", wxICON_INFORMATION | wxOK);
+		m_pApp->Log("Client is disconnected", "Info", wxICON_INFORMATION | wxOK);
 		sock->Destroy();
 		break;
 
@@ -1273,7 +1273,7 @@ void SGTMainFrame::startRecording(char * message)
 	{
 		if (FAILED(m_pData->startRecording(message)))
 		{
-			m_pApp->MessageDialogWithLog("Could not start recording because data file is not opened.", "Error", wxICON_ERROR);
+			m_pApp->Log("Could not start recording because data file is not opened.", "Error", wxICON_ERROR);
 			return;
 		}
 		m_isRecording = true;
@@ -1293,7 +1293,7 @@ void SGTMainFrame::startRecording(char * message)
 	}
 	else
 	{
-		m_pApp->MessageDialogWithLog("Could not start recording because calibration is not done.", "Error", wxICON_ERROR);
+		m_pApp->Log("Could not start recording because calibration is not done.", "Error", wxICON_ERROR);
 		return;
 	}
 

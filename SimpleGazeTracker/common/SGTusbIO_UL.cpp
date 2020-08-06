@@ -122,7 +122,7 @@ int SGTusbIO::checkAD(void)
 
 	cbGetConfig(BOARDINFO, m_boardNum, 0, BIADRES, &m_ADResolution);
 	if (ULStat != NOERRORS) {
-		//snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to get configuration for board %s. Please check CONFIG file.", board.c_str());
+		//snprintf(error_message, sizeof(error_message), "Failed to get configuration for board %s. Please check CONFIG file.", board.c_str());
 		//g_LogFS << "Could not get configuration for Boad " << board << "." << std::endl;
 		return E_FAIL;
 	}
@@ -137,7 +137,7 @@ int SGTusbIO::checkAD(void)
 			ULStat = cbAIn(m_boardNum, m_ADChannelList[i][0], m_ADChannelList[i][1], &DataValue);
 		}
 		if (ULStat != NOERRORS) {
-			//snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to read AD channel %d (USBIO_AD=%s). Please check CONFIG file.", m_ADChannelList[i][0], paramAD.c_str());
+			//snprintf(error_message, sizeof(error_message), "Failed to read AD channel %d (USBIO_AD=%s). Please check CONFIG file.", m_ADChannelList[i][0], paramAD.c_str());
 			//g_LogFS << "Could not read AD channel " << m_ADChannelList[i][0] << "." << std::endl;
 			return E_FAIL;
 		}
@@ -153,14 +153,14 @@ int SGTusbIO::checkDI(void)
 
 	ULStat = cbDConfigPort(m_boardNum, m_DIport, DIGITALIN);
 	if (ULStat != NOERRORS) {
-		//snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to configure port (%s) as Digital input. Please check CONFIG file.", paramDI.c_str());
+		//snprintf(error_message, sizeof(error_message), "Failed to configure port (%s) as Digital input. Please check CONFIG file.", paramDI.c_str());
 		//g_LogFS << "Could not configure port (" << paramDI << ") as Digital input." << std::endl;
 		return E_FAIL;
 	}
 
 	ULStat = cbDIn(m_boardNum, m_DIport, &DataValue);
 	if (ULStat != NOERRORS) {
-		//snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to read port (%s) as Digital input. Please check CONFIG file.", paramDI.c_str());
+		//snprintf(error_message, sizeof(error_message), "Failed to read port (%s) as Digital input. Please check CONFIG file.", paramDI.c_str());
 		//g_LogFS << "Could not read Digital input port (" << paramDI << ")." << std::endl;
 		return E_FAIL;
 	}
@@ -195,6 +195,7 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 	m_numADChannels = 0;
 	m_ADResolution = 0;
 	m_boardNum = NO_USBIO;
+	char error_message[1024];
 
 	char *p;
 	std::list<std::string> params;
@@ -204,12 +205,12 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 	// Board number
 	m_boardNum = strtol(board.c_str(), &p, 10);
 	if (p == board.c_str()) {
-		//snprintf(g_errorMessage, sizeof(g_errorMessage), "USBIO_BOARD (%s) must be decimal number of board ID. Please check CONFIG file.", board.c_str());
+		//snprintf(error_message, sizeof(error_message), "USBIO_BOARD (%s) must be decimal number of board ID. Please check CONFIG file.", board.c_str());
 		//g_LogFS << "USBIO_BOARD (" << board << ") must be decimal number of board ID." << std::endl;
 		return E_FAIL;
 	}
 	if (cbFlashLED(m_boardNum) != NOERRORS) {
-		//snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open USB I/O unit. USBIO_BOARD (%s) may be wrong. Please check CONFIG file.", board.c_str());
+		//snprintf(error_message, sizeof(error_message), "Failed to open USB I/O unit. USBIO_BOARD (%s) may be wrong. Please check CONFIG file.", board.c_str());
 		//g_LogFS << "ERROR: Could not open USB I/O unit. Is board number (=" << board << ") wrong?" << std::endl;
 		return E_FAIL;
 	}
@@ -225,14 +226,14 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 		while (iter != params.end())
 		{
 			if (m_numADChannels >= MAX_USB_AD_CHANNELS) {
-				snprintf(g_errorMessage, sizeof(g_errorMessage), "Too many AD channels are listed. Please check CONFIG file.");
+				snprintf(error_message, sizeof(error_message), "Too many AD channels are listed. Please check CONFIG file.");
 				g_LogFS << "ERROR: Too many AD channels." << std::endl;
 				return E_FAIL;
 			}
 			chan = strtol(iter->c_str(), &p, 10);
 			for (int i = 0; i < m_numADChannels; i++) {
 				if (m_ADChannelList[i][0] == chan) {
-					snprintf(g_errorMessage, sizeof(g_errorMessage), "AD channel %d is duplicated. Please check CONFIG file.", chan);
+					snprintf(error_message, sizeof(error_message), "AD channel %d is duplicated. Please check CONFIG file.", chan);
 					g_LogFS << "ERROR: USB AD channel " << chan << " is duplicated." << std::endl;
 					return E_FAIL;
 				}
@@ -241,14 +242,14 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 			iter++;
 			if (iter == params.end())
 			{
-				snprintf(g_errorMessage, sizeof(g_errorMessage), "AD channel parameter (%s) is wrong. Please check CONFIG file.", paramAD.c_str());
+				snprintf(error_message, sizeof(error_message), "AD channel parameter (%s) is wrong. Please check CONFIG file.", paramAD.c_str());
 				g_LogFS << "ERROR: USB AD channel parameter is wrong (" << paramAD << ")." << std::endl;
 				return E_FAIL;
 			}
 
 			if ((rangeval = getRangeValue(iter->c_str())) == BADRANGE)
 			{
-				snprintf(g_errorMessage, sizeof(g_errorMessage), "Unsupported range (%s) for channel %d. Please check CONFIG file.", iter->c_str(), chan);
+				snprintf(error_message, sizeof(error_message), "Unsupported range (%s) for channel %d. Please check CONFIG file.", iter->c_str(), chan);
 				g_LogFS << "ERROR: Bad range (" << iter->c_str() << ") for channel " << chan << "." << std::endl;
 				return E_FAIL;
 			}
@@ -269,7 +270,7 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 
 			//vaild channels?
 			if (FAILED(checkAD())) {
-				// g_errorMessage is set in checkAD().
+				// error_message is set in checkAD().
 				return E_FAIL;
 			}
 
@@ -277,7 +278,7 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 			if (m_ADResolution > 16) {
 				m_ADBuffer32 = (DWORD*)malloc(maxdata*m_numADChannels * sizeof(DWORD));
 				if (m_ADBuffer32 == NULL || g_pCameraTextureBuffer == NULL || g_pCalResultTextureBuffer == NULL) {
-					snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to allocate AD buffer.");
+					snprintf(error_message, sizeof(error_message), "Failed to allocate AD buffer.");
 					g_LogFS << "ERROR: failed to allocate AD buffer." << std::endl;
 					return E_FAIL;
 				}
@@ -285,7 +286,7 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 			else {
 				m_ADBuffer16 = (WORD*)malloc(maxdata*m_numADChannels * sizeof(WORD));
 				if (m_ADBuffer16 == NULL) {
-					snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to allocate AD buffer.");
+					snprintf(error_message, sizeof(error_message), "Failed to allocate AD buffer.");
 					g_LogFS << "ERROR: failed to allocate AD buffer." << std::endl;
 					return E_FAIL;
 				}
@@ -296,7 +297,7 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 	// DI
 	if (paramDI != "NONE" && paramDI != "") {
 		if ((m_DIport = getPortValue(paramDI.c_str())) == BADPORTNUM) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Unsupported USB DI port (%s). Please check CONFIG file.", paramDI.c_str());
+			snprintf(error_message, sizeof(error_message), "Unsupported USB DI port (%s). Please check CONFIG file.", paramDI.c_str());
 			g_LogFS << "ERROR: unsupported port (" << paramDI << ")." << std::endl;
 			return E_FAIL;
 		}
@@ -306,14 +307,14 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 
 		//vaild port?
 		if (FAILED(checkDI())) {
-			// g_errorMessage is set in checkDI().
+			// error_message is set in checkDI().
 			return E_FAIL;
 		}
 
 		//allocate memory
 		m_DIBuffer = (WORD*)malloc(maxdata * sizeof(WORD));
 		if (m_DIBuffer == NULL) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to allocate DI buffer.");
+			snprintf(error_message, sizeof(error_message), "Failed to allocate DI buffer.");
 			g_LogFS << "ERROR: failed to allocate DI buffer." << std::endl;
 			return E_FAIL;
 		}
@@ -321,7 +322,7 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 
 	if (m_ADBuffer32 == NULL && m_ADBuffer16 == NULL && m_DIBuffer == NULL)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "USBIO_BOARD is specified, but neither USBIO_AD nor USBIO_DI is specified. Please check CONFIG file.");
+		snprintf(error_message, sizeof(error_message), "USBIO_BOARD is specified, but neither USBIO_AD nor USBIO_DI is specified. Please check CONFIG file.");
 		g_LogFS << "ERROR: USBIO_BOARD is specified, but neither USBIO_AD nor USBIO_DI is specified." << std::endl;
 		return E_FAIL;
 	}

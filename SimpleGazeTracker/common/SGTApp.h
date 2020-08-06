@@ -26,7 +26,7 @@ public:
 	virtual void OnInitCmdLine(wxCmdLineParser& parser);
 	virtual bool OnCmdLineParsed(wxCmdLineParser& parser);
 	void Log(const char*);
-	int MessageDialogWithLog(const wxString &message, const wxString &caption, long	style);
+	int Log(const wxString &message, const wxString &caption, long	style);
 
 private:
 	bool m_useCustomParamPath;
