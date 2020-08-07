@@ -2,9 +2,9 @@
 
 #include <stdio.h>
 #include "SGTCommon.h"
-#include "SGTusbIO_UL.h"
+#include "SGTusbIO.h"
 
-
+class SGTusbIO;
 
 class SGTData
 {

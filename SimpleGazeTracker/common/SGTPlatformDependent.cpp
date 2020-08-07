@@ -203,7 +203,7 @@ Check whether file exists. If the file exists, ".n" (n=0,1,2,...) is appended to
 			mbstowcs(strToW, strTo.c_str(), sizeof(strToW));
 			if(!PathFileExists(strToW)){
 				if(MoveFile(pathW, strToW)){
-					g_LogFS << "Datafile is renamed." << std::endl;
+					outputLog("Datafile is renamed.");
 					return S_OK;
 				}
 			}

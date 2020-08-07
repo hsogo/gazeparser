@@ -4,14 +4,56 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
+
+// Logging
 std::fstream g_LogFS;
 
+int openLogFile(const char* fname)
+{
+	char error_message[1024];
 
-cv::Mat g_SrcImg;
-cv::Mat g_DstImg;
-cv::Mat g_CalImg;
-cv::Mat g_MorphTransKernel;
-static cv::Rect g_ROI;
+	g_LogFS.open(fname, std::ios::out);
+	if (!g_LogFS.is_open()) {
+		snprintf(error_message, sizeof(error_message),
+			"Log file (%s) can't be opened.  Make sure that you have write permission to this file.", fname);
+
+		wxMessageDialog* dlg = new wxMessageDialog(NULL, error_message, "Error", wxICON_ERROR);
+		dlg->ShowModal();
+		return E_FAIL;
+	}
+	return S_OK;
+}
+
+int outputLog(const char* message)
+{
+	if (!g_LogFS.is_open()) return E_FAIL;
+
+	g_LogFS << message << std::endl;
+	return S_OK;
+}
+
+int outputLogDlg(const wxString &message, const wxString &caption, long style)
+{
+	if (!g_LogFS.is_open()) return E_FAIL;
+
+	g_LogFS << message << std::endl;
+	wxMessageDialog* dlg = new wxMessageDialog(NULL, message, caption, style);
+	dlg->ShowModal();
+	return S_OK;
+}
+
+void closeLogFile(void)
+{
+	if (g_LogFS.is_open()) g_LogFS.close();
+	return;
+}
+
+// Menu
 
 std::string g_MenuString[] = {
 	"PupilThreshold",
@@ -23,6 +65,14 @@ std::string g_MenuString[] = {
 	"MorphologicalTrans"
 };
 
+
+// Image Processing
+
+cv::Mat g_SrcImg;
+cv::Mat g_DstImg;
+cv::Mat g_CalImg;
+cv::Mat g_MorphTransKernel;
+static cv::Rect g_ROI;
 
 static const double PI = 6 * asin(0.5);
 

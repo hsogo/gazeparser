@@ -26,6 +26,11 @@
 
 #define VERSION "0.11.1"
 
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
 #ifdef _WIN32
 #include <windows.h>
 //#define snprintf sprintf_s
@@ -43,6 +48,7 @@
 #include <iostream> 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
+
 
 // Default config file
 
@@ -219,9 +225,12 @@ extern std::string g_ParamPath;
 extern std::string g_ConfigFileName;
 
 
-extern std::fstream g_LogFS;
-
-extern char g_errorMessage[1024];
+// Logging
+//extern std::fstream g_LogFS;
+extern int openLogFile(const char* fname);
+extern int outputLog(const char* message);
+extern int outputLogDlg(const wxString &message, const wxString &caption, long style);
+extern void closeLogFile(void);
 
 
 //Camera specific functions
@@ -267,5 +276,4 @@ extern bool g_ShowCameraImage;
 extern std::string g_MenuString[];
 extern std::string g_CustomMenuString[];
 extern bool g_runMainThread;
-
 

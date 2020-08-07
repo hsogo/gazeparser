@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SGTApp.h"
 #define MAX_USB_AD_CHANNELS 8
 
 
@@ -23,6 +24,10 @@ private:
 	int m_numADChannels;
 	int m_ADResolution;
 	int m_ADChannelList[MAX_USB_AD_CHANNELS][2]; /*0: Channel number  1:AD range**/
+
+	std::string m_board;
+	std::string m_paramAD;
+	std::string m_paramDI;
 
 	DWORD m_latestADValue32[MAX_USB_AD_CHANNELS];
 	WORD m_latestADValue16[MAX_USB_AD_CHANNELS];

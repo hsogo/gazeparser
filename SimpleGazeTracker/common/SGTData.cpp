@@ -4,7 +4,7 @@
 
 #include "SGTCommon.h"
 #include "SGTData.h"
-#include "SGTusbIO_UL.h"
+#include "SGTusbIO.h"
 
 
 void SGTData::clearData(void)

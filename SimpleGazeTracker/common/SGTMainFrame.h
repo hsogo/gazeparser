@@ -91,4 +91,5 @@ private:
 	wxMenu* m_pMenuSystem;
 	wxMenu* m_pMenuHelp;
 
+	std::vector<std::string> m_logVecotr;
 };

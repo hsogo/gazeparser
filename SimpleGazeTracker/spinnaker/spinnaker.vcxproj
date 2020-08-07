@@ -149,7 +149,7 @@
     <ClCompile Include="..\common\SGTApp.cpp" />
     <ClCompile Include="..\common\SGTMainFrame.cpp" />
     <ClCompile Include="..\common\SGTPlatformDependent.cpp" />
-    <ClCompile Include="..\common\SGTusbIO_UL.cpp" />
+    <ClCompile Include="..\common\SGTusbIO.cpp" />
     <ClCompile Include="Camera_Spinnaker.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -158,7 +158,7 @@
     <ClInclude Include="..\common\SGTCameraView.h" />
     <ClInclude Include="..\common\SGTApp.h" />
     <ClInclude Include="..\common\SGTMainFrame.h" />
-    <ClInclude Include="..\common\SGTusbIO_UL.h" />
+    <ClInclude Include="..\common\SGTusbIO.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CONFIG">

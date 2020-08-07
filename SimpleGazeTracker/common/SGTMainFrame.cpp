@@ -134,7 +134,7 @@ void SGTMainFrame::UpdateLogTextBox()
 	std::vector<std::string>::iterator it;
 
 	m_LogTextBox->Clear();
-	for (it = m_pApp->m_logVecotr.begin(); it != m_pApp->m_logVecotr.end(); it++)
+	for (it = m_logVecotr.begin(); it != m_logVecotr.end(); it++)
 	{
 		m_LogTextBox->AppendText(*it);
 		m_LogTextBox->AppendText("\n");
@@ -148,7 +148,6 @@ void SGTMainFrame::OnExit(wxCommandEvent& event)
 		g_runMainThread = false;
 	}
 
-	m_pApp->m_pMainFrame = NULL;
 	Close(false);
 }
 
@@ -174,7 +173,7 @@ void SGTMainFrame::OnHTMLDoc(wxCommandEvent& event)
 		const size_t last_slash_idx = g_AppDirPath.rfind(PATH_SEPARATOR);
 		if (std::string::npos == last_slash_idx)
 		{
-			m_pApp->Log("Cound not find HTML document.", "Error", wxICON_ERROR);
+			outputLogDlg("Cound not find HTML document.", "Error", wxICON_ERROR);
 			return;
 		}
 
@@ -184,7 +183,7 @@ void SGTMainFrame::OnHTMLDoc(wxCommandEvent& event)
 
 		if (checkFile(path, "index.html") == E_FAIL)
 		{
-			m_pApp->Log("Cound not find HTML document.", "Error", wxICON_ERROR);
+			outputLogDlg("Cound not find HTML document.", "Error", wxICON_ERROR);
 			return;
 		}
 	}
@@ -565,17 +564,17 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 	switch (event.GetSocketEvent())
 	{
 	case wxSOCKET_CONNECTION:
-		m_pApp->Log("TCP/IP connection is requested...");
+		outputLog("TCP/IP connection is requested...");
 		break;
 	default:
-		m_pApp->Log("Unexpected TCP/IP event\n");
+		outputLog("Unexpected TCP/IP event\n");
 		break;
 
 	}
 
 	if (m_TCPClientConnected)
 	{
-		m_pApp->Log("Client is already connected.");
+		outputLog("Client is already connected.");
 		m_Server->Discard();
 	}
 
@@ -589,19 +588,19 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 	{
 		if (!sock->GetPeer(client_addr))
 		{
-			m_pApp->Log("Can't get client IP address.");
+			outputLog("Can't get client IP address.");
 			sock->Destroy();
 			return;
 		}
 		else
 		{
 			ss << "New client connection from " << client_addr.IPAddress() << ":" << client_addr.Service() << "... accepted";
-			m_pApp->Log(ss.str().c_str());
+			outputLog(ss.str().c_str());
 		}
 	}
 	else
 	{
-		m_pApp->Log("Error: couldn't accept a new connection");
+		outputLog("Error: couldn't accept a new connection");
 		return;
 	}
 
@@ -610,7 +609,7 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 	sock->Notify(true);
 
 
-	m_pApp->Log("Connecting to client...");
+	outputLog("Connecting to client...");
 
 	addr.Hostname(client_addr.Hostname());
 	addr.Service(g_PortSend);
@@ -619,12 +618,12 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 	m_Client->Connect(addr, true);
 
 	if (!m_Client->IsConnected()) {
-		m_pApp->Log("Error: couldn't connect to client.");
+		outputLog("Error: couldn't connect to client.");
 		sock->Destroy();
 		return;
 	}
 
-	m_pApp->Log("Connected.");
+	outputLog("Connected.");
 	m_TCPClientConnected = true;
 
 	return;
@@ -714,7 +713,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					}
 					if (index + 1 != g_ROIWidth * g_ROIHeight)
 					{
-						g_LogFS << "ERROR: Image size is not matched." << std::endl;
+						outputLog("ERROR: Image size is not matched.");
 						index = g_ROIWidth * g_ROIHeight;
 					}
 					g_SendImageBuffer[index + 1] = 0;
@@ -868,12 +867,12 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					if (FAILED(m_pData->openDataFile(param, overwrite)))
 					{
 						snprintf(logstr, sizeof(logstr), "Failed to open datafile: %s", param);
-						m_pApp->Log(logstr, "Error", wxICON_ERROR);
+						outputLogDlg(logstr, "Error", wxICON_ERROR);
 					}
 					else
 					{
 						snprintf(logstr, sizeof(logstr), "Open datafile: %s", param);
-						m_pApp->Log(logstr);
+						outputLog(logstr);
 					}
 
 					nextp = seekNextCommand(buff, received, nextp, 1);
@@ -881,9 +880,9 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 				else if (strcmp(buff + nextp, "closeDataFile") == 0)
 				{
 				if (FAILED(m_pData->closeDataFile()))
-					m_pApp->Log("Failed to close data file becaue file pointer is NULL.");
+					outputLog("Failed to close data file becaue file pointer is NULL.");
 				else
-					m_pApp->Log("Close data file.");
+					outputLog("Close data file.");
 
 					nextp = seekNextCommand(buff, received, nextp, 1);
 				}
@@ -1199,7 +1198,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 				{
 					ss.str("");
 					ss << "WARNING: Unknown command (" << buff + nextp << ")" << std::endl;
-					m_pApp->Log(ss.str().c_str());
+					outputLog(ss.str().c_str());
 					nextp = seekNextCommand(buff, received, nextp, 1);
 				}
 			}
@@ -1219,7 +1218,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 		// middle of a test or something. Destroy() takes care of all
 		// this for us.
 
-		m_pApp->Log("Client is disconnected", "Info", wxICON_INFORMATION | wxOK);
+		outputLogDlg("Client is disconnected", "Info", wxICON_INFORMATION | wxOK);
 		sock->Destroy();
 		break;
 
@@ -1273,7 +1272,7 @@ void SGTMainFrame::startRecording(char * message)
 	{
 		if (FAILED(m_pData->startRecording(message)))
 		{
-			m_pApp->Log("Could not start recording because data file is not opened.", "Error", wxICON_ERROR);
+			outputLogDlg("Could not start recording because data file is not opened.", "Error", wxICON_ERROR);
 			return;
 		}
 		m_isRecording = true;
@@ -1288,12 +1287,12 @@ void SGTMainFrame::startRecording(char * message)
 		renderRecordingMessage(g_recordingMessage, true);
 		*/
 
-		m_pApp->Log("StartRecording ");
+		outputLog("StartRecording ");
 		return;
 	}
 	else
 	{
-		m_pApp->Log("Could not start recording because calibration is not done.", "Error", wxICON_ERROR);
+		outputLogDlg("Could not start recording because calibration is not done.", "Error", wxICON_ERROR);
 		return;
 	}
 
@@ -1306,12 +1305,12 @@ void SGTMainFrame::stopRecording(char * message)
 	{
 		if (FAILED(m_pData->stopRecording(message)))
 		{
-			g_LogFS << "StopRecording (no file) " << message << std::endl;
+			outputLog("StopRecording (no file) ");
 
 		}
 		else
 		{
-			g_LogFS << "StopRecording" << message << std::endl;
+			outputLog("StopRecording");
 		}
 
 		m_isRecording = false;
@@ -1319,7 +1318,7 @@ void SGTMainFrame::stopRecording(char * message)
 	}
 	else
 	{
-		g_LogFS << "Warning: stopRecording is called before starting" << std::endl;
+		outputLog("Warning: stopRecording is called before starting");
 	}
 }
 
@@ -1337,11 +1336,11 @@ void SGTMainFrame::startMeasurement(bool ignoreCalibration = false)
 
 		g_ShowCameraImage = true;
 
-		m_pApp->Log("StartMeasurement");
+		outputLog("StartMeasurement");
 	}
 	else
 	{
-		m_pApp->Log("Warning: StartMeasurement is called before calibration");
+		outputLog("Warning: StartMeasurement is called before calibration");
 	}
 }
 
@@ -1350,21 +1349,21 @@ void SGTMainFrame::stopMeasurement(void)
 {
 	if (m_isRecording)
 	{
-		m_pApp->Log("StopMeasurement");
+		outputLog("StopMeasurement");
 		m_pData->stopMeasurement();
 		m_isRecording = false;
 		g_ShowCameraImage = true;
 	}
 	else
 	{
-		m_pApp->Log("Waring: StopMeasurement is called before starting.");
+		outputLog("Waring: StopMeasurement is called before starting.");
 	}
 }
 
 
 void SGTMainFrame::startCalibration(int clear)
 {
-	g_LogFS << "StartCalibration" << std::endl;
+	outputLog("StartCalibration");
 
 	if (!m_pData->isBusy())
 	{
@@ -1384,7 +1383,7 @@ void SGTMainFrame::startCalibration(int clear)
 
 void SGTMainFrame::endCalibration(void)
 {
-	g_LogFS << "EndCalibration" << std::endl;
+	outputLog("EndCalibration");
 
 	m_pData->finishCalibration();
 
@@ -1399,7 +1398,7 @@ void SGTMainFrame::endCalibration(void)
 
 void SGTMainFrame::startValidation(void)
 {
-	g_LogFS << "StartValidation" << std::endl;
+	outputLog("StartValidation");
 
 	if (!m_pData->isBusy()) { //ready to start calibration?
 		m_pData->clearCalibrationData();
@@ -1413,7 +1412,7 @@ void SGTMainFrame::startValidation(void)
 
 void SGTMainFrame::endValidation(void)
 {
-	g_LogFS << "EndValidation" << std::endl;
+	outputLog("EndValidation");
 	m_pData->setCalibrationResults();
 
 	m_isValidating = false;
@@ -1429,7 +1428,7 @@ void SGTMainFrame::saveCameraImage(const char* filename)
 	cv::imwrite(str.c_str(), g_DstImg);
 
 	str.insert(0, "Capture camera image as ");
-	m_pApp->Log(str.c_str());
+	outputLog(str.c_str());
 }
 
 
