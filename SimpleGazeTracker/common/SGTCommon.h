@@ -50,10 +50,6 @@
 #include <opencv2/core/core.hpp>
 
 
-// Default config file
-
-#define DEFAULT_CONFIG_FILE "CONFIG"
-
 // Parameters
 
 #define PREVIEW_WIDTH  640
@@ -240,6 +236,7 @@ extern int getCameraImage( void );
 extern void cleanupCamera( void );
 extern void saveCameraParameters( std::fstream* fs );
 extern const char* getEditionString( void );
+extern const char* getDefaultConfigString(void);
 extern unsigned int getCameraSpecificData( void );
 
 

@@ -48,8 +48,12 @@ cv::Mat g_TmpImg;
 
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
 
-// for debugging
-// FlyCapture2::TimeStamp g_timestamp[5000];
+
+const char* getDefaultConfigString(void)
+{
+	return CAMERA_CONFIG_FILE;
+}
+
 
 
 /*!

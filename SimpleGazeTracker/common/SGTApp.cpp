@@ -54,6 +54,7 @@ bool g_ShowCameraImage = true; /*!< If true, camera image is rendered. This must
 std::string g_ParamPath;
 std::string g_DataPath;
 std::string g_ConfigFileName;
+std::string g_DefaultConfigFileName;
 std::string g_AppDirPath;
 
 // USB
@@ -134,16 +135,16 @@ bool SGTApp::OnInit()
 	snprintf(error_message, sizeof(error_message), "check %s ...", g_AppDirPath.c_str());
 	outputLog( error_message );
 
-	if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
+	if (FAILED(checkFile(g_AppDirPath, g_DefaultConfigFileName.c_str()))) {
 		//try /usr/local/lib/simplegazetracker
 		g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
-		if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
+		if (FAILED(checkFile(g_AppDirPath, g_DefaultConfigFileName.c_str()))) {
 			//try Debian directory (/usr/lib/simplegazetracker)
 			g_AppDirPath.assign("/usr/lib/simplegazetracker");
-			if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
+			if (FAILED(checkFile(g_AppDirPath, g_DefaultConfigFileName.c_str()))) {
 				//try current directory
 				g_AppDirPath.assign(getCurrentWorkingDirectory());
-				if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
+				if (FAILED(checkFile(g_AppDirPath, g_DefaultConfigFileName.c_str()))) {
 					outputLogDlg(
 						"ERROR: Could not determine AppDirPath directory. "
 						"Default CONFIG file was not found. Please confirm if SimpleGazeTracker is properly installed. ",
@@ -160,9 +161,9 @@ bool SGTApp::OnInit()
 
 	//if CONFIG file is not found in g_ParamPath, copy it.
 	if (!m_useCustomConfigFile) {
-		if (FAILED(checkAndCopyFile(g_ParamPath, DEFAULT_CONFIG_FILE, g_AppDirPath))) {
+		if (FAILED(checkAndCopyFile(g_ParamPath, g_DefaultConfigFileName.c_str(), g_AppDirPath))) {
 			snprintf(error_message, sizeof(error_message),
-				"\"%s\" file is not found. SimpleGazeTracker may not be properly installed.\n", DEFAULT_CONFIG_FILE);
+				"\"%s\" file is not found. SimpleGazeTracker may not be properly installed.\n", g_DefaultConfigFileName.c_str());
 			outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			return false;
 		}
@@ -327,16 +328,14 @@ int SGTApp::OnExit()
 
 	outputLog( "Camera-specific cleanup..." );
 	cleanupCamera();
+	outputLog("OK.");
 
-	strncpy(error_message, "", sizeof(error_message));//clear errorMessage
 	if (FAILED(saveParameters())) {
 		snprintf(error_message, sizeof(error_message), "Failed to save parameters.");
 		outputLogDlg(error_message, "SimpleGazeTracker warning", wxICON_ERROR);
 	}
 
 	//TODO release buffers, USB I/O
-
-	outputLog( "OK." );
 	time(&t);
 	ltm = localtime(&t);
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
@@ -365,7 +364,9 @@ bool SGTApp::OnCmdLineParsed(wxCmdLineParser& parser)
 	g_AppDirPath.assign(argv[0]);
 	getApplicationDirectoryPath(&g_AppDirPath);
 
-	g_ConfigFileName.assign(DEFAULT_CONFIG_FILE);
+	g_DefaultConfigFileName.append(getDefaultConfigString());
+
+	g_ConfigFileName.assign(g_DefaultConfigFileName);
 	if (m_useCustomDataPath) {
 		g_ParamPath = customParamPath;
 	}
