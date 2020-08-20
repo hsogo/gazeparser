@@ -50,7 +50,7 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	m_pMenuSystem->AppendSeparator();
 	m_pMenuSystem->AppendCheckItem(ID_MENU_TOGGLECALRESULT, "Show calibration result");
 	m_pMenuSystem->Enable(ID_MENU_TOGGLECALRESULT, false);
-	m_pMenuSystem->AppendCheckItem(ID_MENU_NORENDERRECORDING, "Don't update preview during recording");
+	m_pMenuSystem->AppendCheckItem(ID_MENU_NORENDERRECORDING, "Don't update preview during recording (for better performance)");
 	m_pMenuSystem->AppendSeparator();
 
 	m_pMenuSystem->Append(wxID_EXIT);

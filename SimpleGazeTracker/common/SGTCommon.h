@@ -177,6 +177,7 @@ extern cv::Mat g_MorphTransKernel;
 
 extern int initBuffers(void);
 extern void updateMorphTransKernel(void);
+extern void releaseBuffers(void);
 
 
 // Image processing

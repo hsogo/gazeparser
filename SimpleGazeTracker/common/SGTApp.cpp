@@ -330,6 +330,8 @@ int SGTApp::OnExit()
 	cleanupCamera();
 	outputLog("OK.");
 
+	releaseBuffers();
+
 	if (FAILED(saveParameters())) {
 		snprintf(error_message, sizeof(error_message), "Failed to save parameters.");
 		outputLogDlg(error_message, "SimpleGazeTracker warning", wxICON_ERROR);

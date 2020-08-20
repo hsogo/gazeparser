@@ -9,6 +9,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <fstream>
 
 // Logging
 std::fstream g_LogFS;
@@ -102,7 +103,7 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	}
 
 	//Find areas darker than Threshold1
-	cv::threshold(g_SrcImg(g_ROI), tmp0, Threshold1, 127, CV_THRESH_BINARY);
+	cv::threshold(g_SrcImg(g_ROI), tmp0, Threshold1, 127, cv::THRESH_BINARY);
 	if (g_MorphologicalTrans > 1) {
 		cv::morphologyEx(tmp0, tmp, cv::MORPH_CLOSE, g_MorphTransKernel);
 	}
@@ -112,7 +113,7 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	else {
 		tmp = tmp0;
 	}
-	cv::findContours(tmp, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(g_ROI.x, g_ROI.y));
+	cv::findContours(tmp, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE, cv::Point(g_ROI.x, g_ROI.y));
 
 	//If g_ShowCameraImage is true, paint dark areas.
 	if (g_ShowCameraImage) {
@@ -228,8 +229,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 
 		//Find areas brighter than PurkinjeThreshold
 		p = g_SrcImg.ptr<unsigned char>((int)firstCandidateRects[ic].center.y);
-		cv::threshold(g_SrcImg(cv::Rect(x, y, w, h)), roi, PurkinjeThreshold, 200, CV_THRESH_BINARY);
-		cv::findContours(roi, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(x, y));
+		cv::threshold(g_SrcImg(cv::Rect(x, y, w, h)), roi, PurkinjeThreshold, 200, cv::THRESH_BINARY);
+		cv::findContours(roi, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE, cv::Point(x, y));
 
 		int npc = 0;
 		float dx1, dx2, dy1, dy2;
@@ -344,7 +345,7 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 	}
 
 	//Find areas darker than Threshold1
-	cv::threshold(g_SrcImg(g_ROI), tmp0, Threshold1, 127, CV_THRESH_BINARY);
+	cv::threshold(g_SrcImg(g_ROI), tmp0, Threshold1, 127, cv::THRESH_BINARY);
 	if (g_MorphologicalTrans > 1) {
 		cv::morphologyEx(tmp0, tmp, cv::MORPH_CLOSE, g_MorphTransKernel);
 	}
@@ -354,7 +355,7 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 	else {
 		tmp = tmp0;
 	}
-	cv::findContours(tmp, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(g_ROI.x, g_ROI.y));
+	cv::findContours(tmp, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE, cv::Point(g_ROI.x, g_ROI.y));
 
 	//If g_ShowCameraImage is true, paint dark areas.
 	if (g_ShowCameraImage) {
@@ -478,8 +479,8 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 
 		//Find areas brighter than PurkinjeThreshold
 		p = g_SrcImg.ptr<unsigned char>((int)firstCandidateRects[ic].center.y);
-		cv::threshold(g_SrcImg(cv::Rect(x, y, w, h)), roi, PurkinjeThreshold, 200, CV_THRESH_BINARY);
-		cv::findContours(roi, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE, cv::Point(x, y));
+		cv::threshold(g_SrcImg(cv::Rect(x, y, w, h)), roi, PurkinjeThreshold, 200, cv::THRESH_BINARY);
+		cv::findContours(roi, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_NONE, cv::Point(x, y));
 
 		int npc = 0;
 		float dx1, dx2, dy1, dy2;
@@ -625,10 +626,22 @@ void releaseBuffers(void)
 	g_DstImg.release();
 	g_SrcImg.release();
 
-	free(g_SendImageBuffer);
-	free(g_pCalResultTextureBuffer);
-	free(g_pCameraTextureBuffer);
-	free(g_frameBuffer);
+	if (g_SendImageBuffer != NULL) {
+		free(g_SendImageBuffer);
+		g_SendImageBuffer = NULL;
+	}
+	if (g_pCalResultTextureBuffer != NULL) {
+		free(g_pCalResultTextureBuffer);
+		g_pCalResultTextureBuffer = NULL;
+	}
+	if (g_pCameraTextureBuffer != NULL) {
+		free(g_pCameraTextureBuffer);
+		g_pCameraTextureBuffer = NULL;
+	}
+	if (g_frameBuffer != NULL) {
+		free(g_frameBuffer);
+		g_frameBuffer = NULL;
+	}
 }
 
 
