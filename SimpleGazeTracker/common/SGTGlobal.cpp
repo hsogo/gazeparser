@@ -619,6 +619,18 @@ int initBuffers(void)
 	return S_OK;
 }
 
+void releaseBuffers(void)
+{
+	g_CalImg.release();
+	g_DstImg.release();
+	g_SrcImg.release();
+
+	free(g_SendImageBuffer);
+	free(g_pCalResultTextureBuffer);
+	free(g_pCameraTextureBuffer);
+	free(g_frameBuffer);
+}
+
 
 void updateMorphTransKernel(void)
 {

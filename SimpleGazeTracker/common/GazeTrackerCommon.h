@@ -136,6 +136,7 @@ extern std::fstream g_LogFS;
 extern char g_errorMessage[1024];
 
 extern int initBuffers(void);
+extern void releaseBuffers(void);
 
 //Camera.cpp
 extern int initCameraParameters( char* buff, char* parambuff );
