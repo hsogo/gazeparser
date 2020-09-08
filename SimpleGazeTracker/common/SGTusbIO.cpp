@@ -333,6 +333,9 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 		return E_FAIL;
 	}
 
+	// set flag
+	g_useUSBIO = true;
+
 	return S_OK;
 }
 
