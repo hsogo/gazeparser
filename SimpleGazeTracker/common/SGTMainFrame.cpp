@@ -28,9 +28,16 @@ typedef wxIPV4address IPaddress;
 SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint& pos, const wxSize& size, SGTApp* app) :
 	wxFrame(frame, -1, title, pos, size, wxSYSTEM_MENU | wxCLOSE_BOX | wxCAPTION)
 {
-	//wxIcon icon(IDI_ICON);
-	//SetIcon(icon);
-	SetIcon(wxICON(IDI_ICON));
+	wxIcon icon;
+	if (!icon.LoadFile("simplegazetracker.ico", wxBITMAP_TYPE_ICO, -1, -1)) {
+		std::string path;
+		path.assign(g_AppDirPath);
+		path.append("\\..\\common\\simplegazetracker.ico");
+		if (!icon.LoadFile(path.c_str(), wxBITMAP_TYPE_ICO, -1, -1)) {
+			outputLogDlg(path.c_str(), "Error", wxICON_ERROR);
+		}
+	}
+	SetIcon(icon);
 
 	m_pApp = app;
 	m_pData = app->m_pData;
