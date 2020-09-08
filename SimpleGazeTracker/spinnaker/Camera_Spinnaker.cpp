@@ -25,8 +25,8 @@ Spinnaker::SystemPtr g_pSpinnakerSystem = nullptr;
 Spinnaker::CameraList g_CameraList;
 Spinnaker::CameraPtr g_pSpinnakerCam = nullptr;
 
-const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_DEBUG;
-//const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_ERROR;
+//const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_DEBUG;
+const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_ERROR;
 
 class LoggingEventHandler : public Spinnaker::LoggingEvent
 {

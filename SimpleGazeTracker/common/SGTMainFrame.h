@@ -33,7 +33,8 @@ public:
 	void OnRecvSocketEvent(wxSocketEvent& event);
 
 	void updateParamFromTextCtrl(wxEvent &event);
-	void UpdateLogTextBox();
+	void clearMessageTextBox();
+	void updateMessageTextBox(const char* message, bool newline);
 	virtual ~SGTMainFrame();
 
 	int initTCPConnection();
@@ -69,7 +70,7 @@ private:
 	SGTMainThread* m_pMainThread;
 	std::vector<wxStaticText*> m_pMenuItems;
 	std::vector<wxTextCtrl*> m_pMenuTextCtrls;
-	wxTextCtrl* m_LogTextBox;
+	wxTextCtrl* m_MessageTextBox;
 	wxPanel* m_pMenuPanel;
 
 	int m_CurrentMenuPosition = 0;
@@ -91,5 +92,5 @@ private:
 	wxMenu* m_pMenuSystem;
 	wxMenu* m_pMenuHelp;
 
-	std::vector<std::string> m_logVecotr;
+	//std::vector<std::string> m_logVecotr;
 };

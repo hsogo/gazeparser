@@ -25,12 +25,12 @@ typedef wxIPV4address IPaddress;
 #include "SGTCommon.h"
 
 
-
 SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint& pos, const wxSize& size, SGTApp* app) :
 	wxFrame(frame, -1, title, pos, size, wxSYSTEM_MENU | wxCLOSE_BOX | wxCAPTION)
 {
-	wxIcon icon("simplegazetracker.ico");
-	SetIcon(icon);
+	//wxIcon icon(IDI_ICON);
+	//SetIcon(icon);
+	SetIcon(wxICON(IDI_ICON));
 
 	m_pApp = app;
 	m_pData = app->m_pData;
@@ -79,8 +79,8 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	wxBoxSizer *pMainSizer = new wxBoxSizer(wxVERTICAL);
 	pMainSizer->Add(m_pCameraView, 1, wxEXPAND, 0);
 
-	m_LogTextBox = new wxTextCtrl(pMainPanel, wxID_ANY, "", wxPoint(0, 0), wxSize(640, 40), wxTE_MULTILINE | wxTE_READONLY);
-	pMainSizer->Add(m_LogTextBox, 1, wxEXPAND, 0);
+	m_MessageTextBox = new wxTextCtrl(pMainPanel, wxID_ANY, "", wxPoint(0, 0), wxSize(640, 40), wxTE_MULTILINE | wxTE_READONLY);
+	pMainSizer->Add(m_MessageTextBox, 1, wxEXPAND, 0);
 
 	pMainPanel->SetSizer(pMainSizer);
 	pMainPanel->SetAutoLayout(true);
@@ -129,17 +129,26 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 
 }
 
-void SGTMainFrame::UpdateLogTextBox()
+void SGTMainFrame::clearMessageTextBox()
 {
-	std::vector<std::string>::iterator it;
+	m_MessageTextBox->Clear();
+	m_MessageTextBox->Refresh(false);
+}
 
-	m_LogTextBox->Clear();
+void SGTMainFrame::updateMessageTextBox(const char* message, bool newline)
+{
+	/*std::vector<std::string>::iterator it;
+
 	for (it = m_logVecotr.begin(); it != m_logVecotr.end(); it++)
 	{
-		m_LogTextBox->AppendText(*it);
-		m_LogTextBox->AppendText("\n");
+		m_MessageTextBox->AppendText(*it);
+		m_MessageTextBox->AppendText("\n");
+	}*/
+	m_MessageTextBox->AppendText(message);
+	if (newline) {
+		m_MessageTextBox->AppendText("\n");
 	}
-	m_LogTextBox->Refresh(false);
+	m_MessageTextBox->Refresh(false);
 }
 
 void SGTMainFrame::OnExit(wxCommandEvent& event)
@@ -565,9 +574,11 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 	{
 	case wxSOCKET_CONNECTION:
 		outputLog("TCP/IP connection is requested...");
+		updateMessageTextBox("TCP/IP connection is requested...", true);
 		break;
 	default:
 		outputLog("Unexpected TCP/IP event\n");
+		updateMessageTextBox("Warning: Unexpected TCP/IP event", true);
 		break;
 
 	}
@@ -575,6 +586,7 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 	if (m_TCPClientConnected)
 	{
 		outputLog("Client is already connected.");
+		updateMessageTextBox("Warning: Client is alerady connected", true);
 		m_Server->Discard();
 	}
 
@@ -589,6 +601,7 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 		if (!sock->GetPeer(client_addr))
 		{
 			outputLog("Can't get client IP address.");
+			updateMessageTextBox("Error: Can't get client IP address", true);
 			sock->Destroy();
 			return;
 		}
@@ -596,11 +609,13 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 		{
 			ss << "New client connection from " << client_addr.IPAddress() << ":" << client_addr.Service() << "... accepted";
 			outputLog(ss.str().c_str());
+			updateMessageTextBox(ss.str().c_str(), true);
 		}
 	}
 	else
 	{
 		outputLog("Error: couldn't accept a new connection");
+		updateMessageTextBox("Error: couldn't accept a new connection", true);
 		return;
 	}
 
@@ -619,11 +634,13 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 
 	if (!m_Client->IsConnected()) {
 		outputLog("Error: couldn't connect to client.");
+		updateMessageTextBox("Error: could not connect to client.", true);
 		sock->Destroy();
 		return;
 	}
 
 	outputLog("Connected.");
+	updateMessageTextBox("Connected to client.", true);
 	m_TCPClientConnected = true;
 
 	return;
@@ -1218,7 +1235,9 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 		// middle of a test or something. Destroy() takes care of all
 		// this for us.
 
-		outputLogDlg("Client is disconnected", "Info", wxICON_INFORMATION | wxOK);
+		//outputLogDlg("Client is disconnected", "Info", wxICON_INFORMATION | wxOK);
+		outputLog("Client is disconnected.");
+		updateMessageTextBox("Client is disconnected.", true);
 		sock->Destroy();
 		break;
 
@@ -1288,6 +1307,7 @@ void SGTMainFrame::startRecording(char * message)
 		*/
 
 		outputLog("StartRecording ");
+		updateMessageTextBox("Start Recording...", true);
 		return;
 	}
 	else
@@ -1306,7 +1326,7 @@ void SGTMainFrame::stopRecording(char * message)
 		if (FAILED(m_pData->stopRecording(message)))
 		{
 			outputLog("StopRecording (no file) ");
-
+			updateMessageTextBox("Start Recording...", true);
 		}
 		else
 		{
@@ -1364,6 +1384,7 @@ void SGTMainFrame::stopMeasurement(void)
 void SGTMainFrame::startCalibration(int clear)
 {
 	outputLog("StartCalibration");
+	updateMessageTextBox("Start Calibration...", true);
 
 	if (!m_pData->isBusy())
 	{
@@ -1384,6 +1405,7 @@ void SGTMainFrame::startCalibration(int clear)
 void SGTMainFrame::endCalibration(void)
 {
 	outputLog("EndCalibration");
+	updateMessageTextBox("Finished.", true);
 
 	m_pData->finishCalibration();
 
@@ -1399,6 +1421,7 @@ void SGTMainFrame::endCalibration(void)
 void SGTMainFrame::startValidation(void)
 {
 	outputLog("StartValidation");
+	updateMessageTextBox("Start Varidation...", true);
 
 	if (!m_pData->isBusy()) { //ready to start calibration?
 		m_pData->clearCalibrationData();
@@ -1413,6 +1436,8 @@ void SGTMainFrame::startValidation(void)
 void SGTMainFrame::endValidation(void)
 {
 	outputLog("EndValidation");
+	updateMessageTextBox("Finished.", true);
+
 	m_pData->setCalibrationResults();
 
 	m_isValidating = false;
@@ -1429,6 +1454,7 @@ void SGTMainFrame::saveCameraImage(const char* filename)
 
 	str.insert(0, "Capture camera image as ");
 	outputLog(str.c_str());
+	updateMessageTextBox(str.c_str(), true);
 }
 
 

@@ -121,7 +121,9 @@ bool SGTApp::OnInit()
 	logFilePath.assign(g_DataPath);
 	logFilePath.append(PATH_SEPARATOR);
 	logFilePath.append("SimpleGazeTracker.log");
-	openLogFile(logFilePath.c_str());
+	if (FAILED(openLogFile(logFilePath.c_str()))) {
+		return false;
+	}
 
 	std::stringstream ss;
 	ss << "Welcome to SimpleGazeTracker version " << VERSION << " " << getEditionString() << std::endl;
@@ -200,7 +202,6 @@ bool SGTApp::OnInit()
 		outputLog( "Error: Could not initialize parameters. Check configuration file." );
 		return false;
 	}
-	outputLog("Ok");
 
 	// now we can open main frame
 	ss.str("");
@@ -208,7 +209,7 @@ bool SGTApp::OnInit()
 	m_pData = new SGTData(g_RecordingMode);
 	SGTMainFrame* pMainFrame = new SGTMainFrame(NULL, ss.str(), wxPoint(-1,-1), wxSize(1024,768), this);
 	pMainFrame->Show();
-	pMainFrame->UpdateLogTextBox();
+	pMainFrame->updateMessageTextBox(ss.str().c_str(), true);
 	pMainFrame->updateMenuPanel();
 
 	//TODO output timer initialization results?
@@ -237,7 +238,6 @@ bool SGTApp::OnInit()
 		}
 		return false;
 	}
-	outputLog("Ok");
 
 	outputLog("Initializing network...");
 	pMainFrame->initTCPConnection();
@@ -266,7 +266,6 @@ bool SGTApp::OnInit()
 		outputLog( "initCamera failed. Exit." );
 		return false;
 	}
-	outputLog("Ok");
 
 	// USB
 	m_pUSBIO = new SGTusbIO();
@@ -298,7 +297,6 @@ bool SGTApp::OnInit()
 
 		//set usbIO object
 		m_pData->setUSBIO(m_pUSBIO);
-		outputLog("Ok");
 	}
 	else {
 		outputLog("NO USB/IO");
@@ -313,7 +311,7 @@ bool SGTApp::OnInit()
 		wxExit();
 	}
 
-	outputLog("Ok");
+	outputLog("Application is successfully initialized.");
 
 
 	return true;
