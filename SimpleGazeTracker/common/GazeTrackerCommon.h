@@ -177,4 +177,6 @@ extern bool g_useUSBIO;
 extern std::string g_MenuString[];
 extern std::string g_CustomMenuString[];
 
+// Threaidng
 extern bool g_runMainThread;
+
