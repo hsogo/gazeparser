@@ -31,6 +31,7 @@ public:
 	void OnTEProcessEnter(wxEvent& event);
 	void OnServerEvent(wxSocketEvent& event);
 	void OnRecvSocketEvent(wxSocketEvent& event);
+	void OnOpenConfigDialog(wxCommandEvent & event);
 
 	void updateParamFromTextCtrl(wxEvent &event);
 	void clearMessageTextBox();

@@ -21,6 +21,7 @@ typedef wxIPV4address IPaddress;
 
 #include "SGTApp.h"
 #include "SGTMainFrame.h"
+#include "SGTConfigDlg.h"
 
 #include "SGTCommon.h"
 
@@ -29,15 +30,20 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	wxFrame(frame, -1, title, pos, size, wxSYSTEM_MENU | wxCLOSE_BOX | wxCAPTION)
 {
 	wxIcon icon;
-	if (!icon.LoadFile("simplegazetracker.ico", wxBITMAP_TYPE_ICO, -1, -1)) {
+	if (FAILED(checkFile(g_AppDirPath, "simplegazetracker.ico"))) {
 		std::string path;
 		path.assign(g_AppDirPath);
 		path.append("\\..\\common\\simplegazetracker.ico");
 		if (!icon.LoadFile(path.c_str(), wxBITMAP_TYPE_ICO, -1, -1)) {
 			outputLogDlg(path.c_str(), "Error", wxICON_ERROR);
 		}
+		SetIcon(icon);
 	}
-	SetIcon(icon);
+	else
+	{
+		icon.LoadFile("simplegazetracker.ico", wxBITMAP_TYPE_ICO, -1, -1);
+		SetIcon(icon);
+	}
 
 	m_pApp = app;
 	m_pData = app->m_pData;
@@ -50,9 +56,11 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	ID_RECV_SOCKET = wxNewId();
 	int ID_MENU_HTMLDOC = wxNewId();
 	int ID_MENU_CAPTUREIMAGE = wxNewId();
+	int ID_MENU_CONFIGDIALOG = wxNewId();
 	ID_MENU_TOGGLECALRESULT = wxNewId();
 	ID_MENU_NORENDERRECORDING = wxNewId();
 
+	m_pMenuSystem->Append(ID_MENU_CONFIGDIALOG, "Open config dialog");
 	m_pMenuSystem->Append(ID_MENU_CAPTUREIMAGE, "Capture camera image");
 	m_pMenuSystem->AppendSeparator();
 	m_pMenuSystem->AppendCheckItem(ID_MENU_TOGGLECALRESULT, "Show calibration result");
@@ -71,6 +79,7 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnExit, this, wxID_EXIT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnHTMLDoc, this, ID_MENU_HTMLDOC);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnCaptureCameraImage, this, ID_MENU_CAPTUREIMAGE);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnOpenConfigDialog, this, ID_MENU_CONFIGDIALOG);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnToggleCalResults, this, ID_MENU_TOGGLECALRESULT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnRenderRecording, this, ID_MENU_NORENDERRECORDING);
 	Bind(wxEVT_CHAR_HOOK, &SGTMainFrame::OnKeyDown, this);
@@ -164,6 +173,8 @@ void SGTMainFrame::OnExit(wxCommandEvent& event)
 		g_runMainThread = false;
 	}
 
+	m_pMainThread->Wait();
+
 	Close(false);
 }
 
@@ -211,6 +222,12 @@ void SGTMainFrame::OnHTMLDoc(wxCommandEvent& event)
 	openLocation(path);
 
 	return;
+}
+
+void SGTMainFrame::OnOpenConfigDialog(wxCommandEvent & event)
+{
+	SGTConfigDlg* dlg = new SGTConfigDlg(this, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+	dlg->ShowModal();
 }
 
 void SGTMainFrame::OnCaptureCameraImage(wxCommandEvent & event)
@@ -915,6 +932,8 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					char* param = buff + nextp + 14;
 					m_pData->insertMessage(param);
 
+					updateMessageTextBox(param, true);
+
 					nextp = seekNextCommand(buff, received, nextp, 2);
 				}
 				else if (strcmp(buff + nextp, "getEyePosition") == 0)
@@ -1333,11 +1352,12 @@ void SGTMainFrame::stopRecording(char * message)
 		if (FAILED(m_pData->stopRecording(message)))
 		{
 			outputLog("StopRecording (no file) ");
-			updateMessageTextBox("Start Recording...", true);
+			updateMessageTextBox("Stop Recording (no file)", true);
 		}
 		else
 		{
 			outputLog("StopRecording");
+			updateMessageTextBox("Stop Recording.", true);
 		}
 
 		m_isRecording = false;
@@ -1346,6 +1366,7 @@ void SGTMainFrame::stopRecording(char * message)
 	else
 	{
 		outputLog("Warning: stopRecording is called before starting");
+		updateMessageTextBox("Warning: stopRecording is called before starting.", true);
 	}
 }
 

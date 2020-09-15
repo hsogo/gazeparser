@@ -13,7 +13,7 @@
 #include "SGTData.h"
 
 
-SGTMainThread::SGTMainThread(SGTMainFrame* frame) : wxThread(wxTHREAD_DETACHED)
+SGTMainThread::SGTMainThread(SGTMainFrame* frame) : wxThread(wxTHREAD_JOINABLE)
 {
 	m_pMainFrame = frame;
 	m_pData = frame->getSGTData();
