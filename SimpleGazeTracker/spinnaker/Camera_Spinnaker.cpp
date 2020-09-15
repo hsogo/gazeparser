@@ -11,6 +11,9 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
 
+#include "../common/SGTConfigDlg.h"
+extern std::vector<SGTParam*> g_pCameraParamsVector;
+
 #include "GazeTracker.h"
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
@@ -99,41 +102,17 @@ initCameraParameters: Initialize camera specific parameters
 @date 2020/03/16
 Created.
 */
-int initCameraParameters(char* buff, char* parambuff)
+int initCameraParameters(char* buff, char* p)
 {
-	char *p, *pp;
-	double param;
-
-	p = parambuff;
-	param = strtod(p, &pp); //paramete is not int but double
-
-	if (strcmp(buff, "CAMERA_N") == 0)
-	{
-		g_CameraN = (int)param;
-	}
-	else if (strcmp(buff, "OFFSET_X") == 0)
-	{
-		g_OffsetX = (int)param;
-	}
-	else if (strcmp(buff, "OFFSET_Y") == 0)
-	{
-		g_OffsetY = (int)param;
-	}
-	else if (strcmp(buff, "BINNING_SIZE") == 0)
-	{
-		g_Binning = (int)param;
-	}
-	else if (strcmp(buff, "FRAME_RATE") == 0)
-	{
-		g_FrameRate = (float)param;
-	}
-	else if (strcmp(buff, "EXPOSURE") == 0)
-	{
-		g_Exposure = (float)param;
-	}
+	if (strcmp(buff, "CAMERA_N") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("CAMERA_N", &g_CameraN, p));
+	else if (strcmp(buff, "OFFSET_X") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("OFFSET_X", &g_OffsetX, p));
+	else if (strcmp(buff, "OFFSET_Y") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("OFFSET_Y", &g_OffsetY, p));
+	else if (strcmp(buff, "BINNING_SIZE") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("BINNING_SIZE", &g_Binning, p));
+	else if (strcmp(buff, "FRAME_RATE") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("FRAME_RATE", &g_FrameRate, p));
+	else if (strcmp(buff, "EXPOSURE") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("EXPOSURE", &g_Exposure, p));
 	else if (strcmp(buff, "BLUR_FILTER_SIZE") == 0)
 	{
-		g_BlurFilterSize = (int)param;
+		g_pCameraParamsVector.push_back(new SGTParamInt("BLUR_FILTER_SIZE", &g_BlurFilterSize, p));
 		if (g_BlurFilterSize > 1) g_UseBlurFilter = true;
 		else g_UseBlurFilter = false;
 	}

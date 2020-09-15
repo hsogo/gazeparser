@@ -17,6 +17,7 @@
 #include "SGTCommon.h"
 #include "SGTApp.h"
 #include "SGTMainFrame.h"
+#include "SGTConfigDlg.h"
 
 
 #ifdef _WIN32
@@ -78,6 +79,9 @@ int g_PortSend = PORT_SEND;
 extern int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results);
 extern int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results);
 
+extern std::vector<SGTParam*> g_pGeneralParamsVector;
+extern std::vector<SGTParam*> g_pImageParamsVector;
+extern std::vector<SGTParam*> g_pIOParamsVector;
 
 wxIMPLEMENT_APP(SGTApp);
 
@@ -390,8 +394,7 @@ int initParameters(void)
 	std::string fname;
 	char buff[1024];
 	char error_message[1024];
-	char *p, *pp;
-	int param;
+	char *p;
 	bool inCommonSection = false;
 	bool inCameraSection = false;
 
@@ -451,31 +454,31 @@ int initParameters(void)
 		p += 1;
 
 		if (inCommonSection) {
-			//interpret as integer
-			param = strtol(p, &pp, 10);
-
-			if (strcmp(buff, "THRESHOLD") == 0) g_Threshold = param;
-			else if (strcmp(buff, "MAX_PUPIL_WIDTH") == 0) g_MaxPupilWidth = param;
-			else if (strcmp(buff, "MIN_PUPIL_WIDTH") == 0) g_MinPupilWidth = param;
-			else if (strcmp(buff, "PURKINJE_THRESHOLD") == 0) g_PurkinjeThreshold = param;
-			else if (strcmp(buff, "PURKINJE_SEARCHAREA") == 0) g_PurkinjeSearchArea = param;
-			else if (strcmp(buff, "PURKINJE_EXCLUDEAREA") == 0) g_PurkinjeExcludeArea = param;
-			else if (strcmp(buff, "BINOCULAR") == 0) g_RecordingMode = param;
-			else if (strcmp(buff, "CAMERA_WIDTH") == 0) g_CameraWidth = param;
-			else if (strcmp(buff, "CAMERA_HEIGHT") == 0) g_CameraHeight = param;
-			else if (strcmp(buff, "PREVIEW_WIDTH") == 0) g_PreviewWidth = param;
-			else if (strcmp(buff, "PREVIEW_HEIGHT") == 0) g_PreviewHeight = param;
-			else if (strcmp(buff, "ROI_WIDTH") == 0) g_ROIWidth = param;
-			else if (strcmp(buff, "ROI_HEIGHT") == 0) g_ROIHeight = param;
-			else if (strcmp(buff, "SHOW_DETECTIONERROR_MSG") == 0) g_ShowDetectionErrorMsg = param;
-			else if (strcmp(buff, "PORT_SEND") == 0) g_PortSend = param;
-			else if (strcmp(buff, "PORT_RECV") == 0) g_PortRecv = param;
-			else if (strcmp(buff, "DELAY_CORRECTION") == 0) g_DelayCorrection = param;
-			else if (strcmp(buff, "OUTPUT_PUPILSIZE") == 0) g_OutputPupilSize = param;
-			else if (strcmp(buff, "USBIO_BOARD") == 0) g_USBIOBoard = p;
-			else if (strcmp(buff, "USBIO_AD") == 0) g_USBIOParamAD = p;
-			else if (strcmp(buff, "USBIO_DI") == 0) g_USBIOParamDI = p;
-			else if (strcmp(buff, "MORPH_TRANS") == 0) g_MorphologicalTrans = param;
+			//General
+			if (strcmp(buff, "THRESHOLD") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("THRESHOLD", &g_Threshold, p));
+			else if (strcmp(buff, "MAX_PUPIL_WIDTH") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("MAX_PUPIL_WIDTH", &g_MaxPupilWidth, p));
+			else if (strcmp(buff, "MIN_PUPIL_WIDTH") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("MIN_PUPIL_WIDTH", &g_MinPupilWidth, p));
+			else if (strcmp(buff, "PURKINJE_THRESHOLD") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("PURKINJE_THRESHOLD", &g_PurkinjeThreshold, p));
+			else if (strcmp(buff, "PURKINJE_SEARCHAREA") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("PURKINJE_SEARCHAREA", &g_PurkinjeSearchArea, p));
+			else if (strcmp(buff, "PURKINJE_EXCLUDEAREA") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("PURKINJE_EXCLUDEAREA", &g_PurkinjeExcludeArea, p));
+			else if (strcmp(buff, "BINOCULAR") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("BINOCULAR", &g_RecordingMode, p));
+			else if (strcmp(buff, "SHOW_DETECTIONERROR_MSG") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("SHOW_DETECTIONERROR_MSG", &g_ShowDetectionErrorMsg, p));
+			else if (strcmp(buff, "MORPH_TRANS") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("MORPH_TRANS", &g_MorphologicalTrans, p));
+			//Image
+			else if (strcmp(buff, "CAMERA_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("CAMERA_WIDTH", &g_CameraWidth, p));
+			else if (strcmp(buff, "CAMERA_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("CAMERA_HEIGHT", &g_CameraHeight, p));
+			else if (strcmp(buff, "PREVIEW_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("PREVIEW_WIDTH", &g_PreviewWidth, p));
+			else if (strcmp(buff, "PREVIEW_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("PREVIEW_HEIGHT", &g_PreviewHeight, p));
+			else if (strcmp(buff, "ROI_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("ROI_WIDTH", &g_ROIWidth, p));
+			else if (strcmp(buff, "ROI_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("ROI_WEIGHT", &g_ROIHeight, p));
+			//IO
+			else if (strcmp(buff, "OUTPUT_PUPILSIZE") == 0) g_pIOParamsVector.push_back(new SGTParamInt("OUTPUT_PUPILSIZE", &g_OutputPupilSize, p));
+			else if (strcmp(buff, "PORT_SEND") == 0) g_pIOParamsVector.push_back(new SGTParamInt("PORT_SEND", &g_PortSend, p));
+			else if (strcmp(buff, "PORT_RECV") == 0) g_pIOParamsVector.push_back(new SGTParamInt("PORT_RECV", &g_PortRecv, p));
+			else if (strcmp(buff, "DELAY_CORRECTION") == 0) g_pIOParamsVector.push_back(new SGTParamInt("DELAY_CORRECTION", &g_DelayCorrection, p));
+			else if (strcmp(buff, "USBIO_BOARD") == 0) g_pIOParamsVector.push_back(new SGTParamString("USBIO_BOARD", &g_USBIOBoard, p));
+			else if (strcmp(buff, "USBIO_AD") == 0) g_pIOParamsVector.push_back(new SGTParamString("USBIO_AD", &g_USBIOParamAD, p));
+			else if (strcmp(buff, "USBIO_DI") == 0) g_pIOParamsVector.push_back(new SGTParamString("USBIO_DI", &g_USBIOParamDI, p));
 			//obsolete parameters
 			else if (strcmp(buff, "MAXPOINTS") == 0) {
 				outputLog("Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
