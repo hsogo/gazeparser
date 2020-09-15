@@ -739,7 +739,7 @@ class ControllerPsychoPyBackend(BaseController):
             self.calTargetPosition = currentPosition
         
         t1 = self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY
-        t2 = t1 + 1.0/60 * NUM_SAMPLES_PER_POS
+        t2 = t1 + 1.0/60 * NUM_SAMPLES_PER_TRGPOS
         if t2-t1 < 1.0/60*2: # flash at reast 2 frames (@60fps)
             t2 = t1+1.0/60*2
         
