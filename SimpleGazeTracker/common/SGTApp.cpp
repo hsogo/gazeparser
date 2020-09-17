@@ -455,30 +455,52 @@ int initParameters(void)
 
 		if (inCommonSection) {
 			//General
-			if (strcmp(buff, "THRESHOLD") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("THRESHOLD", &g_Threshold, p));
-			else if (strcmp(buff, "MAX_PUPIL_WIDTH") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("MAX_PUPIL_WIDTH", &g_MaxPupilWidth, p));
-			else if (strcmp(buff, "MIN_PUPIL_WIDTH") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("MIN_PUPIL_WIDTH", &g_MinPupilWidth, p));
-			else if (strcmp(buff, "PURKINJE_THRESHOLD") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("PURKINJE_THRESHOLD", &g_PurkinjeThreshold, p));
-			else if (strcmp(buff, "PURKINJE_SEARCHAREA") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("PURKINJE_SEARCHAREA", &g_PurkinjeSearchArea, p));
-			else if (strcmp(buff, "PURKINJE_EXCLUDEAREA") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("PURKINJE_EXCLUDEAREA", &g_PurkinjeExcludeArea, p));
-			else if (strcmp(buff, "BINOCULAR") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("BINOCULAR", &g_RecordingMode, p));
-			else if (strcmp(buff, "SHOW_DETECTIONERROR_MSG") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("SHOW_DETECTIONERROR_MSG", &g_ShowDetectionErrorMsg, p));
-			else if (strcmp(buff, "MORPH_TRANS") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("MORPH_TRANS", &g_MorphologicalTrans, p));
+			if (strcmp(buff, "THRESHOLD") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("THRESHOLD", &g_Threshold, p,
+				"Threshold for pupil detection.\n(Value: positive integer)"));
+			else if (strcmp(buff, "MAX_PUPIL_WIDTH") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("MAX_PUPIL_WIDTH", &g_MaxPupilWidth, p,
+				"Max radius of pupil in pixel.\n(Type: positive integer)"));
+			else if (strcmp(buff, "MIN_PUPIL_WIDTH") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("MIN_PUPIL_WIDTH", &g_MinPupilWidth, p,
+				"Min radius of pupil in pixel.\n(Value: positive integer)"));
+			else if (strcmp(buff, "PURKINJE_THRESHOLD") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("PURKINJE_THRESHOLD", &g_PurkinjeThreshold, p,
+				"Threshold for Purkinje image detection,\n(Value: positive integer)"));
+			else if (strcmp(buff, "PURKINJE_SEARCHAREA") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("PURKINJE_SEARCHAREA", &g_PurkinjeSearchArea, p,
+				"Size of search area for Purkinje image in pixel.\n(Value: positive integer)"));
+			else if (strcmp(buff, "PURKINJE_EXCLUDEAREA") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("PURKINJE_EXCLUDEAREA", &g_PurkinjeExcludeArea, p,
+				"Radius of exclude area for pupil fitting.\n(Value: positive integer)"));
+			else if (strcmp(buff, "BINOCULAR") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("BINOCULAR", &g_RecordingMode, p,
+				"Binocular mode.\n(Value: 0 for No / 1 for Yes)"));
+			else if (strcmp(buff, "SHOW_DETECTIONERROR_MSG") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("SHOW_DETECTIONERROR_MSG", &g_ShowDetectionErrorMsg, p,
+				"Show detection error message on preview pane.\n(Value: 0 for hide / 1 for show)"));
+			else if (strcmp(buff, "MORPH_TRANS") == 0) g_pGeneralParamsVector.push_back(new SGTParamInt("MORPH_TRANS", &g_MorphologicalTrans, p,
+				"Adjust effect of morphological transformation.\n(Value: positive integer for closing / negative integer for opening)"));
 			//Image
-			else if (strcmp(buff, "CAMERA_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("CAMERA_WIDTH", &g_CameraWidth, p));
-			else if (strcmp(buff, "CAMERA_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("CAMERA_HEIGHT", &g_CameraHeight, p));
-			else if (strcmp(buff, "PREVIEW_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("PREVIEW_WIDTH", &g_PreviewWidth, p));
-			else if (strcmp(buff, "PREVIEW_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("PREVIEW_HEIGHT", &g_PreviewHeight, p));
-			else if (strcmp(buff, "ROI_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("ROI_WIDTH", &g_ROIWidth, p));
-			else if (strcmp(buff, "ROI_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("ROI_WEIGHT", &g_ROIHeight, p));
+			else if (strcmp(buff, "CAMERA_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("CAMERA_WIDTH", &g_CameraWidth, p, 
+				"Width of camera image in pixel.\n(Value: positive integer)"));
+			else if (strcmp(buff, "CAMERA_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("CAMERA_HEIGHT", &g_CameraHeight, p,
+				"Height of camera image in pixel.\n(Value: positive integer)"));
+			else if (strcmp(buff, "PREVIEW_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("PREVIEW_WIDTH", &g_PreviewWidth, p,
+				"Width of preview pane in pixel.\n(Value: positive integer)"));
+			else if (strcmp(buff, "PREVIEW_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("PREVIEW_HEIGHT", &g_PreviewHeight, p,
+				"Height of preview pane in pixel.\n(Value: positive integer)"));
+			else if (strcmp(buff, "ROI_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("ROI_WIDTH", &g_ROIWidth, p,
+				"Width of region of interest in pixel.\n(Value: positive integer)"));
+			else if (strcmp(buff, "ROI_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("ROI_WEIGHT", &g_ROIHeight, p,
+				"Height of region of interest in pixel.\n(Value: positive integer)"));
 			//IO
-			else if (strcmp(buff, "OUTPUT_PUPILSIZE") == 0) g_pIOParamsVector.push_back(new SGTParamInt("OUTPUT_PUPILSIZE", &g_OutputPupilSize, p));
-			else if (strcmp(buff, "PORT_SEND") == 0) g_pIOParamsVector.push_back(new SGTParamInt("PORT_SEND", &g_PortSend, p));
-			else if (strcmp(buff, "PORT_RECV") == 0) g_pIOParamsVector.push_back(new SGTParamInt("PORT_RECV", &g_PortRecv, p));
-			else if (strcmp(buff, "DELAY_CORRECTION") == 0) g_pIOParamsVector.push_back(new SGTParamInt("DELAY_CORRECTION", &g_DelayCorrection, p));
-			else if (strcmp(buff, "USBIO_BOARD") == 0) g_pIOParamsVector.push_back(new SGTParamString("USBIO_BOARD", &g_USBIOBoard, p));
-			else if (strcmp(buff, "USBIO_AD") == 0) g_pIOParamsVector.push_back(new SGTParamString("USBIO_AD", &g_USBIOParamAD, p));
-			else if (strcmp(buff, "USBIO_DI") == 0) g_pIOParamsVector.push_back(new SGTParamString("USBIO_DI", &g_USBIOParamDI, p));
+			else if (strcmp(buff, "OUTPUT_PUPILSIZE") == 0) g_pIOParamsVector.push_back(new SGTParamInt("OUTPUT_PUPILSIZE", &g_OutputPupilSize, p,
+				"Record pupil size.\n(Value: 0 for No / 1 for Yes)"));
+			else if (strcmp(buff, "PORT_SEND") == 0) g_pIOParamsVector.push_back(new SGTParamInt("PORT_SEND", &g_PortSend, p,
+				"TCP/IP port for sending data.\n(Value: positive integer)"));
+			else if (strcmp(buff, "PORT_RECV") == 0) g_pIOParamsVector.push_back(new SGTParamInt("PORT_RECV", &g_PortRecv, p,
+				"TCP/IP port for receiving data.\n(Value: positive integer)"));
+			else if (strcmp(buff, "DELAY_CORRECTION") == 0) g_pIOParamsVector.push_back(new SGTParamInt("DELAY_CORRECTION", &g_DelayCorrection, p,
+				"Delay correction in milliseconds.\n(Value: integer)"));
+			else if (strcmp(buff, "USBIO_BOARD") == 0) g_pIOParamsVector.push_back(new SGTParamString("USBIO_BOARD", &g_USBIOBoard, p,
+				"Name of USB I/O board. Leave this empty if USB I/O board is not available.\n(Value: string)"));
+			else if (strcmp(buff, "USBIO_AD") == 0) g_pIOParamsVector.push_back(new SGTParamString("USBIO_AD", &g_USBIOParamAD, p,
+				"Set channel and range of analog input (e.g. 0;BIP5V;1;UNI10V).\n(Value: string)"));
+			else if (strcmp(buff, "USBIO_DI") == 0) g_pIOParamsVector.push_back(new SGTParamString("USBIO_DI", &g_USBIOParamDI, p,
+				"Set port of digital input.\n(Value: string)"));
 			//obsolete parameters
 			else if (strcmp(buff, "MAXPOINTS") == 0) {
 				outputLog("Warning: MAXPINTS is obsolete in this version. Use MAX_PUPIL_WIDTH instead.");
@@ -538,8 +560,10 @@ int saveParameters(void)
 		return E_FAIL;
 	}
 
+	// Not use SGTParam list to keep order of items in config file.
 	fs << "#If you want to recover original settings, delete this file and start eye tracker program." << std::endl;
 	fs << "[SimpleGazeTrackerCommon]" << std::endl;
+	// general
 	fs << "THRESHOLD=" << g_Threshold << std::endl;
 	fs << "MAX_PUPIL_WIDTH=" << g_MaxPupilWidth << std::endl;
 	fs << "MIN_PUPIL_WIDTH=" << g_MinPupilWidth << std::endl;
@@ -547,6 +571,9 @@ int saveParameters(void)
 	fs << "PURKINJE_SEARCHAREA=" << g_PurkinjeSearchArea << std::endl;
 	fs << "PURKINJE_EXCLUDEAREA=" << g_PurkinjeExcludeArea << std::endl;
 	fs << "BINOCULAR=" << g_RecordingMode << std::endl;
+	fs << "SHOW_DETECTIONERROR_MSG=" << g_ShowDetectionErrorMsg << std::endl;
+	fs << "MORPH_TRANS=" << g_MorphologicalTrans << std::endl;
+	// image
 	fs << "CAMERA_WIDTH=" << g_CameraWidth << std::endl;
 	fs << "CAMERA_HEIGHT=" << g_CameraHeight << std::endl;
 	fs << "PREVIEW_WIDTH=" << g_PreviewWidth << std::endl;
@@ -566,7 +593,7 @@ int saveParameters(void)
 	{
 		fs << "ROI_HEIGHT=" << g_ROIHeight << std::endl;
 	}
-	fs << "SHOW_DETECTIONERROR_MSG=" << g_ShowDetectionErrorMsg << std::endl;
+	// io
 	fs << "PORT_SEND=" << g_PortSend << std::endl;
 	fs << "PORT_RECV=" << g_PortRecv << std::endl;
 	fs << "DELAY_CORRECTION=" << g_DelayCorrection << std::endl;
@@ -574,7 +601,6 @@ int saveParameters(void)
 	fs << "USBIO_BOARD=" << g_USBIOBoard << std::endl;
 	fs << "USBIO_AD=" << g_USBIOParamAD << std::endl;
 	fs << "USBIO_DI=" << g_USBIOParamDI << std::endl;
-	fs << "MORPH_TRANS=" << g_MorphologicalTrans << std::endl;
 
 	fs << std::endl << "[SimpleGazeTrackerCamera]" << std::endl;
 	saveCameraParameters(&fs);

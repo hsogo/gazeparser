@@ -10,20 +10,28 @@
 class SGTParam
 {
 public:
-	char m_pName[64];
 	char* getName() { return m_pName; };
+	std::string getHint() { return m_hint; };
 	virtual const char* getValueStr() = 0;
-	virtual void serialize(std::string* buff) {};
+	virtual void backup() {};
+	virtual void restore() {};
+	virtual bool validate(const std::string s, bool update) { return true; };
+
+	char m_pName[64];
+	std::string m_hint;
 };
 
 class SGTParamInt : public SGTParam
 {
 public:
-	SGTParamInt(const char* name, int* var, const char* p);
+	SGTParamInt(const char* name, int* var, const char* p, const char* hint);
 	const char* getValueStr() { snprintf(m_buff, sizeof(m_buff), "%d", *m_Value); return m_buff; };
-	//void serialize(std::string* buff);
+	void backup() { m_Backup = *m_Value; };
+	void restore() { *m_Value = m_Backup; };
+	bool validate(const std::string s, bool update);
 private:
 	int* m_Value;
+	int m_Backup;
 	char m_buff[100];
 };
 
@@ -31,11 +39,14 @@ private:
 class SGTParamFloat : public SGTParam
 {
 public:
-	SGTParamFloat(const char* name, float* var, const char* p);
+	SGTParamFloat(const char* name, float* var, const char* p, const char* hint);
 	const char* getValueStr() { snprintf(m_buff, sizeof(m_buff), "%f", *m_Value); return m_buff; };
-	//void serialize(std::string* buff);
+	void backup() { m_Backup = *m_Value; };
+	void restore() { *m_Value = m_Backup; };
+	bool validate(const std::string s, bool update);
 private:
 	float* m_Value;
+	float m_Backup;
 	char m_buff[100];
 };
 
@@ -43,11 +54,14 @@ private:
 class SGTParamString : public SGTParam
 {
 public:
-	SGTParamString(const char* name, std::string* var, const char* p);
+	SGTParamString(const char* name, std::string* var, const char* p, const char* hint);
 	const char* getValueStr() { return m_Value->c_str(); };
-	//void serialize(std::string* buff);
+	void backup() { m_Backup.assign(*m_Value); };
+	void restore() { m_Value->assign(m_Backup); };
+	bool validate(const std::string s, bool update); // always true
 private:
 	std::string* m_Value;
+	std::string m_Backup;
 };
 
 
@@ -59,7 +73,9 @@ public:
 
 private:
 	wxNotebook* notebook;
-	std::vector<wxStaticText*> m_pParamItems;
+	std::vector<SGTParam*> m_pParamItems;
 	std::vector<wxTextCtrl*> m_pParamTextCtrls;
+	void onCancelButton(wxCommandEvent& event);
+	void onSaveExitButton(wxCommandEvent& event);
 };
 

@@ -169,12 +169,6 @@ void SGTMainFrame::updateMessageTextBox(const char* message, bool newline)
 
 void SGTMainFrame::OnExit(wxCommandEvent& event)
 {
-	if (m_pMainThread != NULL && m_pMainThread->IsRunning()) {
-		g_runMainThread = false;
-	}
-
-	m_pMainThread->Wait();
-
 	Close(false);
 }
 
@@ -227,7 +221,10 @@ void SGTMainFrame::OnHTMLDoc(wxCommandEvent& event)
 void SGTMainFrame::OnOpenConfigDialog(wxCommandEvent & event)
 {
 	SGTConfigDlg* dlg = new SGTConfigDlg(this, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
-	dlg->ShowModal();
+	if (dlg->ShowModal() == wxOK) {
+		wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK|wxICON_INFORMATION);
+		Close(false);
+	}
 }
 
 void SGTMainFrame::OnCaptureCameraImage(wxCommandEvent & event)
@@ -278,7 +275,11 @@ void SGTMainFrame::OnRenderRecording(wxCommandEvent & event)
 
 SGTMainFrame::~SGTMainFrame()
 {
+	if (m_pMainThread != NULL && m_pMainThread->IsRunning()) {
+		g_runMainThread = false;
+	}
 
+	m_pMainThread->Wait();
 }
 
 int SGTMainFrame::initTCPConnection()

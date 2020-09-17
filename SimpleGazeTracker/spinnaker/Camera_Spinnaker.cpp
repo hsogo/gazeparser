@@ -11,6 +11,7 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
 
+//must be included before Spinnkaer header files
 #include "../common/SGTConfigDlg.h"
 extern std::vector<SGTParam*> g_pCameraParamsVector;
 
@@ -104,15 +105,22 @@ Created.
 */
 int initCameraParameters(char* buff, char* p)
 {
-	if (strcmp(buff, "CAMERA_N") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("CAMERA_N", &g_CameraN, p));
-	else if (strcmp(buff, "OFFSET_X") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("OFFSET_X", &g_OffsetX, p));
-	else if (strcmp(buff, "OFFSET_Y") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("OFFSET_Y", &g_OffsetY, p));
-	else if (strcmp(buff, "BINNING_SIZE") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("BINNING_SIZE", &g_Binning, p));
-	else if (strcmp(buff, "FRAME_RATE") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("FRAME_RATE", &g_FrameRate, p));
-	else if (strcmp(buff, "EXPOSURE") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("EXPOSURE", &g_Exposure, p));
+	if (strcmp(buff, "CAMERA_N") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("CAMERA_N", &g_CameraN, p,
+		"Set camera ID.\n(Value: integer)"));
+	else if (strcmp(buff, "OFFSET_X") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("OFFSET_X", &g_OffsetX, p,
+		"Horizontal offset of caputure area in pixel.\n(Value: positive integer)"));
+	else if (strcmp(buff, "OFFSET_Y") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("OFFSET_Y", &g_OffsetY, p,
+	"	Vertical offset of caputure area in pixel.\n(Value: positive integer)"));
+	else if (strcmp(buff, "BINNING_SIZE") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("BINNING_SIZE", &g_Binning, p,
+		"Set binning size in pixel. Set 0 to disable binning.\n(Value:integer"));
+	else if (strcmp(buff, "FRAME_RATE") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("FRAME_RATE", &g_FrameRate, p,
+		"Set frame rate.\n(Value: float)"));
+	else if (strcmp(buff, "EXPOSURE") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("EXPOSURE", &g_Exposure, p,
+		"Set exposure.\n(Value: float)"));
 	else if (strcmp(buff, "BLUR_FILTER_SIZE") == 0)
 	{
-		g_pCameraParamsVector.push_back(new SGTParamInt("BLUR_FILTER_SIZE", &g_BlurFilterSize, p));
+		g_pCameraParamsVector.push_back(new SGTParamInt("BLUR_FILTER_SIZE", &g_BlurFilterSize, p,
+			"Size of Gaussian filter. Set 0 to disable it.\n(Vaue:integer)"));
 		if (g_BlurFilterSize > 1) g_UseBlurFilter = true;
 		else g_UseBlurFilter = false;
 	}
