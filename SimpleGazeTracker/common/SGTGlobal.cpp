@@ -16,15 +16,8 @@ std::fstream g_LogFS;
 
 int openLogFile(const char* fname)
 {
-	char error_message[1024];
-
 	g_LogFS.open(fname, std::ios::out);
 	if (!g_LogFS.is_open()) {
-		snprintf(error_message, sizeof(error_message),
-			"Log file (%s) can't be opened.  Make sure that you have write permission to this file.", fname);
-
-		wxMessageDialog* dlg = new wxMessageDialog(NULL, error_message, "Error", wxICON_ERROR);
-		dlg->ShowModal();
 		return E_FAIL;
 	}
 	return S_OK;

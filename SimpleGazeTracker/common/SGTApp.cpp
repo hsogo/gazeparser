@@ -126,6 +126,9 @@ bool SGTApp::OnInit()
 	logFilePath.append(PATH_SEPARATOR);
 	logFilePath.append("SimpleGazeTracker.log");
 	if (FAILED(openLogFile(logFilePath.c_str()))) {
+		snprintf(error_message, sizeof(error_message),
+			"ERROR: Log file (%s) can't be opened.  Make sure that you have write permission to this file.\n(Isn't this file opened by other application such as text editor?)", logFilePath.c_str());
+		outputLogDlg(error_message, "Error", wxICON_ERROR);
 		return false;
 	}
 
@@ -165,13 +168,21 @@ bool SGTApp::OnInit()
 		g_AppDirPath.c_str(), g_ParamPath.c_str(), g_DataPath.c_str());
 	outputLog(error_message);
 
-	//if CONFIG file is not found in g_ParamPath, copy it.
 	if (!m_useCustomConfigFile) {
-		if (FAILED(checkAndCopyFile(g_ParamPath, g_DefaultConfigFileName.c_str(), g_AppDirPath))) {
-			snprintf(error_message, sizeof(error_message),
-				"\"%s\" file is not found. SimpleGazeTracker may not be properly installed.\n", g_DefaultConfigFileName.c_str());
-			outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
-			return false;
+		//if CONFIG file is not found in g_ParamPath, copy it.
+		if (FAILED(checkFile(g_ParamPath, g_DefaultConfigFileName.c_str()))) {
+			if (FAILED(checkAndCopyFile(g_ParamPath, g_DefaultConfigFileName.c_str(), g_AppDirPath))) {
+				snprintf(error_message, sizeof(error_message),
+					"\"%s\" is not found. SimpleGazeTracker may not be properly installed.\n", g_DefaultConfigFileName.c_str());
+				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+				return false;
+			}
+			else {
+				snprintf(error_message, sizeof(error_message),
+					"Configuration file (%s) is not found. Default configuration file is created at %s.\n", g_DefaultConfigFileName.c_str(), g_ParamPath.c_str());
+				outputLogDlg(error_message, "Info", wxICON_INFORMATION);
+				//TODO open config dialog after parameter file is loaded.
+			}
 		}
 	}
 	else {
@@ -532,9 +543,16 @@ int initParameters(void)
 		}
 	}
 
-	if (g_CameraWidth*g_CameraHeight == 0)
+	if (g_CameraWidth<=0 || g_CameraHeight<=0)
 	{
-		snprintf(error_message, sizeof(error_message), "Value of CAMERA_WIDTH and/or CAMERA_HEIGHT is zero.\nCheck  %s", joinPath(g_ParamPath, g_ConfigFileName).c_str());
+		snprintf(error_message, sizeof(error_message), "CAMERA_WIDTH and CAMERA_HEIGHT must be potive integer.\nCheck  %s", joinPath(g_ParamPath, g_ConfigFileName).c_str());
+		outputLog(error_message);
+		return E_FAIL;
+	}
+
+	if (g_PreviewWidth <= 0 || g_PreviewHeight <= 0)
+	{
+		snprintf(error_message, sizeof(error_message), "PREVIEW_WIDTH and PREVIEW_HEIGHT must be potive integer.\nCheck  %s", joinPath(g_ParamPath, g_ConfigFileName).c_str());
 		outputLog(error_message);
 		return E_FAIL;
 	}
