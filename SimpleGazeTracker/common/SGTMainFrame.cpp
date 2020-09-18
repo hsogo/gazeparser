@@ -89,20 +89,21 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 
 	SetMenuBar(m_pMenuBar);
 
-	wxPanel* pMainPanel = new wxPanel(this, wxID_ANY, wxPoint(0, 0), wxSize(640, 480), 0);
+	wxPanel* pRootPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	wxPanel* pMainPanel = new wxPanel(pRootPanel, wxID_ANY, wxDefaultPosition, wxSize(g_PreviewWidth, g_PreviewHeight+128), 0);
 
-	m_pCameraView = new SGTCameraView(pMainPanel, wxPoint(0, 0), wxSize(640, 480));
+	m_pCameraView = new SGTCameraView(pMainPanel, wxDefaultPosition, wxSize(g_PreviewWidth, g_PreviewHeight));
 	wxBoxSizer *pMainSizer = new wxBoxSizer(wxVERTICAL);
 	pMainSizer->Add(m_pCameraView, 1, wxEXPAND, 0);
 
-	m_MessageTextBox = new wxTextCtrl(pMainPanel, wxID_ANY, "", wxPoint(0, 0), wxSize(640, 40), wxTE_MULTILINE | wxTE_READONLY);
+	m_MessageTextBox = new wxTextCtrl(pMainPanel, wxID_ANY, "", wxDefaultPosition, wxSize(g_PreviewWidth, 128), wxTE_MULTILINE | wxTE_READONLY);
 	pMainSizer->Add(m_MessageTextBox, 1, wxEXPAND, 0);
 
 	pMainPanel->SetSizer(pMainSizer);
 	pMainPanel->SetAutoLayout(true);
 
 
-	m_pMenuPanel = new wxPanel(this, -1, wxPoint(0, 0), wxSize(200, 480+40), 0);
+	m_pMenuPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
 	wxFlexGridSizer* pMenuSizer = new wxFlexGridSizer(2);
 
 	for (int mi = 0; mi < MENU_GENERAL_NUM; mi++)
@@ -136,13 +137,12 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	m_pMenuPanel->SetSizer(pMenuSizer);
 	m_pMenuPanel->SetAutoLayout(true);
 
-	wxBoxSizer* pTopSizer = new wxBoxSizer(wxHORIZONTAL);
-	pTopSizer->Add(pMainPanel, 1, wxEXPAND, 0);
-	pTopSizer->Add(m_pMenuPanel, 1, wxEXPAND, 0);
+	wxFlexGridSizer* pRootSizer = new wxFlexGridSizer(2);
+	pRootSizer->Add(pMainPanel, 1, wxEXPAND, 0);
+	pRootSizer->Add(m_pMenuPanel, 1, wxEXPAND, 0);
+	pRootPanel->SetSizerAndFit(pRootSizer);
 
-	SetSizer(pTopSizer);
-	SetAutoLayout(true);
-
+	Fit();
 }
 
 void SGTMainFrame::clearMessageTextBox()

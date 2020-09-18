@@ -211,7 +211,7 @@ bool SGTApp::OnInit()
 	ss.str("");
 	ss << "SimpleGazeTracker version " << VERSION << " " << getEditionString();
 	m_pData = new SGTData(g_RecordingMode);
-	SGTMainFrame* pMainFrame = new SGTMainFrame(NULL, ss.str(), wxPoint(-1,-1), wxSize(1024,768), this);
+	SGTMainFrame* pMainFrame = new SGTMainFrame(NULL, ss.str(), wxPoint(-1,-1), wxDefaultSize, this);
 	pMainFrame->Show();
 	pMainFrame->updateMessageTextBox(ss.str().c_str(), true);
 	pMainFrame->updateMenuPanel();
@@ -228,16 +228,23 @@ bool SGTApp::OnInit()
 			"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 		if (dlg->ShowModal() == wxID_YES)
 		{
+			/*
 			if (openLocation(g_ParamPath) != 0) {
 				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open config directory manually.", g_ParamPath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
+			*/
 			closeLogFile(); // Log file must be closed before opend by default viewer.
 			if (openLocation(logFilePath) != 0) {
 				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+			}
+			SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg->ShowModal() == wxOK) {
+				saveParameters();
+				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
 		}
 		return false;
