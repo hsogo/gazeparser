@@ -73,8 +73,13 @@ unsigned char* g_SendImageBuffer;
 int initParameters(void);
 int saveParameters(void);
 
+//TCP/IP port
 int g_PortRecv = PORT_RECV;
 int g_PortSend = PORT_SEND;
+
+double g_MeanInterFrameInterval;
+double g_StdInterFrameInterval;
+
 
 extern int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results);
 extern int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results);
@@ -197,25 +202,32 @@ bool SGTApp::OnInit()
 	outputLog("initParameters ... ");
 	strncpy(error_message, "", sizeof(error_message));//clear errorMessage
 	if (FAILED(initParameters())) {
-		snprintf(error_message, sizeof(error_message),
-			"Could not initialize parameters.\nDo you want to open Config Directory and log file?");
-		wxMessageDialog* dlg = new wxMessageDialog(NULL, error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
+		// Error dialog has already been presented at initParameters()
+		return false;
+	}
+
+	// now We can use SGTConfigDlg to edit configuration file.
+
+	// check Preview size before creating main frame
+	if (g_PreviewWidth <= 0 || g_PreviewHeight <= 0)
+	{
+		wxMessageDialog* dlg = new wxMessageDialog(NULL,
+			"PREVIEW_WIDTH and PREVIEW_HEIGHT must be potive integer.\nDo you want to open Config Directory and log file?",
+			"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 		if (dlg->ShowModal() == wxID_YES)
 		{
-			if (openLocation(g_ParamPath) != 0) {
-				snprintf(error_message, sizeof(error_message),
-					"Failed to open %s. Please open config directory manually.", g_ParamPath.c_str());
-				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
-			}
 			closeLogFile(); // Log file must be closed before opend by default viewer.
 			if (openLocation(logFilePath) != 0) {
 				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
+			SGTConfigDlg* dlg = new SGTConfigDlg(NULL, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg->ShowModal() == wxOK) {
+				saveParameters();
+				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
+			}
 		}
-		outputLog( "Error: Could not initialize parameters. Check configuration file." );
-		return false;
 	}
 
 	// now we can open main frame
@@ -234,18 +246,11 @@ bool SGTApp::OnInit()
 	// Initialize Buffers
 	if (FAILED(initBuffers())) {
 		outputLog( "Failed to initialize image buffer. Settings of camera image size and preview image size may be wrong." );
-		wxMessageDialog* dlg = new wxMessageDialog(NULL, 
-			"Failed to initialize image buffer. Settings of camera image size and preview image size may be wrong.\nDo you want to open Config Directory and log file?",
+		wxMessageDialog* dlg = new wxMessageDialog(pMainFrame, 
+			"Failed to initialize image buffer. Settings of camera image size and preview image size may be wrong.\nDo you want to open Config editor and log file?",
 			"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 		if (dlg->ShowModal() == wxID_YES)
 		{
-			/*
-			if (openLocation(g_ParamPath) != 0) {
-				snprintf(error_message, sizeof(error_message),
-					"Failed to open %s. Please open config directory manually.", g_ParamPath.c_str());
-				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
-			}
-			*/
 			closeLogFile(); // Log file must be closed before opend by default viewer.
 			if (openLocation(logFilePath) != 0) {
 				snprintf(error_message, sizeof(error_message),
@@ -262,27 +267,47 @@ bool SGTApp::OnInit()
 	}
 
 	outputLog("Initializing network...");
-	pMainFrame->initTCPConnection();
-
-	outputLog("Initializing camera...");
-	strncpy(error_message, "", sizeof(error_message));//clear errorMessage
-	if (FAILED(initCamera())) {
-		snprintf(error_message, sizeof(error_message),
-			"Could not initialize camera. Please check %s.\n\nDo you want to open Config Directory and log file?",
-			joinPath(g_ConfigFileName, g_ParamPath).c_str());
-		wxMessageDialog* dlg = new wxMessageDialog(NULL, error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
+	if (FAILED(pMainFrame->initTCPConnection()))
+	{
+		wxMessageDialog* dlg = new wxMessageDialog(pMainFrame,
+			"Failed to initialize newwork. nDo you want to open Config editor and log file?",
+			"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 		if (dlg->ShowModal() == wxID_YES)
 		{
-			if (openLocation(g_ParamPath) != 0) {
-				snprintf(error_message, sizeof(error_message),
-					"Failed to open %s. Please open config directory manually.", g_ParamPath.c_str());
-				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
-			}
 			closeLogFile(); // Log file must be closed before opend by default viewer.
 			if (openLocation(logFilePath) != 0) {
 				snprintf(error_message, sizeof(error_message),
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+			}
+			SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg->ShowModal() == wxOK) {
+				saveParameters();
+				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
+			}
+		}
+		outputLog("initTCPConnection failed. Exit.");
+		return false;
+
+	}
+
+	outputLog("Initializing camera...");
+	if (FAILED(initCamera())) {
+		wxMessageDialog* dlg = new wxMessageDialog(pMainFrame,
+			"Failed to initialize camera. nDo you want to open Config editor and log file?",
+			"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
+		if (dlg->ShowModal() == wxID_YES)
+		{
+			closeLogFile(); // Log file must be closed before opend by default viewer.
+			if (openLocation(logFilePath) != 0) {
+				snprintf(error_message, sizeof(error_message),
+					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
+				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+			}
+			SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg->ShowModal() == wxOK) {
+				saveParameters();
+				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
 		}
 		outputLog( "initCamera failed. Exit." );
@@ -291,26 +316,24 @@ bool SGTApp::OnInit()
 
 	// USB
 	m_pUSBIO = new SGTusbIO();
-	strncpy(error_message, "", sizeof(error_message));//clear errorMessage
 	if (g_USBIOBoard.length() > 0 && g_USBIOBoard != "NONE") {
 		outputLog("Initalizing USB I/O...");
 		if (FAILED(m_pUSBIO->init(g_USBIOBoard, g_USBIOParamAD, g_USBIOParamDI, MAXDATA))) {
-			snprintf(error_message, sizeof(error_message),
-				"Could not initialize USB I/O. Please check %s.", joinPath(g_ParamPath, g_ConfigFileName).c_str());
-			wxMessageDialog* dlg = new wxMessageDialog(NULL, error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
-			dlg->SetYesNoLabels("Open config directory", "Cancel");
+			wxMessageDialog* dlg = new wxMessageDialog(pMainFrame,
+				"Failed to initialize USB I/O. nDo you want to open Config editor and log file?",
+				"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 			if (dlg->ShowModal() == wxID_YES)
 			{
-				if (openLocation(g_ParamPath) != 0) {
-					snprintf(error_message, sizeof(error_message),
-						"Failed to open %s. Please open config directory manually.", g_ParamPath.c_str());
-					outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
-				}
 				closeLogFile(); // Log file must be closed before opend by default viewer.
 				if (openLocation(logFilePath) != 0) {
 					snprintf(error_message, sizeof(error_message),
 						"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 					outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+				}
+				SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+				if (dlg->ShowModal() == wxOK) {
+					saveParameters();
+					wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 				}
 			}
 			outputLog("initUSBIO failed. Exit.");
@@ -326,6 +349,10 @@ bool SGTApp::OnInit()
 
 	outputLog("Measuring inter-frame interval...");
 	measureInterFrameInterval();
+	snprintf(error_message, sizeof(error_message), "Average inter-frame interval (without window rendering): %.1fms (%.1fHz)", g_MeanInterFrameInterval, 1000 / g_MeanInterFrameInterval);
+	pMainFrame->updateMessageTextBox(error_message, true);
+	outputLog(error_message);
+
 
 	if (FAILED(pMainFrame->startMainThread()))
 	{
@@ -422,8 +449,8 @@ int initParameters(void)
 	fs.open(fname.c_str(), std::ios::in);
 	if (!fs.is_open())
 	{
-		snprintf(error_message, sizeof(error_message), "Failed to open  %s", fname.c_str());
-		outputLog(error_message);
+		snprintf(error_message, sizeof(error_message), "Failed to open configuration file (%s).", fname.c_str());
+		outputLogDlg(error_message, "SimpleGazeTracker initialization failed" ,wxICON_ERROR);
 		return E_FAIL;
 	}
 	snprintf(error_message, sizeof(error_message), "Configuration file is %s.", fname.c_str());
@@ -543,20 +570,6 @@ int initParameters(void)
 		}
 	}
 
-	if (g_CameraWidth<=0 || g_CameraHeight<=0)
-	{
-		snprintf(error_message, sizeof(error_message), "CAMERA_WIDTH and CAMERA_HEIGHT must be potive integer.\nCheck  %s", joinPath(g_ParamPath, g_ConfigFileName).c_str());
-		outputLog(error_message);
-		return E_FAIL;
-	}
-
-	if (g_PreviewWidth <= 0 || g_PreviewHeight <= 0)
-	{
-		snprintf(error_message, sizeof(error_message), "PREVIEW_WIDTH and PREVIEW_HEIGHT must be potive integer.\nCheck  %s", joinPath(g_ParamPath, g_ConfigFileName).c_str());
-		outputLog(error_message);
-		return E_FAIL;
-	}
-
 	if (g_ROIWidth == 0) g_ROIWidth = g_CameraWidth;
 	if (g_ROIHeight == 0) g_ROIHeight = g_CameraHeight;
 
@@ -638,10 +651,8 @@ int saveParameters(void)
 
 void SGTApp::measureInterFrameInterval()
 {
-	double meanInterFrameInterval, stdInterFrameInterval;
 	double tick[2011], ifi[2000], startTime;
 	int numSamples;
-	char error_message[1024];
 
 	// Run 2000ms
 	startTime = getCurrentTime();
@@ -708,20 +719,16 @@ void SGTApp::measureInterFrameInterval()
 		ifi[i] = tick[i+11] - tick[i+10]; // drop first 10 sample
 	}
 
-	meanInterFrameInterval = 0;
+	g_MeanInterFrameInterval = 0;
 	for (int i = 0; i < numSamples; i++) {
-		meanInterFrameInterval += ifi[i];
+		g_MeanInterFrameInterval += ifi[i];
 	}
-	meanInterFrameInterval /= numSamples;
+	g_MeanInterFrameInterval /= numSamples;
 
-	stdInterFrameInterval = 0;
+	g_StdInterFrameInterval = 0;
 	for (int i = 0; i < numSamples; i++) {
-		stdInterFrameInterval += (ifi[i] - meanInterFrameInterval)*(ifi[i] - meanInterFrameInterval);
+		g_StdInterFrameInterval += (ifi[i] - g_MeanInterFrameInterval)*(ifi[i] - g_MeanInterFrameInterval);
 	}
-	stdInterFrameInterval /= numSamples;
-	stdInterFrameInterval = sqrt(stdInterFrameInterval);
-
-	//g_LogFS << "Average inter-frame interval (without render) = " << meanInterFrameInterval << "ms (sd: " << stdInterFrameInterval << "ms)" << std::endl;
-	snprintf(error_message, sizeof(error_message), "Average: %.1fms (%.1fHz)", meanInterFrameInterval, 1000 / meanInterFrameInterval);
-	outputLog(error_message);
+	g_StdInterFrameInterval /= numSamples;
+	g_StdInterFrameInterval = sqrt(g_StdInterFrameInterval);
 }

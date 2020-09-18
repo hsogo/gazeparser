@@ -291,12 +291,14 @@ int SGTMainFrame::initTCPConnection()
 
 	if (!m_Server->IsOk())
 	{
+		outputLog("ERROR: Failed to create server socket.");
 		return E_FAIL;
 	}
 
 
 	if (!m_Server->GetLocal(addrReal))
 	{
+		outputLog("ERROR: Failed to get local address of server socket.");
 		return E_FAIL;
 	}
 
@@ -315,7 +317,10 @@ int SGTMainFrame::startMainThread()
 	m_pMainThread->SetPriority(100);
 	
 	if (m_pMainThread->Run() != wxTHREAD_NO_ERROR)
+	{
+		outputLog("ERROR: Failed to start main thread.");
 		return E_FAIL;
+	}
 
 	return S_OK;
 }

@@ -114,7 +114,7 @@ int initCameraParameters(char* buff, char* p)
 	else if (strcmp(buff, "BINNING_SIZE") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("BINNING_SIZE", &g_Binning, p,
 		"Set binning size in pixel. Set 0 to disable binning.\n(Value:integer"));
 	else if (strcmp(buff, "FRAME_RATE") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("FRAME_RATE", &g_FrameRate, p,
-		"Set frame rate.\n(Value: float)"));
+		"Set frame rate in frames-per-second.\n(Value: float)"));
 	else if (strcmp(buff, "EXPOSURE") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("EXPOSURE", &g_Exposure, p,
 		"Set exposure.\n(Value: float)"));
 	else if (strcmp(buff, "BLUR_FILTER_SIZE") == 0)
