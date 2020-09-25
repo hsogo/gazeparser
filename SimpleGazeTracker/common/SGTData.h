@@ -80,6 +80,7 @@ public:
 	void prepareForNextData();
 
 	void setUSBIO(SGTusbIO* usbIO);
+	SGTusbIO* getUSBIO() { return m_pUSBIO; };
 	void recordUSBIOData();
 
 	void recordCameraSpecificData();

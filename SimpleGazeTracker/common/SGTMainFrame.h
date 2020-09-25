@@ -32,6 +32,7 @@ public:
 	void OnServerEvent(wxSocketEvent& event);
 	void OnRecvSocketEvent(wxSocketEvent& event);
 	void OnOpenConfigDialog(wxCommandEvent & event);
+	void OnOpenIODialog(wxCommandEvent & event);
 
 	void updateParamFromTextCtrl(wxEvent &event);
 	void clearMessageTextBox();

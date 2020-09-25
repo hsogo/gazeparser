@@ -45,6 +45,9 @@
     <ClCompile Include="..\common\SGTConfigDlg.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\SGTIODlg.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\SGTCameraView.h">
@@ -66,6 +69,9 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\common\SGTConfigDlg.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\SGTIODlg.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
   </ItemGroup>

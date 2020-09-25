@@ -363,6 +363,37 @@ void SGTusbIO::recordData(int dataCounter)
 
 }
 
+int SGTusbIO::getCurrentAIData(int* nChan, int* chanList, int* valueList)
+{
+	int ULStat;
+	int options = 0;
+
+	if(m_ADBuffer32 != NULL)
+	{
+		return S_OK;
+	}
+	else if (m_ADBuffer16 != NULL)
+	{
+		return S_OK;
+	}
+
+	return E_FAIL;
+}
+
+int SGTusbIO::getCurrentDIData(unsigned short* value)
+{
+	int ULStat;
+
+	if (m_DIBuffer != NULL)
+	{
+		ULStat = cbDIn(m_boardNum, m_DIport, value);
+		return S_OK;
+	}
+	
+	return E_FAIL;
+}
+
+
 
 void SGTusbIO::getDataFormatString(char* buff, int buffsize)
 {

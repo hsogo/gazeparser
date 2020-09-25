@@ -145,6 +145,7 @@
     <ClCompile Include="..\common\SGTConfigDlg.cpp" />
     <ClCompile Include="..\common\SGTData.cpp" />
     <ClCompile Include="..\common\SGTGlobal.cpp" />
+    <ClCompile Include="..\common\SGTIODlg.cpp" />
     <ClCompile Include="..\common\SGTMainThread.cpp" />
     <ClCompile Include="..\common\SGTCameraView.cpp" />
     <ClCompile Include="..\common\SGTApp.cpp" />
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="..\common\SGTConfigDlg.h" />
     <ClInclude Include="..\common\SGTData.h" />
+    <ClInclude Include="..\common\SGTIODlg.h" />
     <ClInclude Include="..\common\SGTMainThread.h" />
     <ClInclude Include="..\common\SGTCameraView.h" />
     <ClInclude Include="..\common\SGTApp.h" />

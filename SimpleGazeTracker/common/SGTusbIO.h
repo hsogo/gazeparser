@@ -16,6 +16,9 @@ public:
 	void getDataFormatString(char* buff, int buffsize);
 	void getDataString(int index, char* buff, int buffsize);
 
+	int getCurrentAIData(int* nChan, int* chanList, int* valueList);
+	int getCurrentDIData(unsigned short* value);
+
 private:
 
 	int m_DIport;

@@ -22,6 +22,7 @@ typedef wxIPV4address IPaddress;
 #include "SGTApp.h"
 #include "SGTMainFrame.h"
 #include "SGTConfigDlg.h"
+#include "SGTIODlg.h"
 
 #include "SGTCommon.h"
 
@@ -57,10 +58,12 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	int ID_MENU_HTMLDOC = wxNewId();
 	int ID_MENU_CAPTUREIMAGE = wxNewId();
 	int ID_MENU_CONFIGDIALOG = wxNewId();
+	int ID_MENU_IODIALOG = wxNewId();
 	ID_MENU_TOGGLECALRESULT = wxNewId();
 	ID_MENU_NORENDERRECORDING = wxNewId();
 
 	m_pMenuSystem->Append(ID_MENU_CONFIGDIALOG, "Open config dialog");
+	m_pMenuSystem->Append(ID_MENU_IODIALOG, "Open USB I/O status dialog");
 	m_pMenuSystem->Append(ID_MENU_CAPTUREIMAGE, "Capture camera image");
 	m_pMenuSystem->AppendSeparator();
 	m_pMenuSystem->AppendCheckItem(ID_MENU_TOGGLECALRESULT, "Show calibration result");
@@ -80,6 +83,7 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnHTMLDoc, this, ID_MENU_HTMLDOC);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnCaptureCameraImage, this, ID_MENU_CAPTUREIMAGE);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnOpenConfigDialog, this, ID_MENU_CONFIGDIALOG);
+	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnOpenIODialog, this, ID_MENU_IODIALOG);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnToggleCalResults, this, ID_MENU_TOGGLECALRESULT);
 	Bind(wxEVT_COMMAND_MENU_SELECTED, &SGTMainFrame::OnRenderRecording, this, ID_MENU_NORENDERRECORDING);
 	Bind(wxEVT_CHAR_HOOK, &SGTMainFrame::OnKeyDown, this);
@@ -225,6 +229,13 @@ void SGTMainFrame::OnOpenConfigDialog(wxCommandEvent & event)
 		wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK|wxICON_INFORMATION);
 		Close(false);
 	}
+}
+
+void SGTMainFrame::OnOpenIODialog(wxCommandEvent & event)
+{
+	SGTIODlg* dlg = new SGTIODlg(this, -1, "USB I/O status", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+	dlg->setUSBIO( m_pData->getUSBIO() );
+	dlg->ShowModal();
 }
 
 void SGTMainFrame::OnCaptureCameraImage(wxCommandEvent & event)
