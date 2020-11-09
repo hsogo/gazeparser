@@ -310,7 +310,7 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	results[MONO_PUPIL_Y] = candidateRectFine.center.y;
 	results[MONO_PURKINJE_X] = PurkinjeCandidateCenterX;
 	results[MONO_PURKINJE_Y] = PurkinjeCandidateCenterY;
-	results[MONO_PUPILSIZE] = candidateRectFine.size.width * candidateRectFine.size.height / 4.0; //area
+	results[MONO_PUPILSIZE] = candidateRectFine.size.width * candidateRectFine.size.height * PI / 4.0; //area
 
 	return S_PUPIL_PURKINJE;
 }
@@ -541,14 +541,14 @@ int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeT
 				results[BIN_PUPIL_RY] = candidateRectFine[numFinalPupilPurkinje].center.y;
 				results[BIN_PURKINJE_RX] = cogx;
 				results[BIN_PURKINJE_RY] = cogy;
-				results[BIN_PUPILSIZE_R] = candidateRectFine[numFinalPupilPurkinje].size.width * candidateRectFine[numFinalPupilPurkinje].size.height / 4.0; //area
+				results[BIN_PUPILSIZE_R] = candidateRectFine[numFinalPupilPurkinje].size.width * candidateRectFine[numFinalPupilPurkinje].size.height * PI / 4.0; //area
 			}
 			else {
 				results[BIN_PUPIL_LX] = candidateRectFine[numFinalPupilPurkinje].center.x;
 				results[BIN_PUPIL_LY] = candidateRectFine[numFinalPupilPurkinje].center.y;
 				results[BIN_PURKINJE_LX] = cogx;
 				results[BIN_PURKINJE_LY] = cogy;
-				results[BIN_PUPILSIZE_L] = candidateRectFine[numFinalPupilPurkinje].size.width * candidateRectFine[numFinalPupilPurkinje].size.height / 4.0; //area
+				results[BIN_PUPILSIZE_L] = candidateRectFine[numFinalPupilPurkinje].size.width * candidateRectFine[numFinalPupilPurkinje].size.height * PI / 4.0; //area
 			}
 
 			numFinalPupilPurkinje++;
