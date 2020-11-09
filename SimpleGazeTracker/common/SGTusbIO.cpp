@@ -223,7 +223,7 @@ int SGTusbIO::init(std::string board, std::string paramAD, std::string paramDI, 
 		return E_FAIL;
 	}
 	else {
-		snprintf(error_message, sizeof(error_message), "USB IO b0ard %s is opened.", m_board.c_str());
+		snprintf(error_message, sizeof(error_message), "USB IO board %s is opened.", m_board.c_str());
 		outputLog(error_message);
 	}
 
@@ -370,10 +370,26 @@ int SGTusbIO::getCurrentAIData(int* nChan, int* chanList, int* valueList)
 
 	if(m_ADBuffer32 != NULL)
 	{
+		*nChan = m_numADChannels;
+		DWORD val;
+		for (int i = 0; i < m_numADChannels; i++) {
+			ULStat = cbAIn32(m_boardNum, m_ADChannelList[i][0],
+				m_ADChannelList[i][1], &val, options);
+			chanList[i] = m_ADChannelList[i][0];
+			valueList[i] = (int)val;
+		}
 		return S_OK;
 	}
 	else if (m_ADBuffer16 != NULL)
 	{
+		*nChan = m_numADChannels;
+		WORD val;
+			for (int i = 0; i < m_numADChannels; i++) {
+			ULStat = cbAIn(m_boardNum, m_ADChannelList[i][0],
+				m_ADChannelList[i][1], &val);
+			chanList[i] = m_ADChannelList[i][0];
+			valueList[i] = (int)val;
+		}
 		return S_OK;
 	}
 

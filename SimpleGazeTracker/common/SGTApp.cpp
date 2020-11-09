@@ -57,6 +57,7 @@ std::string g_DataPath;
 std::string g_ConfigFileName;
 std::string g_DefaultConfigFileName;
 std::string g_AppDirPath;
+std::string g_DocPath;
 
 // USB
 std::string g_USBIOBoard;
@@ -107,6 +108,7 @@ static const wxCmdLineEntryDesc g_cmdLineDesc[] =
 bool SGTApp::OnInit()
 {
 	char error_message[1024];
+	bool bConfigCopied = false;
 
 	if (!wxApp::OnInit())
 		return false;
@@ -173,6 +175,32 @@ bool SGTApp::OnInit()
 		g_AppDirPath.c_str(), g_ParamPath.c_str(), g_DataPath.c_str());
 	outputLog(error_message);
 
+	// set DOC directory
+	g_DocPath.assign(g_AppDirPath);
+	g_DocPath.append(PATH_SEPARATOR);
+	g_DocPath.append("doc");
+
+	// index.html should be in doc directory
+	if (checkFile(g_DocPath, "index.html") == E_FAIL) {
+		// check parent directory (for debugging)
+		const size_t last_slash_idx = g_AppDirPath.rfind(PATH_SEPARATOR);
+		if (std::string::npos == last_slash_idx)
+		{
+			outputLogDlg("Cound not find Help Document directory.", "Error", wxICON_ERROR);
+			return false;
+		}
+
+		g_DocPath = g_AppDirPath.substr(0, last_slash_idx);
+		g_DocPath.append(PATH_SEPARATOR);
+		g_DocPath.append("doc");
+
+		if (checkFile(g_DocPath, "index.html") == E_FAIL)
+		{
+			outputLogDlg("Cound not find Help Document direcotry.", "Error", wxICON_ERROR);
+			return false;
+		}
+	}
+
 	if (!m_useCustomConfigFile) {
 		//if CONFIG file is not found in g_ParamPath, copy it.
 		if (FAILED(checkFile(g_ParamPath, g_DefaultConfigFileName.c_str()))) {
@@ -186,7 +214,7 @@ bool SGTApp::OnInit()
 				snprintf(error_message, sizeof(error_message),
 					"Configuration file (%s) is not found. Default configuration file is created at %s.\n", g_DefaultConfigFileName.c_str(), g_ParamPath.c_str());
 				outputLogDlg(error_message, "Info", wxICON_INFORMATION);
-				//TODO open config dialog after parameter file is loaded.
+				bConfigCopied = true;
 			}
 		}
 	}
@@ -207,6 +235,29 @@ bool SGTApp::OnInit()
 	}
 
 	// now We can use SGTConfigDlg to edit configuration file.
+	if (bConfigCopied) {
+		std::string path;
+
+		if (checkFile(g_DocPath, "params.html") == E_FAIL) {
+			outputLogDlg("Cound not find HTML document (doc/params.html).", "Error", wxICON_ERROR);
+		}
+
+		path.assign(g_DocPath);
+		path.insert(0, "file://");
+		path.append(PATH_SEPARATOR);
+		path.append("params.html");
+
+		openLocation(path);
+
+		SGTConfigDlg* dlg = new SGTConfigDlg(NULL, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+		if (dlg->ShowModal() == wxOK) {
+			wxMessageBox("Parameters are updated.", "Info", wxOK | wxICON_INFORMATION);
+		}
+		else
+		{
+			wxMessageBox("Parameters are not updated.", "Info", wxOK | wxICON_INFORMATION);
+		}
+	}
 
 	// check Preview size before creating main frame
 	if (g_PreviewWidth <= 0 || g_PreviewHeight <= 0)
@@ -527,9 +578,9 @@ int initParameters(void)
 				"Width of preview pane in pixel.\n(Value: positive integer)"));
 			else if (strcmp(buff, "PREVIEW_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("PREVIEW_HEIGHT", &g_PreviewHeight, p,
 				"Height of preview pane in pixel.\n(Value: positive integer)"));
-			else if (strcmp(buff, "ROI_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("ROI_WIDTH", &g_ROIWidth, p,
+			else if (strcmp(buff, "CROP_WIDTH") == 0) g_pImageParamsVector.push_back(new SGTParamInt("CROP_WIDTH", &g_ROIWidth, p,
 				"Width of region of interest in pixel.\n(Value: positive integer)"));
-			else if (strcmp(buff, "ROI_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("ROI_WEIGHT", &g_ROIHeight, p,
+			else if (strcmp(buff, "CROP_HEIGHT") == 0) g_pImageParamsVector.push_back(new SGTParamInt("CROP_HEIGHT", &g_ROIHeight, p,
 				"Height of region of interest in pixel.\n(Value: positive integer)"));
 			//IO
 			else if (strcmp(buff, "OUTPUT_PUPILSIZE") == 0) g_pIOParamsVector.push_back(new SGTParamInt("OUTPUT_PUPILSIZE", &g_OutputPupilSize, p,
@@ -616,21 +667,8 @@ int saveParameters(void)
 	fs << "CAMERA_HEIGHT=" << g_CameraHeight << std::endl;
 	fs << "PREVIEW_WIDTH=" << g_PreviewWidth << std::endl;
 	fs << "PREVIEW_HEIGHT=" << g_PreviewHeight << std::endl;
-	if (g_ROIWidth == g_CameraWidth)
-	{
-		fs << "ROI_WIDTH=0" << std::endl;
-	}
-	else {
-		fs << "ROI_WIDTH=" << g_ROIWidth << std::endl;
-	}
-	if (g_ROIHeight == g_CameraHeight)
-	{
-		fs << "ROI_HEIGHT=0" << std::endl;
-	}
-	else
-	{
-		fs << "ROI_HEIGHT=" << g_ROIHeight << std::endl;
-	}
+	fs << "CROP_WIDTH=" << g_ROIWidth << std::endl;
+	fs << "CROP_HEIGHT=" << g_ROIHeight << std::endl;
 	// io
 	fs << "PORT_SEND=" << g_PortSend << std::endl;
 	fs << "PORT_RECV=" << g_PortRecv << std::endl;

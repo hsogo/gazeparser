@@ -44,7 +44,7 @@ void SGTIODlg::updateValue()
 	if (SUCCEEDED(m_pUSBIO->getCurrentDIData(&DIvalue))) {
 		snprintf(buff, sizeof(buff), "%d", DIvalue);
 		m_pDIOStatusText->SetLabel(buff);
-		m_pDIOStatusText->Refresh(false);
+		//m_pDIOStatusText->Refresh(false);
 	}
 
 	if (SUCCEEDED(m_pUSBIO->getCurrentAIData(&nAIChan, &AIchanList[0], &AIvalueList[0])))
@@ -54,7 +54,7 @@ void SGTIODlg::updateValue()
 				if (AIchanList[i] == j) {
 					snprintf(buff, sizeof(buff), "%d", AIvalueList[i]);
 					m_pAIOStatusText[j]->SetLabel(buff);
-					m_pAIOStatusText[j]->Refresh(false);
+					//m_pAIOStatusText[j]->Refresh(false);
 				}
 			}
 		}

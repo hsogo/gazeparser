@@ -7,18 +7,26 @@
 
 #include <wx/notebook.h>
 
+#define SGTPARAM_ORIG	0
+#define SGTPARAM_INT	1
+#define SGTPARAM_FLOAT	2
+#define SGTPARAM_STRING	3
+
 class SGTParam
 {
 public:
 	char* getName() { return m_pName; };
 	std::string getHint() { return m_hint; };
+	int getType() { return m_type; };
 	virtual const char* getValueStr() = 0;
 	virtual void backup() {};
 	virtual void restore() {};
 	virtual bool validate(const std::string s, bool update) { return true; };
 
+protected:
 	char m_pName[64];
 	std::string m_hint;
+	int m_type = SGTPARAM_ORIG;
 };
 
 class SGTParamInt : public SGTParam
@@ -75,6 +83,7 @@ private:
 	wxNotebook* notebook;
 	std::vector<SGTParam*> m_pParamItems;
 	std::vector<wxTextCtrl*> m_pParamTextCtrls;
+	void onHelpButton(wxCommandEvent& event);
 	void onCancelButton(wxCommandEvent& event);
 	void onSaveExitButton(wxCommandEvent& event);
 };

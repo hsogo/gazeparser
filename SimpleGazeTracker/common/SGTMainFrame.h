@@ -89,9 +89,14 @@ private:
 	int ID_RECV_SOCKET;
 	int ID_MENU_TOGGLECALRESULT;
 	int ID_MENU_NORENDERRECORDING;
+	int ID_MENU_HTMLDOC;
+	int ID_MENU_CAPTUREIMAGE;
+	int ID_MENU_CONFIGDIALOG;
+	int ID_MENU_IODIALOG;
 
 	wxMenuBar* m_pMenuBar;
 	wxMenu* m_pMenuSystem;
+	wxMenu* m_pMenuTools;
 	wxMenu* m_pMenuHelp;
 
 	//std::vector<std::string> m_logVecotr;

@@ -1,6 +1,8 @@
 #include "SGTConfigDlg.h"
 #include <wx/notebook.h>
 
+#include "SGTCommon.h"
+
 SGTParamInt::SGTParamInt(const char* name, int* var, const char* p, const char* hint)
 {
 	char* pp;
@@ -8,6 +10,7 @@ SGTParamInt::SGTParamInt(const char* name, int* var, const char* p, const char* 
 	m_Value = var;
 	*m_Value = strtol(p, &pp, 10);
 	m_hint.assign(hint);
+	m_type = SGTPARAM_INT;
 	backup();
 }
 
@@ -36,6 +39,7 @@ SGTParamFloat::SGTParamFloat(const char* name, float* var, const char* p, const 
 	m_Value = var;
 	*m_Value = strtof(p, &pp);
 	m_hint.assign(hint);
+	m_type = SGTPARAM_FLOAT;
 	backup();
 }
 
@@ -62,6 +66,7 @@ SGTParamString::SGTParamString(const char* name, std::string* var, const char* p
 	m_Value = var;
 	m_Value->assign(p);
 	m_hint.assign(hint);
+	m_type = SGTPARAM_STRING;
 	backup();
 }
 
@@ -80,6 +85,7 @@ std::vector<SGTParam*> g_pCameraParamsVector;
 SGTConfigDlg::SGTConfigDlg(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &pos, const wxSize &size, long style, const wxString &name) :
 	wxDialog(parent, id, title, pos, size, style, name)
 {
+	long tc_style = 0L;
 
 	wxPanel* rootPanel = new wxPanel(this);
 
@@ -105,7 +111,8 @@ SGTConfigDlg::SGTConfigDlg(wxWindow *parent, wxWindowID id, const wxString &titl
 		pGeneralSizer->Add(menu, 0, wxALL, 5);
 		m_pParamItems.push_back(*it);
 
-		wxTextCtrl* ctrl = new wxTextCtrl(pPageGeneral, wxID_ANY, (*it)->getValueStr(), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT | wxTE_PROCESS_ENTER);
+		tc_style = ((*it)->getType() != SGTPARAM_STRING) ? (wxTE_RIGHT | wxTE_PROCESS_ENTER) : wxTE_PROCESS_ENTER;
+		wxTextCtrl* ctrl = new wxTextCtrl(pPageGeneral, wxID_ANY, (*it)->getValueStr(), wxDefaultPosition, wxDefaultSize, tc_style);
 		ctrl->SetToolTip((*it)->getHint());
 		pGeneralSizer->Add(ctrl, wxALIGN_CENTER_VERTICAL);
 		m_pParamTextCtrls.push_back(ctrl);
@@ -119,7 +126,8 @@ SGTConfigDlg::SGTConfigDlg(wxWindow *parent, wxWindowID id, const wxString &titl
 		pImageSizer->Add(menu, 0, wxALL, 5);
 		m_pParamItems.push_back(*it);
 
-		wxTextCtrl* ctrl = new wxTextCtrl(pPageImage, wxID_ANY, (*it)->getValueStr(), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT | wxTE_PROCESS_ENTER);
+		tc_style = ((*it)->getType() != SGTPARAM_STRING) ? (wxTE_RIGHT | wxTE_PROCESS_ENTER) : wxTE_PROCESS_ENTER;
+		wxTextCtrl* ctrl = new wxTextCtrl(pPageImage, wxID_ANY, (*it)->getValueStr(), wxDefaultPosition, wxDefaultSize, tc_style);
 		ctrl->SetToolTip((*it)->getHint());
 		pImageSizer->Add(ctrl, wxALIGN_CENTER_VERTICAL);
 		m_pParamTextCtrls.push_back(ctrl);
@@ -129,12 +137,15 @@ SGTConfigDlg::SGTConfigDlg(wxWindow *parent, wxWindowID id, const wxString &titl
 	//io
 	for (it = g_pIOParamsVector.begin(); it != g_pIOParamsVector.end(); it++)
 	{
+		int ttt;
 		(*it)->backup();
 		wxStaticText* menu = new wxStaticText(pPageIO, wxID_ANY, (*it)->getName());
 		pIOSizer->Add(menu, 0, wxALL, 5);
 		m_pParamItems.push_back(*it);
 
-		wxTextCtrl* ctrl = new wxTextCtrl(pPageIO, wxID_ANY, (*it)->getValueStr(), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT | wxTE_PROCESS_ENTER);
+		ttt = (*it)->getType();
+		tc_style = ((*it)->getType() != SGTPARAM_STRING) ? (wxTE_RIGHT | wxTE_PROCESS_ENTER) : wxTE_PROCESS_ENTER;
+		wxTextCtrl* ctrl = new wxTextCtrl(pPageIO, wxID_ANY, (*it)->getValueStr(), wxDefaultPosition, wxDefaultSize, tc_style);
 		ctrl->SetToolTip((*it)->getHint());
 		pIOSizer->Add(ctrl, wxALIGN_CENTER_VERTICAL);
 		m_pParamTextCtrls.push_back(ctrl);
@@ -148,7 +159,8 @@ SGTConfigDlg::SGTConfigDlg(wxWindow *parent, wxWindowID id, const wxString &titl
 		pCameraSizer->Add(menu, 0, wxALL, 5);
 		m_pParamItems.push_back(*it);
 
-		wxTextCtrl* ctrl = new wxTextCtrl(pPageCamera, wxID_ANY, (*it)->getValueStr(), wxDefaultPosition, wxDefaultSize, wxTE_RIGHT | wxTE_PROCESS_ENTER);
+		tc_style = ((*it)->getType() != SGTPARAM_STRING) ? (wxTE_RIGHT | wxTE_PROCESS_ENTER) : wxTE_PROCESS_ENTER;
+		wxTextCtrl* ctrl = new wxTextCtrl(pPageCamera, wxID_ANY, (*it)->getValueStr(), wxDefaultPosition, wxDefaultSize, tc_style);
 		ctrl->SetToolTip((*it)->getHint());
 		pCameraSizer->Add(ctrl, wxALIGN_CENTER_VERTICAL);
 		m_pParamTextCtrls.push_back(ctrl);
@@ -168,10 +180,12 @@ SGTConfigDlg::SGTConfigDlg(wxWindow *parent, wxWindowID id, const wxString &titl
 	wxPanel* pButtonPanel = new wxPanel(rootPanel, wxID_ANY);
 	wxBoxSizer* pButtonPanelSizer = new wxBoxSizer(wxHORIZONTAL);
 
+	wxButton* pButtonHelp = new wxButton(pButtonPanel, wxID_ANY, "Help");
 	wxButton* pButtonSaveExit = new wxButton(pButtonPanel, wxID_ANY, "Save and exit");
-	pButtonPanelSizer->Add(pButtonSaveExit);
-
 	wxButton* pButtonCancel = new wxButton(pButtonPanel, wxID_ANY, "Cancel");
+
+	pButtonPanelSizer->Add(pButtonHelp);
+	pButtonPanelSizer->Add(pButtonSaveExit);
 	pButtonPanelSizer->Add(pButtonCancel);
 
 	pButtonPanel->SetSizerAndFit(pButtonPanelSizer);
@@ -184,9 +198,29 @@ SGTConfigDlg::SGTConfigDlg(wxWindow *parent, wxWindowID id, const wxString &titl
 	rootPanel->SetSizerAndFit(pSizer);
 	Fit();
 
+	pButtonHelp->Bind(wxEVT_BUTTON, &SGTConfigDlg::onHelpButton, this);
 	pButtonSaveExit->Bind(wxEVT_BUTTON, &SGTConfigDlg::onSaveExitButton, this);
 	pButtonCancel->Bind(wxEVT_BUTTON, &SGTConfigDlg::onCancelButton, this);
 
+}
+
+void SGTConfigDlg::onHelpButton(wxCommandEvent & event)
+{
+	std::string path;
+
+	if (checkFile(g_DocPath, "params.html") == E_FAIL) {
+		outputLogDlg("Cound not find HTML document (doc/params.html).", "Error", wxICON_ERROR);
+		return;
+	}
+
+	path.assign(g_DocPath);
+	path.insert(0, "file://");
+	path.append(PATH_SEPARATOR);
+	path.append("params.html");
+
+	openLocation(path);
+
+	return;
 }
 
 void SGTConfigDlg::onCancelButton(wxCommandEvent & event)

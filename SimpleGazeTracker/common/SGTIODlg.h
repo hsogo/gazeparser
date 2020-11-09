@@ -32,5 +32,5 @@ class SGTIODlgRenderTimer : public wxTimer
 public:
 	SGTIODlgRenderTimer(SGTIODlg* dlg) { m_dlg = dlg; };
 	void Notify() { m_dlg->updateValue(); };
-	void start() { wxTimer::Start(10); };
+	void start() { wxTimer::Start(100); }; //update at 10Hz
 };

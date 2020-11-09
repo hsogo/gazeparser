@@ -51,21 +51,18 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 
 	m_pMenuBar = new wxMenuBar;
 	m_pMenuSystem = new wxMenu;
+	m_pMenuTools = new wxMenu;
 	m_pMenuHelp = new wxMenu;
 
 	ID_SERVER = wxNewId();
 	ID_RECV_SOCKET = wxNewId();
-	int ID_MENU_HTMLDOC = wxNewId();
-	int ID_MENU_CAPTUREIMAGE = wxNewId();
-	int ID_MENU_CONFIGDIALOG = wxNewId();
-	int ID_MENU_IODIALOG = wxNewId();
+	ID_MENU_HTMLDOC = wxNewId();
+	ID_MENU_CAPTUREIMAGE = wxNewId();
+	ID_MENU_CONFIGDIALOG = wxNewId();
+	ID_MENU_IODIALOG = wxNewId();
 	ID_MENU_TOGGLECALRESULT = wxNewId();
 	ID_MENU_NORENDERRECORDING = wxNewId();
 
-	m_pMenuSystem->Append(ID_MENU_CONFIGDIALOG, "Open config dialog");
-	m_pMenuSystem->Append(ID_MENU_IODIALOG, "Open USB I/O status dialog");
-	m_pMenuSystem->Append(ID_MENU_CAPTUREIMAGE, "Capture camera image");
-	m_pMenuSystem->AppendSeparator();
 	m_pMenuSystem->AppendCheckItem(ID_MENU_TOGGLECALRESULT, "Show calibration result");
 	m_pMenuSystem->Enable(ID_MENU_TOGGLECALRESULT, false);
 	m_pMenuSystem->AppendCheckItem(ID_MENU_NORENDERRECORDING, "Don't update preview during recording (for better performance)");
@@ -73,6 +70,11 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 
 	m_pMenuSystem->Append(wxID_EXIT);
 	m_pMenuBar->Append(m_pMenuSystem, "System");
+
+	m_pMenuTools->Append(ID_MENU_CONFIGDIALOG, "Open config dialog");
+	m_pMenuTools ->Append(ID_MENU_IODIALOG, "Open USB I/O status dialog");
+	m_pMenuTools->Append(ID_MENU_CAPTUREIMAGE, "Capture camera image");
+	m_pMenuBar->Append(m_pMenuTools, "Tools");
 
 	m_pMenuHelp->Append(ID_MENU_HTMLDOC, "Open HTML document");
 	m_pMenuHelp->Append(wxID_ABOUT, "About...");
@@ -190,29 +192,12 @@ void SGTMainFrame::OnAbout(wxCommandEvent& event)
 void SGTMainFrame::OnHTMLDoc(wxCommandEvent& event)
 {
 	std::string path;
-	path.assign(g_AppDirPath);
-	path.append(PATH_SEPARATOR);
-	path.append("doc");
-
-	if (checkFile(path, "index.html") == E_FAIL) {
-		const size_t last_slash_idx = g_AppDirPath.rfind(PATH_SEPARATOR);
-		if (std::string::npos == last_slash_idx)
-		{
-			outputLogDlg("Cound not find HTML document.", "Error", wxICON_ERROR);
+	if (checkFile(g_DocPath, "index.html") == E_FAIL) {
+		outputLogDlg("Cound not find HTML document.", "Error", wxICON_ERROR);
 			return;
-		}
-
-		path = g_AppDirPath.substr(0, last_slash_idx);
-		path.append(PATH_SEPARATOR);
-		path.append("doc");
-
-		if (checkFile(path, "index.html") == E_FAIL)
-		{
-			outputLogDlg("Cound not find HTML document.", "Error", wxICON_ERROR);
-			return;
-		}
 	}
 
+	path.assign(g_DocPath);
 	path.insert(0, "file://");
 	path.append(PATH_SEPARATOR);
 	path.append("index.html");
@@ -1282,6 +1267,12 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 		outputLog("Client is disconnected.");
 		updateMessageTextBox("Client is disconnected.", true);
 		sock->Destroy();
+
+		// enable menu items
+		m_pMenuTools->Enable(ID_MENU_CONFIGDIALOG, true);
+		m_pMenuTools->Enable(ID_MENU_IODIALOG, true);
+		m_pMenuTools->UpdateUI();
+
 		break;
 
 	default:
@@ -1337,6 +1328,10 @@ void SGTMainFrame::startRecording(char * message)
 			outputLogDlg("Could not start recording because data file is not opened.", "Error", wxICON_ERROR);
 			return;
 		}
+		m_pMenuTools->Enable(ID_MENU_CONFIGDIALOG, false);
+		m_pMenuTools->Enable(ID_MENU_IODIALOG, false);
+		m_pMenuTools->UpdateUI();
+
 		m_isRecording = true;
 		m_bShowCalResult = false;
 		m_pMenuSystem->Check(ID_MENU_TOGGLECALRESULT, false);
@@ -1379,6 +1374,11 @@ void SGTMainFrame::stopRecording(char * message)
 
 		m_isRecording = false;
 		g_ShowCameraImage = true;
+
+		m_pMenuTools->Enable(ID_MENU_CONFIGDIALOG, true);
+		m_pMenuTools->Enable(ID_MENU_IODIALOG, true);
+		m_pMenuTools->UpdateUI();
+
 	}
 	else
 	{
