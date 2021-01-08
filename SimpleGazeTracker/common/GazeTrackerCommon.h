@@ -24,7 +24,7 @@
 
 
 
-#define VERSION "0.11.1"
+#define VERSION "0.12.0-beta"
 
 #ifdef _WIN32
 #include <windows.h>
