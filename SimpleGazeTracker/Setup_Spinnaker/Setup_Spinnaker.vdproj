@@ -21,6 +21,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_17280F10A3AB4180B3B422278DFC10CE"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_1D314FB0D9D04163B0D4F19E07EE5D0A"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -39,13 +45,43 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_4DB959A9E4004BD8BC0B2ED26325FD1D"
+        "MsmKey" = "8:_4A78E797806E4268A51516235AAA50E8"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_5428706A62A246BDA4C80A64EE9CA39A"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_9B399493665949BABA890C4779C31F75"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_9E91384CD43341C48C9515AC0A55E3A4"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_BD4E00D4550D4D3FA97743CDB6879796"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_CFD24A9A9E7849E6AC4E3B090091CCFA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_D5CB8677314C469AB8539A46D13F41C2"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -86,6 +122,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.6.1"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.6.1 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.6.1"
+                    }
+                }
             }
         }
         "Release"
@@ -160,6 +204,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_17280F10A3AB4180B3B422278DFC10CE"
+            {
+            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_net.dll"
+            "TargetName" = "8:SDL2_net.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1D314FB0D9D04163B0D4F19E07EE5D0A"
             {
             "SourcePath" = "8:C:\\Program Files (x86)\\Measurement Computing\\DAQ\\cbw64.dll"
@@ -200,10 +264,50 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4DB959A9E4004BD8BC0B2ED26325FD1D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4A78E797806E4268A51516235AAA50E8"
             {
-            "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\Spinnaker\\bin64\\vs2015\\Spinnaker_v140.dll"
-            "TargetName" = "8:Spinnaker_v140.dll"
+            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_ttf.dll"
+            "TargetName" = "8:SDL2_ttf.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5428706A62A246BDA4C80A64EE9CA39A"
+            {
+            "SourcePath" = "8:C:\\SDL2\\bin\\libfreetype-6.dll"
+            "TargetName" = "8:libfreetype-6.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9B399493665949BABA890C4779C31F75"
+            {
+            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world342.dll"
+            "TargetName" = "8:opencv_world342.dll"
             "Tag" = "8:"
             "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
             "Condition" = "8:"
@@ -237,6 +341,66 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BD4E00D4550D4D3FA97743CDB6879796"
+            {
+            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2.dll"
+            "TargetName" = "8:SDL2.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CFD24A9A9E7849E6AC4E3B090091CCFA"
+            {
+            "SourcePath" = "8:C:\\SDL2\\bin\\zlib1.dll"
+            "TargetName" = "8:zlib1.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D5CB8677314C469AB8539A46D13F41C2"
+            {
+            "SourcePath" = "8:C:\\Program Files\\FLIR Systems\\Spinnaker\\bin\\vs2015\\Spinnaker_v140.dll"
+            "TargetName" = "8:Spinnaker_v140.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
@@ -360,15 +524,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(Spinnaker)"
-        "ProductCode" = "8:{DA0EFDD9-55F4-42F8-AAE7-A2BCD74CC7C4}"
-        "PackageCode" = "8:{149D3648-1C26-4268-890D-48D9B784438F}"
+        "ProductCode" = "8:{B3D1446F-4CCB-4470-B35E-B19074916D99}"
+        "PackageCode" = "8:{8FD6D9BD-E8A3-497E-9BC0-C281413DB24A}"
         "UpgradeCode" = "8:{8BA4E714-0E82-4DF6-B989-A36E0DDD107F}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.11.1"
+        "ProductVersion" = "8:0.12.0"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
