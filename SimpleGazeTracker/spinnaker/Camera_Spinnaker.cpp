@@ -32,7 +32,7 @@ Spinnaker::CameraPtr g_pSpinnakerCam = nullptr;
 //const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_DEBUG;
 const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_ERROR;
 
-class LoggingEventHandler : public Spinnaker::LoggingEvent
+class customLoggingEventHandler : public Spinnaker::LoggingEventHandler
 {
 	// This function displays readily available logging information.
 	void OnLogEvent(Spinnaker::LoggingEventDataPtr loggingEventDataPtr)
@@ -42,7 +42,7 @@ class LoggingEventHandler : public Spinnaker::LoggingEvent
 		g_LogFS << loggingEventDataPtr->GetLogMessage() << std::endl;
 	}
 };
-LoggingEventHandler g_loggingEventHandler;
+customLoggingEventHandler g_loggingEventHandler;
 
 
 #define CUSTOMMENU_EXPOSURE		(MENU_GENERAL_NUM+0)
@@ -182,7 +182,7 @@ int initCamera( void )
 		//Init Spinnaker camera
 		g_pSpinnakerSystem = Spinnaker::System::GetInstance();
 
-		g_pSpinnakerSystem->RegisterLoggingEvent(g_loggingEventHandler);
+		g_pSpinnakerSystem->RegisterLoggingEventHandler(g_loggingEventHandler);
 		g_pSpinnakerSystem->SetLoggingEventPriorityLevel(k_LoggingLevel);
 
 		g_CameraList = g_pSpinnakerSystem->GetCameras();
@@ -323,7 +323,7 @@ void cleanupCamera()
 		}
 
 		g_CameraList.Clear();
-		g_pSpinnakerSystem->UnregisterLoggingEvent(g_loggingEventHandler);
+		g_pSpinnakerSystem->UnregisterLoggingEventHandler(g_loggingEventHandler);
 		g_pSpinnakerSystem->ReleaseInstance();
 	}
 	catch (Spinnaker::Exception &e) {

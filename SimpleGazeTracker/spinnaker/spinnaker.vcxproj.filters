@@ -76,8 +76,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="CONFIG" />
     <None Include="cpp.hint" />
+    <None Include="CONFIG_SPINNAKER" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\common\GazeTracker.rc">
