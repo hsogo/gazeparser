@@ -1167,25 +1167,25 @@ int SGTData::getPreviousEyePositionForward(double* pos, int offset)
 	}
 	if (g_RecordingMode == RECORDING_MONOCULAR) {
 		pos[0] = m_TickData[offset];
-		if (m_EyeData[offset][MONO_PUPIL_X] > E_FIRST_ERROR_CODE) {
+		if (m_EyeData[offset][MONO_X] > E_FIRST_ERROR_CODE) {
 			getGazePositionMono(m_EyeData[offset], &pos[1]);
 		}
 		else {
-			pos[1] = m_EyeData[offset][MONO_PUPIL_X];
-			pos[2] = m_EyeData[offset][MONO_PUPIL_Y];
+			pos[1] = m_EyeData[offset][MONO_X];
+			pos[2] = m_EyeData[offset][MONO_Y];
 		}
 		pos[3] = m_PupilSizeData[offset][MONO_P];
 	}
 	else {
 		pos[0] = m_TickData[offset];
 		getGazePositionBin(m_EyeData[offset], &pos[1]);
-		if (m_EyeData[offset][BIN_PUPIL_LX] <= E_FIRST_ERROR_CODE) {
-			pos[1] = m_EyeData[offset][BIN_PUPIL_LX];
-			pos[2] = m_EyeData[offset][BIN_PUPIL_LY];
+		if (m_EyeData[offset][BIN_LX] <= E_FIRST_ERROR_CODE) {
+			pos[1] = m_EyeData[offset][BIN_LX];
+			pos[2] = m_EyeData[offset][BIN_LY];
 		}
-		if (m_EyeData[offset][BIN_PUPIL_RX] <= E_FIRST_ERROR_CODE) {
-			pos[3] = m_EyeData[offset][BIN_PUPIL_RX];
-			pos[4] = m_EyeData[offset][BIN_PUPIL_RY];
+		if (m_EyeData[offset][BIN_RX] <= E_FIRST_ERROR_CODE) {
+			pos[3] = m_EyeData[offset][BIN_RX];
+			pos[4] = m_EyeData[offset][BIN_RY];
 		}
 		pos[5] = m_PupilSizeData[offset][BIN_LP];
 		pos[6] = m_PupilSizeData[offset][BIN_RP];
@@ -1206,25 +1206,25 @@ int SGTData::getPreviousEyePositionReverse(double* pos, int offset, bool newData
 	}
 	if (g_RecordingMode == RECORDING_MONOCULAR) {
 		pos[0] = m_TickData[index];
-		if (m_EyeData[index][MONO_PUPIL_X] > E_FIRST_ERROR_CODE) {
+		if (m_EyeData[index][MONO_X] > E_FIRST_ERROR_CODE) {
 			getGazePositionMono(m_EyeData[index], &pos[1]);
 		}
 		else {
-			pos[1] = m_EyeData[index][MONO_PUPIL_X];
-			pos[2] = m_EyeData[index][MONO_PUPIL_Y];
+			pos[1] = m_EyeData[index][MONO_X];
+			pos[2] = m_EyeData[index][MONO_Y];
 		}
 		pos[3] = m_PupilSizeData[index][MONO_P];
 	}
 	else {
 		pos[0] = m_TickData[index];
 		getGazePositionBin(m_EyeData[index], &pos[1]);
-		if (m_EyeData[index][BIN_PUPIL_LX] <= E_FIRST_ERROR_CODE) {
-			pos[1] = m_EyeData[index][BIN_PUPIL_LX];
-			pos[2] = m_EyeData[index][BIN_PUPIL_LY];
+		if (m_EyeData[index][BIN_LX] <= E_FIRST_ERROR_CODE) {
+			pos[1] = m_EyeData[index][BIN_LX];
+			pos[2] = m_EyeData[index][BIN_LY];
 		}
-		if (m_EyeData[index][BIN_PUPIL_RX] <= E_FIRST_ERROR_CODE) {
-			pos[3] = m_EyeData[index][BIN_PUPIL_RX];
-			pos[4] = m_EyeData[index][BIN_PUPIL_RY];
+		if (m_EyeData[index][BIN_RX] <= E_FIRST_ERROR_CODE) {
+			pos[3] = m_EyeData[index][BIN_RX];
+			pos[4] = m_EyeData[index][BIN_RY];
 		}
 		pos[5] = m_PupilSizeData[index][BIN_LP];
 		pos[6] = m_PupilSizeData[index][BIN_RP];
