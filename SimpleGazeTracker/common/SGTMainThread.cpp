@@ -21,15 +21,17 @@ SGTMainThread::SGTMainThread(SGTMainFrame* frame) : wxThread(wxTHREAD_JOINABLE)
 
 wxThread::ExitCode SGTMainThread::Entry()
 {
-	g_runMainThread = true;
-
-	while (g_runMainThread)
+	while (true)
 	{
+		if (wxThread::TestDestroy())
+			break;
+
 		if (m_pMainFrame->getShowCalResult())
-		{ //show calibration result.
+		{
 			m_pMainFrame->drawCalResult();
-			if (m_pMainFrame != nullptr)
-				m_pMainFrame->updateCameraView(g_pCalResultTextureBuffer);
+			wxThreadEvent ev(wxEVT_THREAD, m_pMainFrame->getCameraViewUpdateID());
+			ev.SetInt(1);
+			wxQueueEvent(m_pMainFrame, ev.Clone());
 		}
 		else if (getCameraImage() == S_OK)
 		{ //retrieve camera image and process it.
@@ -95,9 +97,10 @@ wxThread::ExitCode SGTMainThread::Entry()
 
 
 			if (g_ShowCameraImage && !m_pMainFrame->getNoRendering())
-			{ // if it is not under recording, flip screen in a regular way.
-				if (m_pMainFrame != nullptr)
-					m_pMainFrame->updateCameraView(g_pCameraTextureBuffer);
+			{
+				wxThreadEvent ev(wxEVT_THREAD, m_pMainFrame->getCameraViewUpdateID());
+				ev.SetInt(0);
+				wxQueueEvent(m_pMainFrame, ev.Clone());
 			}
 
 		}

@@ -58,6 +58,7 @@ void SGTCameraView::DrawImage(int* buffer)
 	cv::resize(dstMat, scaledMat, cv::Size(640, 480));
 
 	wxImage pWxImg = wxImage(640, 480, scaledMat.data, true);
+	srcMat.release();
 	m_pBitmap = wxBitmap(pWxImg);
 	m_bNewImage = true;
 	m_bDrawing = false;

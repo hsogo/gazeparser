@@ -26,6 +26,7 @@ typedef wxIPV4address IPaddress;
 
 #include "SGTCommon.h"
 
+char g_RecvBuffer[RECV_BUFFER_SIZE];
 
 SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint& pos, const wxSize& size, SGTApp* app) :
 	wxFrame(frame, -1, title, pos, size, wxSYSTEM_MENU | wxCLOSE_BOX | wxCAPTION)
@@ -58,6 +59,7 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	m_pMenuTools = new wxMenu;
 	m_pMenuHelp = new wxMenu;
 
+	ID_CAMERAVIEW_UPDATE = wxNewId();
 	ID_SERVER = wxNewId();
 	ID_RECV_SOCKET = wxNewId();
 	ID_MENU_HTMLDOC = wxNewId();
@@ -96,6 +98,7 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 
 	Bind(wxEVT_SOCKET, &SGTMainFrame::OnServerEvent, this, ID_SERVER);
 	Bind(wxEVT_SOCKET, &SGTMainFrame::OnRecvSocketEvent, this, ID_RECV_SOCKET);
+	Bind(wxEVT_THREAD, &SGTMainFrame::OnUpdateCameraView, this, ID_CAMERAVIEW_UPDATE);
 
 	SetMenuBar(m_pMenuBar);
 
@@ -179,12 +182,6 @@ void SGTMainFrame::updateMessageTextBox(const char* message, bool newline)
 
 void SGTMainFrame::OnExit(wxCommandEvent& event)
 {
-	if (m_pMainThread != NULL && m_pMainThread->IsRunning()) {
-		g_runMainThread = false;
-
-		m_pMainThread->Wait();
-	}
-
 	Close(false);
 }
 
@@ -222,10 +219,8 @@ void SGTMainFrame::OnOpenConfigDialog(wxCommandEvent & event)
 	SGTConfigDlg* dlg = new SGTConfigDlg(this, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
 	if (dlg->ShowModal() == wxOK) {
 		wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK|wxICON_INFORMATION);
-		delete dlg;
 		Close(false);
 	}
-	delete dlg;
 }
 
 void SGTMainFrame::OnOpenIODialog(wxCommandEvent & event)
@@ -233,7 +228,6 @@ void SGTMainFrame::OnOpenIODialog(wxCommandEvent & event)
 	SGTIODlg* dlg = new SGTIODlg(this, -1, "USB I/O status", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
 	dlg->setUSBIO( m_pData->getUSBIO() );
 	dlg->ShowModal();
-	delete dlg;
 }
 
 void SGTMainFrame::OnCaptureCameraImage(wxCommandEvent & event)
@@ -284,11 +278,13 @@ void SGTMainFrame::OnRenderRecording(wxCommandEvent & event)
 
 SGTMainFrame::~SGTMainFrame()
 {
-	if (m_pMainThread != NULL && m_pMainThread->IsRunning()) {
-		g_runMainThread = false;
-
-		m_pMainThread->Wait();
+	if (m_pMainThread != NULL) {
+		m_pMainThread->Delete();
+		while (m_pMainThread->IsRunning()) {
+			Sleep(100);
+		}
 	}
+	delete m_pCameraView;
 }
 
 int SGTMainFrame::initTCPConnection()
@@ -334,12 +330,12 @@ int SGTMainFrame::startMainThread()
 	return S_OK;
 }
 
-void SGTMainFrame::updateCameraView(int* buffer)
+void SGTMainFrame::OnUpdateCameraView(wxThreadEvent& event)
 {
-	// update only if main thread is active.
-	if (g_runMainThread) {
-		m_pCameraView->DrawImage(buffer);
-	}
+	if(event.GetInt()==0)
+		m_pCameraView->DrawImage(g_pCameraTextureBuffer);
+	else if(event.GetInt()==1)
+		m_pCameraView->DrawImage(g_pCalResultTextureBuffer);
 }
 
 void SGTMainFrame::updateMenuPanel()
@@ -714,43 +710,42 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 		sock->SetNotify(wxSOCKET_LOST_FLAG);
 
 		// Which test are we going to run?
-		char buff[RECV_BUFFER_SIZE];
-		sock->Read(buff, RECV_BUFFER_SIZE);
+		sock->Read(g_RecvBuffer, RECV_BUFFER_SIZE);
 		if (!sock->Error() && sock->LastCount()>0) {
 
 			int nextp = 0;
 			int received = sock->LastCount();
 			while (nextp < received) {
-				if (strcmp(buff + nextp, "key_Q") == 0) {
+				if (strcmp(g_RecvBuffer + nextp, "key_Q") == 0) {
 					processKeyPress('Q');
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "key_UP") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "key_UP") == 0)
 				{
 					processKeyPress(WXK_UP);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "key_DOWN") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "key_DOWN") == 0)
 				{
 					processKeyPress(WXK_DOWN);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "key_LEFT") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "key_LEFT") == 0)
 				{
 					processKeyPress(WXK_LEFT);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "key_RIGHT") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "key_RIGHT") == 0)
 				{
 					processKeyPress(WXK_RIGHT);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "getImageData") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getImageData") == 0)
 				{
 					int index;
 					for (int y = 0; y < g_ROIHeight; y++) {
@@ -775,11 +770,11 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					g_SendImageBuffer[index + 1] = 0;
 					m_pClient->Write((char*)g_SendImageBuffer, g_ROIWidth*g_ROIHeight + 1);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "startCal") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "startCal") == 0)
 				{
-					char* param = buff + nextp + 9;
+					char* param = g_RecvBuffer + nextp + 9;
 					char* p;
 					int x1, y1, x2, y2, clear;
 
@@ -791,18 +786,18 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					p++;
 					y2 = strtol(p, &p, 10);
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 
-					clear = strtol(buff + nextp, &p, 10);
+					clear = strtol(g_RecvBuffer + nextp, &p, 10);
 
 					m_pData->setCalibrationArea(x1, y1, x2, y2);
 					startCalibration(clear);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "getCalSample") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getCalSample") == 0)
 				{
-					char* param = buff + nextp + 13;
+					char* param = g_RecvBuffer + nextp + 13;
 					char* p;
 					double x, y;
 					int samples;
@@ -816,17 +811,17 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					if (samples >= MAXCALSAMPLEPERPOINT) samples = MAXCALSAMPLEPERPOINT;
 					m_pData->getCalSample(x, y, samples);
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "endCal") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "endCal") == 0)
 				{
 					endCalibration();
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "startVal") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "startVal") == 0)
 				{
-					char* param = buff + nextp + 9;
+					char* param = g_RecvBuffer + nextp + 9;
 					char* p;
 					int x1, y1, x2, y2;
 
@@ -841,11 +836,11 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					m_pData->setCalibrationArea(x1, y1, x2, y2);
 					startValidation();
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "getValSample") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getValSample") == 0)
 				{
-					char* param = buff + nextp + 13;
+					char* param = g_RecvBuffer + nextp + 13;
 					char* p;
 					double x, y;
 					int samples;
@@ -859,17 +854,17 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					if (samples >= MAXCALSAMPLEPERPOINT) samples = MAXCALSAMPLEPERPOINT;
 					m_pData->getCalSample(x, y, samples);
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "endVal") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "endVal") == 0)
 				{
 					endValidation();
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "toggleCalResult") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "toggleCalResult") == 0)
 				{
-					char* param = buff + nextp + 16;
+					char* param = g_RecvBuffer + nextp + 16;
 					char* p;
 					int val;
 
@@ -888,38 +883,38 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						m_pMenuSystem->UpdateUI();
 					}
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "saveCalValResultsDetail") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "saveCalValResultsDetail") == 0)
 				{
 					m_pData->saveCalValResultsDetail();
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "startRecording") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "startRecording") == 0)
 				{
-					char* param = buff + nextp + 15;
+					char* param = g_RecvBuffer + nextp + 15;
 					startRecording(param);
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "stopRecording") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "stopRecording") == 0)
 				{
-					char* param = buff + nextp + 14;
+					char* param = g_RecvBuffer + nextp + 14;
 					stopRecording(param);
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "openDataFile") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "openDataFile") == 0)
 				{
-					char* param = buff + nextp + 13;
+					char* param = g_RecvBuffer + nextp + 13;
 					char* p;
 					int overwrite;
 					char logstr[1024];
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 
-					overwrite = strtol(buff + nextp, &p, 10);
+					overwrite = strtol(g_RecvBuffer + nextp, &p, 10);
 					if (FAILED(m_pData->openDataFile(param, overwrite)))
 					{
 						snprintf(logstr, sizeof(logstr), "Failed to open datafile: %s", param);
@@ -931,29 +926,29 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						outputLog(logstr);
 					}
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "closeDataFile") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "closeDataFile") == 0)
 				{
 				if (FAILED(m_pData->closeDataFile()))
 					outputLog("Failed to close data file becaue file pointer is NULL.");
 				else
 					outputLog("Close data file.");
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "insertMessage") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "insertMessage") == 0)
 				{
-					char* param = buff + nextp + 14;
+					char* param = g_RecvBuffer + nextp + 14;
 					m_pData->insertMessage(param);
 
 					updateMessageTextBox(param, true);
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "getEyePosition") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getEyePosition") == 0)
 				{
-					char* param = buff + nextp + 15;
+					char* param = g_RecvBuffer + nextp + 15;
 					char* p;
 					int nSamples;
 					double pos[6];
@@ -974,11 +969,11 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					}
 					m_pClient->Write(posstr, len + 1);
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "getEyePositionList") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getEyePositionList") == 0)
 				{
-					char* param = buff + nextp + 19;
+					char* param = g_RecvBuffer + nextp + 19;
 					char* p, *dstbuf;
 					int val, len, s, numGet;
 					bool bGetPupil;
@@ -1049,10 +1044,10 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						m_pClient->Write(posstr, len);
 					}
 
-					nextp = seekNextCommand(buff, received, nextp, 3);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 3);
 				}
-				else if (strcmp(buff + nextp, "getWholeEyePositionList") == 0) {
-					char* param = buff + nextp + 24;
+				else if (strcmp(g_RecvBuffer + nextp, "getWholeEyePositionList") == 0) {
+					char* param = g_RecvBuffer + nextp + 24;
 					char* dstbuf;
 					int len, s, numGet;
 					bool bGetPupil;
@@ -1112,9 +1107,9 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						m_pClient->Write(posstr, len);
 					}
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "getWholeMessageList") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getWholeMessageList") == 0)
 				{
 					char *msgp;
 					size_t len;
@@ -1122,9 +1117,9 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					len = strlen(msgp);
 					m_pClient->Write(msgp, int(len) + 1); //send with terminator
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "getCalResults") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getCalResults") == 0)
 				{
 					int len;
 					char posstr[128];
@@ -1143,9 +1138,9 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 
 					m_pClient->Write(posstr, len + 1);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "getCalResultsDetail") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getCalResultsDetail") == 0)
 				{
 					int len;
 					char errorstr[8192];
@@ -1161,9 +1156,9 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						m_pClient->Write(errorstr, 1);
 					}
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "getCurrMenu") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getCurrMenu") == 0)
 				{
 					int len;
 					char tmpstr[63];
@@ -1174,51 +1169,51 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 
 					m_pClient->Write(menustr, len + 1);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "insertSettings") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "insertSettings") == 0)
 				{
-					char* param = buff + nextp + 15;
+					char* param = g_RecvBuffer + nextp + 15;
 					m_pData->insertSettings(param);
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "saveCameraImage") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "saveCameraImage") == 0)
 				{
-					char* param = buff + nextp + 16;
+					char* param = g_RecvBuffer + nextp + 16;
 					saveCameraImage((const char*)param);
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
-				else if (strcmp(buff + nextp, "startMeasurement") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "startMeasurement") == 0)
 				{
 					startMeasurement(false);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "stopMeasurement") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "stopMeasurement") == 0)
 				{
 					stopMeasurement();
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "allowRendering") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "allowRendering") == 0)
 				{
 					m_bNoRendering = false;
 					m_pMenuSystem->Check(ID_MENU_NORENDERRECORDING, false);
 					m_pMenuSystem->UpdateUI();
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "inhibitRendering") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "inhibitRendering") == 0)
 				{
 					m_bNoRendering = true;
 					m_pMenuSystem->Check(ID_MENU_NORENDERRECORDING, true);
 					m_pMenuSystem->UpdateUI();
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "isBinocularMode") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "isBinocularMode") == 0)
 				{
 					int len;
 					char str[8];
@@ -1231,9 +1226,9 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					}
 					m_pClient->Write(str, len + 1);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "getCameraImageSize") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "getCameraImageSize") == 0)
 				{
 					int len;
 					char str[16];
@@ -1241,23 +1236,23 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					len = snprintf(str, sizeof(str), "%d,%d", g_CameraWidth, g_CameraHeight);
 					m_pClient->Write(str, len + 1);
 
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
-				else if (strcmp(buff + nextp, "deleteCalData") == 0)
+				else if (strcmp(g_RecvBuffer + nextp, "deleteCalData") == 0)
 				{
-					char* param = buff + nextp + 14;
+					char* param = g_RecvBuffer + nextp + 14;
 
 					m_pData->deleteCalibrationDataSubset(param);
 					endCalibration();
 
-					nextp = seekNextCommand(buff, received, nextp, 2);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
 				else
 				{
 					ss.str("");
-					ss << "WARNING: Unknown command (" << buff + nextp << ")" << std::endl;
+					ss << "WARNING: Unknown command (" << g_RecvBuffer + nextp << ")" << std::endl;
 					outputLog(ss.str().c_str());
-					nextp = seekNextCommand(buff, received, nextp, 1);
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
 			}
 		}

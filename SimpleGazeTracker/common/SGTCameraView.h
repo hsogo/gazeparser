@@ -14,8 +14,8 @@ public:
 	//void CheckUpdate();
 
 	void Draw( wxDC& dc );
-
 	void DrawImage(int * buffer);
+	bool getDrawing() { return m_bDrawing; }
 
 protected:
 	wxBitmap m_pBitmap;

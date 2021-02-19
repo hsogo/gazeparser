@@ -33,6 +33,7 @@ public:
 	void OnRecvSocketEvent(wxSocketEvent& event);
 	void OnOpenConfigDialog(wxCommandEvent & event);
 	void OnOpenIODialog(wxCommandEvent & event);
+	void OnUpdateCameraView(wxThreadEvent& event);
 
 	void updateParamFromTextCtrl(wxEvent &event);
 	void clearMessageTextBox();
@@ -45,10 +46,11 @@ public:
 
 	bool getShowCalResult() { return m_bShowCalResult; }
 	bool getNoRendering() { return m_bNoRendering; }
+	bool getCameraDrawing() { return m_pCameraView->getDrawing(); }
+	int getCameraViewUpdateID() { return ID_CAMERAVIEW_UPDATE; }
 
-	void updateCameraView(int* buffer);
 	void updateMenuPanel();
-
+	
 	void startRecording(char* message);
 	void stopRecording(char* message);
 	void startMeasurement(bool ignoreCalibration);
@@ -66,7 +68,8 @@ public:
 	bool m_isCalibrating = false;
 	bool m_isValidating = false;
 
-
+	wxCriticalSection m_critsect;
+	wxSemaphore m_semAllDone;
 
 private:
 	SGTApp* m_pApp;
@@ -88,6 +91,7 @@ private:
 	void processKeyPress(int code);
 	void getCurrentMenuString(char *p, int maxlen);
 
+	int ID_CAMERAVIEW_UPDATE;
 	int ID_SERVER;
 	int ID_RECV_SOCKET;
 	int ID_MENU_TOGGLECALRESULT;

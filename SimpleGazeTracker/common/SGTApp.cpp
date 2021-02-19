@@ -24,10 +24,13 @@
 #include "resource.h"
 #endif
 
+/*
+#define _CRTDBG_MAP_ALLOC
+#include "stdlib.h"
 #include "crtdbg.h"
 #define malloc(X) _malloc_dbg(X, _NORMAL_BLOCK, __FILE__, __LINE__)
 #define new ::new(_NORMAL_BLOCK, __FILE__, __LINE__)
-
+*/
 
 wxDECLARE_APP(SGTApp);
 
@@ -96,14 +99,15 @@ extern std::vector<SGTParam*> g_pGeneralParamsVector;
 extern std::vector<SGTParam*> g_pImageParamsVector;
 extern std::vector<SGTParam*> g_pIOParamsVector;
 extern std::vector<SGTParam*> g_pCameraParamsVector;
-/*
+
 wxIMPLEMENT_APP_NO_MAIN(SGTApp);
 int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ wxCmdLineArgType, _In_ int nCmdShow)
 {
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	//_CrtSetBreakAlloc(2513);
 	return wxEntry(hInstance, hPrevInstance, 0, nCmdShow);
-}*/
-wxIMPLEMENT_APP(SGTApp);
+}
+//wxIMPLEMENT_APP(SGTApp);
 
 
 static const wxCmdLineEntryDesc g_cmdLineDesc[] =
@@ -272,7 +276,6 @@ bool SGTApp::OnInit()
 		{
 			wxMessageBox("Parameters are not updated.", "Info", wxOK | wxICON_INFORMATION);
 		}
-		delete dlg;
 	}
 
 	// check Preview size before creating main frame
@@ -295,7 +298,6 @@ bool SGTApp::OnInit()
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
 		}
-		delete dlg;
 	}
 
 	// now we can open main frame
@@ -325,14 +327,12 @@ bool SGTApp::OnInit()
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
-			SGTConfigDlg* dlg2 = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
-			if (dlg2->ShowModal() == wxOK) {
+			SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg->ShowModal() == wxOK) {
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
-			delete dlg2;
 		}
-		delete dlg;
 		return false;
 	}
 
@@ -350,14 +350,12 @@ bool SGTApp::OnInit()
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
-			SGTConfigDlg* dlg2 = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
-			if (dlg2->ShowModal() == wxOK) {
+			SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg->ShowModal() == wxOK) {
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
-			delete dlg2;
 		}
-		delete dlg;
 		outputLog("initTCPConnection failed. Exit.");
 		return false;
 
@@ -376,14 +374,12 @@ bool SGTApp::OnInit()
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
-			SGTConfigDlg* dlg2 = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
-			if (dlg2->ShowModal() == wxOK) {
+			SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg->ShowModal() == wxOK) {
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
-			delete dlg2;
 		}
-		delete dlg;
 		outputLog( "initCamera failed. Exit." );
 		return false;
 	}
@@ -404,14 +400,12 @@ bool SGTApp::OnInit()
 						"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 					outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 				}
-				SGTConfigDlg* dlg2 = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
-				if (dlg2->ShowModal() == wxOK) {
+				SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+				if (dlg->ShowModal() == wxOK) {
 					saveParameters();
 					wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 				}
-				delete dlg2;
 			}
-			delete dlg;
 			outputLog("initUSBIO failed. Exit.");
 			return false;
 		}
@@ -461,8 +455,8 @@ int SGTApp::OnExit()
 	releaseBuffers();
 
 	//release objects
-	delete m_pUSBIO;
-	delete m_pData;
+	wxDELETE( m_pUSBIO );
+	wxDELETE( m_pData );
 
 	std::vector<SGTParam*>::iterator it;
 	for (it = g_pGeneralParamsVector.begin(); it != g_pGeneralParamsVector.end(); it++) delete(*it);

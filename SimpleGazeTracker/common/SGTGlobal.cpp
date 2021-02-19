@@ -70,8 +70,6 @@ static cv::Rect g_ROI;
 
 static const double PI = 6 * asin(0.5);
 
-bool g_runMainThread;
-
 int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results)
 {
 	cv::Mat tmp, tmp0;

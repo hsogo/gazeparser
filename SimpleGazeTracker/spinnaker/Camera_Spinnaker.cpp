@@ -31,8 +31,8 @@ Spinnaker::CameraPtr g_pSpinnakerCam = nullptr;
 
 bool g_AcquisitionStarted = false;
 
-const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_DEBUG;
-//const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_ERROR;
+//const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_DEBUG;
+const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_ERROR;
 
 class customLoggingEventHandler : public Spinnaker::LoggingEventHandler
 {
