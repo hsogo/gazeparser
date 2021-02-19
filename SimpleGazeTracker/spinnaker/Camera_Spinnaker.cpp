@@ -29,8 +29,10 @@ Spinnaker::SystemPtr g_pSpinnakerSystem = nullptr;
 Spinnaker::CameraList g_CameraList;
 Spinnaker::CameraPtr g_pSpinnakerCam = nullptr;
 
-//const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_DEBUG;
-const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_ERROR;
+bool g_AcquisitionStarted = false;
+
+const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_DEBUG;
+//const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_ERROR;
 
 class customLoggingEventHandler : public Spinnaker::LoggingEventHandler
 {
@@ -265,6 +267,7 @@ int initCamera( void )
 		cleanupCamera();
 		return E_FAIL;
 	}
+	g_AcquisitionStarted = true;
 
 	g_LogFS << "Start capturing." << std::endl;
 
@@ -284,6 +287,8 @@ getCameraImage: Get new camera image.
 */
 int getCameraImage( void )
 {
+	if (!g_AcquisitionStarted) return E_FAIL;
+
 	Spinnaker::ImagePtr pResultImage = g_pSpinnakerCam->GetNextImage();
 
 	if(!pResultImage->IsIncomplete())
@@ -314,6 +319,7 @@ cleanupCamera: release camera resources.
 */
 void cleanupCamera()
 {
+	g_AcquisitionStarted = false;
 
 	try {
 		if (g_pSpinnakerCam != nullptr) {
@@ -321,16 +327,15 @@ void cleanupCamera()
 			g_pSpinnakerCam->DeInit();
 			g_pSpinnakerCam = nullptr;
 		}
-
 		g_CameraList.Clear();
 		g_pSpinnakerSystem->UnregisterLoggingEventHandler(g_loggingEventHandler);
 		g_pSpinnakerSystem->ReleaseInstance();
 	}
 	catch (Spinnaker::Exception &e) {
 		g_LogFS << "Error: " << e.what() << std::endl;
-		return;
 	}
 
+	g_TmpImg.release();
 }
 
 /*!
