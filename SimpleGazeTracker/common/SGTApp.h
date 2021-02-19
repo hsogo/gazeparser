@@ -16,8 +16,8 @@ class SGTusbIO;
 class SGTApp : public wxApp
 {
 public:
-	SGTData* m_pData;
-	SGTusbIO* m_pUSBIO;
+	SGTData* m_pData = nullptr;
+	SGTusbIO* m_pUSBIO = nullptr;
 
 	virtual bool OnInit() override;
 	virtual int OnExit() override;
@@ -25,9 +25,9 @@ public:
 	virtual bool OnCmdLineParsed(wxCmdLineParser& parser);
 
 private:
-	bool m_useCustomParamPath;
-	bool m_useCustomDataPath;
-	bool m_useCustomConfigFile;
+	bool m_useCustomParamPath = false;
+	bool m_useCustomDataPath = false;
+	bool m_useCustomConfigFile = false;
 
 	void measureInterFrameInterval();
 };

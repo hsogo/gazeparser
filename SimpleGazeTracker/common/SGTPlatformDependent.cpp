@@ -160,8 +160,9 @@ int checkAndCreateDirectory(std::string path)
 */
 {
 #ifdef _WIN32
-	wchar_t wbuff[1024];
-	mbstowcs(wbuff, path.c_str(), sizeof(wbuff));
+#define LOCAL_BUFF_SIZE 1024
+	wchar_t wbuff[LOCAL_BUFF_SIZE];
+	mbstowcs(wbuff, path.c_str(), LOCAL_BUFF_SIZE);
 	if(!PathIsDirectory(wbuff)){
 		CreateDirectory(wbuff, NULL);
 	}
@@ -192,15 +193,17 @@ Check whether file exists. If the file exists, ".n" (n=0,1,2,...) is appended to
 	std::stringstream ss;
 	int n = 0;
 #ifdef _WIN32
-	wchar_t strToW[1024], pathW[1024];
-	mbstowcs(pathW, path.c_str(), sizeof(pathW));
+#define LOCAL_BUFF_SIZE 1024
+	wchar_t strToW[LOCAL_BUFF_SIZE], pathW[LOCAL_BUFF_SIZE];
+	mbstowcs(pathW, path.c_str(), LOCAL_BUFF_SIZE);
+	mbstowcs(strToW, path.c_str(), LOCAL_BUFF_SIZE);
 	if(PathFileExists(strToW)){
 		while(true)
 		{
 			ss.str("");
 			ss << path << "." << n;
 			strTo = ss.str();
-			mbstowcs(strToW, strTo.c_str(), sizeof(strToW));
+			mbstowcs(strToW, strTo.c_str(), LOCAL_BUFF_SIZE);
 			if(!PathFileExists(strToW)){
 				if(MoveFile(pathW, strToW)){
 					outputLog("Datafile is renamed.");
@@ -244,8 +247,9 @@ int checkFile(std::string path, const char* filename)
 	str.append(filename);
 
 #ifdef _WIN32
-	wchar_t strW[1024];
-	mbstowcs(strW, str.c_str(), sizeof(strW));
+#define LOCAL_BUFF_SIZE 1024
+	wchar_t strW[LOCAL_BUFF_SIZE];
+	mbstowcs(strW, str.c_str(), LOCAL_BUFF_SIZE);
 	if(!PathFileExists(strW)){
 		return E_FAIL;
 	}
@@ -272,14 +276,15 @@ int checkAndCopyFile(std::string path, const char* filename, std::string sourceP
 	str.append(filename);
 
 #ifdef _WIN32
-	wchar_t strW[1024], fromW[1024];
-	mbstowcs(strW, str.c_str(), sizeof(strW));
+#define LOCAL_BUFF_SIZE 1024
+	wchar_t strW[LOCAL_BUFF_SIZE], fromW[LOCAL_BUFF_SIZE];
+	mbstowcs(strW, str.c_str(), LOCAL_BUFF_SIZE);
 
 	if(!PathFileExists(strW)){
 		std::string strFrom(sourcePath);
 		strFrom.append(PATH_SEPARATOR);
 		strFrom.append(filename);
-		mbstowcs(fromW, strFrom.c_str(), sizeof(strW));
+		mbstowcs(fromW, strFrom.c_str(), LOCAL_BUFF_SIZE);
 		if(!PathFileExists(fromW)){
 			return E_FAIL;
 		}
@@ -358,8 +363,9 @@ std::string getCurrentWorkingDirectory()
 	std::string cwd;
 	char buff[FILENAME_MAX];
 #ifdef _WIN32
-	_getcwd(buff, FILENAME_MAX);
-	cwd.assign(buff);
+	char* p;
+	p = _getcwd(buff, FILENAME_MAX);
+	if(p != NULL) cwd.assign(buff);
 #else
 	if(getcwd(buff, FILENAME_MAX)!=NULL){
 		cwd.assign(buff);

@@ -22,5 +22,4 @@ public:
 
 	SGTMainFrame* m_pMainFrame;
 	SGTData* m_pData;
-
 };

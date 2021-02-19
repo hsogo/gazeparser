@@ -43,6 +43,9 @@ public:
 	SGTData* getSGTData() { return m_pData; }
 	int startMainThread();
 
+	bool getShowCalResult() { return m_bShowCalResult; }
+	bool getNoRendering() { return m_bNoRendering; }
+
 	void updateCameraView(int* buffer);
 	void updateMenuPanel();
 
@@ -79,8 +82,8 @@ private:
 	int m_captureNum = 0;
 
 	bool m_TCPClientConnected = false;
-	wxSocketServer *m_Server;
-	wxSocketClient *m_Client;
+	wxSocketServer *m_pServer;
+	wxSocketClient *m_pClient;
 
 	void processKeyPress(int code);
 	void getCurrentMenuString(char *p, int maxlen);

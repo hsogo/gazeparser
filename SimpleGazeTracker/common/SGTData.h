@@ -48,7 +48,7 @@ public:
 	double getTickData(int index) { return m_TickData[index]; }
 	char* getMessageBuffer() { return m_MessageBuffer; }
 	void recordCalSample(double x, double y, int samples);
-	void deleteCalibrationDataSubset(char * points);
+	void deleteCalibrationDataSubset(char* points);
 	void getCalSample(double x, double y, int samples);
 
 	int openDataFile(char* filename, int overwrite);
@@ -56,12 +56,12 @@ public:
 	void estimateParametersMono();
 	void estimateParametersBin();
 	void saveCalValResultsDetail(void);
-	void insertMessage(char * message);
-	void getCalibrationResults(double * Goodness, double * MaxError, double * MeanError);
-	void getCalibrationResultsDetail(char * errorstr, int size, int * len);
-	void getEyePosition(double * pos, int nSamples);
-	int getPreviousEyePositionForward(double * pos, int offset);
-	int getPreviousEyePositionReverse(double * pos, int offset, bool newDataOnly);
+	void insertMessage(char* message);
+	void getCalibrationResults(double* Goodness, double* MaxError, double* MeanError);
+	void getCalibrationResultsDetail(char* errorstr, int size, int* len);
+	void getEyePosition(double* pos, int nSamples);
+	int getPreviousEyePositionForward(double* pos, int offset);
+	int getPreviousEyePositionReverse(double* pos, int offset, bool newDataOnly);
 	void updateLastSentDataCounter() { m_LastSentDataCounter = m_DataCounter - 1; }
 	void flushGazeData(void);
 
@@ -73,8 +73,8 @@ public:
 	void finishCalibration();
 	void finishValidation();
 
-	void getGazePositionMono(double * im, double * xy);
-	void getGazePositionBin(double * im, double * xy);
+	void getGazePositionMono(double* im, double* xy);
+	void getGazePositionBin(double* im, double* xy);
 	void recordGazeData(double time, double detectionResults[8]);
 	void recordCalibrationData(double detectionResults[8]);
 	void prepareForNextData();
@@ -88,7 +88,7 @@ public:
 
 private:
 	FILE* m_DataFP = nullptr;
-	SGTusbIO* m_pUSBIO;
+	SGTusbIO* m_pUSBIO = nullptr;
 
 	double m_EyeData[MAXDATA][4]; /*!< Holds the center of purkinje image relative to the center of pupil. Only two columns are used when recording mode is monocular.*/
 	double m_PupilSizeData[MAXDATA][2]; /*!< Holds pupil size*/
@@ -103,8 +103,8 @@ private:
 	double m_CurrentEyeData[4]; /*!< Holds latest data. Only two elements are used when recording mode is monocular.*/
 	double m_CurrentPupilSize[2]; /*!< Holds latest data. Only one element is used when recording mode is monocular.*/
 	double m_CurrentCalPoint[2]; /*!< Holds current position of the calibration target. */
-	int m_NumCalPoint; /*!< Sum of the number of sampled calibration data.*/
-	int m_CalSamplesAtCurrentPoint; /*!< Number of calibdation data to be sampled at the current target position.*/
+	int m_NumCalPoint = 0; /*!< Sum of the number of sampled calibration data.*/
+	int m_CalSamplesAtCurrentPoint = 0; /*!< Number of calibdation data to be sampled at the current target position.*/
 
 	double m_CalGoodness[4]; /*!< Holds goodness of calibration results, defined as a ratio of linear regression coefficients to screen size. Only two elements are used when recording mode is monocular.*/
 	double m_CalMaxError[2]; /*!< Holds maximum calibration error. Only one element is used when recording mode is monocular.*/
@@ -121,7 +121,7 @@ private:
 
 	int m_DataCounter = 0;
 	int m_MessageEnd = 0;
-	double m_RecStartTime;
+	double m_RecStartTime = 0;
 	char m_MessageBuffer[MAXMESSAGE];
 	bool m_bCalibrated = false;
 	int m_State = STATE_FREE;

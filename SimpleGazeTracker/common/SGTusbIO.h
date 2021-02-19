@@ -21,11 +21,11 @@ public:
 
 private:
 
-	int m_DIport;
+	int m_DIport = 0;
 
-	int m_boardNum;
-	int m_numADChannels;
-	int m_ADResolution;
+	int m_boardNum = 0;
+	int m_numADChannels = 0;
+	int m_ADResolution = 0;
 	int m_ADChannelList[MAX_USB_AD_CHANNELS][2]; /*0: Channel number  1:AD range**/
 
 	std::string m_board;
@@ -34,10 +34,10 @@ private:
 
 	DWORD m_latestADValue32[MAX_USB_AD_CHANNELS];
 	WORD m_latestADValue16[MAX_USB_AD_CHANNELS];
-	WORD m_latestDIValue;
+	WORD m_latestDIValue = 0;
 
-	DWORD* m_ADBuffer32;
-	WORD* m_ADBuffer16;
-	unsigned short* m_DIBuffer;
+	DWORD* m_ADBuffer32 = 0;
+	WORD* m_ADBuffer16 = 0;
+	unsigned short* m_DIBuffer = nullptr;
 
 };

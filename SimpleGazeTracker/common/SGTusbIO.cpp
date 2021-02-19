@@ -156,6 +156,10 @@ int SGTusbIO::checkDI(void)
 	WORD DataValue = 0;
 	char error_message[1024];
 
+	std::fill_n(&m_ADChannelList[0][0], MAX_USB_AD_CHANNELS*2, 0);
+	std::fill_n(m_latestADValue32, MAX_USB_AD_CHANNELS, 0);
+	std::fill_n(m_latestADValue16, MAX_USB_AD_CHANNELS, 0);
+
 	ULStat = cbDConfigPort(m_boardNum, m_DIport, DIGITALIN);
 	if (ULStat != NOERRORS) {
 		snprintf(error_message, sizeof(error_message), "Failed to configure port (%s) as Digital input.", m_paramDI.c_str());

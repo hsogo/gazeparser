@@ -24,6 +24,11 @@
 #include "resource.h"
 #endif
 
+#include "crtdbg.h"
+#define malloc(X) _malloc_dbg(X, _NORMAL_BLOCK, __FILE__, __LINE__)
+#define new ::new(_NORMAL_BLOCK, __FILE__, __LINE__)
+
+
 wxDECLARE_APP(SGTApp);
 
 // common parameters (read from CONFIG)
@@ -78,8 +83,10 @@ int saveParameters(void);
 int g_PortRecv = PORT_RECV;
 int g_PortSend = PORT_SEND;
 
+//measure IFI
 double g_MeanInterFrameInterval;
 double g_StdInterFrameInterval;
+double g_measureIFItick[2011], g_IFI[2000];
 
 
 extern int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results);
@@ -88,8 +95,16 @@ extern int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int Pu
 extern std::vector<SGTParam*> g_pGeneralParamsVector;
 extern std::vector<SGTParam*> g_pImageParamsVector;
 extern std::vector<SGTParam*> g_pIOParamsVector;
-
+extern std::vector<SGTParam*> g_pCameraParamsVector;
+/*
+wxIMPLEMENT_APP_NO_MAIN(SGTApp);
+int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ wxCmdLineArgType, _In_ int nCmdShow)
+{
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF | _CRTDBG_CHECK_ALWAYS_DF | _CRTDBG_LEAK_CHECK_DF);
+	return wxEntry(hInstance, hPrevInstance, 0, nCmdShow);
+}*/
 wxIMPLEMENT_APP(SGTApp);
+
 
 static const wxCmdLineEntryDesc g_cmdLineDesc[] =
 {
@@ -257,6 +272,7 @@ bool SGTApp::OnInit()
 		{
 			wxMessageBox("Parameters are not updated.", "Info", wxOK | wxICON_INFORMATION);
 		}
+		delete dlg;
 	}
 
 	// check Preview size before creating main frame
@@ -279,6 +295,7 @@ bool SGTApp::OnInit()
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
 		}
+		delete dlg;
 	}
 
 	// now we can open main frame
@@ -308,12 +325,14 @@ bool SGTApp::OnInit()
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
-			SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
-			if (dlg->ShowModal() == wxOK) {
+			SGTConfigDlg* dlg2 = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg2->ShowModal() == wxOK) {
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
+			delete dlg2;
 		}
+		delete dlg;
 		return false;
 	}
 
@@ -331,12 +350,14 @@ bool SGTApp::OnInit()
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
-			SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
-			if (dlg->ShowModal() == wxOK) {
+			SGTConfigDlg* dlg2 = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg2->ShowModal() == wxOK) {
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
+			delete dlg2;
 		}
+		delete dlg;
 		outputLog("initTCPConnection failed. Exit.");
 		return false;
 
@@ -355,12 +376,14 @@ bool SGTApp::OnInit()
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
-			SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
-			if (dlg->ShowModal() == wxOK) {
+			SGTConfigDlg* dlg2 = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			if (dlg2->ShowModal() == wxOK) {
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
+			delete dlg2;
 		}
+		delete dlg;
 		outputLog( "initCamera failed. Exit." );
 		return false;
 	}
@@ -381,12 +404,14 @@ bool SGTApp::OnInit()
 						"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 					outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 				}
-				SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
-				if (dlg->ShowModal() == wxOK) {
+				SGTConfigDlg* dlg2 = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+				if (dlg2->ShowModal() == wxOK) {
 					saveParameters();
 					wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 				}
+				delete dlg2;
 			}
+			delete dlg;
 			outputLog("initUSBIO failed. Exit.");
 			return false;
 		}
@@ -397,13 +422,13 @@ bool SGTApp::OnInit()
 	else {
 		outputLog("NO USB/IO");
 	}
-
+	
 	outputLog("Measuring inter-frame interval...");
 	measureInterFrameInterval();
 	snprintf(error_message, sizeof(error_message), "Average inter-frame interval (without window rendering): %.1fms (%.1fHz)", g_MeanInterFrameInterval, 1000 / g_MeanInterFrameInterval);
 	pMainFrame->updateMessageTextBox(error_message, true);
 	outputLog(error_message);
-
+	
 
 	if (FAILED(pMainFrame->startMainThread()))
 	{
@@ -424,18 +449,31 @@ int SGTApp::OnExit()
 	char error_message[1024];
 	char datestr[256];
 
+	if (FAILED(saveParameters())) {
+		snprintf(error_message, sizeof(error_message), "Failed to save parameters.");
+		outputLogDlg(error_message, "SimpleGazeTracker warning", wxICON_ERROR);
+	}
+
 	outputLog( "Camera-specific cleanup..." );
 	cleanupCamera();
 	outputLog("OK.");
 
 	releaseBuffers();
 
-	if (FAILED(saveParameters())) {
-		snprintf(error_message, sizeof(error_message), "Failed to save parameters.");
-		outputLogDlg(error_message, "SimpleGazeTracker warning", wxICON_ERROR);
-	}
+	//release objects
+	delete m_pUSBIO;
+	delete m_pData;
 
-	//TODO release buffers, USB I/O
+	std::vector<SGTParam*>::iterator it;
+	for (it = g_pGeneralParamsVector.begin(); it != g_pGeneralParamsVector.end(); it++) delete(*it);
+	for (it = g_pImageParamsVector.begin(); it != g_pImageParamsVector.end(); it++) delete(*it);
+	for (it = g_pIOParamsVector.begin(); it != g_pIOParamsVector.end(); it++) delete(*it);
+	for (it = g_pCameraParamsVector.begin(); it != g_pCameraParamsVector.end(); it++) delete(*it);
+	std::vector<SGTParam*>().swap(g_pGeneralParamsVector);
+	std::vector<SGTParam*>().swap(g_pImageParamsVector);
+	std::vector<SGTParam*>().swap(g_pIOParamsVector);
+	std::vector<SGTParam*>().swap(g_pCameraParamsVector);
+
 	time(&t);
 	ltm = localtime(&t);
 	strftime(datestr, sizeof(datestr), "%Y, %B, %d, %A %p%I:%M:%S", ltm);
@@ -687,9 +725,11 @@ int saveParameters(void)
 	return S_OK;
 }
 
+
+
 void SGTApp::measureInterFrameInterval()
 {
-	double tick[2011], ifi[2000], startTime;
+	double startTime;
 	int numSamples;
 
 	// Run 2000ms
@@ -702,7 +742,7 @@ void SGTApp::measureInterFrameInterval()
 			int res;
 			double detectionResults[MAX_DETECTION_RESULTS], TimeImageAcquired;
 
-			tick[numSamples] = getCurrentTime();
+			g_measureIFItick[numSamples] = getCurrentTime();
 			numSamples++;
 			if (numSamples >= 2011) break;
 
@@ -754,18 +794,18 @@ void SGTApp::measureInterFrameInterval()
 	}
 
 	for (int i = 0; i < numSamples; i++) {
-		ifi[i] = tick[i+11] - tick[i+10]; // drop first 10 sample
+		g_IFI[i] = g_measureIFItick[i+11] - g_measureIFItick[i+10]; // drop first 10 sample
 	}
 
 	g_MeanInterFrameInterval = 0;
 	for (int i = 0; i < numSamples; i++) {
-		g_MeanInterFrameInterval += ifi[i];
+		g_MeanInterFrameInterval += g_IFI[i];
 	}
 	g_MeanInterFrameInterval /= numSamples;
 
 	g_StdInterFrameInterval = 0;
 	for (int i = 0; i < numSamples; i++) {
-		g_StdInterFrameInterval += (ifi[i] - g_MeanInterFrameInterval)*(ifi[i] - g_MeanInterFrameInterval);
+		g_StdInterFrameInterval += (g_IFI[i] - g_MeanInterFrameInterval)*(g_IFI[i] - g_MeanInterFrameInterval);
 	}
 	g_StdInterFrameInterval /= numSamples;
 	g_StdInterFrameInterval = sqrt(g_StdInterFrameInterval);

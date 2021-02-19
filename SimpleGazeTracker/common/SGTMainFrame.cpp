@@ -49,6 +49,10 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	m_pApp = app;
 	m_pData = app->m_pData;
 
+	m_pClient = NULL;
+	m_pServer = NULL;
+	m_pMainThread = NULL;
+
 	m_pMenuBar = new wxMenuBar;
 	m_pMenuSystem = new wxMenu;
 	m_pMenuTools = new wxMenu;
@@ -175,6 +179,12 @@ void SGTMainFrame::updateMessageTextBox(const char* message, bool newline)
 
 void SGTMainFrame::OnExit(wxCommandEvent& event)
 {
+	if (m_pMainThread != NULL && m_pMainThread->IsRunning()) {
+		g_runMainThread = false;
+
+		m_pMainThread->Wait();
+	}
+
 	Close(false);
 }
 
@@ -212,8 +222,10 @@ void SGTMainFrame::OnOpenConfigDialog(wxCommandEvent & event)
 	SGTConfigDlg* dlg = new SGTConfigDlg(this, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
 	if (dlg->ShowModal() == wxOK) {
 		wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK|wxICON_INFORMATION);
+		delete dlg;
 		Close(false);
 	}
+	delete dlg;
 }
 
 void SGTMainFrame::OnOpenIODialog(wxCommandEvent & event)
@@ -221,6 +233,7 @@ void SGTMainFrame::OnOpenIODialog(wxCommandEvent & event)
 	SGTIODlg* dlg = new SGTIODlg(this, -1, "USB I/O status", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
 	dlg->setUSBIO( m_pData->getUSBIO() );
 	dlg->ShowModal();
+	delete dlg;
 }
 
 void SGTMainFrame::OnCaptureCameraImage(wxCommandEvent & event)
@@ -273,9 +286,9 @@ SGTMainFrame::~SGTMainFrame()
 {
 	if (m_pMainThread != NULL && m_pMainThread->IsRunning()) {
 		g_runMainThread = false;
-	}
 
-	m_pMainThread->Wait();
+		m_pMainThread->Wait();
+	}
 }
 
 int SGTMainFrame::initTCPConnection()
@@ -283,24 +296,24 @@ int SGTMainFrame::initTCPConnection()
 	IPaddress addr, addrReal;
 	addr.Service(g_PortRecv);
 
-	m_Server = new wxSocketServer(addr);
+	m_pServer = new wxSocketServer(addr);
 
-	if (!m_Server->IsOk())
+	if (!m_pServer->IsOk())
 	{
 		outputLog("ERROR: Failed to create server socket.");
 		return E_FAIL;
 	}
 
 
-	if (!m_Server->GetLocal(addrReal))
+	if (!m_pServer->GetLocal(addrReal))
 	{
 		outputLog("ERROR: Failed to get local address of server socket.");
 		return E_FAIL;
 	}
 
-	m_Server->SetEventHandler(*this, ID_SERVER);
-	m_Server->SetNotify(wxSOCKET_CONNECTION_FLAG);
-	m_Server->Notify(true);
+	m_pServer->SetEventHandler(*this, ID_SERVER);
+	m_pServer->SetNotify(wxSOCKET_CONNECTION_FLAG);
+	m_pServer->Notify(true);
 
 	return S_OK;
 }
@@ -613,14 +626,14 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 	{
 		outputLog("Client is already connected.");
 		updateMessageTextBox("Warning: Client is alerady connected", true);
-		m_Server->Discard();
+		m_pServer->Discard();
 	}
 
 	// Accept new connection if there is one in the pending
 	// connections queue, else exit. We use Accept(false) for
 	// non-blocking accept (although if we got here, there
 	// should ALWAYS be a pending connection).
-	sock = m_Server->Accept(false);
+	sock = m_pServer->Accept(false);
 
 	if (sock)
 	{
@@ -654,11 +667,11 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 
 	addr.Hostname(client_addr.Hostname());
 	addr.Service(g_PortSend);
-	m_Client = new wxSocketClient(TCP_NODELAY);
+	m_pClient = new wxSocketClient(TCP_NODELAY);
 
-	m_Client->Connect(addr, true);
+	m_pClient->Connect(addr, true);
 
-	if (!m_Client->IsConnected()) {
+	if (!m_pClient->IsConnected()) {
 		outputLog("Error: couldn't connect to client.");
 		updateMessageTextBox("Error: could not connect to client.", true);
 		sock->Destroy();
@@ -760,7 +773,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						index = g_ROIWidth * g_ROIHeight;
 					}
 					g_SendImageBuffer[index + 1] = 0;
-					m_Client->Write((char*)g_SendImageBuffer, g_ROIWidth*g_ROIHeight + 1);
+					m_pClient->Write((char*)g_SendImageBuffer, g_ROIWidth*g_ROIHeight + 1);
 
 					nextp = seekNextCommand(buff, received, nextp, 1);
 				}
@@ -959,7 +972,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						len = snprintf(posstr, sizeof(posstr) - 1, "%.0f,%.0f,%.0f,%.0f,%.0f,%.0f",
 							pos[0], pos[1], pos[2], pos[3], pos[4], pos[5]);
 					}
-					m_Client->Write(posstr, len + 1);
+					m_pClient->Write(posstr, len + 1);
 
 					nextp = seekNextCommand(buff, received, nextp, 2);
 				}
@@ -1017,7 +1030,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						s -= len;
 						if (s <= 96) {//check overflow
 							len = sizeof(posstr) - s;
-							m_Client->Write(posstr, len);
+							m_pClient->Write(posstr, len);
 							s = sizeof(posstr);
 							dstbuf = posstr;
 						}
@@ -1025,7 +1038,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 
 					if (numGet <= 0) { //no data.
 						posstr[0] = '\0';
-						m_Client->Write(posstr, 1);
+						m_pClient->Write(posstr, 1);
 					}
 
 					m_pData->updateLastSentDataCounter();
@@ -1033,7 +1046,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					if (s != sizeof(posstr)) {
 						len = sizeof(posstr) - s;
 						posstr[len - 1] = '\0'; //replace the last camma with \0
-						m_Client->Write(posstr, len);
+						m_pClient->Write(posstr, len);
 					}
 
 					nextp = seekNextCommand(buff, received, nextp, 3);
@@ -1081,7 +1094,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						s -= len;
 						if (s <= 96) {//check overflow
 							len = sizeof(posstr) - s;
-							m_Client->Write(posstr, len);
+							m_pClient->Write(posstr, len);
 							s = sizeof(posstr);
 							dstbuf = posstr;
 						}
@@ -1090,13 +1103,13 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 
 					if (numGet <= 0) { //no data.
 						posstr[0] = '\0';
-						m_Client->Write(posstr, 1);
+						m_pClient->Write(posstr, 1);
 					}
 
 					if (s != sizeof(posstr)) {
 						len = sizeof(posstr) - s;
 						posstr[len - 1] = '\0'; //replace the last camma with \0
-						m_Client->Write(posstr, len);
+						m_pClient->Write(posstr, len);
 					}
 
 					nextp = seekNextCommand(buff, received, nextp, 2);
@@ -1107,7 +1120,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					size_t len;
 					msgp = m_pData->getMessageBuffer();
 					len = strlen(msgp);
-					m_Client->Write(msgp, int(len) + 1); //send with terminator
+					m_pClient->Write(msgp, int(len) + 1); //send with terminator
 
 					nextp = seekNextCommand(buff, received, nextp, 1);
 				}
@@ -1128,7 +1141,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 							meanError[BIN_L], maxError[BIN_L], meanError[BIN_R], maxError[BIN_R]);
 					}
 
-					m_Client->Write(posstr, len + 1);
+					m_pClient->Write(posstr, len + 1);
 
 					nextp = seekNextCommand(buff, received, nextp, 1);
 				}
@@ -1140,12 +1153,12 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					m_pData->getCalibrationResultsDetail(errorstr, sizeof(errorstr) - 1, &len);
 					//'\0' is already appended at getCalibrationResultsDetail
 					if (len > 0) {
-						m_Client->Write(errorstr, len);
+						m_pClient->Write(errorstr, len);
 					}
 					else {
 						//no calibration data
 						errorstr[0] = '\0';
-						m_Client->Write(errorstr, 1);
+						m_pClient->Write(errorstr, 1);
 					}
 
 					nextp = seekNextCommand(buff, received, nextp, 1);
@@ -1159,7 +1172,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					getCurrentMenuString(tmpstr, sizeof(tmpstr));
 					len = snprintf(menustr, sizeof(menustr), "%s", tmpstr);
 
-					m_Client->Write(menustr, len + 1);
+					m_pClient->Write(menustr, len + 1);
 
 					nextp = seekNextCommand(buff, received, nextp, 1);
 				}
@@ -1216,7 +1229,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					else {
 						len = snprintf(str, sizeof(str), "0");
 					}
-					m_Client->Write(str, len + 1);
+					m_pClient->Write(str, len + 1);
 
 					nextp = seekNextCommand(buff, received, nextp, 1);
 				}
@@ -1226,7 +1239,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					char str[16];
 
 					len = snprintf(str, sizeof(str), "%d,%d", g_CameraWidth, g_CameraHeight);
-					m_Client->Write(str, len + 1);
+					m_pClient->Write(str, len + 1);
 
 					nextp = seekNextCommand(buff, received, nextp, 1);
 				}

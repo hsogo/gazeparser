@@ -295,6 +295,27 @@ SGTData::SGTData(bool binocular)
 		m_RecordingMode = RECORDING_BINOCULAR;
 	else
 		m_RecordingMode = RECORDING_MONOCULAR;
+
+	std::fill_n(&m_EyeData[0][0], MAXDATA * 4, 0);
+	std::fill_n(&m_PupilSizeData[0][0], MAXDATA * 2, 0);
+	std::fill_n(m_TickData, MAXDATA, 0);
+	std::fill_n(&m_CalPointData[0][0], MAXCALDATA * 2, 0);
+	std::fill_n(m_CalPointDelList, MAXCALDATA, 0);
+	std::fill_n(m_ParamX, 6, 0);
+	std::fill_n(m_ParamY, 6, 0);
+	std::fill_n(m_CalibrationArea, 4, 0);
+	std::fill_n(m_CameraSpecificData, MAXDATA, 0);
+	std::fill_n(m_CurrentEyeData, 4, 0);
+	std::fill_n(m_CurrentPupilSize, 2, 0);
+	std::fill_n(m_CurrentCalPoint, 2, 0);
+	std::fill_n(m_CalGoodness, 4, 0);
+	std::fill_n(m_CalMaxError, 2, 0);
+	std::fill_n(m_CalMeanError, 2, 0);
+	std::fill_n(&m_LastCalPointList[0][0], MAXCALPOINT * 2, 0);
+	std::fill_n(&m_CalPointList[0][0], MAXCALPOINT * 2, 0);
+	std::fill_n(&m_CalPointPrecision[0][0], MAXCALPOINT * 4, 0);
+	std::fill_n(&m_CalPointAccuracy[0][0], MAXCALPOINT * 4, 0);
+	std::fill_n(m_MessageBuffer, MAXMESSAGE, 0);
 }
 
 
@@ -1120,13 +1141,13 @@ void SGTData::getEyePosition(double* pos, int nSamples)
 				index = m_DataCounter - 1 - i;
 				if (index < 0) break;
 				getGazePositionBin(m_EyeData[index], tmppos); //One must be subtracted from m_DataCounter because it points next address.
-				if (m_EyeData[index][BIN_PUPIL_LX] > E_FIRST_ERROR_CODE) {
+				if (m_EyeData[index][BIN_LX] > E_FIRST_ERROR_CODE) {
 					pos[0] += tmppos[BIN_LX];
 					pos[1] += tmppos[BIN_LY];
 					pos[4] += m_PupilSizeData[index][BIN_LP];
 					nl++;
 				}
-				if (m_EyeData[index][BIN_PUPIL_RX] > E_FIRST_ERROR_CODE) {
+				if (m_EyeData[index][BIN_RX] > E_FIRST_ERROR_CODE) {
 					pos[2] += tmppos[BIN_RX];
 					pos[3] += tmppos[BIN_RY];
 					pos[5] += m_PupilSizeData[index][BIN_RP];

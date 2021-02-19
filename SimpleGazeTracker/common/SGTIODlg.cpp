@@ -5,6 +5,8 @@ SGTIODlg::SGTIODlg(wxWindow *parent, wxWindowID id, const wxString &title, const
 	wxDialog(parent, id, title, pos, size, style, name)
 {
 	char buff[256];
+	m_pUSBIO = NULL;
+
 	wxPanel* pRootPanel = new wxPanel(this);
 
 	wxFlexGridSizer* pSizer = new wxFlexGridSizer(2, wxSize(10,0));

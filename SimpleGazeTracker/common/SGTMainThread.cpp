@@ -25,7 +25,7 @@ wxThread::ExitCode SGTMainThread::Entry()
 
 	while (g_runMainThread)
 	{
-		if (m_pMainFrame->m_bShowCalResult)
+		if (m_pMainFrame->getShowCalResult())
 		{ //show calibration result.
 			m_pMainFrame->drawCalResult();
 			if (m_pMainFrame != nullptr)
@@ -94,7 +94,7 @@ wxThread::ExitCode SGTMainThread::Entry()
 			}
 
 
-			if (g_ShowCameraImage && !m_pMainFrame->m_bNoRendering)
+			if (g_ShowCameraImage && !m_pMainFrame->getNoRendering())
 			{ // if it is not under recording, flip screen in a regular way.
 				if (m_pMainFrame != nullptr)
 					m_pMainFrame->updateCameraView(g_pCameraTextureBuffer);
