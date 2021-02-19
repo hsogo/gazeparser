@@ -593,6 +593,7 @@ int initBuffers(void)
 	g_frameBuffer = (unsigned char*)malloc(g_CameraHeight*g_CameraWidth * sizeof(unsigned char));
 	g_pCameraTextureBuffer = (int*)malloc(g_CameraHeight*g_CameraWidth * sizeof(int));
 	g_pCalResultTextureBuffer = (int*)malloc(g_PreviewHeight*g_PreviewWidth * sizeof(int));
+	g_pPreviewTextureBuffer = (int*)malloc(g_PreviewHeight * g_PreviewWidth * sizeof(int));
 	g_SendImageBuffer = (unsigned char*)malloc(g_ROIHeight*g_ROIWidth * sizeof(unsigned char) + 1);
 	if (g_frameBuffer == NULL || g_pCameraTextureBuffer == NULL || g_pCalResultTextureBuffer == NULL) {
 		g_LogFS << "ERROR: failed to allocate camera/preview buffer" << std::endl;
@@ -620,6 +621,10 @@ void releaseBuffers(void)
 	if (g_SendImageBuffer != NULL) {
 		free(g_SendImageBuffer);
 		g_SendImageBuffer = NULL;
+	}
+	if (g_pPreviewTextureBuffer != NULL) {
+		free(g_pPreviewTextureBuffer);
+		g_pPreviewTextureBuffer = NULL;
 	}
 	if (g_pCalResultTextureBuffer != NULL) {
 		free(g_pCalResultTextureBuffer);

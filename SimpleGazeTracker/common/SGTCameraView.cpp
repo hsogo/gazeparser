@@ -43,22 +43,20 @@ void SGTCameraView::Draw(wxDC& dc)
 	m_bDrawing = false;
 }
 
-void SGTCameraView::DrawImage(int* buffer)
+void SGTCameraView::DrawImage()
 {
 	// don't update Image if drawing
 	if (m_bDrawing) {
 		return;
 	}
 
-	cv::Mat srcMat, dstMat, scaledMat;
+	cv::Mat srcMat, dstMat;
 
 	m_bDrawing = true;
-	srcMat = cv::Mat(g_CameraHeight, g_CameraWidth, CV_8UC4, buffer);
+	srcMat = cv::Mat(g_PreviewHeight, g_PreviewWidth, CV_8UC4, g_pPreviewTextureBuffer);
 	cv::cvtColor(srcMat, dstMat, cv::COLOR_BGRA2RGB);
-	cv::resize(dstMat, scaledMat, cv::Size(640, 480));
 
-	wxImage pWxImg = wxImage(640, 480, scaledMat.data, true);
-	srcMat.release();
+	wxImage pWxImg = wxImage(g_PreviewWidth, g_PreviewHeight, dstMat.data, true);
 	m_pBitmap = wxBitmap(pWxImg);
 	m_bNewImage = true;
 	m_bDrawing = false;

@@ -70,8 +70,9 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	ID_MENU_NORENDERRECORDING = wxNewId();
 
 	m_pMenuSystem->AppendCheckItem(ID_MENU_TOGGLECALRESULT, "Show calibration result");
-	m_pMenuSystem->Enable(ID_MENU_TOGGLECALRESULT, false);
+	m_pMenuSystem->Enable(ID_MENU_TOGGLECALRESULT, m_bShowCalResult);
 	m_pMenuSystem->AppendCheckItem(ID_MENU_NORENDERRECORDING, "Don't update preview during recording (for better performance)");
+	m_pMenuSystem->Check(ID_MENU_NORENDERRECORDING, m_bNoRendering);
 	m_pMenuSystem->AppendSeparator();
 
 	m_pMenuSystem->Append(wxID_EXIT);
@@ -275,7 +276,6 @@ void SGTMainFrame::OnRenderRecording(wxCommandEvent & event)
 }
 
 
-
 SGTMainFrame::~SGTMainFrame()
 {
 	if (m_pMainThread != NULL) {
@@ -285,6 +285,7 @@ SGTMainFrame::~SGTMainFrame()
 		}
 	}
 	delete m_pCameraView;
+
 }
 
 int SGTMainFrame::initTCPConnection()
@@ -332,10 +333,12 @@ int SGTMainFrame::startMainThread()
 
 void SGTMainFrame::OnUpdateCameraView(wxThreadEvent& event)
 {
-	if(event.GetInt()==0)
-		m_pCameraView->DrawImage(g_pCameraTextureBuffer);
-	else if(event.GetInt()==1)
-		m_pCameraView->DrawImage(g_pCalResultTextureBuffer);
+	if (!m_isDrawing)
+	{
+		m_isDrawing = true;
+		m_pCameraView->DrawImage();
+		m_isDrawing = false;
+	}
 }
 
 void SGTMainFrame::updateMenuPanel()

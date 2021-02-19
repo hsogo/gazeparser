@@ -167,6 +167,7 @@
 extern unsigned char* g_frameBuffer;
 extern int* g_pCameraTextureBuffer;
 extern int* g_pCalResultTextureBuffer;
+extern int* g_pPreviewTextureBuffer;
 extern unsigned char* g_SendImageBuffer;
 
 extern cv::Mat g_SrcImg;

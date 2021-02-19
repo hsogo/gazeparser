@@ -76,6 +76,7 @@ std::string g_USBIOParamDI;
 unsigned char* g_frameBuffer;
 int* g_pCameraTextureBuffer;
 int* g_pCalResultTextureBuffer;
+int* g_pPreviewTextureBuffer;
 unsigned char* g_SendImageBuffer;
 
 //prototype definition

@@ -28,15 +28,20 @@ wxThread::ExitCode SGTMainThread::Entry()
 
 		if (m_pMainFrame->getShowCalResult())
 		{
-			m_pMainFrame->drawCalResult();
-			wxThreadEvent ev(wxEVT_THREAD, m_pMainFrame->getCameraViewUpdateID());
-			ev.SetInt(1);
-			wxQueueEvent(m_pMainFrame, ev.Clone());
+			if (!m_pMainFrame->getDrawing())
+			{
+				m_pMainFrame->drawCalResult();
+				memcpy(g_pPreviewTextureBuffer, g_pCalResultTextureBuffer, g_PreviewWidth * g_PreviewHeight * sizeof(int));
+				wxThreadEvent ev(wxEVT_THREAD, m_pMainFrame->getCameraViewUpdateID());
+				ev.SetInt(1);
+				wxQueueEvent(m_pMainFrame, ev.Clone());
+			}
 		}
 		else if (getCameraImage() == S_OK)
 		{ //retrieve camera image and process it.
 			int res;
 			double detectionResults[MAX_DETECTION_RESULTS], TimeImageAcquired;
+			bool drawCameraImage = true;
 
 			TimeImageAcquired = getCurrentTime();
 			if (!m_pData->isBinocular()) {
@@ -89,18 +94,24 @@ wxThread::ExitCode SGTMainThread::Entry()
 
 				m_pData->prepareForNextData();
 
+				drawCameraImage = !m_pMainFrame->getNoRendering();
+
 			}
 			else if(m_pData->isCalibratingOrVaridating())
 			{
 				m_pData->recordCalibrationData(detectionResults);
 			}
-
-
-			if (g_ShowCameraImage && !m_pMainFrame->getNoRendering())
+			
+			if (g_ShowCameraImage && drawCameraImage)
 			{
-				wxThreadEvent ev(wxEVT_THREAD, m_pMainFrame->getCameraViewUpdateID());
-				ev.SetInt(0);
-				wxQueueEvent(m_pMainFrame, ev.Clone());
+				if (!m_pMainFrame->getDrawing())
+				{
+					cv::Mat dstMat;
+					cv::resize(g_DstImg, dstMat, cv::Size(g_PreviewWidth, g_PreviewHeight));
+					memcpy(g_pPreviewTextureBuffer, g_DstImg.data, g_PreviewWidth * g_PreviewHeight * sizeof(int));
+					wxThreadEvent ev(wxEVT_THREAD, m_pMainFrame->getCameraViewUpdateID());
+					wxQueueEvent(m_pMainFrame, ev.Clone());
+				}
 			}
 
 		}

@@ -14,7 +14,7 @@ public:
 	//void CheckUpdate();
 
 	void Draw( wxDC& dc );
-	void DrawImage(int * buffer);
+	void DrawImage();
 	bool getDrawing() { return m_bDrawing; }
 
 protected:
