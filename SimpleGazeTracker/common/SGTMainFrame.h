@@ -47,6 +47,7 @@ public:
 	bool getShowCalResult() { return m_bShowCalResult; }
 	bool getNoRendering() { return m_bNoRendering; }
 	bool getDrawing() { return m_isDrawing; }
+	bool getSending() { return m_isSending; }
 	int getCameraViewUpdateID() { return ID_CAMERAVIEW_UPDATE; }
 
 	void updateMenuPanel();
@@ -68,6 +69,7 @@ public:
 	bool m_isCalibrating = false;
 	bool m_isValidating = false;
 	bool m_isDrawing = false;
+	bool m_isSending = false;
 
 	wxCriticalSection m_critsect;
 	wxSemaphore m_semAllDone;

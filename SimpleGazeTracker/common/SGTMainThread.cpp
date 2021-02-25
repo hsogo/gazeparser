@@ -33,7 +33,6 @@ wxThread::ExitCode SGTMainThread::Entry()
 				m_pMainFrame->drawCalResult();
 				memcpy(g_pPreviewTextureBuffer, g_pCalResultTextureBuffer, g_PreviewWidth * g_PreviewHeight * sizeof(int));
 				wxThreadEvent ev(wxEVT_THREAD, m_pMainFrame->getCameraViewUpdateID());
-				ev.SetInt(1);
 				wxQueueEvent(m_pMainFrame, ev.Clone());
 			}
 		}
@@ -77,6 +76,32 @@ wxThread::ExitCode SGTMainThread::Entry()
 				}
 			}
 
+			//prepare sending buffer
+			if (!m_pMainFrame->getSending())
+			{
+				int index;
+				for (int y = 0; y < g_ROIHeight; y++) {
+					for (int x = 0; x < g_ROIWidth; x++) {
+						index = g_ROIWidth * y + x;
+						g_SendImageBuffer[index] = (unsigned)(g_pCameraTextureBuffer[
+							g_CameraWidth * (y + (g_CameraHeight - g_ROIHeight) / 2) +
+								(x + (g_CameraWidth - g_ROIWidth) / 2)] & 0x000000ff);
+						if (g_SendImageBuffer[index] == 0) {
+							g_SendImageBuffer[index] = 1;
+						}
+						else if (g_SendImageBuffer[index] < g_Threshold) {
+							g_SendImageBuffer[index] = 1;
+						}
+					}
+				}
+				if (index + 1 != g_ROIWidth * g_ROIHeight)
+				{
+					outputLog("ERROR: Image size is not matched.");
+					index = g_ROIWidth * g_ROIHeight;
+				}
+				g_SendImageBuffer[index + 1] = 0;
+			}
+
 			if (m_pData->isRecording())
 			{
 				TimeImageAcquired = getCurrentTime();
@@ -102,7 +127,7 @@ wxThread::ExitCode SGTMainThread::Entry()
 				m_pData->recordCalibrationData(detectionResults);
 			}
 			
-			if (g_ShowCameraImage && drawCameraImage)
+			if (!m_pMainFrame->getShowCalResult() && g_ShowCameraImage && drawCameraImage)
 			{
 				if (!m_pMainFrame->getDrawing())
 				{

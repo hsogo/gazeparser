@@ -750,28 +750,9 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 				}
 				else if (strcmp(g_RecvBuffer + nextp, "getImageData") == 0)
 				{
-					int index;
-					for (int y = 0; y < g_ROIHeight; y++) {
-						for (int x = 0; x < g_ROIWidth; x++) {
-							index = g_ROIWidth * y + x;
-							g_SendImageBuffer[index] = (unsigned)(g_pCameraTextureBuffer[
-								g_CameraWidth*(y + (g_CameraHeight - g_ROIHeight) / 2) +
-									(x + (g_CameraWidth - g_ROIWidth) / 2)] & 0x000000ff);
-							if (g_SendImageBuffer[index] == 0) {
-								g_SendImageBuffer[index] = 1;
-							}
-							else if (g_SendImageBuffer[index] < g_Threshold) {
-								g_SendImageBuffer[index] = 1;
-							}
-						}
-					}
-					if (index + 1 != g_ROIWidth * g_ROIHeight)
-					{
-						outputLog("ERROR: Image size is not matched.");
-						index = g_ROIWidth * g_ROIHeight;
-					}
-					g_SendImageBuffer[index + 1] = 0;
+					m_isSending = true;
 					m_pClient->Write((char*)g_SendImageBuffer, g_ROIWidth*g_ROIHeight + 1);
+					m_isSending = false;
 
 					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
 				}
@@ -882,7 +863,7 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					else
 					{
 						m_bShowCalResult = false;
-						m_pMenuSystem->Check(ID_MENU_TOGGLECALRESULT, true);
+						m_pMenuSystem->Check(ID_MENU_TOGGLECALRESULT, false);
 						m_pMenuSystem->UpdateUI();
 					}
 
@@ -1346,6 +1327,7 @@ void SGTMainFrame::startRecording(char * message)
 		m_isRecording = true;
 		m_bShowCalResult = false;
 		m_pMenuSystem->Check(ID_MENU_TOGGLECALRESULT, false);
+		m_pMenuSystem->UpdateUI();
 		//don't render camera image
 		g_ShowCameraImage = false;
 
@@ -1449,10 +1431,15 @@ void SGTMainFrame::startCalibration(int clear)
 			m_pData->clearData();
 		}
 		m_pData->startCalibration();
+
 		m_isCalibrating = true;
 		m_bShowCalResult = false; //erase calibration result screen.
 		m_pMenuSystem->Check(ID_MENU_TOGGLECALRESULT, false);
 		m_pMenuSystem->UpdateUI();
+
+		m_pMenuTools->Enable(ID_MENU_CONFIGDIALOG, false);
+		m_pMenuTools->Enable(ID_MENU_IODIALOG, false);
+		m_pMenuTools->UpdateUI();
 
 		g_ShowCameraImage = true;
 	}
@@ -1469,8 +1456,12 @@ void SGTMainFrame::endCalibration(void)
 	m_bShowCalResult = true;
 	m_pMenuSystem->Enable(ID_MENU_TOGGLECALRESULT, true);
 	m_pMenuSystem->UpdateUI();
-	g_ShowCameraImage = true;
 
+	m_pMenuTools->Enable(ID_MENU_CONFIGDIALOG, true);
+	m_pMenuTools->Enable(ID_MENU_IODIALOG, true);
+	m_pMenuTools->UpdateUI();
+
+	g_ShowCameraImage = true;
 }
 
 
@@ -1486,6 +1477,13 @@ void SGTMainFrame::startValidation(void)
 		m_isValidating = true;
 		m_bShowCalResult = false;
 		g_ShowCameraImage = true;
+
+		m_pMenuSystem->Enable(ID_MENU_TOGGLECALRESULT, false);
+		m_pMenuSystem->UpdateUI();
+
+		m_pMenuTools->Enable(ID_MENU_CONFIGDIALOG, false);
+		m_pMenuTools->Enable(ID_MENU_IODIALOG, false);
+		m_pMenuTools->UpdateUI();
 	}
 }
 
@@ -1498,6 +1496,13 @@ void SGTMainFrame::endValidation(void)
 
 	m_isValidating = false;
 	m_bShowCalResult = true;
+
+	m_pMenuSystem->Enable(ID_MENU_TOGGLECALRESULT, true);
+	m_pMenuSystem->UpdateUI();
+
+	m_pMenuTools->Enable(ID_MENU_CONFIGDIALOG, true);
+	m_pMenuTools->Enable(ID_MENU_IODIALOG, true);
+	m_pMenuTools->UpdateUI();
 }
 
 
