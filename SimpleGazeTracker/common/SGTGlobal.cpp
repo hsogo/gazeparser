@@ -65,6 +65,7 @@ std::string g_MenuString[] = {
 cv::Mat g_SrcImg;
 cv::Mat g_DstImg;
 cv::Mat g_CalImg;
+cv::Mat g_PreviewImg;
 cv::Mat g_MorphTransKernel;
 static cv::Rect g_ROI;
 
@@ -590,11 +591,11 @@ int initBuffers(void)
 		return E_FAIL;
 	}
 
-	g_frameBuffer = (unsigned char*)malloc(g_CameraHeight*g_CameraWidth * sizeof(unsigned char));
-	g_pCameraTextureBuffer = (int*)malloc(g_CameraHeight*g_CameraWidth * sizeof(int));
-	g_pCalResultTextureBuffer = (int*)malloc(g_PreviewHeight*g_PreviewWidth * sizeof(int));
-	g_pPreviewTextureBuffer = (int*)malloc(g_PreviewHeight * g_PreviewWidth * sizeof(int));
-	g_SendImageBuffer = (unsigned char*)malloc(g_ROIHeight*g_ROIWidth * sizeof(unsigned char) + 1);
+	g_frameBuffer = (unsigned char*)malloc(g_CameraHeight * g_CameraWidth * sizeof(unsigned char));
+	g_pCameraTextureBuffer = (int*)malloc(g_CameraHeight * g_CameraWidth * sizeof(int));
+	g_pCalResultTextureBuffer = (int*)malloc(g_PreviewHeight * g_PreviewWidth * sizeof(int));
+	g_pPreviewTextureBuffer = (unsigned char*)malloc(g_PreviewHeight * g_PreviewWidth * sizeof(unsigned char) * 3);
+	g_SendImageBuffer = (unsigned char*)malloc(g_ROIHeight *g_ROIWidth * sizeof(unsigned char) + 1);
 	if (g_frameBuffer == NULL || g_pCameraTextureBuffer == NULL || g_pCalResultTextureBuffer == NULL) {
 		g_LogFS << "ERROR: failed to allocate camera/preview buffer" << std::endl;
 		return E_FAIL;
@@ -603,6 +604,7 @@ int initBuffers(void)
 	g_SrcImg = cv::Mat(g_CameraHeight, g_CameraWidth, CV_8UC1, g_frameBuffer);
 	g_DstImg = cv::Mat(g_CameraHeight, g_CameraWidth, CV_8UC4, g_pCameraTextureBuffer);
 	g_CalImg = cv::Mat(g_PreviewHeight, g_PreviewWidth, CV_8UC4, g_pCalResultTextureBuffer);
+	g_PreviewImg = cv::Mat(g_PreviewHeight, g_PreviewWidth, CV_8UC3, g_pPreviewTextureBuffer);
 	g_ROI = cv::Rect(int((g_CameraWidth - g_ROIWidth) / 2),
 		int((g_CameraHeight - g_ROIHeight) / 2),
 		g_ROIWidth, g_ROIHeight);
@@ -614,6 +616,7 @@ int initBuffers(void)
 
 void releaseBuffers(void)
 {
+	g_PreviewImg.release();
 	g_CalImg.release();
 	g_DstImg.release();
 	g_SrcImg.release();

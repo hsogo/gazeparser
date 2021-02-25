@@ -18,7 +18,7 @@ public:
 	bool getDrawing() { return m_bDrawing; }
 
 protected:
-	wxBitmap m_pBitmap;
+	wxBitmap* m_pBitmap;
 	bool m_bDrawing;
 	bool m_bNewImage;
 

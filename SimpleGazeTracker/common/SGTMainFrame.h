@@ -62,6 +62,7 @@ public:
 	void drawCalResult();
 	void startValidation(void);
 	void endValidation(void);
+	void updateCameraView(void);
 
 	bool m_bShowCalResult = false;
 	bool m_bNoRendering = true;

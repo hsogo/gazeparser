@@ -37,7 +37,8 @@ void SGTCameraView::Draw(wxDC& dc)
 	m_bDrawing = true;
 	if (m_bNewImage)
 	{
-		dc.DrawBitmap(m_pBitmap, 0, 0);
+		dc.DrawBitmap(*m_pBitmap, 0, 0);
+		wxDELETE(m_pBitmap);
 		m_bNewImage = false;
 	}
 	m_bDrawing = false;
@@ -53,11 +54,9 @@ void SGTCameraView::DrawImage()
 	cv::Mat srcMat, dstMat;
 
 	m_bDrawing = true;
-	srcMat = cv::Mat(g_PreviewHeight, g_PreviewWidth, CV_8UC4, g_pPreviewTextureBuffer);
-	cv::cvtColor(srcMat, dstMat, cv::COLOR_BGRA2RGB);
 
-	wxImage pWxImg = wxImage(g_PreviewWidth, g_PreviewHeight, dstMat.data, true);
-	m_pBitmap = wxBitmap(pWxImg);
+	wxImage pWxImg = wxImage(g_PreviewWidth, g_PreviewHeight, g_pPreviewTextureBuffer, true);
+	m_pBitmap = new wxBitmap(pWxImg);
 	m_bNewImage = true;
 	m_bDrawing = false;
 

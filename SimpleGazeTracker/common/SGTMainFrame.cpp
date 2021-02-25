@@ -333,6 +333,11 @@ int SGTMainFrame::startMainThread()
 
 void SGTMainFrame::OnUpdateCameraView(wxThreadEvent& event)
 {
+	updateCameraView();
+}
+
+void SGTMainFrame::updateCameraView()
+{
 	if (!m_isDrawing)
 	{
 		m_isDrawing = true;
@@ -1453,6 +1458,10 @@ void SGTMainFrame::endCalibration(void)
 	m_pData->finishCalibration();
 
 	m_isCalibrating = false;
+	drawCalResult();
+	cv::cvtColor(g_CalImg, g_PreviewImg, cv::COLOR_BGRA2RGB);
+	updateCameraView();
+
 	m_bShowCalResult = true;
 	m_pMenuSystem->Enable(ID_MENU_TOGGLECALRESULT, true);
 	m_pMenuSystem->UpdateUI();
@@ -1495,6 +1504,9 @@ void SGTMainFrame::endValidation(void)
 	m_pData->setCalibrationResults();
 
 	m_isValidating = false;
+	drawCalResult();
+	cv::cvtColor(g_CalImg, g_PreviewImg, cv::COLOR_BGRA2RGB);
+	updateCameraView();
 	m_bShowCalResult = true;
 
 	m_pMenuSystem->Enable(ID_MENU_TOGGLECALRESULT, true);
@@ -1541,20 +1553,18 @@ void SGTMainFrame::drawCalResult()
 		cv::circle(g_CalImg, cv::Point2d(x, y), (int)r, CV_RGB(255, 0, 0));
 		cv::circle(g_CalImg, cv::Point2d(x, y), (int)r * 2, CV_RGB(255, 0, 0));
 	}
-
 	//draw gaze postion
 	if (!m_pData->isBinocular()) { //monocular
 		for (idx = 0; idx < dataCounter; idx++) {
 			m_pData->getGazePositionMono(m_pData->getEyeData(idx), xy);
 			xy[MONO_X] = xy[MONO_X] - x1;
 			xy[MONO_Y] = xy[MONO_Y] - y1;
-
 			cx = m_pData->getCalPointData(idx)[0] - x1;
 			cy = m_pData->getCalPointData(idx)[1] - y1;
 
 			cv::line(g_CalImg,
 				cv::Point2d(xy[MONO_X] * g_PreviewWidth / calAreaWidth, xy[MONO_Y] * g_PreviewHeight / calAreaHeight),
-				cv::Point2d(cx*g_PreviewWidth / calAreaWidth, cy*g_PreviewHeight / calAreaHeight),
+				cv::Point2d(cx * g_PreviewWidth / calAreaWidth, cy * g_PreviewHeight / calAreaHeight),
 				CV_RGB(0, 0, 127));
 			cv::circle(g_CalImg, cv::Point2d(xy[MONO_X] * g_PreviewWidth / calAreaWidth, xy[MONO_Y] * g_PreviewHeight / calAreaHeight), 3, CV_RGB(0, 0, 127));
 		}
@@ -1575,18 +1585,16 @@ void SGTMainFrame::drawCalResult()
 			//left eye = blue
 			cv::line(g_CalImg,
 				cv::Point2d(xy[BIN_LX] * g_PreviewWidth / calAreaWidth, xy[BIN_LY] * g_PreviewHeight / calAreaHeight),
-				cv::Point2d(cx*g_PreviewWidth / calAreaWidth, cy*g_PreviewHeight / calAreaHeight),
+				cv::Point2d(cx * g_PreviewWidth / calAreaWidth, cy * g_PreviewHeight / calAreaHeight),
 				CV_RGB(0, 0, 255));
 			cv::circle(g_CalImg, cv::Point2d(xy[BIN_LX] * g_PreviewWidth / calAreaWidth, xy[BIN_LY] * g_PreviewHeight / calAreaHeight), 3, CV_RGB(0, 0, 255));
 			//right eye = green
 			cv::line(g_CalImg,
 				cv::Point2d(xy[BIN_RX] * g_PreviewWidth / calAreaWidth, xy[BIN_RY] * g_PreviewHeight / calAreaHeight),
-				cv::Point2d(cx*g_PreviewWidth / calAreaWidth, cy*g_PreviewHeight / calAreaHeight),
+				cv::Point2d(cx * g_PreviewWidth / calAreaWidth, cy * g_PreviewHeight / calAreaHeight),
 				CV_RGB(0, 255, 0));
 			cv::circle(g_CalImg, cv::Point2d(xy[BIN_RX] * g_PreviewWidth / calAreaWidth, xy[BIN_RY] * g_PreviewHeight / calAreaHeight), 3, CV_RGB(0, 255, 0));
 		}
 	}
-
-
 }
 

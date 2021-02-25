@@ -167,12 +167,13 @@
 extern unsigned char* g_frameBuffer;
 extern int* g_pCameraTextureBuffer;
 extern int* g_pCalResultTextureBuffer;
-extern int* g_pPreviewTextureBuffer;
+extern unsigned char* g_pPreviewTextureBuffer;
 extern unsigned char* g_SendImageBuffer;
 
 extern cv::Mat g_SrcImg;
 extern cv::Mat g_DstImg;
 extern cv::Mat g_CalImg;
+extern cv::Mat g_PreviewImg;
 extern cv::Rect g_ROI;
 extern cv::Mat g_MorphTransKernel;
 

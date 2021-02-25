@@ -19,6 +19,7 @@ SGTMainThread::SGTMainThread(SGTMainFrame* frame) : wxThread(wxTHREAD_JOINABLE)
 	m_pData = frame->getSGTData();
 }
 
+
 wxThread::ExitCode SGTMainThread::Entry()
 {
 	while (true)
@@ -28,13 +29,7 @@ wxThread::ExitCode SGTMainThread::Entry()
 
 		if (m_pMainFrame->getShowCalResult())
 		{
-			if (!m_pMainFrame->getDrawing())
-			{
-				m_pMainFrame->drawCalResult();
-				memcpy(g_pPreviewTextureBuffer, g_pCalResultTextureBuffer, g_PreviewWidth * g_PreviewHeight * sizeof(int));
-				wxThreadEvent ev(wxEVT_THREAD, m_pMainFrame->getCameraViewUpdateID());
-				wxQueueEvent(m_pMainFrame, ev.Clone());
-			}
+			// moved to MainFrame
 		}
 		else if (getCameraImage() == S_OK)
 		{ //retrieve camera image and process it.
@@ -127,13 +122,13 @@ wxThread::ExitCode SGTMainThread::Entry()
 				m_pData->recordCalibrationData(detectionResults);
 			}
 			
-			if (!m_pMainFrame->getShowCalResult() && g_ShowCameraImage && drawCameraImage)
+			if (g_ShowCameraImage && drawCameraImage)
 			{
 				if (!m_pMainFrame->getDrawing())
 				{
 					cv::Mat dstMat;
 					cv::resize(g_DstImg, dstMat, cv::Size(g_PreviewWidth, g_PreviewHeight));
-					memcpy(g_pPreviewTextureBuffer, g_DstImg.data, g_PreviewWidth * g_PreviewHeight * sizeof(int));
+					cv::cvtColor(dstMat, g_PreviewImg, cv::COLOR_BGRA2RGB);
 					wxThreadEvent ev(wxEVT_THREAD, m_pMainFrame->getCameraViewUpdateID());
 					wxQueueEvent(m_pMainFrame, ev.Clone());
 				}

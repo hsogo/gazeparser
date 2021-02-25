@@ -76,7 +76,7 @@ std::string g_USBIOParamDI;
 unsigned char* g_frameBuffer;
 int* g_pCameraTextureBuffer;
 int* g_pCalResultTextureBuffer;
-int* g_pPreviewTextureBuffer;
+unsigned char* g_pPreviewTextureBuffer;
 unsigned char* g_SendImageBuffer;
 
 //prototype definition
@@ -787,7 +787,6 @@ void SGTApp::measureInterFrameInterval()
 	{
 		numSamples -= 11;
 	}
-
 	for (int i = 0; i < numSamples; i++) {
 		g_IFI[i] = g_measureIFItick[i+11] - g_measureIFItick[i+10]; // drop first 10 sample
 	}
