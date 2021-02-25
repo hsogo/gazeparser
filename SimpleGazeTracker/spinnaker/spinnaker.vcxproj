@@ -155,6 +155,7 @@
     <ClCompile Include="Camera_Spinnaker.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\SGTCommon.h" />
     <ClInclude Include="..\common\SGTConfigDlg.h" />
     <ClInclude Include="..\common\SGTData.h" />
     <ClInclude Include="..\common\SGTIODlg.h" />
