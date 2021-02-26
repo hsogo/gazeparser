@@ -26,7 +26,11 @@ typedef wxIPV4address IPaddress;
 
 #include "SGTCommon.h"
 
+#define RECV_BUFFER_SIZE 4096
+#define TMPSEND_BUFFER_SIZE 8192
+
 char g_RecvBuffer[RECV_BUFFER_SIZE];
+char g_TmpSendBuffer[TMPSEND_BUFFER_SIZE];
 
 SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint& pos, const wxSize& size, SGTApp* app) :
 	wxFrame(frame, -1, title, pos, size, wxSYSTEM_MENU | wxCLOSE_BOX | wxCAPTION)
@@ -702,6 +706,8 @@ int seekNextCommand(char* buff, int received, int nextp, int nSkip)
 }
 
 
+bool g_firstvisit = false;
+
 void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 {
 	wxSocketBase *sock = event.GetSocket();
@@ -710,6 +716,11 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 
 	// Now we process the event
 
+
+	if (!g_firstvisit) {
+		outputLog("OnRecvSocketEvent called");
+		g_firstvisit = true;
+	}
 	switch (event.GetSocketEvent())
 	{
 	case wxSOCKET_INPUT:
@@ -968,7 +979,6 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					bool bGetPupil;
 
 					double pos[7];
-					char posstr[8192];
 					bool newDataOnly;
 
 					val = strtol(param, &p, 10);
@@ -979,8 +989,8 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						bGetPupil = false;
 					}
 
-					s = sizeof(posstr);
-					dstbuf = posstr;
+					s = sizeof(g_TmpSendBuffer);
+					dstbuf = g_TmpSendBuffer;
 					numGet = 0;
 
 					if (val < 0) {
@@ -1013,24 +1023,24 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						dstbuf = dstbuf + len;
 						s -= len;
 						if (s <= 96) {//check overflow
-							len = sizeof(posstr) - s;
-							m_pClient->Write(posstr, len);
-							s = sizeof(posstr);
-							dstbuf = posstr;
+							len = sizeof(g_TmpSendBuffer) - s;
+							m_pClient->Write(g_TmpSendBuffer, len);
+							s = sizeof(g_TmpSendBuffer);
+							dstbuf = g_TmpSendBuffer;
 						}
 					}
 
 					if (numGet <= 0) { //no data.
-						posstr[0] = '\0';
-						m_pClient->Write(posstr, 1);
+						g_TmpSendBuffer[0] = '\0';
+						m_pClient->Write(g_TmpSendBuffer, 1);
 					}
 
 					m_pData->updateLastSentDataCounter();
 
-					if (s != sizeof(posstr)) {
-						len = sizeof(posstr) - s;
-						posstr[len - 1] = '\0'; //replace the last camma with \0
-						m_pClient->Write(posstr, len);
+					if (s != sizeof(g_TmpSendBuffer)) {
+						len = sizeof(g_TmpSendBuffer) - s;
+						g_TmpSendBuffer[len - 1] = '\0'; //replace the last camma with \0
+						m_pClient->Write(g_TmpSendBuffer, len);
 					}
 
 					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 3);
@@ -1042,7 +1052,6 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 					bool bGetPupil;
 
 					double pos[7];
-					char posstr[8192];
 
 					if (param[0] == '1') {
 						bGetPupil = true;
@@ -1051,8 +1060,8 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						bGetPupil = false;
 					}
 
-					s = sizeof(posstr);
-					dstbuf = posstr;
+					s = sizeof(g_TmpSendBuffer);
+					dstbuf = g_TmpSendBuffer;
 					numGet = 0;
 
 					int offset = 0;
@@ -1077,23 +1086,23 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 						dstbuf = dstbuf + len;
 						s -= len;
 						if (s <= 96) {//check overflow
-							len = sizeof(posstr) - s;
-							m_pClient->Write(posstr, len);
-							s = sizeof(posstr);
-							dstbuf = posstr;
+							len = sizeof(g_TmpSendBuffer) - s;
+							m_pClient->Write(g_TmpSendBuffer, len);
+							s = sizeof(g_TmpSendBuffer);
+							dstbuf = g_TmpSendBuffer;
 						}
 						offset++;
 					}
 
 					if (numGet <= 0) { //no data.
-						posstr[0] = '\0';
-						m_pClient->Write(posstr, 1);
+						g_TmpSendBuffer[0] = '\0';
+						m_pClient->Write(g_TmpSendBuffer, 1);
 					}
 
-					if (s != sizeof(posstr)) {
-						len = sizeof(posstr) - s;
-						posstr[len - 1] = '\0'; //replace the last camma with \0
-						m_pClient->Write(posstr, len);
+					if (s != sizeof(g_TmpSendBuffer)) {
+						len = sizeof(g_TmpSendBuffer) - s;
+						g_TmpSendBuffer[len - 1] = '\0'; //replace the last camma with \0
+						m_pClient->Write(g_TmpSendBuffer, len);
 					}
 
 					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
