@@ -229,13 +229,20 @@ int initCamera( void )
 
 		g_pSpinnakerCam->TLStream.StreamBufferHandlingMode.SetValue(Spinnaker::StreamBufferHandlingMode_NewestOnly);
 
-		// manual frame rate
-		g_pSpinnakerCam->AcquisitionFrameRateEnable.SetValue(true);
-		g_pSpinnakerCam->AcquisitionFrameRate.SetValue(g_FrameRate);
+		// Mono8 mode
+		g_pSpinnakerCam->AdcBitDepth.SetValue(Spinnaker::AdcBitDepth_Bit8);
+		g_pSpinnakerCam->PixelFormat.SetValue(Spinnaker::PixelFormat_Mono8);
+
+		// disable GainAuto
+		g_pSpinnakerCam->GainAuto.SetIntValue(Spinnaker::GainAuto_Off);
 
 		// manual exposure 
 		g_pSpinnakerCam->ExposureAuto.SetValue(Spinnaker::ExposureAuto_Off);
 		g_pSpinnakerCam->ExposureTime.SetValue(g_Exposure);
+
+		// manual frame rate
+		g_pSpinnakerCam->AcquisitionFrameRateEnable.SetValue(true);
+		g_pSpinnakerCam->AcquisitionFrameRate.SetValue(g_FrameRate);
 
 		// binning
 		g_pSpinnakerCam->BinningSelector.SetValue(Spinnaker::BinningSelector_All);
