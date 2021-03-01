@@ -1245,6 +1245,26 @@ void SGTMainFrame::OnRecvSocketEvent(wxSocketEvent& event)
 
 					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 2);
 				}
+				else if (strcmp(g_RecvBuffer + nextp, "getCameraIFI") == 0)
+				{
+					int len;
+					char str[256];
+
+					len = snprintf(str, sizeof(str), "%.2f", g_MeanInterFrameInterval);
+					m_pClient->Write(str, len + 1);
+
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
+				}
+				else if (strcmp(g_RecvBuffer + nextp, "getBufferSizeInfo") == 0)
+				{
+					int len;
+					char str[256];
+
+					len = snprintf(str, sizeof(str), "%d,%d,%d", MAXDATA, MAXCALDATA, MAXCALPOINT);
+					m_pClient->Write(str, len + 1);
+
+					nextp = seekNextCommand(g_RecvBuffer, received, nextp, 1);
+				}
 				else
 				{
 					ss.str("");

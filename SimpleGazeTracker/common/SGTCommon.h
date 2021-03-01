@@ -90,7 +90,7 @@
 // Data buffer size
 #define MAXDATA 432000 //120*60min, 393*18min
 #define MAXCALDATA 7200 // 120*60sec, 393*18.3sec
-#define MAXCALPOINT 60
+#define MAXCALPOINT 30
 #define MAXCALSAMPLEPERPOINT (MAXCALDATA/MAXCALPOINT)
 #define MAXMESSAGE 262144
 
@@ -277,3 +277,5 @@ extern std::string g_MenuString[];
 extern std::string g_CustomMenuString[];
 extern bool g_runMainThread;
 
+// Interframe Interval
+extern double g_MeanInterFrameInterval;
