@@ -58,6 +58,9 @@ SimpleGazeTracker/.vs
 [Dd]ebug*/
 [Rr]elease*/
 
+#VisualStudio Code
+.vscode/
+
 #Windows
 Thumbs.db
 
