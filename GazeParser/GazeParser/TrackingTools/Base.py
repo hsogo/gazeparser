@@ -980,6 +980,20 @@ class BaseController(object):
         if not (self.calTargetPosSet and self.calAreaSet):
             raise ValueError('Calibration parameters are not set.')
 
+        if self.CAL_GETSAMPLE_DELAY + self.NUM_SAMPLES_PER_TRGPOS / self.CAMERA_SAMPLING_RATE > self.CALTARGET_DURATION_PER_POS-self.CALTARGET_MOTION_DURATION:
+            warnings.warn('NUM_SAMPLES_PER_TRGPOS may be too large to complete sample acquisition.'
+                '\nCAL_GETSAMPLE_DELAY + (NUM_SAMPLES_PER_TRGPOS / CAMERA_SAMPLING_RATE) must be '
+                'shorter than CALTARGET_DURATION_PER_POS-CALTARGET_MOTION_DURATION\n'
+                'NUM_SAMPLES_PER_TRGPOS:{}\nCAMERA_SAMPLING_RATE:{}\nCAL_GETSAMPLE_DELAY:{}\n'
+                'CALTARGET_DURATION_PER_POS:{}\nCALTARGET_MOTION_DURATION:{}'.format(
+                    self.NUM_SAMPLES_PER_TRGPOS, self.CAMERA_SAMPLING_RATE, self.CAL_GETSAMPLE_DELAY,
+                    self.CALTARGET_DURATION_PER_POS, self.CALTARGET_MOTION_DURATION
+                ))
+
+        if self.NUM_SAMPLES_PER_TRGPOS > self.MAX_SAMPLES_PER_TRGPOS:
+            warnings.warn('NUM_SAMPLES_PER_TRGPOS ({}) is smaller than MAX_SAMPLES_PER_TRGPOS ({}).'.format(
+                self.NUM_SAMPLES_PER_TRGPOS, self.MAX_SAMPLES_PER_TRGPOS))
+
         self.messageText = self.getCurrentMenuItem()
         self.showCalTarget = False
         self.showCameraImage = False
@@ -2133,7 +2147,7 @@ class BaseController(object):
              A tuple of two elements which represents new width and hight of 
              the image buffer.  None if failed.
         """
-        raise(DeprecationWarning, 'use getTrackerInfo() instead.')
+        warnings.warn('DEPRECATED: use getTrackerInfo() instead.')
         size = self.getCameraImageSize()
         if size is None:
             return None
@@ -2258,12 +2272,11 @@ class BaseController(object):
         (maxdata, maxcaldata, maxcalpoint) = self.getBufferSizeInfo()
 
         self.CAMERA_SAMPLING_RATE = 1000.0/ifi # unit of ifi is milliseconds
-        self.MAX_CALPOINTS = maxcalpoint
+        self.MAX_CAL_POINTS = maxcalpoint
         self.MAX_SAMPLES_PER_TRGPOS = int(maxcaldata/maxcalpoint)
 
         size = self.getCameraImageSize()
         self.setReceiveImageSize(size)
-
 
     def __repr__(self):
         msg = '<{}.{}>\n'.format(self.__class__.__module__,
