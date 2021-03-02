@@ -265,3 +265,15 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         """
         return (self.IMAGE_WIDTH, self.IMAGE_HEIGHT)
 
+    def getCameraIFI(self, timeout=0.2):
+        """
+        This dummy method simply returns current 1000.0/CAMERA_SAMPLING_RATE
+        """
+        return 1000.0/self.CAMERA_SAMPLING_RATE
+
+    def getBufferSizeInfo(self, timeout=0.2):
+        """
+        This dummy method simply returns 432000, MAX_CAL_POINTS*MAX_SAMPLES_PER_TRGPOS, MAX_CAL_POINTS
+        """
+        return (432000, self.MAX_CAL_POINTS*self.MAX_SAMPLES_PER_TRGPOS, self.MAX_CAL_POINTS)
+
