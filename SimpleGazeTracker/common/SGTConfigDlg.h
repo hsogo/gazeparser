@@ -6,6 +6,7 @@
 #endif
 
 #include <wx/notebook.h>
+#include <vector>
 
 #define SGTPARAM_ORIG	0
 #define SGTPARAM_INT	1

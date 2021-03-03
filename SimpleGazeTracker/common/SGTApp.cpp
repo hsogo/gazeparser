@@ -24,14 +24,6 @@
 #include "resource.h"
 #endif
 
-/*
-#define _CRTDBG_MAP_ALLOC
-#include "stdlib.h"
-#include "crtdbg.h"
-#define malloc(X) _malloc_dbg(X, _NORMAL_BLOCK, __FILE__, __LINE__)
-#define new ::new(_NORMAL_BLOCK, __FILE__, __LINE__)
-*/
-
 wxDECLARE_APP(SGTApp);
 
 // common parameters (read from CONFIG)
@@ -101,6 +93,7 @@ extern std::vector<SGTParam*> g_pImageParamsVector;
 extern std::vector<SGTParam*> g_pIOParamsVector;
 extern std::vector<SGTParam*> g_pCameraParamsVector;
 
+/*
 wxIMPLEMENT_APP_NO_MAIN(SGTApp);
 int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ wxCmdLineArgType, _In_ int nCmdShow)
 {
@@ -108,7 +101,8 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	//_CrtSetBreakAlloc(2513);
 	return wxEntry(hInstance, hPrevInstance, 0, nCmdShow);
 }
-//wxIMPLEMENT_APP(SGTApp);
+*/
+wxIMPLEMENT_APP(SGTApp);
 
 
 static const wxCmdLineEntryDesc g_cmdLineDesc[] =

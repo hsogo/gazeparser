@@ -16,8 +16,12 @@ if SPINNAKER
 
 bin_PROGRAMS = sgtsrv-spinnaker
 
-sgtsrv_spinnaker_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/usbioDAQFlex.cpp\
-    common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
+sgtsrv_spinnaker_SOURCES=common/SGTApp.cpp common/SGTCameraView.cpp common/SGTConfigDlg.cpp\
+    common/SGTData.cpp common/SGTGlobal.cpp common/SGTIODlg.cpp common/SGTMainFrame.cpp\
+    common/SGTPlatformDependent.cpp common/SGTusbIO.cpp\
+    common/SGTApp.h common/SGTCameraView.h common/SGTConfigDlg.h\
+    common/SGTData.h common/SGTIODlg.h common/SGTMainFrame.h\
+    common/SGTPlatformDependent.cpp common/SGTusbIO.h common/SGTCommon.h\
     spinnaker/Camera_Spinnaker.cpp spinnaker/GazeTracker.h
 
 sgtsrv_spinnaker_LDADD=$(OPENCV_LIBS) $(SDL2_LIBS) $(LIBUSB_LIBS) -lSpinnaker

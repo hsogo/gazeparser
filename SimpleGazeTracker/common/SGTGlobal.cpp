@@ -67,7 +67,7 @@ cv::Mat g_DstImg;
 cv::Mat g_CalImg;
 cv::Mat g_PreviewImg;
 cv::Mat g_MorphTransKernel;
-static cv::Rect g_ROI;
+cv::Rect g_ROI;
 
 static const double PI = 6 * asin(0.5);
 

@@ -1,4 +1,3 @@
-#pragma once
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "opencv2/opencv.hpp"
@@ -285,7 +284,7 @@ SGTMainFrame::~SGTMainFrame()
 	if (m_pMainThread != NULL) {
 		m_pMainThread->Delete();
 		while (m_pMainThread->IsRunning()) {
-			Sleep(100);
+			sleepMilliseconds(100);
 		}
 	}
 	delete m_pCameraView;
@@ -675,7 +674,7 @@ void SGTMainFrame::OnServerEvent(wxSocketEvent& event)
 
 	addr.Hostname(client_addr.Hostname());
 	addr.Service(g_PortSend);
-	m_pClient = new wxSocketClient(TCP_NODELAY);
+	m_pClient = new wxSocketClient(wxSOCKET_NOWAIT);
 
 	m_pClient->Connect(addr, true);
 

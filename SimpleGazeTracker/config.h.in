@@ -12,15 +12,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `SDL2' library (-lSDL2). */
-#undef HAVE_LIBSDL2
-
-/* Define to 1 if you have the `SDL2_net' library (-lSDL2_net). */
-#undef HAVE_LIBSDL2_NET
-
-/* Define to 1 if you have the `SDL2_ttf' library (-lSDL2_ttf). */
-#undef HAVE_LIBSDL2_TTF
-
 /* Define to 1 if your system has a GNU libc compatible `malloc' function, and
    to 0 otherwise. */
 #undef HAVE_MALLOC
@@ -111,3 +102,13 @@
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef mode_t
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef ssize_t
+
+/* Define to the type of an unsigned integer type of width exactly 16 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint16_t

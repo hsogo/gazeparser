@@ -42,6 +42,8 @@
 #define SUCCEEDED(Status) ((int)(Status) >= 0)
 #define FAILED(Status) ((int)(Status)<0)
 #define PATH_SEPARATOR "/"
+typedef unsigned long DWORD;
+typedef unsigned short WORD;
 #endif
 
 #include <string>
@@ -225,7 +227,7 @@ extern std::string g_ConfigFileName;
 
 
 // Logging
-//extern std::fstream g_LogFS;
+extern std::fstream g_LogFS;
 extern int openLogFile(const char* fname);
 extern int outputLog(const char* message);
 extern int outputLogDlg(const wxString &message, const wxString &caption, long style);

@@ -11,13 +11,31 @@ AC_PROG_CXX
 AC_PROG_CC
 
 # Checks for libraries.
+# from https://wiki.wxwidgets.org/Autoconf
+AM_OPTIONS_WXCONFIG
+reqwx=3.0.0
+AM_PATH_WXCONFIG($reqwx, wxWin=1)
+if test "$wxWin" != 1; then
+	AC_MSG_ERROR([
+		wxWidgets must be installed on your system.
+
+		Please check that wx-config is in path, the directory
+		where wxWidgets libraries are installed (returned by
+		'wx-config --libs' or 'wx-config --static --libs' command)
+		is in LD_LIBRARY_PATH or equivalent variable and
+		wxWidgets version is $reqwx or above.
+		])
+fi
+
+CPPFLAGS="$CPPFLAGS $WX_CPPFLAGS"
+CXXFLAGS="$CXXFLAGS $WX_CXXFLAGS_ONLY"
+CFLAGS="$CFLAGS $WX_CFLAGS_ONLY"
+LIBS="$LIBS $WX_LIBS"
+
 PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES([SDL2],[sdl2 >= 2.0])
 PKG_CHECK_MODULES([OPENCV],[opencv >= 2.4])
 PKG_CHECK_MODULES([LIBUSB],[libusb-1.0 >= 1.0])
-AC_CHECK_LIB([SDL2],[SDL_Init])
-AC_CHECK_LIB([SDL2_ttf],[TTF_Init])
-AC_CHECK_LIB([SDL2_net],[SDLNet_Init])
+
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h sysrm /time.h])
@@ -25,18 +43,21 @@ AC_CHECK_HEADERS([arpa/inet.h sysrm /time.h])
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
 AC_TYPE_MODE_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_TYPE_UINT16_T
 
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([clock_gettime gettimeofday mkdir pow sqrt strchr strstr strtol])
 
-AC_CANONICAL_BUILD
-case $build_os in
-	*darwin*)
-		AC_MSG_NOTICE([MAKE SURE THAT TCP_NODELAY IS ENABLED IN YOUR SDL2_NET.])
-		AC_MSG_NOTICE([SEE http://gazeparser.sourceforge.net/ins/mac.html FOR DETAIL.]);;
-esac
+#AC_CANONICAL_BUILD
+#case $build_os in
+#	*darwin*)
+#		AC_MSG_NOTICE([MAKE SURE THAT TCP_NODELAY IS ENABLED IN YOUR SDL2_NET.])
+#		AC_MSG_NOTICE([SEE http://gazeparser.sourceforge.net/ins/mac.html FOR DETAIL.]);;
+#esac
 
 AC_ARG_ENABLE(
 	[fontless],
