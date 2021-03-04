@@ -33,9 +33,9 @@ CFLAGS="$CFLAGS $WX_CFLAGS_ONLY"
 LIBS="$LIBS $WX_LIBS"
 
 PKG_PROG_PKG_CONFIG
-PKG_CHECK_MODULES([OPENCV],[opencv >= 2.4])
+PKG_CHECK_MODULES([OPENCV],[opencv >= 3.0])
 PKG_CHECK_MODULES([LIBUSB],[libusb-1.0 >= 1.0])
-
+PKG_CHECK_MODULES([LIBULDAQ],[libuldaq >= 1.2])
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h sysrm /time.h])

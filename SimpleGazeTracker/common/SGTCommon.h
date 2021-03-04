@@ -42,8 +42,6 @@
 #define SUCCEEDED(Status) ((int)(Status) >= 0)
 #define FAILED(Status) ((int)(Status)<0)
 #define PATH_SEPARATOR "/"
-typedef unsigned long DWORD;
-typedef unsigned short WORD;
 #endif
 
 #include <string>

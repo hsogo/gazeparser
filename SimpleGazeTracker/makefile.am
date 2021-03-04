@@ -24,8 +24,8 @@ sgtsrv_spinnaker_SOURCES=common/SGTApp.cpp common/SGTCameraView.cpp common/SGTCo
     common/SGTPlatformDependent.cpp common/SGTusbIO.h common/SGTCommon.h\
     spinnaker/Camera_Spinnaker.cpp spinnaker/GazeTracker.h
 
-sgtsrv_spinnaker_LDADD=$(OPENCV_LIBS) $(SDL2_LIBS) $(LIBUSB_LIBS) -lSpinnaker
-sgtsrv_spinnaker_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL2_CFLAGS) $(LIBUSB_CFLAGS) -I/usr/include/spinnaker
+sgtsrv_spinnaker_LDADD=$(OPENCV_LIBS) $(LIBULDAQ_LIBS) $(LIBUSB_LIBS) -lSpinnaker
+sgtsrv_spinnaker_CPPFLAGS=$(OPENCV_CFLAGS) $(LIBULDAQ_CFLAGS) -I/usr/include/spinnaker
 
 else
 bin_PROGRAMS=sgtsrv
