@@ -292,10 +292,10 @@ SGTMainFrame::~SGTMainFrame()
 {
 	if (m_pMainThread != NULL) {
 		m_pMainThread->Delete();
-		//while (m_pMainThread->IsRunning()) {
-		//	sleepMilliseconds(100);
-		//}
-		m_pMainThread->Wait();
+		while (m_pMainThread->IsRunning()) {
+			sleepMilliseconds(100);
+		}
+		//m_pMainThread->Wait();
 		delete m_pMainThread;
 
 	}

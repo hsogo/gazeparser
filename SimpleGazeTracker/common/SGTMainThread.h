@@ -18,6 +18,7 @@ class SGTMainThread : public wxThread
 {
 public:
 	SGTMainThread(SGTMainFrame* frame);
+	~SGTMainThread();
 	virtual wxThread::ExitCode Entry();
 
 	SGTMainFrame* m_pMainFrame;

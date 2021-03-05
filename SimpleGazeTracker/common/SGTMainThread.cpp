@@ -19,6 +19,12 @@ SGTMainThread::SGTMainThread(SGTMainFrame* frame) : wxThread(wxTHREAD_JOINABLE)
 	m_pData = frame->getSGTData();
 }
 
+SGTMainThread::~SGTMainThread()
+{
+	m_pMainFrame = NULL;
+	m_pData = NULL;
+}
+
 
 wxThread::ExitCode SGTMainThread::Entry()
 {
