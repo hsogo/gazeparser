@@ -36,9 +36,14 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 {
 	wxIcon icon;
 	if (FAILED(checkFile(g_AppDirPath, "simplegazetracker.ico"))) {
+		// for debugging
 		std::string path;
 		path.assign(g_AppDirPath);
+		#ifdef _WIN32
 		path.append("\\..\\common\\simplegazetracker.ico");
+		#else
+		path.append("/common/simplegazetracker.ico");
+		#endif
 		if (!icon.LoadFile(path.c_str(), wxBITMAP_TYPE_ICO, -1, -1)) {
 			outputLogDlg(path.c_str(), "Error", wxICON_ERROR);
 		}
@@ -46,7 +51,11 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	}
 	else
 	{
-		icon.LoadFile("simplegazetracker.ico", wxBITMAP_TYPE_ICO, -1, -1);
+		std::string path;
+		path.assign(g_AppDirPath);
+		path.append(PATH_SEPARATOR);
+		path.append("simplegazetracker.ico");
+		icon.LoadFile(path.c_str(), wxBITMAP_TYPE_ICO, -1, -1);
 		SetIcon(icon);
 	}
 
@@ -283,11 +292,16 @@ SGTMainFrame::~SGTMainFrame()
 {
 	if (m_pMainThread != NULL) {
 		m_pMainThread->Delete();
-		while (m_pMainThread->IsRunning()) {
-			sleepMilliseconds(100);
-		}
+		//while (m_pMainThread->IsRunning()) {
+		//	sleepMilliseconds(100);
+		//}
+		m_pMainThread->Wait();
+		delete m_pMainThread;
+
 	}
-	delete m_pCameraView;
+
+	if(m_pCameraView != NULL)
+		delete m_pCameraView;
 
 }
 

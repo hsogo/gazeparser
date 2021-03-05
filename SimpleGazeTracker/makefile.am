@@ -55,7 +55,7 @@ if FLYCAPTURE
 dist_data_DATA = flycapture2/CONFIG flycapture2/CONFIG_FLYCAPTURE2 $(freesans)
 else
 if SPINNAKER
-dist_data_DATA = spinnaker/CONFIG_SPINNAKER $(freesans)
+dist_data_DATA = spinnaker/CONFIG_SPINNAKER common/simplegazetracker.ico $(freesans)
 else
 dist_data_DATA = opencv/CONFIG opencv/CONFIG_OPENCV $(freesans)
 endif
