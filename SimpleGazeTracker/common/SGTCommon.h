@@ -183,8 +183,8 @@ extern void releaseBuffers(void);
 
 // Image processing
 
-int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results);
-int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results);
+extern int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results);
+extern int detectPupilPurkinjeBin(int Threshold1, int PurkinjeSearchArea, int PurkinjeThreshold, int PurkinjeExclude, int MinWidth, int MaxWidth, double* results);
 
 
 // Global parameters (read from CONFIG)
@@ -275,7 +275,6 @@ extern std::string getCurrentWorkingDirectory(void);
 extern bool g_ShowCameraImage;
 extern std::string g_MenuString[];
 extern std::string g_CustomMenuString[];
-extern bool g_runMainThread;
 
 // Interframe Interval
 extern double g_MeanInterFrameInterval;

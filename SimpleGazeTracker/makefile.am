@@ -18,14 +18,14 @@ bin_PROGRAMS = sgtsrv-spinnaker
 
 sgtsrv_spinnaker_SOURCES=common/SGTApp.cpp common/SGTCameraView.cpp common/SGTConfigDlg.cpp\
     common/SGTData.cpp common/SGTGlobal.cpp common/SGTIODlg.cpp common/SGTMainFrame.cpp\
-    common/SGTPlatformDependent.cpp common/SGTusbIO.cpp\
+    common/SGTMainThread.cpp common/SGTPlatformDependent.cpp common/SGTusbIO.cpp\
+    spinnaker/Camera_Spinnaker.cpp\
     common/SGTApp.h common/SGTCameraView.h common/SGTConfigDlg.h\
-    common/SGTData.h common/SGTIODlg.h common/SGTMainFrame.h\
-    common/SGTPlatformDependent.cpp common/SGTusbIO.h common/SGTCommon.h\
-    spinnaker/Camera_Spinnaker.cpp spinnaker/GazeTracker.h
+    common/SGTData.h common/SGTIODlg.h common/SGTMainFrame.h common/SGTMainThread.h\
+    common/SGTusbIO.h common/SGTCommon.h spinnaker/GazeTracker.h
 
-sgtsrv_spinnaker_LDADD=$(OPENCV_LIBS) $(LIBULDAQ_LIBS) $(LIBUSB_LIBS) -lSpinnaker
-sgtsrv_spinnaker_CPPFLAGS=$(OPENCV_CFLAGS) $(LIBULDAQ_CFLAGS) -I/usr/include/spinnaker
+sgtsrv_spinnaker_LDADD=$(OPENCV_LIBS) $(LIBULDAQ_LIBS) $(LIBUSB_LIBS) -L/opt/spinnaker/lib -lSpinnaker
+sgtsrv_spinnaker_CPPFLAGS=$(OPENCV_CFLAGS) $(LIBULDAQ_CFLAGS) -I/opt/spinnaker/include
 
 else
 bin_PROGRAMS=sgtsrv
@@ -55,7 +55,7 @@ if FLYCAPTURE
 dist_data_DATA = flycapture2/CONFIG flycapture2/CONFIG_FLYCAPTURE2 $(freesans)
 else
 if SPINNAKER
-dist_data_DATA = spinnaker/CONFIG spinnaker/CONFIG_SPINNAKER $(freesans)
+dist_data_DATA = spinnaker/CONFIG_SPINNAKER $(freesans)
 else
 dist_data_DATA = opencv/CONFIG opencv/CONFIG_OPENCV $(freesans)
 endif
