@@ -68,13 +68,13 @@
     <ClInclude Include="..\common\SGTusbIO.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\SGTConfigDlg.h">
-      <Filter>ソース ファイル</Filter>
+    <ClInclude Include="..\common\SGTCommon.h">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\common\SGTIODlg.h">
-      <Filter>ソース ファイル</Filter>
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\SGTCommon.h">
+    <ClInclude Include="..\common\SGTConfigDlg.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
