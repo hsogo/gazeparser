@@ -32,7 +32,7 @@ Spinnaker::CameraPtr g_pSpinnakerCam = nullptr;
 bool g_AcquisitionStarted = false;
 
 //const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_DEBUG;
-const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_ERROR;
+const Spinnaker::SpinnakerLogLevel k_LoggingLevel = Spinnaker::LOG_LEVEL_FATAL;
 
 class customLoggingEventHandler : public Spinnaker::LoggingEventHandler
 {
@@ -179,6 +179,10 @@ int initCamera( void )
 		g_LogFS << "Exposure is too short. Adjusted to " << g_Exposure << std::endl;
 	}
 
+	if (g_Exposure >= 1000 * 1000 / g_FrameRate) {
+		g_LogFS << "Warning: EXPOSURE may be too long for FRAME_RATE." << g_Exposure << std::endl;
+	}
+
 	try {
 
 		//Init Spinnaker camera
@@ -217,32 +221,29 @@ int initCamera( void )
 		g_pSpinnakerCam->Init();
 
 		// Acquisition may be stopped if application was failed in the previous run.
-		// So  acquisition must be stopped.
+		// So acquisition must be stopped
 		g_pSpinnakerCam->AcquisitionStop();
 
-		// get sensor resolution
-		// int widthMax = g_pSpinnakerCam->WidthMax.GetValue();
-		// int heightMax = g_pSpinnakerCam->HeightMax.GetValue();
-		
-		// continuous acquisition mode
-		g_pSpinnakerCam->AcquisitionMode.SetValue(Spinnaker::AcquisitionMode_Continuous);
-
+		// Buffer only the newest frame.
 		g_pSpinnakerCam->TLStream.StreamBufferHandlingMode.SetValue(Spinnaker::StreamBufferHandlingMode_NewestOnly);
 
-		// Mono8 mode
-		g_pSpinnakerCam->AdcBitDepth.SetValue(Spinnaker::AdcBitDepth_Bit8);
-		g_pSpinnakerCam->PixelFormat.SetValue(Spinnaker::PixelFormat_Mono8);
+		// set to ADC8bit if available
+		try {
+			g_pSpinnakerCam->AdcBitDepth.SetValue(Spinnaker::AdcBitDepth_Bit8);
+		}
+		catch (Spinnaker::Exception& e) {
+			g_LogFS << e.what() << std::endl;
+			g_LogFS << "Warning: Spinnaker camera cannot be set to ADC8bit." << std::endl;
+		}
 
-		// disable GainAuto
-		g_pSpinnakerCam->GainAuto.SetIntValue(Spinnaker::GainAuto_Off);
-
-		// manual exposure 
-		g_pSpinnakerCam->ExposureAuto.SetValue(Spinnaker::ExposureAuto_Off);
-		g_pSpinnakerCam->ExposureTime.SetValue(g_Exposure);
-
-		// manual frame rate
-		g_pSpinnakerCam->AcquisitionFrameRateEnable.SetValue(true);
-		g_pSpinnakerCam->AcquisitionFrameRate.SetValue(g_FrameRate);
+		// set to Mono8 mode if available
+		try {
+			g_pSpinnakerCam->PixelFormat.SetValue(Spinnaker::PixelFormat_Mono8);
+		}
+		catch (Spinnaker::Exception& e) {
+			g_LogFS << e.what() << std::endl;
+			g_LogFS << "Warning: Spinnaker camera cannot be set to Mono8." << std::endl;
+		}
 
 		// binning
 		g_pSpinnakerCam->BinningSelector.SetValue(Spinnaker::BinningSelector_All);
@@ -257,6 +258,21 @@ int initCamera( void )
 		g_pSpinnakerCam->Height.SetValue(g_CameraHeight);
 		g_pSpinnakerCam->OffsetX.SetValue(g_OffsetX);
 		g_pSpinnakerCam->OffsetY.SetValue(g_OffsetY);
+
+		// disable GainAuto
+		g_pSpinnakerCam->GainAuto.SetIntValue(Spinnaker::GainAuto_Off);
+
+		// continuous acquisition mode
+		g_pSpinnakerCam->AcquisitionMode.SetValue(Spinnaker::AcquisitionMode_Continuous);
+
+		// manual exposure 
+		g_pSpinnakerCam->ExposureAuto.SetValue(Spinnaker::ExposureAuto_Off);
+		g_pSpinnakerCam->ExposureTime.SetValue(g_Exposure);
+
+		// manual frame rate	   s
+		g_pSpinnakerCam->AcquisitionFrameRateEnable.SetValue(true);
+		g_pSpinnakerCam->AcquisitionFrameRate.SetValue(g_FrameRate);
+
 	}
 	catch (Spinnaker::Exception &e) {
 		g_LogFS << "Error: " << e.what() << std::endl;
