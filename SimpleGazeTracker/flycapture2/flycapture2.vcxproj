@@ -35,7 +35,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -49,7 +49,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -57,15 +57,19 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -75,8 +79,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files\Point Grey Research\FlyCapture2\include;C:\opencv\build\include;C:\SDL2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Point Grey Research\FlyCapture2\lib64\vs2015;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files\Point Grey Research\FlyCapture2\include;C:\opencv\build\include;C:\wxWidgets\include\msvc;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files\Point Grey Research\FlyCapture2\lib64\vs2015;C:\opencv\build\x64\vc15\lib;C:\wxWidgets\lib\vc_x64_dll;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -85,8 +89,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Program Files\Point Grey Research\FlyCapture2\include;C:\opencv\build\include;C:\SDL2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Point Grey Research\FlyCapture2\lib64\vs2015;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files\Point Grey Research\FlyCapture2\include;C:\opencv\build\include;C:\wxWidgets\include\msvc;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files\Point Grey Research\FlyCapture2\lib64\vs2015;C:\opencv\build\x64\vc15\lib;C:\wxWidgets\lib\vc_x64_dll;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,12 +112,12 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;wxUSE_UNICODE;WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world342d.lib;FlyCapture2d_v140.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cbw64.lib;opencv_world451d.lib;FlyCapture2d_v140.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -142,27 +146,40 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;wxUSE_UNICODE;WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world342.lib;FlyCapture2_v140.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cbw64.lib;FlyCapture2_v140.lib;opencv_world451.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\DetectEye.cpp" />
-    <ClCompile Include="..\common\GazeTrackerMain.cpp" />
-    <ClCompile Include="..\common\PlatformDependent.cpp" />
-    <ClCompile Include="..\common\tcpipcom.cpp" />
-    <ClCompile Include="..\common\usbioUL.cpp" />
+    <ClCompile Include="..\common\SGTApp.cpp" />
+    <ClCompile Include="..\common\SGTCameraView.cpp" />
+    <ClCompile Include="..\common\SGTConfigDlg.cpp" />
+    <ClCompile Include="..\common\SGTData.cpp" />
+    <ClCompile Include="..\common\SGTGlobal.cpp" />
+    <ClCompile Include="..\common\SGTIODlg.cpp" />
+    <ClCompile Include="..\common\SGTMainFrame.cpp" />
+    <ClCompile Include="..\common\SGTMainThread.cpp" />
+    <ClCompile Include="..\common\SGTPlatformDependent.cpp" />
+    <ClCompile Include="..\common\SGTusbIO.cpp" />
     <ClCompile Include="Camera_flycapture2.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\GazeTrackerCommon.h" />
     <ClInclude Include="..\common\resource.h" />
+    <ClInclude Include="..\common\SGTApp.h" />
+    <ClInclude Include="..\common\SGTCameraView.h" />
+    <ClInclude Include="..\common\SGTCommon.h" />
+    <ClInclude Include="..\common\SGTConfigDlg.h" />
+    <ClInclude Include="..\common\SGTData.h" />
+    <ClInclude Include="..\common\SGTIODlg.h" />
+    <ClInclude Include="..\common\SGTMainFrame.h" />
+    <ClInclude Include="..\common\SGTMainThread.h" />
+    <ClInclude Include="..\common\SGTusbIO.h" />
     <ClInclude Include="GazeTracker.h" />
   </ItemGroup>
   <ItemGroup>

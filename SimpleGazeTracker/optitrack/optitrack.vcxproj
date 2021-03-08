@@ -34,7 +34,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
@@ -45,7 +45,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -53,15 +53,19 @@
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -75,13 +79,13 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;c:\sdl2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;c:\sdl2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;C:\wxWidgets\include\msvc;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;c:\opencv\build\x86\vc12\lib;C:\SDL2\SDL2_net-2.0.1\lib\x86;C:\SDL2\SDL2_ttf-2.0.14\lib\x86;C:\SDL2\SDL2-2.0.8\lib\x86;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;C:\opencv\build\x64\vc15\lib;C:\wxWidgets\lib\vc_x64_dll;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;c:\sdl2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;c:\sdl2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;C:\wxWidgets\include\msvc;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
     <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;c:\opencv\build\x86\vc12\lib;C:\SDL2\SDL2_net-2.0.1\lib\x86;C:\SDL2\SDL2_ttf-2.0.14\lib\x86;C:\SDL2\SDL2-2.0.8\lib\x86;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;C:\opencv\build\x64\vc15\lib;C:\wxWidgets\lib\vc_x64_dll;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -105,7 +109,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;OPTITRACK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;OPTITRACK;wxUSE_UNICODE;WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader>
@@ -114,7 +118,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world342d.lib;CameraLibrary2015x64D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cbw64.lib;opencv_world451d.lib;CameraLibrary2015x64D.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -144,7 +148,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;OPTITRACK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;OPTITRACK;wxUSE_UNICODE;WXUSINGDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -153,7 +157,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world342.lib;CameraLibrary2015x64S.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cbw64.lib;opencv_world451.lib;CameraLibrary2015x64S.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -161,14 +165,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\usbioUL.cpp" />
+    <ClCompile Include="..\common\SGTApp.cpp" />
+    <ClCompile Include="..\common\SGTCameraView.cpp" />
+    <ClCompile Include="..\common\SGTConfigDlg.cpp" />
+    <ClCompile Include="..\common\SGTData.cpp" />
+    <ClCompile Include="..\common\SGTGlobal.cpp" />
+    <ClCompile Include="..\common\SGTIODlg.cpp" />
+    <ClCompile Include="..\common\SGTMainFrame.cpp" />
+    <ClCompile Include="..\common\SGTMainThread.cpp" />
+    <ClCompile Include="..\common\SGTPlatformDependent.cpp" />
+    <ClCompile Include="..\common\SGTusbIO.cpp" />
     <ClCompile Include="Camera_OptiTrack.cpp" />
-    <ClCompile Include="..\common\DetectEye.cpp" />
-    <ClCompile Include="..\common\GazeTrackerMain.cpp" />
-    <ClCompile Include="..\common\PlatformDependent.cpp" />
-    <ClCompile Include="..\common\tcpipcom.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\SGTApp.h" />
+    <ClInclude Include="..\common\SGTCameraView.h" />
+    <ClInclude Include="..\common\SGTCommon.h" />
+    <ClInclude Include="..\common\SGTConfigDlg.h" />
+    <ClInclude Include="..\common\SGTData.h" />
+    <ClInclude Include="..\common\SGTIODlg.h" />
+    <ClInclude Include="..\common\SGTMainFrame.h" />
+    <ClInclude Include="..\common\SGTMainThread.h" />
+    <ClInclude Include="..\common\SGTusbIO.h" />
     <ClInclude Include="GazeTracker.h" />
   </ItemGroup>
   <ItemGroup>
