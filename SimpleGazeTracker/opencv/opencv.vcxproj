@@ -118,7 +118,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>cbw64.lib;opencv_world342d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cbw64.lib;opencv_world451d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -195,9 +195,6 @@
   <ItemGroup>
     <None Include="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
     <None Include="..\common\icon.ico" />
-    <None Include="CONFIG">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -90,7 +90,6 @@
     <None Include="..\common\icon.ico">
       <Filter>リソース ファイル</Filter>
     </None>
-    <None Include="CONFIG" />
     <None Include="..\..\..\..\..\..\..\wxWidgets\wxwidgets.props" />
   </ItemGroup>
 </Project>

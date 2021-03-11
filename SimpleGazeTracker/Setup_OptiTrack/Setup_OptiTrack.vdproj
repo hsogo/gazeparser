@@ -21,31 +21,13 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_13D8AEB7C9ED4A60BFA55D8D457FAAC0"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_435D1DF3CF5B40E1824497DCC0061819"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_72BB2653597D4449933B5A4948652BE8"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_7575445D51284E62887C2954B3D902D3"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_7F028EEC8A344FFDAA22FFEABD90D4FB"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -63,19 +45,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_89735006D690487B83A0525C49342EDB"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_8DB020A36A96489D9751AAA6A8B35BBA"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D18BB3F1AE924ED193A76AFB88659D19"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -88,12 +58,6 @@
         "Entry"
         {
         "MsmKey" = "8:_E633DE183C4140E8BE859AB7F33521AF"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_F70A16984FFE40D6A4AAE9BE99F62B6C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -212,26 +176,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_13D8AEB7C9ED4A60BFA55D8D457FAAC0"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_ttf.dll"
-            "TargetName" = "8:SDL2_ttf.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_435D1DF3CF5B40E1824497DCC0061819"
             {
             "SourcePath" = "8:..\\common\\logo01.jpg"
@@ -249,46 +193,6 @@
             "PackageAs" = "3:1"
             "Register" = "3:1"
             "Exclude" = "11:TRUE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_72BB2653597D4449933B5A4948652BE8"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_net.dll"
-            "TargetName" = "8:SDL2_net.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7F028EEC8A344FFDAA22FFEABD90D4FB"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\libfreetype-6.dll"
-            "TargetName" = "8:libfreetype-6.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
@@ -332,26 +236,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_89735006D690487B83A0525C49342EDB"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\zlib1.dll"
-            "TargetName" = "8:zlib1.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8DB020A36A96489D9751AAA6A8B35BBA"
             {
             "SourcePath" = "8:..\\common\\logo03.jpg"
@@ -372,50 +256,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D18BB3F1AE924ED193A76AFB88659D19"
-            {
-            "SourcePath" = "8:..\\FreeSans.ttf"
-            "TargetName" = "8:FreeSans.ttf"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D356A5F20C8D4A2C95E907185ACC273D"
             {
             "SourcePath" = "8:C:\\Program Files (x86)\\OptiTrack\\Camera SDK\\lib\\CameraLibrary2015x64S.dll"
             "TargetName" = "8:CameraLibrary2015x64S.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F70A16984FFE40D6A4AAE9BE99F62B6C"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2.dll"
-            "TargetName" = "8:SDL2.dll"
             "Tag" = "8:"
             "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
             "Condition" = "8:"

@@ -15,18 +15,6 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_131B0A3CC2834D849E22521C0F37D5AE"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_2984B6939F8649568CFFA2D00A227894"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_2E1A032E191D4A0F8B90FBE01A1607D2"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -51,18 +39,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_5A50DC52BF6D4BC7A2362E16B9DD2797"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_8E31B5BE6E4F49A89DAD8D33276E5363"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_98805AA770EE418FB7D9FDF5AE8E7E02"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -75,12 +51,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_AAFAB019F2574E3B9CB0CC582B1D9905"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_AB06DC9FDC524E479EA218BF76D6FE43"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -88,12 +58,6 @@
         "Entry"
         {
         "MsmKey" = "8:_ADE47D3E16584B6DA63B624126131654"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_B877C3BE38CA43B2AC6657C62BF0FEA2"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -234,46 +198,6 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_131B0A3CC2834D849E22521C0F37D5AE"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\zlib1.dll"
-            "TargetName" = "8:zlib1.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2984B6939F8649568CFFA2D00A227894"
-            {
-            "SourcePath" = "8:..\\FreeSans.ttf"
-            "TargetName" = "8:FreeSans.ttf"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2E1A032E191D4A0F8B90FBE01A1607D2"
             {
             "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64\\vs2015\\avutil-55.dll"
@@ -334,46 +258,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5A50DC52BF6D4BC7A2362E16B9DD2797"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2.dll"
-            "TargetName" = "8:SDL2.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8E31B5BE6E4F49A89DAD8D33276E5363"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\libfreetype-6.dll"
-            "TargetName" = "8:libfreetype-6.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_98805AA770EE418FB7D9FDF5AE8E7E02"
             {
             "SourcePath" = "8:C:\\Program Files (x86)\\Measurement Computing\\DAQ\\cbw64.dll"
@@ -414,26 +298,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AAFAB019F2574E3B9CB0CC582B1D9905"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_ttf.dll"
-            "TargetName" = "8:SDL2_ttf.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AB06DC9FDC524E479EA218BF76D6FE43"
             {
             "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64\\vs2015\\avformat-57.dll"
@@ -458,26 +322,6 @@
             {
             "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64\\vs2015\\FlyCapture2_v140.dll"
             "TargetName" = "8:FlyCapture2_v140.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B877C3BE38CA43B2AC6657C62BF0FEA2"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_net.dll"
-            "TargetName" = "8:SDL2_net.dll"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
             "Condition" = "8:"
