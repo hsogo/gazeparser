@@ -10,13 +10,15 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
 
+#include "../common/SGTConfigDlg.h"
+extern std::vector<SGTParam*> g_pCameraParamsVector;
+
 
 #include "GazeTracker.h"
 #include "FlyCapture2.h"
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
-#include "opencv2/highgui/highgui.hpp"
 
 #include <fstream>
 #include <string>
@@ -25,28 +27,34 @@ FlyCapture2::Camera g_FC2Camera;
 FlyCapture2::PGRGuid g_FC2CameraGUID;
 FlyCapture2::Image g_rawImage;
 
+bool g_AcquisitionStarted = false;
+
+#define CUSTOMMENU_SHUTTER		(MENU_GENERAL_NUM+0)
+#define CUSTOMMENU_NUM			1
+int g_CustomMenuNum = CUSTOMMENU_NUM;
+
+
+std::string g_CustomMenuString[] = {
+	"Shutter"
+};
+
+
 int g_CameraN = 0;
 int g_OffsetX = 0;
 int g_OffsetY = 0;
 int g_CameraMode = 1;
 float g_FrameRate = 200;
-
-SDL_Thread *g_pThread;
-bool g_runThread;
-
-int g_SleepDuration = 0;
-bool g_isThreadMode = true;
+float g_Shutter = 4.0;
 
 bool g_UseBlurFilter = true;
 int g_BlurFilterSize = 3;
 cv::Mat g_TmpImg;
 
 
-volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
-
-// for debugging
-// FlyCapture2::TimeStamp g_timestamp[5000];
-
+const char* getDefaultConfigString(void)
+{
+	return CAMERA_CONFIG_FILE;
+}
 
 /*!
 getEditionString: Get edition string.
@@ -60,46 +68,6 @@ const char* getEditionString(void)
 	return EDITION;
 }
 
-/*!
-captureCameraThread: Capture camera image using thread.
-
-@date 2013/03/29 created.
-*/
-int captureCameraThread(void *unused)
-{
-	FlyCapture2::Error error;
-	FlyCapture2::ImageMetadata metadata;
-
-	// for debugging
-	//int i = 0;
-
-	while(g_runThread)
-	{
-		error = g_FC2Camera.RetrieveBuffer( &g_rawImage );
-		if(error == FlyCapture2::PGRERROR_OK)
-		{
-			metadata = g_rawImage.GetMetadata();
-			// for debugging
-			//g_timestamp[i] = g_rawImage.GetTimeStamp();
-			//i = (i+1)%5000;
-			memcpy(g_frameBuffer, g_rawImage.GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-			if(g_UseBlurFilter){
-				//cv::GaussianBlur takes approx 1.9ms while cv::blur takes only approx 0.9ms in i7-2600k machine.
-				//cv::GaussianBlur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize),0,0);
-				cv::blur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize));
-			}
-
-			g_NewFrameAvailable = true;
-			
-            if(g_SleepDuration>0.0)
-            {
-                sleepMilliseconds(g_SleepDuration);
-            }
-		}
-	}
-
-    return 0;
-}
 
 
 /*!
@@ -116,52 +84,25 @@ initCameraParameters: Initialize camera specific parameters
 @date 2020/03/16
 Created.
 */
-int initCameraParameters(char* buff, char* parambuff)
+int initCameraParameters(char* buff, char* p)
 {
-	char *p, *pp;
-	double param;
 
-	p = parambuff;
-	param = strtod(p, &pp); //paramete is not int but double
-
-	if (strcmp(buff, "CAMERA_N") == 0)
-	{
-		g_CameraN = (int)param;
-	}
-	else if (strcmp(buff, "OFFSET_X") == 0)
-	{
-		g_OffsetX = (int)param;
-	}
-	else if (strcmp(buff, "OFFSET_Y") == 0)
-	{
-		g_OffsetY = (int)param;
-	}
-	else if (strcmp(buff, "FRAME_RATE") == 0)
-	{
-		g_FrameRate = (float)param;
-	}
-	else if (strcmp(buff, "CAMERA_MODE") == 0)
-	{
-		g_CameraMode = (int)param;
-	}
-	else if (strcmp(buff, "SLEEP_DURATION") == 0)
-	{
-		g_SleepDuration = (int)param;
-	}
-	else if (strcmp(buff, "USE_THREAD") == 0)
-	{
-		if ((int)param != 0)
-		{
-			g_isThreadMode = true;
-		}
-		else
-		{
-			g_isThreadMode = false;
-		}
-	}
+	if (strcmp(buff, "CAMERA_N") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("CAMERA_N", &g_CameraN, p,
+		"Set camera ID.\n(Value: integer)"));
+	else if (strcmp(buff, "OFFSET_X") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("OFFSET_X", &g_OffsetX, p,
+		"Horizontal offset of caputure area in pixel.\n(Value: positive integer)"));
+	else if (strcmp(buff, "OFFSET_Y") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("OFFSET_Y", &g_OffsetY, p,
+		"	Vertical offset of caputure area in pixel.\n(Value: positive integer)"));
+	else if (strcmp(buff, "FRAME_RATE") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("FRAME_RATE", &g_FrameRate, p,
+		"Set frame rate in frames-per-second.\n(Value: float)"));
+	else if (strcmp(buff, "SHUTTER") == 0) g_pCameraParamsVector.push_back(new SGTParamFloat("SHUTTER", &g_Shutter, p,
+		"Set shutter speed in milliseconds.\n(Value: float)"));
+	else if (strcmp(buff, "CAMERA_MODE") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("CAMERA_MODE", &g_CameraMode, p,
+		"Set camera mode (0 or 1).\n(Value: int)"));
 	else if (strcmp(buff, "BLUR_FILTER_SIZE") == 0)
 	{
-		g_BlurFilterSize = (int)param;
+		g_pCameraParamsVector.push_back(new SGTParamInt("BLUR_FILTER_SIZE", &g_BlurFilterSize, p,
+			"Size of Gaussian filter. Set 0 to disable it.\n(Vaue:integer)"));
 		if (g_BlurFilterSize > 1) g_UseBlurFilter = true;
 		else g_UseBlurFilter = false;
 	}
@@ -220,7 +161,6 @@ int initCamera( void )
 		break;
 
 	default:
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Only MODE_0 and MODE_1 are supported. \nCheck vaule of CAMERA_MODE parameter");
 		g_LogFS << "ERROR: only MODE_0 and MODE_1 are supported." << std::endl;
 		return E_FAIL;
 	}
@@ -232,13 +172,11 @@ int initCamera( void )
 	error = busMgr.GetNumOfCameras(&numCameras);
 	if(error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to find FlyCapture2 camera.");
 		g_LogFS << "ERROR: failed to get FlyCapture2 camera" << std::endl;
 		return E_FAIL;
 	}
 
 	if(numCameras<=0){
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to find FlyCapture2 camera.");
 		g_LogFS << "ERROR: no FlyCapture2 camera was found" << std::endl;
 		return E_FAIL;
 	}
@@ -246,7 +184,6 @@ int initCamera( void )
 	error = busMgr.GetCameraFromIndex(g_CameraN, &g_FC2CameraGUID);
 	if(error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to get the first Flycapture2 camera.");
 		g_LogFS << "ERROR: Could not get FlyCapture2 camera from index" << std::endl;
 		return E_FAIL;
 	}
@@ -255,7 +192,6 @@ int initCamera( void )
 	error = g_FC2Camera.Connect(&g_FC2CameraGUID);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to connect to Flycapture2 camera.");
 		g_LogFS << "ERROR: failed to connect to FlyCapture2 camera" << std::endl;
 		return E_FAIL;
 	}
@@ -274,7 +210,6 @@ int initCamera( void )
 	g_FC2Camera.GetFormat7Configuration(&imageSettings, &packetSize, &percentage);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to get \"Format7\" cofiguration of the Flycapture2 camera.");
 		g_LogFS << "ERROR: failed to get \"Format7\" camera configuration." << std::endl;
 		return E_FAIL;
 	}
@@ -287,24 +222,23 @@ int initCamera( void )
 	error = g_FC2Camera.ValidateFormat7Settings(&imageSettings, &settingsAreValid, &packetInfo);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to validate camera format.\nCheck CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE.");
 		g_LogFS << "ERROR: could not validate \"Format7\" camera format.  Check CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE." << std::endl;
 		return E_FAIL;
 	}
 	if(!settingsAreValid)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Camera format is invalid.\nCheck CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE.");
 		g_LogFS << "ERROR: invalid \"Format7\" camera format. Check CAMERA_WIDTH, CAMERA_HEIGHT, OFFSET_X, OFFSET_Y and CAMERA_MODE." << std::endl;
 		return E_FAIL;
 	}
 	error = g_FC2Camera.SetFormat7Configuration(&imageSettings, packetInfo.recommendedBytesPerPacket);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to configure camera format.");
 		g_LogFS << "ERROR: failed to configure \"Format7\" camera format." << std::endl;
 		return E_FAIL;
 	}
 	//error = g_FC2Camera.GetFormat7Configuration(&imageSettings, &packetSize, &percentage);
+
+	error = g_FC2Camera.SetVideoModeAndFrameRate(FlyCapture2::VIDEOMODE_FORMAT7, FlyCapture2::FRAMERATE_FORMAT7);
 
 	//set frame rate (manual mode, absolute value)
 	prop.type = FlyCapture2::FRAME_RATE;
@@ -315,14 +249,12 @@ int initCamera( void )
 	error = g_FC2Camera.SetProperty(&prop);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set frame rate.\nCheck FRAME_RATE.");
 		g_LogFS << "ERROR: failed to set frame rate." << std::endl;
 		return E_FAIL;
 	}
 	error = g_FC2Camera.GetProperty(&prop);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to validate frame rate.");
 		g_LogFS << "ERROR: failed to get frame rate." << std::endl;
 		return E_FAIL;
 	}
@@ -331,11 +263,61 @@ int initCamera( void )
 		g_LogFS << "Frame rate is set to " << prop.absValue << " fps." << std::endl;
 	}
 
+	//set shutter speed
+	prop.type = FlyCapture2::SHUTTER;
+	prop.autoManualMode = false;
+	prop.onOff = true;
+	prop.absControl = true;
+	prop.absValue = g_Shutter;
+	error = g_FC2Camera.SetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to set shutter speed." << std::endl;
+		return E_FAIL;
+	}
+	error = g_FC2Camera.GetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to get shutter speed." << std::endl;
+		return E_FAIL;
+	}
+	else
+	{
+		g_LogFS << "Shutter is set to " << prop.absValue << " ms." << std::endl;
+	}
+
+	/*
+	// disable auto exposure
+	prop.type = FlyCapture2::AUTO_EXPOSURE;
+	prop.autoManualMode = false;
+	prop.onOff = true;
+	prop.absControl = true;
+	prop.absValue = 1.3;
+	error = g_FC2Camera.SetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to disable AUTO_EXPOSURE." << std::endl;
+		return E_FAIL;
+	}
+
+	// disable auto gain
+	prop.type = FlyCapture2::GAIN;
+	prop.autoManualMode = false;
+	prop.onOff = true;
+	prop.absControl = true;
+	prop.absValue = 10.0;
+	error = g_FC2Camera.SetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to disable AUTO_GAIN." << std::endl;
+		return E_FAIL;
+	}]*/
+
+
 	//set grabTimeout = 0 (immediate) 
 	error = g_FC2Camera.GetConfiguration(&Config);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to get camera configuration to set grab-timeout.");
 		g_LogFS << "ERROR: failed to get camera configuration." << std::endl;
 		return E_FAIL;
 	}
@@ -343,7 +325,6 @@ int initCamera( void )
 	error = g_FC2Camera.SetConfiguration(&Config);
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set grab-timeout.");
 		g_LogFS << "ERROR: failed to set grab-timeout." << std::endl;
 		return E_FAIL;
 	}
@@ -352,7 +333,6 @@ int initCamera( void )
 	error = g_FC2Camera.StartCapture();
 	if (error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start capturing by FlyCapture2 camera.");
 		g_LogFS << "ERROR: failed to start capturing by FlyCapture2 camera" << std::endl;
 		return E_FAIL;
 	}
@@ -362,32 +342,13 @@ int initCamera( void )
 	error = g_FC2Camera.SetEmbeddedImageInfo(&eInfo);
 	if(error != FlyCapture2::PGRERROR_OK)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to set embedded GPIO pin state.");
 		g_LogFS << "ERROR: failed to set embedded GPIO pin state." << std::endl;
 		return E_FAIL;
 	}
 
-	//start thread if necessary
-	if(g_isThreadMode)
-	{
-        g_runThread = true;
-        g_pThread = SDL_CreateThread(captureCameraThread, "CaptureThread", NULL);
-        if(g_pThread==NULL)
-        {
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start a new thread for asynchronous capturing.");
-			g_LogFS << "ERROR: failed to start thread" << std::endl;
-			g_runThread = false;
-			return E_FAIL;
-        }
-        else
-        {
-            g_LogFS << "Start CameraThread" << std::endl;
-        }
-	}
-    else
-    {
-        g_LogFS << "Start without threading" << std::endl;
-    }
+	g_AcquisitionStarted = true;
+
+	g_LogFS << "Start capturing" << std::endl;
 
 	return S_OK;
 }
@@ -405,29 +366,20 @@ getCameraImage: Get new camera image.
 */
 int getCameraImage( void )
 {
+	if (!g_AcquisitionStarted) return E_FAIL;
+
 	FlyCapture2::Error error;
 
-    if(g_isThreadMode)
-    {
-        if(g_NewFrameAvailable)
-        {
-            g_NewFrameAvailable = false;
-            return S_OK;
-        }
-    }
-    else // non-threading mode
-    {
-		error = g_FC2Camera.RetrieveBuffer( &g_rawImage );
-		if(error == FlyCapture2::PGRERROR_OK)
-		{
-			memcpy(g_frameBuffer, g_rawImage.GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
-			if(g_UseBlurFilter){
-				//cv::GaussianBlur takes approx 1.9ms while cv::blur takes only approx 0.9ms in i7-2600k machine.
-				//cv::GaussianBlur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize),0,0);
-				cv::blur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize));
-			}
-			return S_OK;
+	error = g_FC2Camera.RetrieveBuffer( &g_rawImage );
+	if(error == FlyCapture2::PGRERROR_OK)
+	{
+		memcpy(g_frameBuffer, g_rawImage.GetData(), g_CameraWidth*g_CameraHeight*sizeof(unsigned char));
+		if(g_UseBlurFilter){
+			//cv::GaussianBlur takes approx 1.9ms while cv::blur takes only approx 0.9ms in i7-2600k machine.
+			//cv::GaussianBlur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize),0,0);
+			cv::blur(g_TmpImg, g_TmpImg, cv::Size(g_BlurFilterSize,g_BlurFilterSize));
 		}
+		return S_OK;
 	}
 
 	return E_FAIL;
@@ -445,13 +397,9 @@ cleanupCamera: release camera resources.
 */
 void cleanupCamera()
 {
+	g_AcquisitionStarted = false;
+
 	FlyCapture2::Error error;
-	
-	if(g_isThreadMode && g_runThread){
-		g_runThread = false;
-		SDL_WaitThread(g_pThread, NULL);
-		g_LogFS << "Camera capture thread is stopped." << std::endl;
-	}
 	
 	error = g_FC2Camera.StopCapture();
 	if (error != FlyCapture2::PGRERROR_OK)
@@ -491,32 +439,73 @@ void saveCameraParameters( std::fstream* fs )
 	*fs << "OFFSET_X=" << g_OffsetX << std::endl;
 	*fs << "OFFSET_Y=" << g_OffsetY << std::endl;
 	*fs << "FRAME_RATE=" << g_FrameRate << std::endl;
-	*fs << "CAMERA_MODE=" << g_FrameRate << std::endl;
-	*fs << "USE_THREAD=" << g_isThreadMode << std::endl;
-	*fs << "SLEEP_DURATION=" << g_SleepDuration << std::endl;
+	*fs << "SHUTTER=" << g_Shutter << std::endl;
+	*fs << "CAMERA_MODE=" << g_CameraMode << std::endl;
 	*fs << "BLUR_FILTER_SIZE=" << g_BlurFilterSize << std::endl;
 
 	return;
 }
 
-/*!
-customCameraMenu: Process camera-dependent custom menu items. If there is no custom menu items, this function do nothing.
-
-Your camera may have some parameters which you want to adjust with previewing camera image.
-In such cases, write nesessary codes to adjust these parameters in this function.
-This function is called when left or right cursor key is pressed.
-
-@param[in] SDLevent Event object.
-@param[in] currentMenuPosition Current menu position.
-@return int
-@retval S_OK 
-@retval E_FAIL 
-@note This function is necessary when you customize this file for your camera.
-*/
-int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
+int customCameraMenu(int code, int currentMenuPosition)
 {
-	// no custom menu for this camera
+	bool updateShutterValue = false;
+	switch (code)
+	{
+	case MENU_LEFT_KEY:
+		switch (currentMenuPosition)
+		{
+		case CUSTOMMENU_SHUTTER:
+			g_Shutter -= 0.1;
+			if (g_Shutter < 1.0)
+				g_Shutter = 1.0;
+			updateShutterValue = true;
+			break;
+		default:
+			break;
+		}
+		break;
+
+	case MENU_RIGHT_KEY:
+		switch (currentMenuPosition)
+		{
+		case CUSTOMMENU_SHUTTER:
+			g_Shutter += 0.1;
+			if (g_Shutter >= 1000 / g_FrameRate)
+				g_Shutter = (1000 / g_FrameRate) - 0.1;
+			updateShutterValue = true;
+			break;
+		default:
+			break;
+		}
+		break;
+
+	default:
+		break;
+	}
+
+	if (updateShutterValue)
+	{
+		FlyCapture2::Property prop;
+		FlyCapture2::Error error;
+
+		prop.type = FlyCapture2::SHUTTER;
+		prop.autoManualMode = false;
+		prop.onOff = true;
+		prop.absControl = true;
+		prop.absValue = g_Shutter;
+		error = g_FC2Camera.SetProperty(&prop);
+	}
+
 	return S_OK;
+}
+
+
+void updateCustomCameraParameterFromMenu(int id, std::string val)
+{
+	char* p;
+	if (id == CUSTOMMENU_SHUTTER) {
+		g_Shutter = std::strtof(val.c_str(), &p);
+	}
 }
 
 
@@ -527,13 +516,19 @@ Your camera may have some parameters which you want to adjust with previewing ca
 If your custom menu need to update its text, write nessesary codes to update text in this function.
 This function is called from initD3D() at first, and from MsgProc() when left or right cursor key is pressed.
 
-@return No value is returned.
+@return std::string object is returned.
 @note This function is necessary when you customize this file for your camera.
 */
-void updateCustomMenuText( void )
+std::string updateCustomMenuText(int id)
 {
-	// no custom parameters for this camera
-	return;
+	char buff[256];
+
+	if (id == CUSTOMMENU_SHUTTER) {
+		snprintf(buff, sizeof(buff), "%.1f", g_Shutter);
+		return std::string(buff);
+	}
+
+	return std::string("--");
 }
 
 /*!
