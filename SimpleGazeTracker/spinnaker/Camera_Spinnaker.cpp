@@ -68,15 +68,10 @@ int g_BlurFilterSize = 3;
 cv::Mat g_TmpImg;
 
 
-volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
-
-
 const char* getDefaultConfigString(void)
 {
 	return CAMERA_CONFIG_FILE;
 }
-
-
 
 /*!
 getEditionString: Get edition string.
@@ -456,15 +451,15 @@ Your camera may have some parameters which you want to adjust with previewing ca
 If your custom menu need to update its text, write nessesary codes to update text in this function.
 This function is called from initD3D() at first, and from MsgProc() when left or right cursor key is pressed.
 
-@return No value is returned.
+@return std::string object is returned.
 @note This function is necessary when you customize this file for your camera.
 */
 std::string updateCustomMenuText( int id )
 {
 	char buff[256];
-	snprintf(buff, sizeof(buff), "%.0f", g_Exposure);
 
 	if (id == CUSTOMMENU_EXPOSURE) {
+		snprintf(buff, sizeof(buff), "%.0f", g_Exposure);
 		return std::string(buff);
 	}
 
