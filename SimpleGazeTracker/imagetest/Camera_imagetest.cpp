@@ -26,6 +26,17 @@ std::vector<std::string> g_ImageSourceNameList;
 
 #define CUSTOMMENU_IMAGEFILE	(MENU_GENERAL_NUM+0)
 #define CUSTOMMENU_NUM			1
+int g_CustomMenuNum = CUSTOMMENU_NUM;
+
+std::string g_CustomMenuString[] = {
+	"ImageFile"
+};
+
+
+const char* getDefaultConfigString(void)
+{
+	return CAMERA_CONFIG_FILE;
+}
 
 /*!
 getEditionString: Get edition string.
@@ -78,7 +89,6 @@ HRESULT load_image_to_buffer(std::string imageSourceName)
 		tmpframe = cv::imread(joinPath(g_DataPath.c_str(), imageSourceName.c_str()), 0);
 
 		if (tmpframe.empty()) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to load image %s.", imageSourceName.c_str());
 			g_LogFS << "ERROR: failed to load image " << imageSourceName << std::endl;
 			return E_FAIL;
 		}
@@ -160,7 +170,6 @@ int initCamera(void)
 {
 	if (g_imageSourceName.empty())
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image Source is not specified.");
 		g_LogFS << "ERROR: image source is not specified" << std::endl;
 		return E_FAIL;
 	}
@@ -236,54 +245,46 @@ This function is called when left or right cursor key is pressed.
 @retval E_FAIL
 @note This function is necessary when you customize this file for your camera.
 */
-int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
+int customCameraMenu(int code, int currentMenuPosition)
 {
-	switch (SDLevent->type) {
-	case SDL_KEYDOWN:
-		switch (SDLevent->key.keysym.sym)
+	switch (code)
+	{
+	case MENU_LEFT_KEY:
+		switch (currentMenuPosition)
 		{
-		case SDLK_LEFT:
-			switch (currentMenuPosition)
+		case CUSTOMMENU_IMAGEFILE:
+			g_CurrentImageFileIndex--;
+			if (g_CurrentImageFileIndex < 0)
+				g_CurrentImageFileIndex = (int)g_ImageSourceNameList.size() - 1;
+			if (FAILED(load_image_to_buffer(g_ImageSourceNameList.at(g_CurrentImageFileIndex))))
 			{
-			case CUSTOMMENU_IMAGEFILE:
-				g_CurrentImageFileIndex--;
-				if (g_CurrentImageFileIndex < 0)
-					g_CurrentImageFileIndex = (int)g_ImageSourceNameList.size()-1;
-				if (FAILED(load_image_to_buffer(g_ImageSourceNameList.at(g_CurrentImageFileIndex))))
+				//clear buffer
+				for (int idx = 0; idx < g_CameraWidth * g_CameraHeight; idx++)
 				{
-					//clear buffer
-					for (int idx = 0; idx < g_CameraWidth*g_CameraHeight; idx++)
-					{
-						g_frameBuffer[idx] = 0;
-					}
+					g_frameBuffer[idx] = 0;
 				}
-				break;
-			default:
-				break;
 			}
 			break;
-
-		case SDLK_RIGHT:
-			switch (currentMenuPosition)
+		default:
+			break;
+		}
+		
+	case MENU_RIGHT_KEY:
+		switch (currentMenuPosition)
+		{
+		case CUSTOMMENU_IMAGEFILE:
+			g_CurrentImageFileIndex++;
+			if (g_CurrentImageFileIndex >= g_ImageSourceNameList.size())
+				g_CurrentImageFileIndex = 0;
+			if (FAILED(load_image_to_buffer(g_ImageSourceNameList.at(g_CurrentImageFileIndex))))
 			{
-			case CUSTOMMENU_IMAGEFILE:
-				g_CurrentImageFileIndex++;
-				if (g_CurrentImageFileIndex >= g_ImageSourceNameList.size())
-					g_CurrentImageFileIndex = 0;
-				if (FAILED(load_image_to_buffer(g_ImageSourceNameList.at(g_CurrentImageFileIndex))))
+				//clear buffer
+				for (int idx = 0; idx < g_CameraWidth*g_CameraHeight; idx++)
 				{
-					//clear buffer
-					for (int idx = 0; idx < g_CameraWidth*g_CameraHeight; idx++)
-					{
-						g_frameBuffer[idx] = 0;
-					}
+					g_frameBuffer[idx] = 0;
 				}
-				break;
-			default:
-				break;
 			}
 			break;
-
 		default:
 			break;
 		}
@@ -294,6 +295,26 @@ int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 	return S_OK;
 }
 
+void updateCustomCameraParameterFromMenu(int id, std::string val)
+{
+	char* p;
+	int i;
+	if (id == CUSTOMMENU_IMAGEFILE) {
+		i = std::strtol(val.c_str(), &p, 10);
+		if ( i >= 0 || i < g_ImageSourceNameList.size() ) {
+			g_CurrentImageFileIndex = i;
+
+			if (FAILED(load_image_to_buffer(g_ImageSourceNameList.at(g_CurrentImageFileIndex))))
+			{
+				//clear buffer
+				for (int idx = 0; idx < g_CameraWidth * g_CameraHeight; idx++)
+				{
+					g_frameBuffer[idx] = 0;
+				}
+			}
+		}
+	}
+}
 
 /*!
 updateCustomMenuText: update menu text of custom camera menu items.
@@ -305,13 +326,16 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
 */
-void updateCustomMenuText(void)
+std::string updateCustomMenuText( int id )
 {
-	std::stringstream ss;
-	ss << "ImageFile(" << g_CurrentImageFileIndex << ")";
-	g_MenuString[CUSTOMMENU_IMAGEFILE] = ss.str();
+	char buff[256];
 
-	return;
+	if (id == CUSTOMMENU_IMAGEFILE) {
+		snprintf(buff, sizeof(buff), "%d", g_CurrentImageFileIndex);
+		return std::string(buff);
+	}
+
+	return std::string("--");
 }
 
 /*!
