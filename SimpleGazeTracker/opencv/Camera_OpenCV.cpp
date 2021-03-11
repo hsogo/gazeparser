@@ -8,32 +8,38 @@
 - Custom menu is supported.
 */
 
+
+#include "../common/SGTConfigDlg.h"
+extern std::vector<SGTParam*> g_pCameraParamsVector;
+
 #include "GazeTracker.h"
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
 
 #include <fstream>
 #include <string>
 
-#include <SDL2/SDL.h>
-
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
-
 cv::VideoCapture g_VideoCapture;
-SDL_Thread *g_pThread;
-bool g_runThread;
 double g_prevCaptureTime;
 
 int g_SleepDuration = 0;
-double g_FrameRate = 30;
-bool g_isThreadMode = false;
+float g_FrameRate = 30;
 
 int g_cameraID = 0;
-double g_Intensity = 1.0;
-double g_Exposure = 1.0;
-double g_Brightness = 1.0;
-double g_Contrast = 1.0;
-double g_Gain = 1.0;
+float g_Intensity = 1.0;
+float g_Exposure = 1.0;
+float g_Brightness = 1.0;
+float g_Contrast = 1.0;
+float g_Gain = 1.0;
+
+#define CUSTOMMENU_NUM			0
+int g_CustomMenuNum = CUSTOMMENU_NUM;
+
+std::string g_CustomMenuString[] = {
+	""
+};
+
 
 #define CAMERA_PARAM_INTENSITY   0
 #define CAMERA_PARAM_EXPOSURE    1
@@ -45,7 +51,11 @@ double g_Gain = 1.0;
 
 bool g_isParameterSpecified[CAMERA_PARAM_NUM] = {false,false,false,false,false,false};
 
-volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
+const char* getDefaultConfigString(void)
+{
+	return CAMERA_CONFIG_FILE;
+}
+
 
 /*!
 getEditionString: Get edition string.
@@ -59,40 +69,6 @@ const char* getEditionString(void)
 	return EDITION;
 }
 
-
-
-/*!
-captureCameraThread: Capture camera image using thread.
-
-*/
-int captureCameraThread(void *unused)
-{
-	cv::Mat frame, monoFrame;
-	
-	while(g_runThread)
-	{
-		if(g_VideoCapture.grab())
-		{
-			g_VideoCapture.retrieve(frame);
-			if(frame.channels()==3)
-				cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
-			else
-				monoFrame = frame;
-			for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
-			{
-				g_frameBuffer[idx] = (unsigned char)monoFrame.data[idx];
-			}
-			g_NewFrameAvailable = true;
-			
-			if(g_SleepDuration>0.0)
-			{
-				sleepMilliseconds(g_SleepDuration);
-			}
-		}
-	}
-	
-	return 0;
-}
 
 /*!
 initCameraParameters: Initialize camera specific parameters
@@ -108,49 +84,35 @@ initCameraParameters: Initialize camera specific parameters
 @date 2020/03/16
 Created.
 */
-int initCameraParameters(char* buff, char* parambuff)
+int initCameraParameters(char* buff, char* p)
 {
-	char *p, *pp;
-	double param;
-
-	p = parambuff;
-	param = strtod(p, &pp); //paramete is not int but double
-
-	if (strcmp(buff, "SLEEP_DURATION") == 0)
-	{
-		g_SleepDuration = (int)param;
-	}
-	else if (strcmp(buff, "USE_THREAD") == 0)
-	{
-		g_isThreadMode = ((int)param != 0) ? true : false;
-	}
-	else if (strcmp(buff, "CAMERA_ID") == 0)
-	{
-		g_cameraID = (int)param;
-	}
-	else if (strcmp(buff, "FRAME_RATE") == 0)
-	{
-		g_FrameRate = param;
+	if (strcmp(buff, "SLEEP_DURATION") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("CAMERA_N", &g_SleepDuration, p,
+		"Set sleep duration is milliseconds.\n(Value: integer)"));
+	else if (strcmp(buff, "CAMERA_ID") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("CAMERA_ID", &g_cameraID, p,
+		"Horizontal offset of caputure area in pixel.\n(Value: positive integer)"));
+	else if (strcmp(buff, "FRAME_RATE") == 0) {
+		g_pCameraParamsVector.push_back(new SGTParamFloat("FRAME_RATE", &g_FrameRate, p,
+			"Set frame rate.\n(Value: float)"));
 		g_isParameterSpecified[CAMERA_PARAM_FRAMERATE] = true;
 	}
-	else if (strcmp(buff, "EXPOSURE") == 0)
-	{
-		g_Exposure = param;
+	else if (strcmp(buff, "EXPOSURE") == 0) {
+		g_pCameraParamsVector.push_back(new SGTParamFloat("EXPOSURE", &g_Exposure, p,
+			"Set exposure.\n(Value: float)"));
 		g_isParameterSpecified[CAMERA_PARAM_EXPOSURE] = true;
 	}
-	else if (strcmp(buff, "BRIGHTNESS") == 0)
-	{
-		g_Brightness = param;
+	else if (strcmp(buff, "BRIGHTNESS") == 0) {
+		g_pCameraParamsVector.push_back(new SGTParamFloat("BRIGHTNESS", &g_Brightness, p,
+			"Set brightness.\n(Value: float)"));
 		g_isParameterSpecified[CAMERA_PARAM_BRIGHTNESS] = true;
 	}
-	else if (strcmp(buff, "CONTRAST") == 0)
-	{
-		g_Contrast = param;
+	else if (strcmp(buff, "CONTRAST") == 0) {
+		g_pCameraParamsVector.push_back(new SGTParamFloat("CONTRAST", &g_Contrast, p,
+			"Set contrast.\n(Value: float)"));
 		g_isParameterSpecified[CAMERA_PARAM_CONTRAST] = true;
 	}
-	else if (strcmp(buff, "GAIN") == 0)
-	{
-		g_Gain = param;
+	else if (strcmp(buff, "GAIN") == 0) {
+		g_pCameraParamsVector.push_back(new SGTParamFloat("GAIN", &g_Gain, p,
+			"Set gain.\n(Value: float)"));
 		g_isParameterSpecified[CAMERA_PARAM_GAIN] = true;
 	}
 	else {
@@ -188,82 +150,60 @@ int initCamera( void )
 	g_VideoCapture = cv::VideoCapture(g_cameraID);
 	if(!g_VideoCapture.isOpened())
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "No VideoCapture device was found.");
 		g_LogFS << "ERROR: no VideoCapture device was found." << std::endl;
 		return E_FAIL;
 	}
+	
+	g_VideoCapture.set(cv::CAP_PROP_FRAME_WIDTH,g_CameraWidth);
+	g_VideoCapture.set(cv::CAP_PROP_FRAME_HEIGHT,g_CameraHeight);
 
-	g_VideoCapture.set(CV_CAP_PROP_FRAME_WIDTH,g_CameraWidth);
-	g_VideoCapture.set(CV_CAP_PROP_FRAME_HEIGHT,g_CameraHeight);
-
-	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
+	if((int)g_VideoCapture.get(cv::CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.", g_CameraWidth, g_CameraHeight);
 		return E_FAIL;
 	}
-	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
+	if((int)g_VideoCapture.get(cv::CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.", g_CameraWidth, g_CameraHeight);
 		return E_FAIL;
 	}
 
 	if(g_isParameterSpecified[CAMERA_PARAM_FRAMERATE])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_FPS,g_FrameRate);
-		param = g_VideoCapture.get(CV_CAP_PROP_FPS);
+		g_VideoCapture.set(cv::CAP_PROP_FPS,g_FrameRate);
+		param = g_VideoCapture.get(cv::CAP_PROP_FPS);
 		if(param != g_FrameRate)
 			g_LogFS << "WARINING: tried to set FRAMERATE " << g_FrameRate << ", but returned value was " << param << std::endl;
 	}
 	if(g_isParameterSpecified[CAMERA_PARAM_BRIGHTNESS])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_BRIGHTNESS,g_Brightness);
-		param = g_VideoCapture.get(CV_CAP_PROP_BRIGHTNESS);
+		g_VideoCapture.set(cv::CAP_PROP_BRIGHTNESS,g_Brightness);
+		param = g_VideoCapture.get(cv::CAP_PROP_BRIGHTNESS);
 		if(param != g_Brightness)
 			g_LogFS << "WARINING: tried to set BRIGHTNESS " << g_Brightness << ", but returned value was " << param << std::endl;
 	}
 	if(g_isParameterSpecified[CAMERA_PARAM_CONTRAST])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_CONTRAST,g_Contrast);
-		param = g_VideoCapture.get(CV_CAP_PROP_CONTRAST);
+		g_VideoCapture.set(cv::CAP_PROP_CONTRAST,g_Contrast);
+		param = g_VideoCapture.get(cv::CAP_PROP_CONTRAST);
 		if(param != g_Contrast)
 			g_LogFS << "WARINING: tried to set CONTRAST " << g_Contrast << ", but returned value was " << param << std::endl;
 	}
 	if(g_isParameterSpecified[CAMERA_PARAM_GAIN])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_GAIN,g_Gain);
-		param = g_VideoCapture.get(CV_CAP_PROP_GAIN);
+		g_VideoCapture.set(cv::CAP_PROP_GAIN,g_Gain);
+		param = g_VideoCapture.get(cv::CAP_PROP_GAIN);
 		if(param != g_Gain)
 			g_LogFS << "WARINING: tried to set GAIN " << g_Gain << ", but returned value was " << param << std::endl;
 	}
 	if(g_isParameterSpecified[CAMERA_PARAM_EXPOSURE])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_EXPOSURE,g_Exposure);
-		param = g_VideoCapture.get(CV_CAP_PROP_EXPOSURE);
+		g_VideoCapture.set(cv::CAP_PROP_EXPOSURE,g_Exposure);
+		param = g_VideoCapture.get(cv::CAP_PROP_EXPOSURE);
 		if(param != g_Exposure)
 			g_LogFS << "WARINING: tried to set EXPOSURE " << g_Exposure << ", but returned value was " << param << std::endl;
 	}
 
-	if(g_isThreadMode)
-	{
-		g_runThread = true;
-		g_pThread = SDL_CreateThread(captureCameraThread, "CaptureThread", NULL);
-		if(g_pThread==NULL)
-		{
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to start a new thread for asynchronous capturing.");
-			g_LogFS << "ERROR: failed to start thread" << std::endl;
-			g_runThread = false;
-			return E_FAIL;
-		}
-		else
-		{
-			g_LogFS << "Start CameraThread" << std::endl;
-		}
-	}
-	else
-	{
-		g_prevCaptureTime = getCurrentTime();
-		g_LogFS << "Start without threading" << std::endl;
-	}
+	g_prevCaptureTime = getCurrentTime();
+		g_LogFS << "Start Camera" << std::endl;
 
 	return S_OK;
 }
@@ -278,37 +218,26 @@ getCameraImage: Get new camera image.
 */
 int getCameraImage( void )
 {
-	if(g_isThreadMode)
+	double t;
+	t = getCurrentTime();
+	if(t-g_prevCaptureTime > g_SleepDuration)
 	{
-		if(g_NewFrameAvailable)
-		{
-			g_NewFrameAvailable = false;
-			return S_OK;
-		}
-	}
-	else // non-threading mode
-	{
-		double t;
-		t = getCurrentTime();
-		if(t-g_prevCaptureTime > g_SleepDuration)
-		{
 			
-			cv::Mat frame, monoFrame;
-			
-			if(g_VideoCapture.grab())
+		cv::Mat frame, monoFrame;
+		
+		if(g_VideoCapture.grab())
+		{
+			g_VideoCapture.retrieve(frame);
+			if(frame.channels()==3)
+				cv::cvtColor(frame, monoFrame, cv::COLOR_RGB2GRAY);
+			else
+				monoFrame = frame;
+			for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
 			{
-				g_VideoCapture.retrieve(frame);
-				if(frame.channels()==3)
-					cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
-				else
-					monoFrame = frame;
-				for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
-				{
-					g_frameBuffer[idx] = (unsigned char)monoFrame.data[idx];
-				}
-				g_prevCaptureTime = getCurrentTime();
-				return S_OK;
+				g_frameBuffer[idx] = (unsigned char)monoFrame.data[idx];
 			}
+			g_prevCaptureTime = getCurrentTime();
+			return S_OK;
 		}
 	}
 
@@ -324,11 +253,7 @@ cleanupCamera: release camera resources.
 */
 void cleanupCamera()
 {
-	if(g_isThreadMode && g_runThread){
-		g_runThread = false;
-		SDL_WaitThread(g_pThread, NULL);
-		g_LogFS << "Camera capture thread is stopped." << std::endl;
-	}
+
 }
 
 /*!
@@ -346,7 +271,6 @@ void saveCameraParameters( std::fstream* fs )
 	*fs << "# Camera specific parameters for " << EDITION << std::endl;
 	*fs << "SLEEP_DURATION=" << g_SleepDuration << std::endl;
 	*fs << "CAMERA_ID=" << g_cameraID << std::endl;
-	*fs << "USE_THREAD=" << ((g_isThreadMode) ? 1: 0) << std::endl;
 
 	if (g_isParameterSpecified[CAMERA_PARAM_FRAMERATE])
 		*fs << "FRAME_RATE=" << g_FrameRate << std::endl;
@@ -390,12 +314,16 @@ This function is called when left or right cursor key is pressed.
 @retval E_FAIL 
 @note This function is necessary when you customize this file for your camera.
 */
-int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
+int customCameraMenu(int code, int currentMenuPosition)
 {
 	// no custom menu for this camera
 	return S_OK;
 }
 
+void updateCustomCameraParameterFromMenu(int id, std::string val)
+{
+	
+}
 
 /*!
 updateCustomMenuText: update menu text of custom camera menu items.
@@ -407,10 +335,10 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
 */
-void updateCustomMenuText( void )
+std::string updateCustomMenuText( int id )
 {
 	// no custom parameters for this camera
-	return;
+	return std::string("--");
 }
 
 
