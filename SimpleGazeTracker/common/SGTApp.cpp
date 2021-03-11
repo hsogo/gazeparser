@@ -226,7 +226,7 @@ bool SGTApp::OnInit()
 			}
 			else {
 				snprintf(error_message, sizeof(error_message),
-					"Configuration file (%s) is not found. Default configuration file is created at %s.\n", g_DefaultConfigFileName.c_str(), g_ParamPath.c_str());
+					"Configuration file (%s) is not found. SimpleGazeTracker will create a new configuration file at %s.\nEdit default parameters and press \"Save and Exit\" button.", g_DefaultConfigFileName.c_str(), g_ParamPath.c_str());
 				outputLogDlg(error_message, "Info", wxICON_INFORMATION);
 				bConfigCopied = true;
 			}
@@ -271,6 +271,7 @@ bool SGTApp::OnInit()
 		{
 			wxMessageBox("Parameters are not updated.", "Info", wxOK | wxICON_INFORMATION);
 		}
+		delete dlg;
 	}
 
 	// check Preview size before creating main frame
@@ -292,7 +293,13 @@ bool SGTApp::OnInit()
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
+			else
+			{
+				wxMessageBox("Parameters are not updated.", "Info", wxOK | wxICON_INFORMATION);
+			}
+			delete dlg;
 		}
+		return false;
 	}
 
 	// now we can open main frame
@@ -327,7 +334,13 @@ bool SGTApp::OnInit()
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
+			else
+			{
+				wxMessageBox("Parameters are not updated.", "Info", wxOK | wxICON_INFORMATION);
+			}
+			delete dlg;
 		}
+		outputLog("initBuffers failed. Exit.");
 		return false;
 	}
 
@@ -335,7 +348,7 @@ bool SGTApp::OnInit()
 	if (FAILED(pMainFrame->initTCPConnection()))
 	{
 		wxMessageDialog* dlg = new wxMessageDialog(pMainFrame,
-			"Failed to initialize newwork. nDo you want to open Config editor and log file?",
+			"Failed to initialize network. Do you want to open Config editor and log file?",
 			"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 		if (dlg->ShowModal() == wxID_YES)
 		{
@@ -350,6 +363,11 @@ bool SGTApp::OnInit()
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
+			else
+			{
+				wxMessageBox("Parameters are not updated.", "Info", wxOK | wxICON_INFORMATION);
+			}
+			delete dlg;
 		}
 		outputLog("initTCPConnection failed. Exit.");
 		return false;
@@ -359,7 +377,7 @@ bool SGTApp::OnInit()
 	outputLog("Initializing camera...");
 	if (FAILED(initCamera())) {
 		wxMessageDialog* dlg = new wxMessageDialog(pMainFrame,
-			"Failed to initialize camera. nDo you want to open Config editor and log file?",
+			"Failed to initialize camera. Do you want to open Config editor and log file?",
 			"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 		if (dlg->ShowModal() == wxID_YES)
 		{
@@ -374,6 +392,11 @@ bool SGTApp::OnInit()
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 			}
+			else
+			{
+				wxMessageBox("Parameters are not updated.", "Info", wxOK | wxICON_INFORMATION);
+			}
+			delete dlg;
 		}
 		outputLog( "initCamera failed. Exit." );
 		return false;
@@ -385,7 +408,7 @@ bool SGTApp::OnInit()
 		outputLog("Initalizing USB I/O...");
 		if (FAILED(m_pUSBIO->init(g_USBIOBoard, g_USBIOParamAD, g_USBIOParamDI, MAXDATA))) {
 			wxMessageDialog* dlg = new wxMessageDialog(pMainFrame,
-				"Failed to initialize USB I/O. nDo you want to open Config editor and log file?",
+				"Failed to initialize USB I/O. Do you want to open Config editor and log file?",
 				"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
 			if (dlg->ShowModal() == wxID_YES)
 			{
@@ -400,6 +423,7 @@ bool SGTApp::OnInit()
 					saveParameters();
 					wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
 				}
+				delete dlg;
 			}
 			outputLog("initUSBIO failed. Exit.");
 			return false;
@@ -648,10 +672,16 @@ int initParameters(void)
 		}
 	}
 
+	fs.close();
+
+	if (g_pGeneralParamsVector.size() * g_pImageParamsVector.size() * g_pIOParamsVector.size() == 0) {
+		snprintf(error_message, sizeof(error_message), "Configuration file is invalid.  Close application and remove %s, then restart application.", fname.c_str());
+		outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
+		return E_FAIL;
+	}
+
 	if (g_ROIWidth == 0) g_ROIWidth = g_CameraWidth;
 	if (g_ROIHeight == 0) g_ROIHeight = g_CameraHeight;
-
-	fs.close();
 
 	return S_OK;
 }
