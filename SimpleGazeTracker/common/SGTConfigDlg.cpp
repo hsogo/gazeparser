@@ -177,30 +177,27 @@ SGTConfigDlg::SGTConfigDlg(wxWindow *parent, wxWindowID id, const wxString &titl
 	notebook->AddPage(pPageIO, "I/O");
 	notebook->AddPage(pPageCamera, "Camera specific");
 
-	wxPanel* pButtonPanel = new wxPanel(rootPanel, wxID_ANY);
+	//wxPanel* pButtonPanel = new wxPanel(rootPanel, wxID_ANY);
 	wxBoxSizer* pButtonPanelSizer = new wxBoxSizer(wxHORIZONTAL);
 
-	wxButton* pButtonHelp = new wxButton(pButtonPanel, wxID_ANY, "Help");
-	wxButton* pButtonSaveExit = new wxButton(pButtonPanel, wxID_ANY, "Save and exit");
-	wxButton* pButtonCancel = new wxButton(pButtonPanel, wxID_ANY, "Cancel");
+	wxButton* pButtonHelp = new wxButton(rootPanel, wxID_ANY, "Help");
+	wxButton* pButtonSaveExit = new wxButton(rootPanel, wxID_ANY, "Save and exit");
+	wxButton* pButtonCancel = new wxButton(rootPanel, wxID_ANY, "Cancel");
+	pButtonHelp->Bind(wxEVT_BUTTON, &SGTConfigDlg::onHelpButton, this);
+	pButtonSaveExit->Bind(wxEVT_BUTTON, &SGTConfigDlg::onSaveExitButton, this);
+	pButtonCancel->Bind(wxEVT_BUTTON, &SGTConfigDlg::onCancelButton, this);
 
 	pButtonPanelSizer->Add(pButtonHelp);
 	pButtonPanelSizer->Add(pButtonSaveExit);
 	pButtonPanelSizer->Add(pButtonCancel);
-
-	pButtonPanel->SetSizerAndFit(pButtonPanelSizer);
-	pButtonPanel->Fit();
+	//pButtonPanel->SetSizerAndFit(pButtonPanelSizer);
 
 	wxBoxSizer* pSizer = new wxBoxSizer(wxVERTICAL);
 	pSizer->Add(notebook);
-	pSizer->Add(pButtonPanel, 1, wxEXPAND);
+	pSizer->Add(pButtonPanelSizer);
 
 	rootPanel->SetSizerAndFit(pSizer);
 	Fit();
-
-	pButtonHelp->Bind(wxEVT_BUTTON, &SGTConfigDlg::onHelpButton, this);
-	pButtonSaveExit->Bind(wxEVT_BUTTON, &SGTConfigDlg::onSaveExitButton, this);
-	pButtonCancel->Bind(wxEVT_BUTTON, &SGTConfigDlg::onCancelButton, this);
 
 }
 

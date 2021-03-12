@@ -263,7 +263,7 @@ bool SGTApp::OnInit()
 
 		openLocation(path);
 
-		SGTConfigDlg* dlg = new SGTConfigDlg(NULL, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+		SGTConfigDlg* dlg = new SGTConfigDlg(NULL, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER, "configDlg");
 		if (dlg->ShowModal() == wxOK) {
 			wxMessageBox("Parameters are updated.", "Info", wxOK | wxICON_INFORMATION);
 		}
@@ -288,7 +288,7 @@ bool SGTApp::OnInit()
 					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
 				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
 			}
-			SGTConfigDlg* dlg = new SGTConfigDlg(NULL, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, "configDlg");
+			SGTConfigDlg* dlg = new SGTConfigDlg(NULL, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER, "configDlg");
 			if (dlg->ShowModal() == wxOK) {
 				saveParameters();
 				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
