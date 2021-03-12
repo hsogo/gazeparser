@@ -155,8 +155,6 @@ Read parameters from the configuration file, start camera and set callback funct
 */
 int initCamera( void )
 {
-	char error_message[1024];
-
 	// create cv::Mat for blurring
 	if(g_UseBlurFilter){
 		g_LogFS << "BlurFilter: use blur filter (size=" << g_BlurFilterSize << ")." << std::endl;
@@ -194,7 +192,6 @@ int initCamera( void )
 			g_CameraList.Clear();
 			g_pSpinnakerSystem->ReleaseInstance();
 
-			snprintf(error_message, sizeof(error_message), "Failed to find Spinnaker camera.");
 			g_LogFS << "ERROR: failed to get Spinnaker camera" << std::endl;
 			return E_FAIL;
 		}
@@ -207,7 +204,6 @@ int initCamera( void )
 			g_CameraList.Clear();
 			g_pSpinnakerSystem->ReleaseInstance();
 
-			snprintf(error_message, sizeof(error_message), "Failed to get the first Spinnaker camera.");
 			g_LogFS << "ERROR: Could not get the first Spinakker camera" << std::endl;
 			return E_FAIL;
 		}
@@ -463,7 +459,7 @@ std::string updateCustomMenuText( int id )
 		return std::string(buff);
 	}
 
-	return std::string("--");
+	return std::string("");
 }
 
 /*!

@@ -528,7 +528,7 @@ std::string updateCustomMenuText(int id)
 		return std::string(buff);
 	}
 
-	return std::string("--");
+	return std::string("");
 }
 
 /*!

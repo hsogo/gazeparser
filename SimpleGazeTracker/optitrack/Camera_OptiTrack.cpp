@@ -1,7 +1,13 @@
-#include <SDL2/SDL.h>
+#define _CRT_SECURE_NO_WARNINGS
+
+
+#include "../common/SGTConfigDlg.h"
+extern std::vector<SGTParam*> g_pCameraParamsVector;
+
 #include "GazeTracker.h"
-#include <cameralibrary.h>
+
 #include <atlbase.h>
+#include <cameralibrary.h>
 
 #include <fstream>
 #include <sstream>
@@ -14,9 +20,22 @@ int g_FrameRate = 100;
 int g_Intensity = 7;
 int g_Exposure = 399;
 
+bool g_AcquisitionStarted = false;
+
 #define CUSTOMMENU_INTENSITY	(MENU_GENERAL_NUM+0)
 #define CUSTOMMENU_EXPOSURE		(MENU_GENERAL_NUM+1)
 #define CUSTOMMENU_NUM			2
+int g_CustomMenuNum = CUSTOMMENU_NUM;
+
+std::string g_CustomMenuString[] = {
+	"Intensity",
+	"Exposure"
+};
+
+const char* getDefaultConfigString(void)
+{
+	return CAMERA_CONFIG_FILE;
+}
 
 /*!
 getEditionString: Get edition string.
@@ -44,23 +63,14 @@ initCameraParameters: Initialize camera specific parameters
 @date 2020/03/16
 Created.
 */
-int initCameraParameters(char* buff, char* parambuff)
+int initCameraParameters(char* buff, char* p)
 {
-	char *p, *pp;
-	double param;
-
-	p = parambuff;
-	param = strtod(p, &pp); //paramete is not int but double
-
-	if (strcmp(buff, "FRAME_RATE") == 0) {
-		g_FrameRate = param;
-	}
-	else if (strcmp(buff, "EXPOSURE") == 0) {
-		g_Exposure = param;
-	}
-	else if (strcmp(buff, "INTENSITY") == 0) {
-		g_Intensity = param;
-	}
+	if (strcmp(buff, "FRAME_RATE") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("FRAME_RATE", &g_FrameRate, p,
+		"Set frame rate in frames-per-second.\n(Value: integer)"));
+	else if (strcmp(buff, "EXPOSURE") == 0) g_pCameraParamsVector.push_back(new SGTParamInt("EXPOSURE", &g_Exposure, p,
+		"Set exposure.\n(Value: integer)"));
+	else if (strcmp(buff, "INTENSITY") == 0)g_pCameraParamsVector.push_back(new SGTParamInt("INTENSITY", &g_Intensity, p,
+		"Set intensity of built-in IR-LED.\n(Value: integer)"));
 	else {
 	// unknown parameter
 	return E_FAIL;
@@ -100,7 +110,6 @@ int initCamera( void )
 {
 	CameraLibrary::CameraManager::X().WaitForInitialization();
 	if(!CameraLibrary::CameraManager::X().AreCamerasInitialized()){
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to initialize cameras.");
 		g_LogFS << "ERROR: failed to initialize camera(s)" << std::endl;
 		return E_FAIL;
 	}
@@ -109,7 +118,6 @@ int initCamera( void )
 
 	if(g_camera==NULL)
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "No OptiTrack camera was found.");
 		g_LogFS << "ERROR: no camera is found" << std::endl;
 		return E_FAIL;
 	}
@@ -130,7 +138,6 @@ int initCamera( void )
 		g_camera->SetGrayscaleDecimation(2);
 	else
 	{
-		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.", g_CameraWidth, g_CameraHeight);
 		g_LogFS << "ERROR: wrong camera size (" << g_CameraWidth << "," << g_CameraHeight << ")" << std::endl;
 		return E_FAIL;
 	}
@@ -140,9 +147,7 @@ int initCamera( void )
 	g_camera->Start();
 
 	Sleep(10);
-
-	//prepare custom menu
-	g_CustomMenuNum = CUSTOMMENU_NUM;
+	g_AcquisitionStarted = true;
 
 	return S_OK;
 }
@@ -157,12 +162,14 @@ getCameraImage: Get new camera image.
 */
 int getCameraImage( void )
 {
+	if (!g_AcquisitionStarted)
+		return E_FAIL;
+
 	g_frame = g_camera->GetLatestFrame();
 
 	if(g_frame)
 	{
 		//== New Frame Has Arrived ==========================------
-		//frameCounter++;
 		g_frame->Rasterize(g_CameraWidth, g_CameraHeight, g_CameraWidth, 8, (byte *) g_frameBuffer);
 		g_frame->Release();
 
@@ -180,6 +187,8 @@ cleanupCamera: release camera resources.
 */
 void cleanupCamera()
 {
+	g_AcquisitionStarted = false;
+
 	if(g_camera != NULL){
 		g_camera->Stop();
 
@@ -223,55 +232,50 @@ This function is when left or right cursor key is pressed.
 @retval E_FAIL 
 @note This function is necessary when you customize this file for your camera.
 */
-int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
+int customCameraMenu(int code, int currentMenuPosition)
 {
-	switch(SDLevent->type){
-	case SDL_KEYDOWN:
-		switch(SDLevent->key.keysym.sym)
+	switch( code )
+	{
+	case MENU_LEFT_KEY:
+		switch(currentMenuPosition)
 		{
-		case SDLK_LEFT:
-			switch(currentMenuPosition)
-			{
-			case CUSTOMMENU_INTENSITY:
-				g_Intensity--;
-				if(g_Intensity<0)
-					g_Intensity = 0;
-				g_camera->SetIntensity(g_Intensity);
-				break;
-			case CUSTOMMENU_EXPOSURE:
-				g_Exposure--;
-				if(g_Exposure<0)
-					g_Exposure = 0;
-				g_camera->SetExposure(g_Exposure);
-				break;
-			default:
-				break;
-			}
+		case CUSTOMMENU_INTENSITY:
+			g_Intensity--;
+			if(g_Intensity<0)
+				g_Intensity = 0;
+			g_camera->SetIntensity(g_Intensity);
 			break;
-
-		case SDLK_RIGHT:
-			switch(currentMenuPosition)
-			{
-			case CUSTOMMENU_INTENSITY:
-				g_Intensity++;
-				if(g_Intensity>=12)
-					g_Intensity = 12;
-				g_camera->SetIntensity(g_Intensity);
-				break;
-			case CUSTOMMENU_EXPOSURE:
-				g_Exposure++;
-				if(g_Exposure>=479)
-					g_Exposure = 479;
-				g_camera->SetExposure(g_Exposure);
-				break;
-			default:
-				break;
-			}
+		case CUSTOMMENU_EXPOSURE:
+			g_Exposure--;
+			if(g_Exposure<0)
+				g_Exposure = 0;
+			g_camera->SetExposure(g_Exposure);
 			break;
-
 		default:
 			break;
 		}
+		break;
+
+	case MENU_RIGHT_KEY:
+		switch(currentMenuPosition)
+		{
+		case CUSTOMMENU_INTENSITY:
+			g_Intensity++;
+			if(g_Intensity>=12)
+				g_Intensity = 12;
+			g_camera->SetIntensity(g_Intensity);
+			break;
+		case CUSTOMMENU_EXPOSURE:
+			g_Exposure++;
+			if(g_Exposure>=479)
+				g_Exposure = 479;
+			g_camera->SetExposure(g_Exposure);
+			break;
+		default:
+			break;
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -279,6 +283,18 @@ int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 	return S_OK;
 
 }
+
+void updateCustomCameraParameterFromMenu(int id, std::string val)
+{
+	char* p;
+	if (id == CUSTOMMENU_EXPOSURE) {
+		g_Exposure = std::strtol(val.c_str(), &p, 10);
+	}
+	else if (id == CUSTOMMENU_INTENSITY) {
+		g_Intensity = std::strtol(val.c_str(), &p, 10);
+	}
+}
+
 
 /*!
 updateCustomMenuText: update menu text of custom camera menu items.
@@ -290,16 +306,20 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 @return No value is returned.
 @note This function is necessary when you customize this file for your camera.
 */
-void updateCustomMenuText( void )
+std::string updateCustomMenuText( int id )
 {
-	std::stringstream ss;
-	ss << "LightIntensity(" << g_Intensity << ")";
-	g_MenuString[CUSTOMMENU_INTENSITY] = ss.str();
-	ss.str("");
-	ss << "CameraExposure(" << g_Exposure << ")";
-	g_MenuString[CUSTOMMENU_EXPOSURE] = ss.str();
+	char buff[256];
 
-	return;
+	if (id == CUSTOMMENU_EXPOSURE) {
+		snprintf(buff, sizeof(buff), "%d", g_Exposure);
+		return std::string(buff);
+	}
+	else if (id == CUSTOMMENU_INTENSITY) {
+		snprintf(buff, sizeof(buff), "%d", g_Intensity);
+		return std::string(buff);
+	}
+
+	return std::string("");
 }
 
 /*!

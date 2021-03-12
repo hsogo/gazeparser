@@ -338,7 +338,7 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 std::string updateCustomMenuText( int id )
 {
 	// no custom parameters for this camera
-	return std::string("--");
+	return std::string("");
 }
 
 
