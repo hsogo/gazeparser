@@ -1,12 +1,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 
+#define EDITION "OptiTrack Edition"
+#define CAMERA_CONFIG_FILE "CONFIG_OPTITRACK"
+#include "../common/SGTCommon.h"
+
 #include "../common/SGTConfigDlg.h"
 extern std::vector<SGTParam*> g_pCameraParamsVector;
 
-#include "GazeTracker.h"
-
-#include <atlbase.h>
+//#include <atlbase.h>
 #include <cameralibrary.h>
 
 #include <fstream>
@@ -27,7 +29,7 @@ bool g_AcquisitionStarted = false;
 #define CUSTOMMENU_NUM			2
 int g_CustomMenuNum = CUSTOMMENU_NUM;
 
-std::string g_CustomMenuString[] = {
+std::vector<std::string> g_CustomMenuString{
 	"Intensity",
 	"Exposure"
 };

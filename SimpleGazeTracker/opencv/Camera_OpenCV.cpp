@@ -8,11 +8,12 @@
 - Custom menu is supported.
 */
 
+#define EDITION "OpenCV Edition"
+#define CAMERA_CONFIG_FILE "CONFIG_OPENCV"
+#include "../common/SGTCommon.h"
 
 #include "../common/SGTConfigDlg.h"
 extern std::vector<SGTParam*> g_pCameraParamsVector;
-
-#include "GazeTracker.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
@@ -36,9 +37,7 @@ float g_Gain = 1.0;
 #define CUSTOMMENU_NUM			0
 int g_CustomMenuNum = CUSTOMMENU_NUM;
 
-std::string g_CustomMenuString[] = {
-	""
-};
+std::vector<std::string> g_CustomMenuString{ "" };
 
 
 #define CAMERA_PARAM_INTENSITY   0

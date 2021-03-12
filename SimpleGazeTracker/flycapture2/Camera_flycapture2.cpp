@@ -10,11 +10,13 @@
 
 #define _CRT_SECURE_NO_DEPRECATE
 
+#define EDITION "FlyCapture2 Edition"
+#define CAMERA_CONFIG_FILE "CONFIG_FLYCAPTURE2"
+#include "../common/SGTCommon.h"
+
 #include "../common/SGTConfigDlg.h"
 extern std::vector<SGTParam*> g_pCameraParamsVector;
 
-
-#include "GazeTracker.h"
 #include "FlyCapture2.h"
 
 #include "opencv2/opencv.hpp"
@@ -34,7 +36,7 @@ bool g_AcquisitionStarted = false;
 int g_CustomMenuNum = CUSTOMMENU_NUM;
 
 
-std::string g_CustomMenuString[] = {
+std::vector<std::string> g_CustomMenuString{
 	"Shutter"
 };
 

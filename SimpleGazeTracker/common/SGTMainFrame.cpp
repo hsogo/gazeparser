@@ -149,7 +149,7 @@ SGTMainFrame::SGTMainFrame(wxFrame* frame, const wxString& title, const wxPoint&
 	{
 		for (int mi = 0; mi < g_CustomMenuNum; mi++)
 		{
-			wxStaticText* menu = new wxStaticText(m_pMenuPanel, wxID_ANY, g_CustomMenuString[mi]);
+			wxStaticText* menu = new wxStaticText(m_pMenuPanel, wxID_ANY, g_CustomMenuString.at(mi));
 			pMenuSizer->Add(menu, 0, wxALL, 5);
 			m_pMenuItems.push_back(menu);
 

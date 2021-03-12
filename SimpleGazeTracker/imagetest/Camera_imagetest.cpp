@@ -6,10 +6,9 @@
 
 */
 
-#define _CRT_SECURE_NO_DEPRECATE
-
-#include <atlbase.h>
-#include "GazeTracker.h"
+#define EDITION "Image Test Edition"
+#define CAMERA_CONFIG_FILE "CONFIG_IMAGETEST"
+#include "../common/SGTCommon.h"
 
 #include <fstream>
 #include <string>
@@ -28,7 +27,7 @@ std::vector<std::string> g_ImageSourceNameList;
 #define CUSTOMMENU_NUM			1
 int g_CustomMenuNum = CUSTOMMENU_NUM;
 
-std::string g_CustomMenuString[] = {
+std::vector<std::string> g_CustomMenuString{
 	"ImageFile"
 };
 

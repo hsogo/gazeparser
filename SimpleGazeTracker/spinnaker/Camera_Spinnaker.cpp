@@ -11,11 +11,13 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_WARNINGS
 
-//must be included before Spinnkaer header files
+#define EDITION "Spinnaker Edition"
+#define CAMERA_CONFIG_FILE "CONFIG_SPINNAKER"
+#include "../common/SGTCommon.h"
+
 #include "../common/SGTConfigDlg.h"
 extern std::vector<SGTParam*> g_pCameraParamsVector;
 
-#include "GazeTracker.h"
 #include "Spinnaker.h"
 #include "SpinGenApi/SpinnakerGenApi.h"
 
@@ -52,7 +54,7 @@ customLoggingEventHandler g_loggingEventHandler;
 int g_CustomMenuNum = CUSTOMMENU_NUM;
 
 
-std::string g_CustomMenuString[] = {
+std::vector<std::string> g_CustomMenuString{
 	"Exposure"
 };
 

@@ -24,7 +24,7 @@
 
 
 
-#define VERSION "0.11.1"
+#define VERSION "0.12.0"
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -274,7 +274,7 @@ extern std::string getCurrentWorkingDirectory(void);
 
 extern bool g_ShowCameraImage;
 extern std::string g_MenuString[];
-extern std::string g_CustomMenuString[];
+extern std::vector<std::string> g_CustomMenuString;
 
 // Interframe Interval
 extern double g_MeanInterFrameInterval;
