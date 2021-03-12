@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([SimpleGazeTracker], [0.11.1])
+AC_INIT([SimpleGazeTracker], [0.12.0])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([config.h.in])
 AC_CONFIG_HEADERS([config.h])
@@ -34,7 +34,6 @@ LIBS="$LIBS $WX_LIBS"
 
 PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES([OPENCV],[opencv >= 3.0])
-PKG_CHECK_MODULES([LIBUSB],[libusb-1.0 >= 1.0])
 PKG_CHECK_MODULES([LIBULDAQ],[libuldaq >= 1.2])
 
 # Checks for header files.
@@ -52,24 +51,26 @@ AC_FUNC_MALLOC
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([clock_gettime gettimeofday mkdir pow sqrt strchr strstr strtol])
 
-#AC_CANONICAL_BUILD
+AC_CANONICAL_BUILD
+
+# deprecated
 #case $build_os in
 #	*darwin*)
 #		AC_MSG_NOTICE([MAKE SURE THAT TCP_NODELAY IS ENABLED IN YOUR SDL2_NET.])
 #		AC_MSG_NOTICE([SEE http://gazeparser.sourceforge.net/ins/mac.html FOR DETAIL.]);;
 #esac
-
-AC_ARG_ENABLE(
-	[fontless],
-	[  --enable-fontless if yes, FreeSans.ttf is not installed [default no]],
-	[case "${enableval}" in
-		yes) fontless=true  ;;
-		no)  fontless=false ;;
-		*) AC_MSG_ERROR(bad value ${enableval} for --enable-fontless) ;
-	esac],
-	[fontless=false]
-)
-AM_CONDITIONAL(FONTLESS, test x$fontless = xtrue)
+#
+#AC_ARG_ENABLE(
+#	[fontless],
+#	[  --enable-fontless if yes, FreeSans.ttf is not installed [default no]],
+#	[case "${enableval}" in
+#		yes) fontless=true  ;;
+#		no)  fontless=false ;;
+#		*) AC_MSG_ERROR(bad value ${enableval} for --enable-fontless) ;
+#	esac],
+#	[fontless=false]
+#)
+#AM_CONDITIONAL(FONTLESS, test x$fontless = xtrue)
 
 AC_ARG_WITH(
 	[flycapture],
