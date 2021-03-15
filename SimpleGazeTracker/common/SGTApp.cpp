@@ -226,7 +226,7 @@ bool SGTApp::OnInit()
 			}
 			else {
 				snprintf(error_message, sizeof(error_message),
-					"Configuration file (%s) is not found. SimpleGazeTracker will create a new configuration file at %s.\nEdit default parameters and press \"Save and Exit\" button.", g_DefaultConfigFileName.c_str(), g_ParamPath.c_str());
+					"Configuration file (%s) is not found. SimpleGazeTracker will create a new configuration file at %s.", g_DefaultConfigFileName.c_str(), g_ParamPath.c_str());
 				outputLogDlg(error_message, "Info", wxICON_INFORMATION);
 				bConfigCopied = true;
 			}
@@ -248,9 +248,20 @@ bool SGTApp::OnInit()
 		return false;
 	}
 
+	// now we can open main frame
+	ss.str("");
+	ss << "SimpleGazeTracker version " << VERSION << " " << getEditionString();
+	m_pData = new SGTData(g_RecordingMode);
+	SGTMainFrame* pMainFrame = new SGTMainFrame(NULL, ss.str(), wxPoint(-1,-1), wxDefaultSize, this);
+	pMainFrame->Show();
+	pMainFrame->updateMessageTextBox(ss.str().c_str(), true);
+	pMainFrame->updateMenuPanel();
+
 	// now We can use SGTConfigDlg to edit configuration file.
 	if (bConfigCopied) {
 		std::string path;
+
+		outputLogDlg("SimpleGazeTracker will start with default configuration file.\nCheck parameters and modify them if necessary.", "Info", wxICON_INFORMATION);
 
 		if (checkFile(g_DocPath, "params.html") == E_FAIL) {
 			outputLogDlg("Cound not find HTML document (doc/params.html).", "Error", wxICON_ERROR);
@@ -263,9 +274,12 @@ bool SGTApp::OnInit()
 
 		openLocation(path);
 
-		SGTConfigDlg* dlg = new SGTConfigDlg(NULL, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER, "configDlg");
+		SGTConfigDlg* dlg = new SGTConfigDlg(pMainFrame, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER, "configDlg");
 		if (dlg->ShowModal() == wxOK) {
-			wxMessageBox("Parameters are updated.", "Info", wxOK | wxICON_INFORMATION);
+			wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
+			saveParameters();
+			delete dlg;
+			return false;
 		}
 		else
 		{
@@ -273,43 +287,6 @@ bool SGTApp::OnInit()
 		}
 		delete dlg;
 	}
-
-	// check Preview size before creating main frame
-	if (g_PreviewWidth <= 0 || g_PreviewHeight <= 0)
-	{
-		wxMessageDialog* dlg = new wxMessageDialog(NULL,
-			"PREVIEW_WIDTH and PREVIEW_HEIGHT must be potive integer.\nDo you want to open Config Directory and log file?",
-			"SimpleGazeTracker initialization failed", wxICON_ERROR | wxYES_NO);
-		if (dlg->ShowModal() == wxID_YES)
-		{
-			closeLogFile(); // Log file must be closed before opend by default viewer.
-			if (openLocation(logFilePath) != 0) {
-				snprintf(error_message, sizeof(error_message),
-					"Failed to open %s. Please open log file manually.", logFilePath.c_str());
-				outputLogDlg(error_message, "SimpleGazeTracker initialization failed", wxICON_ERROR);
-			}
-			SGTConfigDlg* dlg = new SGTConfigDlg(NULL, -1, "Configuration", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER, "configDlg");
-			if (dlg->ShowModal() == wxOK) {
-				saveParameters();
-				wxMessageBox("Parameters are updated.  Application will shut down.", "Info", wxOK | wxICON_INFORMATION);
-			}
-			else
-			{
-				wxMessageBox("Parameters are not updated.", "Info", wxOK | wxICON_INFORMATION);
-			}
-			delete dlg;
-		}
-		return false;
-	}
-
-	// now we can open main frame
-	ss.str("");
-	ss << "SimpleGazeTracker version " << VERSION << " " << getEditionString();
-	m_pData = new SGTData(g_RecordingMode);
-	SGTMainFrame* pMainFrame = new SGTMainFrame(NULL, ss.str(), wxPoint(-1,-1), wxDefaultSize, this);
-	pMainFrame->Show();
-	pMainFrame->updateMessageTextBox(ss.str().c_str(), true);
-	pMainFrame->updateMenuPanel();
 
 	//TODO output timer initialization results?
 	initTimer();
@@ -680,6 +657,11 @@ int initParameters(void)
 		return E_FAIL;
 	}
 
+	//if preview width and heigth are 0 or negative, set default values.
+	if(g_PreviewWidth<=0) g_PreviewWidth = 640;
+	if(g_PreviewHeight<=0) g_PreviewHeight = 480;
+
+	//if ROI width and heigth are 0 or negative, set default values.
 	if (g_ROIWidth == 0) g_ROIWidth = g_CameraWidth;
 	if (g_ROIHeight == 0) g_ROIHeight = g_CameraHeight;
 
