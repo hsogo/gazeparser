@@ -51,12 +51,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_6A4A0D5E7C4D4EAABE3D794B84736E24"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_8878971B5AC14CD78117511EDC8ED1EA"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -630,10 +624,10 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:101"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_6A4A0D5E7C4D4EAABE3D794B84736E24"
+            "Target" = "8:"
             "Folder" = "8:_F2D4F217F8574AA995EDAA9DAD589B5B"
             "WorkingFolder" = "8:_1F2AE73951D7478BA1C2A598034CCD3A"
-            "Icon" = "8:_6A4A0D5E7C4D4EAABE3D794B84736E24"
+            "Icon" = "8:"
             "Feature" = "8:"
             }
         }
@@ -1068,62 +1062,6 @@
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:ContentFiles"
             "OutputProjectGuid" = "8:{3CA893A5-6842-4B0B-816F-622C3F2635CE}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6A4A0D5E7C4D4EAABE3D794B84736E24"
-            {
-            "SourcePath" = "8:..\\x64\\Release\\SimpleGazeTracker_DirectShow.exe"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_1F2AE73951D7478BA1C2A598034CCD3A"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
-            "OutputGroupCanonicalName" = "8:Built"
-            "OutputProjectGuid" = "8:{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}"
-            "ShowKeyOutput" = "11:TRUE"
-                "ExcludeFilters"
-                {
-                }
-            }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_71829F5391804243A357E4AC69CEF2E7"
-            {
-            "SourcePath" = "8:"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_1F2AE73951D7478BA1C2A598034CCD3A"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            "ProjectOutputGroupRegister" = "3:1"
-            "OutputConfiguration" = "8:"
-            "OutputGroupCanonicalName" = "8:ContentFiles"
-            "OutputProjectGuid" = "8:{CAEA85C4-B0D1-4F5A-AC66-75C03ADFAB3B}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
                 {

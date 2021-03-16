@@ -22,33 +22,33 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{5F0573F9-2183-42AD-83B9-1F07C301BEE9}</ProjectGuid>
     <RootNamespace>spinnaker</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>SimpleGazeTracker_Spinnaker</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -92,7 +92,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>Spinnaker_v140.lib;winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world342.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Spinnaker_v140.lib;winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world451.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -111,7 +111,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Spinnakerd_v140.lib;winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world342d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Spinnakerd_v140.lib;winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world451d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>
