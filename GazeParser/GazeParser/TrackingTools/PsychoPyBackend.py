@@ -22,8 +22,8 @@ import time
 
 import psychopy.visual
 import psychopy.event
-import psychopy.misc
 import psychopy.monitors
+from psychopy.misc import cm2pix, deg2pix, pix2cm, pix2deg
 
 class ControllerPsychoPyBackend(BaseController):
     """
@@ -35,8 +35,6 @@ class ControllerPsychoPyBackend(BaseController):
             Controller configuration file. If None, default configurations
             are used.
         """
-        # pix2deg has bug (PsychoPy 1.85.1)
-        # self.pix2deg = pix2deg
         self.backend = 'PsychoPy'
         super().__init__(configFile)
         self.getKeys = psychopy.event.getKeys  # for psychopy, implementation of getKeys is simply importing psychopy.events.getKeys
@@ -471,20 +469,20 @@ class ControllerPsychoPyBackend(BaseController):
                 if pos[i] is None:
                     retval.append(None)
                 else:
-                    retval.append(self.cm2pix(pos[i], self.win.monitor))
+                    retval.append(cm2pix(pos[i], self.win.monitor))
         elif units == 'deg':
             for i in range(len(pos)):
                 if pos[i] is None:
                     retval.append(None)
                 else:
-                    retval.append(self.deg2pix(pos[i], self.win.monitor))
+                    retval.append(deg2pix(pos[i], self.win.monitor))
         elif units in ['degFlat', 'degFlatPos']:
             if len(pos)%2 == 0:
                 for i in range(int(len(pos)/2)):
                     if pos[2*i] is None:
                         retval.extend([None, None])
                     else:
-                        retval.extend(self.deg2pix(pos[2*i:2*i+2], self.win.monitor,
+                        retval.extend(deg2pix(pos[2*i:2*i+2], self.win.monitor,
                             correctFlat=True))
             else:
                 raise ValueError('Number of elements must be even.')
@@ -539,20 +537,20 @@ class ControllerPsychoPyBackend(BaseController):
                 if pos[i] is None:
                     retval.append(None)
                 else:
-                    retval.append(self.pix2cm(pos[i], self.win.monitor))
+                    retval.append(pix2cm(pos[i], self.win.monitor))
         elif units == 'deg':
             for i in range(len(pos)):
                 if pos[i] is None:
                     retval.append(None)
                 else:
-                    retval.append(self.pix2deg(pos[i], self.win.monitor))
+                    retval.append(pix2deg(pos[i], self.win.monitor))
         elif units in ['degFlat', 'degFlatPos']:
             if len(pos)%2 == 0:
                 for i in range(int(len(pos)/2)):
                     if pos[2*i] is None:
                         retval.extend([None, None])
                     else:
-                        retval.extend(self.pix2deg(numpy.array(pos[2*i:2*i+2]),
+                        retval.extend(pix2deg(numpy.array(pos[2*i:2*i+2]),
                             self.win.monitor, correctFlat=True))
             else:
                 raise ValueError('Number of elements must be even.')
@@ -562,44 +560,6 @@ class ControllerPsychoPyBackend(BaseController):
             raise ValueError('units must bet norm, height, cm, deg, degFlat, degFlatPos or pix.')
 
         return retval
-
-    def cm2deg(self, cm, monitor, correctFlat=False):
-        """
-        Bug-fixed version of psychopy.tools.monitorunittools.cm2deg
-        (PsychoPy version<=1.85.1).
-        """
-        
-        if not isinstance(monitor, psychopy.monitors.Monitor):
-            msg = ("cm2deg requires a monitors.Monitor object as the second "
-                   "argument but received %s")
-            raise ValueError(msg % str(type(monitor)))
-        dist = monitor.getDistance()
-        if dist is None:
-            msg = "Monitor %s has no known distance (SEE MONITOR CENTER)"
-            raise ValueError(msg % monitor.name)
-        if correctFlat:
-            return numpy.degrees(numpy.arctan(cm / dist))
-        else:
-            return cm / (dist * 0.017455)
-
-
-    def pix2deg(self, pixels, monitor, correctFlat=False):
-        """
-        Bug-fixed version of psychopy.tools.monitorunittools.pix2deg
-        (PsychoPy version<=1.85.1).
-        """
-        
-        scrWidthCm = monitor.getWidth()
-        scrSizePix = monitor.getSizePix()
-        if scrSizePix is None:
-            msg = "Monitor %s has no known size in pixels (SEE MONITOR CENTER)"
-            raise ValueError(msg % monitor.name)
-        if scrWidthCm is None:
-            msg = "Monitor %s has no known width in cm (SEE MONITOR CENTER)"
-            raise ValueError(msg % monitor.name)
-        cmSize = pixels * float(scrWidthCm) / scrSizePix[0]
-        return self.cm2deg(cmSize, monitor, correctFlat)
-
 
     def getMousePressed(self):
         """
@@ -679,9 +639,7 @@ class ControllerPsychoPyBackend(BaseController):
         """
         
         t1 = self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY
-        t2 = t1 + 1.0/60 * self.NUM_SAMPLES_PER_TRGPOS
-        if t2-t1 < 1.0/60*2: # flash at reast 2 frames (@60fps)
-            t2 = t1+1.0/60*2
+        t2 = t1 + max(self.NUM_SAMPLES_PER_TRGPOS / self.CAMERA_SAMPLING_RATE, 1.0/60*2)
         
         if index != 0 and (t1 < t < t2):
             self.caltarget[0].opacity = 0.0
@@ -739,9 +697,7 @@ class ControllerPsychoPyBackend(BaseController):
             self.calTargetPosition = currentPosition
         
         t1 = self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY
-        t2 = t1 + 1.0/60 * NUM_SAMPLES_PER_POS
-        if t2-t1 < 1.0/60*2: # flash at reast 2 frames (@60fps)
-            t2 = t1+1.0/60*2
+        t2 = t1 + max(self.NUM_SAMPLES_PER_TRGPOS / self.CAMERA_SAMPLING_RATE, 1.0/60*2) # flash at reast 2 frames (@60fps)
         
         if index != 0 and (t1 < t < t2):
             self.caltarget[0].visible=True
@@ -911,7 +867,7 @@ class ControllerPsychoPyBackend(BaseController):
                 raise ValueError('Distance must be a real number.')
             
         if screenSize is None:
-            dpcH = dpcV = self.cm2pix(1.0, self.win.monitor)
+            dpcH = dpcV = cm2pix(1.0, self.win.monitor)
             if dpcH is None:
                 raise ValueError('Requisite parameters are not available in the current PsychoPy MonitorInfo.')
         else:

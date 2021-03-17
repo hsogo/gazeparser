@@ -48,7 +48,10 @@ ControllerDefaults = {
     'CAL_GETSAMPLE_DELAY': 0.4,
     'CAL_SELF_PACED': False,
     'CAL_GETSAMPLE_DELAY_SELFPACED': 1.0,
-    'TRACKER_IP_ADDRESS': '192.168.1.1'
+    'TRACKER_IP_ADDRESS': '192.168.1.1',
+    'MAX_CAL_POINTS':18,
+    'MAX_SAMPLES_PER_TRGPOS':50,
+    'CAMERA_SAMPLING_RATE':100.0
 }
 
 numKeyDict = {
@@ -145,13 +148,14 @@ class BaseController(object):
 
     def setReceiveImageSize(self, size):
         """
-        Set size of camera image sent from Tracker Host PC.
+        Set size of camera image to IMAGE_WIDTH and IMAGE_HEIGHT, then
+        resize image buffer.
 
         :param sequence size: sequence of two integers (width, height).
         """
         self.IMAGE_WIDTH = size[0]
         self.IMAGE_HEIGHT = size[1]
-        self.PILimg = Image.new('L', (self.IMAGE_WIDTH, self.IMAGE_HEIGHT))
+        self.PILimg = Image.new('L', size)
 
     def setPreviewImageSize(self, size):
         """
@@ -975,6 +979,20 @@ class BaseController(object):
         """
         if not (self.calTargetPosSet and self.calAreaSet):
             raise ValueError('Calibration parameters are not set.')
+
+        if self.CAL_GETSAMPLE_DELAY + self.NUM_SAMPLES_PER_TRGPOS / self.CAMERA_SAMPLING_RATE > self.CALTARGET_DURATION_PER_POS-self.CALTARGET_MOTION_DURATION:
+            warnings.warn('NUM_SAMPLES_PER_TRGPOS may be too large to complete sample acquisition.'
+                '\nCAL_GETSAMPLE_DELAY + (NUM_SAMPLES_PER_TRGPOS / CAMERA_SAMPLING_RATE) must be '
+                'shorter than CALTARGET_DURATION_PER_POS-CALTARGET_MOTION_DURATION\n'
+                'NUM_SAMPLES_PER_TRGPOS:{}\nCAMERA_SAMPLING_RATE:{}\nCAL_GETSAMPLE_DELAY:{}\n'
+                'CALTARGET_DURATION_PER_POS:{}\nCALTARGET_MOTION_DURATION:{}'.format(
+                    self.NUM_SAMPLES_PER_TRGPOS, self.CAMERA_SAMPLING_RATE, self.CAL_GETSAMPLE_DELAY,
+                    self.CALTARGET_DURATION_PER_POS, self.CALTARGET_MOTION_DURATION
+                ))
+
+        if self.NUM_SAMPLES_PER_TRGPOS > self.MAX_SAMPLES_PER_TRGPOS:
+            warnings.warn('NUM_SAMPLES_PER_TRGPOS ({}) is smaller than MAX_SAMPLES_PER_TRGPOS ({}).'.format(
+                self.NUM_SAMPLES_PER_TRGPOS, self.MAX_SAMPLES_PER_TRGPOS))
 
         self.messageText = self.getCurrentMenuItem()
         self.showCalTarget = False
@@ -2121,13 +2139,15 @@ class BaseController(object):
 
     def fitImageBufferToTracker(self):
         """
-        Do getCameraImageSize() and setReceiveImageSize() to fit image buffer
-        to image size of the SimpleGazeTracker's camera unit.
+        DEPRECATED: use getTrackerInfo() instead.
+        
+        fit image buffer to image size of the SimpleGazeTracker's camera unit.
         
          :return:
              A tuple of two elements which represents new width and hight of 
              the image buffer.  None if failed.
         """
+        warnings.warn('DEPRECATED: use getTrackerInfo() instead.')
         size = self.getCameraImageSize()
         if size is None:
             return None
@@ -2144,3 +2164,125 @@ class BaseController(object):
         """
         return config
 
+    def getCameraIFI(self, timeout=0.2):
+        """
+        Get inter-frame interavl of the camera.
+
+        :return:
+            Mean inter-frame interval of the camera in milliseconds.
+        """
+        self.sendCommand('getCameraIFI'+chr(0))
+        hasGot = False
+        isInLoop = True
+        data = b''
+        startTime = self.clock()
+        while isInLoop:
+            if self.clock()-startTime > timeout:
+                print('timeout')
+                break
+            [r, w, c] = select.select(self.readSockList, [], [], 0)
+            for x in r:
+                try:
+                    newData = x.recv(4096)
+                except:
+                    print('recv error in getCameraIFI')
+                    isInLoop = False
+                if newData:
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
+                        if delimiterIndex+1 < len(newData):
+                            print('getCameraIFI: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
+                        hasGotCal = True
+                        isInLoop = False
+                        break
+                    else:
+                        data += newData
+        
+        try:
+            ifi = float(data)
+        except:
+            return None
+
+        return ifi
+
+    def getBufferSizeInfo(self, timeout=0.2):
+        """
+        Get buffer size of eye data, calibration point data and max number
+        of calibration points from Tracker.
+
+        :return:
+           A taple of max samples of eye data, calibration point data and 
+           max nubmer of calibration points. 
+        """
+        self.sendCommand('getBufferSizeInfo'+chr(0))
+        hasGot = False
+        isInLoop = True
+        data = b''
+        startTime = self.clock()
+        while isInLoop:
+            if self.clock()-startTime > timeout:
+                print('timeout')
+                break
+            [r, w, c] = select.select(self.readSockList, [], [], 0)
+            for x in r:
+                try:
+                    newData = x.recv(4096)
+                except:
+                    print('recv error in getBufferSizeInfo')
+                    isInLoop = False
+                if newData:
+                    if b'\0' in newData:
+                        delimiterIndex = newData.index(b'\0')
+                        if delimiterIndex+1 < len(newData):
+                            print('getBufferSizeInfo: %d bytes after \\0' % (len(newData)-(delimiterIndex+1)))
+                            self.prevBuffer = newData[(delimiterIndex+1):]
+                        data += newData[:delimiterIndex]
+                        hasGotCal = True
+                        isInLoop = False
+                        break
+                    else:
+                        data += newData
+        
+        try:
+            params = list(map(int,data.split(b',')))
+        except:
+            return None
+
+        if len(params) != 3:
+            return None
+
+        return tuple(params)
+    
+    def getTrackerInfo(self):
+        """
+        Get inter-frame interval of the camera, buffer size of calibration 
+        data and camera image size from Tracker.  This method updates following
+        attributes and resize image buffer.
+        
+        - MAX_CAL_POINTS, 
+        - MAX_SAMPLES_PER_TRGPOS
+        - CAMERA_SAMPLING_RATE attributes.
+        - IMAGE_WIDTH
+        - IMAGE_HEIGHT
+        """
+
+        ifi = self.getCameraIFI()
+        (maxdata, maxcaldata, maxcalpoint) = self.getBufferSizeInfo()
+
+        self.CAMERA_SAMPLING_RATE = 1000.0/ifi # unit of ifi is milliseconds
+        self.MAX_CAL_POINTS = maxcalpoint
+        self.MAX_SAMPLES_PER_TRGPOS = int(maxcaldata/maxcalpoint)
+
+        size = self.getCameraImageSize()
+        self.setReceiveImageSize(size)
+
+    def __repr__(self):
+        msg = '<{}.{}>\n'.format(self.__class__.__module__,
+                                self.__class__.__name__)
+
+        for key in ControllerDefaults:
+            msg += '    {}:{}\n'.format(key, getattr(self, key))
+
+        return msg
