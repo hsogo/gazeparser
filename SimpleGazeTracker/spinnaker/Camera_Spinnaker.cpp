@@ -66,6 +66,18 @@ const char* getEditionString(void)
 }
 
 /*!
+getDefaultConfigFileName: Get default config file name.
+
+@return default config file name.
+
+@date 2021/03/17 created.
+*/
+const char* getDefaultConfigFileName(void)
+{
+	return CAMERA_CONFIG_FILE;
+}
+
+/*!
 captureCameraThread: Capture camera image using thread.
 
 @date 2013/03/29 created.
@@ -250,10 +262,34 @@ int initCamera( void )
 		// init first camera
 		g_pSpinnakerCam->Init();
 
-		// get sensor resolution
-		// int widthMax = g_pSpinnakerCam->WidthMax.GetValue();
-		// int heightMax = g_pSpinnakerCam->HeightMax.GetValue();
-		
+		// Acquisition may be stopped if application was failed in the previous run.
+		// So acquisition must be stopped
+		g_pSpinnakerCam->AcquisitionStop();
+
+		// Buffer only the newest frame.
+		g_pSpinnakerCam->TLStream.StreamBufferHandlingMode.SetValue(Spinnaker::StreamBufferHandlingMode_NewestOnly);
+
+		// set to ADC8bit if available
+		try {
+			g_pSpinnakerCam->AdcBitDepth.SetValue(Spinnaker::AdcBitDepth_Bit8);
+		}
+		catch (Spinnaker::Exception& e) {
+			g_LogFS << e.what() << std::endl;
+			g_LogFS << "Warning: Spinnaker camera cannot be set to ADC8bit." << std::endl;
+		}
+
+		// set to Mono8 mode if available
+		try {
+			g_pSpinnakerCam->PixelFormat.SetValue(Spinnaker::PixelFormat_Mono8);
+		}
+		catch (Spinnaker::Exception& e) {
+			g_LogFS << e.what() << std::endl;
+			g_LogFS << "Warning: Spinnaker camera cannot be set to Mono8." << std::endl;
+		}
+
+		// disable GainAuto
+		g_pSpinnakerCam->GainAuto.SetIntValue(Spinnaker::GainAuto_Off);
+
 		// continuous acquisition mode
 		g_pSpinnakerCam->AcquisitionMode.SetValue(Spinnaker::AcquisitionMode_Continuous);
 

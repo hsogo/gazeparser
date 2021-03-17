@@ -40,11 +40,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="CONFIG" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="..\common\GazeTracker.rc">
       <Filter>リソース ファイル</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CONFIG_SPINNAKER" />
   </ItemGroup>
 </Project>

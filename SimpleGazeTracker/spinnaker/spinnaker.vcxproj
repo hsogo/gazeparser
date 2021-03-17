@@ -141,12 +141,10 @@
     <ClInclude Include="GazeTracker.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CONFIG">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
+    <ResourceCompile Include="..\common\GazeTracker.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\common\GazeTracker.rc" />
+    <None Include="CONFIG_SPINNAKER" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
