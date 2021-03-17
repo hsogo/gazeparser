@@ -30,6 +30,7 @@ int g_OffsetX = 0;
 int g_OffsetY = 0;
 int g_CameraMode = 1;
 float g_FrameRate = 200;
+float g_Shutter = 4.0;
 
 SDL_Thread *g_pThread;
 bool g_runThread;
@@ -41,8 +42,10 @@ bool g_UseBlurFilter = true;
 int g_BlurFilterSize = 3;
 cv::Mat g_TmpImg;
 
-
 volatile bool g_NewFrameAvailable = false; /*!< True if new camera frame is grabbed. @note This function is necessary when you customize this file for your camera.*/
+
+#define CUSTOMMENU_SHUTTER		(MENU_GENERAL_NUM+0)
+#define CUSTOMMENU_NUM			1
 
 // for debugging
 // FlyCapture2::TimeStamp g_timestamp[5000];
@@ -58,6 +61,18 @@ getEditionString: Get edition string.
 const char* getEditionString(void)
 {
 	return EDITION;
+}
+
+/*!
+getDefaultConfigFileName: Get default config file name.
+
+@return default config file name.
+
+@date 2021/03/17 created.
+*/
+const char* getDefaultConfigFileName(void)
+{
+	return CAMERA_CONFIG_FILE;
 }
 
 /*!
@@ -139,6 +154,10 @@ int initCameraParameters(char* buff, char* parambuff)
 	else if (strcmp(buff, "FRAME_RATE") == 0)
 	{
 		g_FrameRate = (float)param;
+	}
+	else if (strcmp(buff, "SHUTTER") == 0)
+	{
+		g_Shutter = (float)param;
 	}
 	else if (strcmp(buff, "CAMERA_MODE") == 0)
 	{
@@ -331,6 +350,56 @@ int initCamera( void )
 		g_LogFS << "Frame rate is set to " << prop.absValue << " fps." << std::endl;
 	}
 
+	//set shutter speed
+	prop.type = FlyCapture2::SHUTTER;
+	prop.autoManualMode = false;
+	prop.onOff = true;
+	prop.absControl = true;
+	prop.absValue = g_Shutter;
+	error = g_FC2Camera.SetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to set shutter speed." << std::endl;
+		return E_FAIL;
+	}
+	error = g_FC2Camera.GetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to get shutter speed." << std::endl;
+		return E_FAIL;
+	}
+	else
+	{
+		g_LogFS << "Shutter is set to " << prop.absValue << " ms." << std::endl;
+	}
+
+	/*
+	// disable auto exposure
+	prop.type = FlyCapture2::AUTO_EXPOSURE;
+	prop.autoManualMode = false;
+	prop.onOff = true;
+	prop.absControl = true;
+	prop.absValue = 1.3;
+	error = g_FC2Camera.SetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to disable AUTO_EXPOSURE." << std::endl;
+		return E_FAIL;
+	}
+
+	// disable auto gain
+	prop.type = FlyCapture2::GAIN;
+	prop.autoManualMode = false;
+	prop.onOff = true;
+	prop.absControl = true;
+	prop.absValue = 10.0;
+	error = g_FC2Camera.SetProperty(&prop);
+	if (error != FlyCapture2::PGRERROR_OK)
+	{
+		g_LogFS << "ERROR: failed to disable AUTO_GAIN." << std::endl;
+		return E_FAIL;
+	}*/
+
 	//set grabTimeout = 0 (immediate) 
 	error = g_FC2Camera.GetConfiguration(&Config);
 	if (error != FlyCapture2::PGRERROR_OK)
@@ -388,6 +457,9 @@ int initCamera( void )
     {
         g_LogFS << "Start without threading" << std::endl;
     }
+
+	//prepare custom menu
+	g_CustomMenuNum = CUSTOMMENU_NUM;
 
 	return S_OK;
 }
@@ -491,7 +563,8 @@ void saveCameraParameters( std::fstream* fs )
 	*fs << "OFFSET_X=" << g_OffsetX << std::endl;
 	*fs << "OFFSET_Y=" << g_OffsetY << std::endl;
 	*fs << "FRAME_RATE=" << g_FrameRate << std::endl;
-	*fs << "CAMERA_MODE=" << g_FrameRate << std::endl;
+	*fs << "SHUTTER=" << g_Shutter << std::endl;
+	*fs << "CAMERA_MODE=" << g_CameraMode << std::endl;
 	*fs << "USE_THREAD=" << g_isThreadMode << std::endl;
 	*fs << "SLEEP_DURATION=" << g_SleepDuration << std::endl;
 	*fs << "BLUR_FILTER_SIZE=" << g_BlurFilterSize << std::endl;
@@ -515,7 +588,60 @@ This function is called when left or right cursor key is pressed.
 */
 int customCameraMenu(SDL_Event* SDLevent, int currentMenuPosition)
 {
-	// no custom menu for this camera
+	bool updateShutterValue = false;
+
+	switch (SDLevent->type) {
+	case SDL_KEYDOWN:
+		switch (SDLevent->key.keysym.sym)
+		{
+		case SDLK_LEFT:
+			switch (currentMenuPosition)
+			{
+			case CUSTOMMENU_SHUTTER:
+				g_Shutter -= 0.1;
+				if (g_Shutter < 1.0)
+					g_Shutter = 1.0;
+				updateShutterValue = true;
+				break;
+			default:
+				break;
+			}
+			break;
+
+		case SDLK_RIGHT:
+			switch (currentMenuPosition)
+			{
+			case CUSTOMMENU_SHUTTER:
+				g_Shutter += 0.1;
+				if (g_Shutter >= 1000 / g_FrameRate)
+					g_Shutter = (1000 / g_FrameRate) - 0.1;
+				updateShutterValue = true;
+				break;
+			default:
+				break;
+			}
+			break;
+
+		default:
+			break;
+		}
+	default:
+		break;
+	}
+
+	if (updateShutterValue)
+	{
+		FlyCapture2::Property prop;
+		FlyCapture2::Error error;
+
+		prop.type = FlyCapture2::SHUTTER;
+		prop.autoManualMode = false;
+		prop.onOff = true;
+		prop.absControl = true;
+		prop.absValue = g_Shutter;
+		error = g_FC2Camera.SetProperty(&prop);
+	}
+
 	return S_OK;
 }
 
@@ -532,8 +658,10 @@ This function is called from initD3D() at first, and from MsgProc() when left or
 */
 void updateCustomMenuText( void )
 {
-	// no custom parameters for this camera
-	return;
+	std::stringstream ss;
+	ss << "Shutter(" << g_Shutter << ")";
+	g_MenuString[CUSTOMMENU_SHUTTER] = ss.str();
+	return;	return;
 }
 
 /*!
