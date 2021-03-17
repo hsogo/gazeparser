@@ -98,7 +98,7 @@
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world342d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world451d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -130,7 +130,7 @@
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world342.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;Ws2_32.lib;SDL2_net.lib;SDL2main.lib;SDL2.lib;SDL2_ttf.lib;cbw64.lib;opencv_world451.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -151,6 +151,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\common\simplegazetracker.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CONFIG_IMAGETEST" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

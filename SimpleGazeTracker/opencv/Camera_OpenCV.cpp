@@ -59,7 +59,17 @@ const char* getEditionString(void)
 	return EDITION;
 }
 
+/*!
+getDefaultConfigFileName: Get default config file name.
 
+@return default config file name.
+
+@date 2021/03/17 created.
+*/
+const char* getDefaultConfigFileName(void)
+{
+	return CAMERA_CONFIG_FILE;
+}
 
 /*!
 captureCameraThread: Capture camera image using thread.
@@ -75,7 +85,7 @@ int captureCameraThread(void *unused)
 		{
 			g_VideoCapture.retrieve(frame);
 			if(frame.channels()==3)
-				cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
+				cv::cvtColor(frame, monoFrame, cv::COLOR_RGB2GRAY);
 			else
 				monoFrame = frame;
 			for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)
@@ -193,15 +203,15 @@ int initCamera( void )
 		return E_FAIL;
 	}
 
-	g_VideoCapture.set(CV_CAP_PROP_FRAME_WIDTH,g_CameraWidth);
-	g_VideoCapture.set(CV_CAP_PROP_FRAME_HEIGHT,g_CameraHeight);
+	g_VideoCapture.set(cv::CAP_PROP_FRAME_WIDTH,g_CameraWidth);
+	g_VideoCapture.set(cv::CAP_PROP_FRAME_HEIGHT,g_CameraHeight);
 
-	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
+	if((int)g_VideoCapture.get(cv::CAP_PROP_FRAME_WIDTH) != g_CameraWidth)
 	{
 		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.", g_CameraWidth, g_CameraHeight);
 		return E_FAIL;
 	}
-	if((int)g_VideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
+	if((int)g_VideoCapture.get(cv::CAP_PROP_FRAME_HEIGHT) != g_CameraHeight)
 	{
 		snprintf(g_errorMessage, sizeof(g_errorMessage), "Image size (%d, %d) is not supported.", g_CameraWidth, g_CameraHeight);
 		return E_FAIL;
@@ -209,36 +219,36 @@ int initCamera( void )
 
 	if(g_isParameterSpecified[CAMERA_PARAM_FRAMERATE])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_FPS,g_FrameRate);
-		param = g_VideoCapture.get(CV_CAP_PROP_FPS);
+		g_VideoCapture.set(cv::CAP_PROP_FPS,g_FrameRate);
+		param = g_VideoCapture.get(cv::CAP_PROP_FPS);
 		if(param != g_FrameRate)
 			g_LogFS << "WARINING: tried to set FRAMERATE " << g_FrameRate << ", but returned value was " << param << std::endl;
 	}
 	if(g_isParameterSpecified[CAMERA_PARAM_BRIGHTNESS])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_BRIGHTNESS,g_Brightness);
-		param = g_VideoCapture.get(CV_CAP_PROP_BRIGHTNESS);
+		g_VideoCapture.set(cv::CAP_PROP_BRIGHTNESS,g_Brightness);
+		param = g_VideoCapture.get(cv::CAP_PROP_BRIGHTNESS);
 		if(param != g_Brightness)
 			g_LogFS << "WARINING: tried to set BRIGHTNESS " << g_Brightness << ", but returned value was " << param << std::endl;
 	}
 	if(g_isParameterSpecified[CAMERA_PARAM_CONTRAST])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_CONTRAST,g_Contrast);
-		param = g_VideoCapture.get(CV_CAP_PROP_CONTRAST);
+		g_VideoCapture.set(cv::CAP_PROP_CONTRAST,g_Contrast);
+		param = g_VideoCapture.get(cv::CAP_PROP_CONTRAST);
 		if(param != g_Contrast)
 			g_LogFS << "WARINING: tried to set CONTRAST " << g_Contrast << ", but returned value was " << param << std::endl;
 	}
 	if(g_isParameterSpecified[CAMERA_PARAM_GAIN])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_GAIN,g_Gain);
-		param = g_VideoCapture.get(CV_CAP_PROP_GAIN);
+		g_VideoCapture.set(cv::CAP_PROP_GAIN,g_Gain);
+		param = g_VideoCapture.get(cv::CAP_PROP_GAIN);
 		if(param != g_Gain)
 			g_LogFS << "WARINING: tried to set GAIN " << g_Gain << ", but returned value was " << param << std::endl;
 	}
 	if(g_isParameterSpecified[CAMERA_PARAM_EXPOSURE])
 	{
-		g_VideoCapture.set(CV_CAP_PROP_EXPOSURE,g_Exposure);
-		param = g_VideoCapture.get(CV_CAP_PROP_EXPOSURE);
+		g_VideoCapture.set(cv::CAP_PROP_EXPOSURE,g_Exposure);
+		param = g_VideoCapture.get(cv::CAP_PROP_EXPOSURE);
 		if(param != g_Exposure)
 			g_LogFS << "WARINING: tried to set EXPOSURE " << g_Exposure << ", but returned value was " << param << std::endl;
 	}
@@ -299,7 +309,7 @@ int getCameraImage( void )
 			{
 				g_VideoCapture.retrieve(frame);
 				if(frame.channels()==3)
-					cv::cvtColor(frame, monoFrame, CV_RGB2GRAY);
+					cv::cvtColor(frame, monoFrame, cv::COLOR_RGB2GRAY);
 				else
 					monoFrame = frame;
 				for(int idx=0; idx<g_CameraWidth*g_CameraHeight; idx++)

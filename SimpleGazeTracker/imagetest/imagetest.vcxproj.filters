@@ -55,4 +55,7 @@
       <Filter>リソース ファイル</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CONFIG_IMAGETEST" />
+  </ItemGroup>
 </Project>

@@ -40,6 +40,18 @@ const char* getEditionString(void)
 }
 
 /*!
+getDefaultConfigFileName: Get default config file name.
+
+@return default config file name.
+
+@date 2021/03/17 created.
+*/
+const char* getDefaultConfigFileName(void)
+{
+	return CAMERA_CONFIG_FILE;
+}
+
+/*!
 Split stirng (helper function)
 */
 std::vector<std::string> split_string(std::string str, char del) {

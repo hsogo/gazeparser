@@ -48,6 +48,6 @@
     <None Include="..\common\icon.ico">
       <Filter>リソース ファイル</Filter>
     </None>
-    <None Include="CONFIG" />
+    <None Include="CONFIG_OPENCV" />
   </ItemGroup>
 </Project>

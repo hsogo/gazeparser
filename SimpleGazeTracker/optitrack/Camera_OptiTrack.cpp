@@ -31,6 +31,18 @@ const char* getEditionString(void)
 }
 
 /*!
+getDefaultConfigFileName: Get default config file name.
+
+@return default config file name.
+
+@date 2021/03/17 created.
+*/
+const char* getDefaultConfigFileName(void)
+{
+	return CAMERA_CONFIG_FILE;
+}
+
+/*!
 initCameraParameters: Initialize camera specific parameters
 
 @param[in] buff Pointer to parameter name
@@ -47,10 +59,10 @@ Created.
 int initCameraParameters(char* buff, char* parambuff)
 {
 	char *p, *pp;
-	double param;
+	int param;
 
 	p = parambuff;
-	param = strtod(p, &pp); //paramete is not int but double
+	param = strtol(p, &pp, 10); //paramete is not int but double
 
 	if (strcmp(buff, "FRAME_RATE") == 0) {
 		g_FrameRate = param;
