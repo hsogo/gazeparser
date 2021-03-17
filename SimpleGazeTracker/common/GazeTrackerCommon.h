@@ -166,6 +166,8 @@ extern int g_isOutputCameraSpecificData;
 extern int g_PortRecv;
 extern int g_PortSend;
 
+extern double g_MeanInterFrameInterval;
+
 extern double g_ParamX[6],g_ParamY[6]; //Monocular: 3 params, Binocular 6 parameters.
 extern int g_Threshold;
 
@@ -223,6 +225,7 @@ extern int getCameraImage( void );
 extern void cleanupCamera( void );
 extern void saveCameraParameters( std::fstream* fs );
 extern const char* getEditionString( void );
+extern const char* getDefaultConfigFileName(void);
 extern unsigned int getCameraSpecificData( void );
 
 //DetectEye.cpp

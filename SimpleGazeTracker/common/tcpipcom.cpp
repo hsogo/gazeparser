@@ -762,6 +762,26 @@ int sockProcess( void )
 
 						nextp = seekNextCommand(buff, nextp, 2);
 					}
+					else if (strcmp(buff + nextp, "getCameraIFI") == 0)
+					{
+						int len;
+						char str[256];
+
+						len = snprintf(str, sizeof(str), "%.2f", g_MeanInterFrameInterval);
+						SDLNet_TCP_Send(g_SockSend, str, len + 1);
+
+						nextp = seekNextCommand(buff, nextp, 1);
+					}
+					else if (strcmp(buff + nextp, "getBufferSizeInfo") == 0)
+					{
+					int len;
+						char str[256];
+
+						len = snprintf(str, sizeof(str), "%d,%d,%d", MAXDATA, MAXCALDATA, MAXCALPOINT);
+						SDLNet_TCP_Send(g_SockSend, str, len + 1);
+
+						nextp = seekNextCommand(buff, nextp, 1);
+					}
 					else
 					{
 						g_LogFS << "WARNING: Unknown command (" << buff+nextp << ")" << std::endl;

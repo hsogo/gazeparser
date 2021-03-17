@@ -44,8 +44,6 @@
 #define CURSOR_SIZE 12
 #define CURSOR_OFFSET 5
 
-#define DEFAULT_CONFIG_FILE "CONFIG"
-
 /*! Holds menu texts. 
 @attention Number of menu items (sum of original items and custom items) and 
 length of custom menu texts must be smaller than MENU_MAX_ITEMS and MENU_STRING_MAX, respectively.
@@ -137,7 +135,6 @@ FILE* g_DataFP;
 std::fstream g_LogFS;
 
 std::string g_ConfigFileName;
-//std::string g_CameraConfigFileName;
 
 char g_MessageBuffer[MAXMESSAGE];
 int g_MessageEnd;
@@ -1207,7 +1204,7 @@ int main(int argc, char** argv)
 	bool useCustomParamPath = false;
 	bool useCustomDataPath = false;
 	bool useCustomConfigFile = false;
-	g_ConfigFileName.assign(DEFAULT_CONFIG_FILE);
+	g_ConfigFileName.assign(getDefaultConfigFileName());
 	if (argc > 0) {
 		for (int i = 0; i < argc; i++) {
 			if (strncmp(argv[i], "-configdir=", 11) == 0)
@@ -1276,19 +1273,19 @@ int main(int argc, char** argv)
 
 	g_LogFS << "Searching AppDirPath directory..." << std::endl;
 	g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-	if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
+	if (FAILED(checkFile(g_AppDirPath, getDefaultConfigFileName()))) {
 		//try /usr/local/lib/simplegazetracker
 		g_AppDirPath.assign("/usr/local/lib/simplegazetracker");
 		g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-		if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
+		if (FAILED(checkFile(g_AppDirPath, getDefaultConfigFileName()))) {
 			//try Debian directory (/usr/lib/simplegazetracker)
 			g_AppDirPath.assign("/usr/lib/simplegazetracker");
 			g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-			if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
+			if (FAILED(checkFile(g_AppDirPath, getDefaultConfigFileName()))) {
 				//try current directory
 				g_AppDirPath.assign(getCurrentWorkingDirectory());
 				g_LogFS << "check " << g_AppDirPath << " ..." << std::endl;
-				if (FAILED(checkFile(g_AppDirPath, DEFAULT_CONFIG_FILE))) {
+				if (FAILED(checkFile(g_AppDirPath, getDefaultConfigFileName()))) {
 					printf("ERROR: Could not determine AppDirPath directory.\n");
 					g_LogFS << "ERROR: Could not determine AppDirPath directory." << std::endl;
 					SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
@@ -1306,10 +1303,10 @@ int main(int argc, char** argv)
 
 	//if CONFIG file is not found in g_ParamPath, copy it.
 	if (!useCustomConfigFile) {
-		if (FAILED(checkAndCopyFile(g_ParamPath, DEFAULT_CONFIG_FILE, g_AppDirPath))) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "\"%s\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n", DEFAULT_CONFIG_FILE);
+		if (FAILED(checkAndCopyFile(g_ParamPath, getDefaultConfigFileName(), g_AppDirPath))) {
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "\"%s\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n", getDefaultConfigFileName());
 			printf("%s\n", g_errorMessage);
-			g_LogFS << "Error: \"" << DEFAULT_CONFIG_FILE << "\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+			g_LogFS << "Error: \"" << getDefaultConfigFileName() << "\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 				"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
 			return -1;
