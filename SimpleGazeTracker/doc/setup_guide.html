@@ -1,103 +1,95 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Camera setup guide &mdash; SimpleGazeTracker Help 0.11.1 documentation</title>
-    
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Camera setup guide &#8212; SimpleGazeTracker Help 0.12.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.11.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  false
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="SimpleGazeTracker Help 0.11.1 documentation" href="index.html" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Online resources" href="online.html" />
-    <link rel="prev" title="Keys" href="keys.html" />
+    <link rel="prev" title="Parameters" href="params.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="camera-setup-guide">
-<h1>Camera setup guide<a class="headerlink" href="#camera-setup-guide" title="Permalink to this headline">¶</a></h1>
+<span id="setup-guide"></span><h1>Camera setup guide<a class="headerlink" href="#camera-setup-guide" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="adjust-camera-position">
 <h2>1. Adjust camera position<a class="headerlink" href="#adjust-camera-position" title="Permalink to this headline">¶</a></h2>
-<p>Camera should be positioned in front of participant&#8217;s eye and below participant&#8217;s eye-level.
+<p>Camera should be positioned in front of participant’s eye and below participant’s eye-level.
 Elevation angle of the camera should not be too large.</p>
-<div class="figure">
+<div class="figure align-default">
 <img alt="_images/setup001.png" src="_images/setup001.png" />
 </div>
 <p>Direction of the camera and the lighting should not be too close.
-Pupil must be darker than iris (called &#8220;dark pupil&#8221;) for SimpleGazeTracker to detect puipl.  If direction of the camera and the lighting is too close, pupil looks brighter tha iris (called &#8220;bright pupil).</p>
-<div class="figure">
+Pupil must be darker than iris (called “dark pupil”) for SimpleGazeTracker to detect puipl.  If direction of the camera and the lighting is too close, pupil looks brighter tha iris (called “bright pupil).</p>
+<div class="figure align-default">
 <img alt="_images/setup002.png" src="_images/setup002.png" />
 </div>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Optitrack Flex3 has built-in LED lighting around the lens, which may cause bright pupil.  To avoid bright pupil, don&#8217;t place Flex3 too distant from the participant&#8217;s eye.</p>
+<p class="admonition-title">Note</p>
+<p>Optitrack Flex3 has built-in LED lighting around the lens, which may cause bright pupil.  To avoid bright pupil, don’t place Flex3 too distant from the participant’s eye.</p>
 </div>
 <p>The Purkinje image (reflection of the lighting) should be on the cornea.
-Confirm that the Purkinje image stays on the cornea regardless of participant&#8217;s eye movement.</p>
-<div class="figure">
+Confirm that the Purkinje image stays on the cornea regardless of participant’s eye movement.</p>
+<div class="figure align-default">
 <img alt="_images/setup003.png" src="_images/setup003.png" />
 </div>
 <p>Here are examples of camera setup.</p>
-<div class="figure" id="id1">
+<div class="figure align-default" id="id1">
 <img alt="_images/example001.jpg" src="_images/example001.jpg" />
-<p class="caption"><span class="caption-text">OptiTrack V100R2 (old name of Flex3) with 25mm lens, Manfrotto 3-way head and Etsumi sliding plate</span></p>
+<p class="caption"><span class="caption-text">OptiTrack V100R2 (old name of Flex3) with 25mm lens, Manfrotto 3-way head and Etsumi sliding plate</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
-<div class="figure" id="id2">
+<div class="figure align-default" id="id2">
 <img alt="_images/example002.jpg" src="_images/example002.jpg" />
-<p class="caption"><span class="caption-text">IMPERX Bobcat ICL-B0620 with 10-40mm lens, Manfrotto 3-way head and Etsumi sliding plate</span></p>
+<p class="caption"><span class="caption-text">IMPERX Bobcat ICL-B0620 with 10-40mm lens, Manfrotto 3-way head and Etsumi sliding plate</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 </div>
 <div class="section" id="adjust-pupilthreshold-minpupilwidth-and-maxpupilwidth">
 <h2>2. Adjust PupilThreshold, MinPupilWidth and MaxPupilWidth<a class="headerlink" href="#adjust-pupilthreshold-minpupilwidth-and-maxpupilwidth" title="Permalink to this headline">¶</a></h2>
 <p>SimpleGazeTracker considers areas darker than <strong>PupilThreshold</strong> as pupil candicates.
 Threfore, it is important to adjust <strong>PupilThreshold</strong> so that brightness of the pupil is below <strong>PupilThreshold</strong> while brightness of iris is above <strong>PupilThreshold</strong>.</p>
-<div class="figure">
+<div class="figure align-default">
 <img alt="_images/setup004.png" src="_images/setup004.png" />
 </div>
 <p>In order to detect pupil effectively, SimpleGazeTracker ignores dark areas narrower than <strong>MinPupilWidth</strong> or wider than <strong>MaxPupilWidth</strong>.
 These values are represented as a percentage of the camera image width.  For example, when the camera image width is 640 pix and <strong>MaxPupilWidth</strong> is 10, areas wider than 64 pix (10% of 640 pix) are ignored.</p>
-<div class="figure">
+<div class="figure align-default">
 <img alt="_images/setup005.png" src="_images/setup005.png" />
 </div>
 </div>
-<div class="section" id="adjust-purkinjesearcharea-purkinjeexcludearea">
-<h2>3. Adjust PurkinjeSearchArea, PurkinjeExcludeArea<a class="headerlink" href="#adjust-purkinjesearcharea-purkinjeexcludearea" title="Permalink to this headline">¶</a></h2>
-<p>After the pupil is detected, SimpleGazeTracker searches for the Purkinje image.
-<strong>PurkinjeSearchArea</strong> determines width and hight of the search area.
+<div class="section" id="adjust-purkinjethreshold-purkinjesearcharea-purkinjeexcludearea">
+<h2>3. Adjust PurkinjeThreshold, PurkinjeSearchArea, PurkinjeExcludeArea<a class="headerlink" href="#adjust-purkinjethreshold-purkinjesearcharea-purkinjeexcludearea" title="Permalink to this headline">¶</a></h2>
+<p>After the pupil is detected, SimpleGazeTracker searches for the Purkinje image.</p>
+<p>SimpleGazeTracker assumes that an area brighter than <strong>PurkinjeThreshold</strong> near pupil is the Purkinje image.  Adjust PurkinjeThreshold so that the Purkinje image is filled yellow on the preview pane.</p>
+<p><strong>PurkinjeSearchArea</strong> determines width and hight of the search area.
 The search area must be large enough to include the Purkinje area, but at the same time it should not be too large.</p>
-<div class="figure">
+<div class="figure align-default">
 <img alt="_images/setup006.png" src="_images/setup006.png" />
 </div>
-<p>Finally, <strong>PurkinjeSearchArea</strong> should be adjusted so that a yellow circle drawn around the Purkinje image is slightly larger than the Purkinje image.
+<p>Finally, <strong>PurkinjeExcludeArea</strong> should be adjusted so that a yellow circle drawn around the Purkinje image is slightly larger than the Purkinje image.
 The edges of the pupil within this yellow circle is excluded from calclating the center of the pupil to implove accuracy of calcuration.</p>
-<div class="figure">
+<div class="figure align-default">
 <img alt="_images/setup007.png" src="_images/setup007.png" />
 </div>
 </div>
@@ -105,16 +97,18 @@ The edges of the pupil within this yellow circle is excluded from calclating the
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h3><a href="index.html">Table Of Contents</a></h3>
+<h3><a href="index.html">Table of Contents</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="commandline.html">Commandline options</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configdir.html">Configuration file and Data directory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="keys.html">Keys</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Camera setup guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="params.html">Parameters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Camera setup guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="online.html">Online resources</a></li>
 </ul>
 

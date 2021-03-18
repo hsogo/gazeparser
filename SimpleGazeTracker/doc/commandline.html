@@ -1,29 +1,19 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Commandline options &mdash; SimpleGazeTracker Help 0.11.1 documentation</title>
-    
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Commandline options &#8212; SimpleGazeTracker Help 0.12.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.11.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  false
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="SimpleGazeTracker Help 0.11.1 documentation" href="index.html" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Configuration file and Data directory" href="configdir.html" />
     <link rel="prev" title="SimpleGazeTracker Help" href="index.html" />
    
@@ -32,71 +22,63 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="commandline-options">
 <h1>Commandline options<a class="headerlink" href="#commandline-options" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="changing-configuration-and-data-directories">
 <h2>Changing configuration and data directories<a class="headerlink" href="#changing-configuration-and-data-directories" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="20%" />
-<col width="80%" />
+<col style="width: 20%" />
+<col style="width: 80%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">option</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>option</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>-configdir=DIR</td>
-<td>Specify directory where SimpleGazeTracker&#8217;s configuration files are located.
+<tbody>
+<tr class="row-even"><td><p>-configdir=DIR</p></td>
+<td><p>Specify directory where SimpleGazeTracker’s configuration files are located.
 If this parameter is not given, default directory is used. Spaces are not allowed
-before and after &#8216;=&#8217;.</td>
+before and after ‘=’.</p></td>
 </tr>
-<tr class="row-odd"><td>-datadir=DIR</td>
-<td>Specify directory where SimpleGazeTracker&#8217;s log files and data files are
+<tr class="row-odd"><td><p>-datadir=DIR</p></td>
+<td><p>Specify directory where SimpleGazeTracker’s log files and data files are
 output. If this parameter is not given, default directory is used.
-Spaces are not allowed before and after &#8216;=&#8217;.</td>
+Spaces are not allowed before and after ‘=’.</p></td>
 </tr>
-<tr class="row-even"><td>-config=FILE</td>
-<td>Specify name of configuration file. Spaces are not allowed before and after &#8216;=&#8217;.</td>
-</tr>
-<tr class="row-odd"><td>-cameraconfig=FILE</td>
-<td>Specify name of camera-specific configuration file.
-Spaces are not allowed before and after &#8216;=&#8217;.</td>
+<tr class="row-even"><td><p>-config=FILE</p></td>
+<td><p>Specify name of configuration file. Spaces are not allowed before and after ‘=’.</p></td>
 </tr>
 </tbody>
 </table>
 <div class="section" id="examples">
 <h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
-<p>Using C:\work\my_config.txt as configuration file (SimpleGazeTracker GPC5300 edition).:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>SimpleGazeTracker_GPC5300.exe -configdir=C:\\work -config=my_config.txt
+<p>To use C:\work\my_config.txt as configuration file, specify -configdir and -config.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SimpleGazeTracker_Spinnaker</span><span class="o">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">configdir</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\\<span class="n">work</span> <span class="o">-</span><span class="n">config</span><span class="o">=</span><span class="n">my_config</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
-<p>Please note that -configdir and -config are combined to get full path of configuration file.
-Therefore, following option does&#8217;t work.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>SimpleGazeTracker_GPC5300.exe -config=c:\\work\\my_config.txt
+<p>Because -configdir and -config are combined to get full path of configuration file, following option does’t work.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SimpleGazeTracker_Spinnaker</span><span class="o">.</span><span class="n">exe</span> <span class="o">-</span><span class="n">config</span><span class="o">=</span><span class="n">c</span><span class="p">:</span>\\<span class="n">work</span>\\<span class="n">my_config</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
-<p>Using &#8220;my config.txt&#8221; in the SimpleGazeTracker&#8217;s default configuration directory as configuration file (SimpleGazeTracker FlyCapture2 edition).
+<p>If “my config.txt” is in the SimpleGazeTracker’s default configuration directory, it is not necessary to specify -configdir.
 Note that the filename includes a space charactor.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>SimpleGazeTracker_FlyCapture2.exe &quot;-config=my config.txt&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SimpleGazeTracker_Spinnaker</span><span class="o">.</span><span class="n">exe</span> <span class="s2">&quot;-config=my config.txt&quot;</span>
 </pre></div>
 </div>
-<p>Using C:\work\my_config.txt and C:\work\my_cameraconfig.txt as configuration file (SimpleGazeTracker OptiTrack edition).:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>SimpleGazeTracker_OptiTrack.exe -configdir=C:\\work -config=my_config.txt -cameraconfig=my_cameraconfig.txt
-</pre></div>
-</div>
-<p>Setting ~/Desktop/data to SimpleGazeTracker Output directory (OpenCV edition on Ubuntu). Note that environment variable does not work on Windows.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>sgtsrv -datadir=$HOME/Desktop/data
+<p>Setting ~/Desktop/data to SimpleGazeTracker Output directory (on Linux).:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sgtsrv-spinnaker -datadir=$HOME/Desktop/data
 </pre></div>
 </div>
 </div>
@@ -105,15 +87,17 @@ Note that the filename includes a space charactor.:</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h3><a href="index.html">Table Of Contents</a></h3>
+<h3><a href="index.html">Table of Contents</a></h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">Commandline options</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Commandline options</a></li>
 <li class="toctree-l1"><a class="reference internal" href="configdir.html">Configuration file and Data directory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="keys.html">Keys</a></li>
+<li class="toctree-l1"><a class="reference internal" href="params.html">Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="setup_guide.html">Camera setup guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="online.html">Online resources</a></li>
 </ul>

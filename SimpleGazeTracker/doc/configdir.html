@@ -1,29 +1,19 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Configuration file and Data directory &mdash; SimpleGazeTracker Help 0.11.1 documentation</title>
-    
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuration file and Data directory &#8212; SimpleGazeTracker Help 0.12.0 documentation</title>
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.11.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  false
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="SimpleGazeTracker Help 0.11.1 documentation" href="index.html" />
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Keys" href="keys.html" />
     <link rel="prev" title="Commandline options" href="commandline.html" />
    
@@ -32,98 +22,96 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">
+  </head><body>
   
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="configuration-file-and-data-directory">
 <h1>Configuration file and Data directory<a class="headerlink" href="#configuration-file-and-data-directory" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="simplegazetracker-directries">
 <h2>1. SimpleGazeTracker directries<a class="headerlink" href="#simplegazetracker-directries" title="Permalink to this headline">¶</a></h2>
-<p>SimpleGazeTracker requires two configuration files.</p>
-<ol class="arabic simple">
-<li><strong>Camera-independent conifugration file (CONFIG)</strong></li>
-<li><strong>Camera-dependent configuration file</strong></li>
-</ol>
-<p>These files are located in following directory.
+<p>Configuration file of SimpleGazeTracker is located in following directory.
 If the directory does not exist, SimpleGazeTracker automatically creates it.</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="24%" />
-<col width="76%" />
+<col style="width: 24%" />
+<col style="width: 76%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Platform</th>
-<th class="head">Directory</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Platform</p></th>
+<th class="head"><p>Directory</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>Windows</td>
-<td>%APPDATA%SimpleGazeTracker</td>
+<tbody>
+<tr class="row-even"><td><p>Windows</p></td>
+<td><p>%APPDATA%SimpleGazeTracker</p></td>
 </tr>
-<tr class="row-odd"><td>Linux</td>
-<td>$HOME/.SimpleGazeTracker</td>
+<tr class="row-odd"><td><p>Linux</p></td>
+<td><p>$HOME/.SimpleGazeTracker</p></td>
 </tr>
 </tbody>
 </table>
 <p>SimpleGazeTracker writes output file (i.e. log file and data file) to the followingg diretory.</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="24%" />
-<col width="76%" />
+<col style="width: 24%" />
+<col style="width: 76%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Platform</th>
-<th class="head">Directory</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Platform</p></th>
+<th class="head"><p>Directory</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>Windows</td>
-<td>%USERPROFILE%SimpleGazeTracker</td>
+<tbody>
+<tr class="row-even"><td><p>Windows</p></td>
+<td><p>%USERPROFILE%SimpleGazeTracker</p></td>
 </tr>
-<tr class="row-odd"><td>Linux</td>
-<td>$HOME/SimpleGazeTracker</td>
+<tr class="row-odd"><td><p>Linux</p></td>
+<td><p>$HOME/SimpleGazeTracker</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="section" id="location-of-font-file-and-templates-of-configuration-file-for-simplegazetracker">
 <h2>2. Location of font file and templates of configuration file for SimpleGazeTracker<a class="headerlink" href="#location-of-font-file-and-templates-of-configuration-file-for-simplegazetracker" title="Permalink to this headline">¶</a></h2>
-<p>SimpleGazeTracker has templates of configuration file.
+<p>SimpleGazeTracker has a template of configuration file.
 These files are used when configuration file is not found in the configuration directory (see above for location of the configuration direcotry).
 Template file is searched from following directories. If template files are not found, SimpleGazeTracker is terminated immediately.</p>
 <ol class="arabic simple">
-<li>SimpleGazeTracker installation directory</li>
-<li>/usr/local/lib/simplegazetracker (linux)</li>
-<li>/usr/lib/simplegazetracker (linux)</li>
-<li>Current directory</li>
+<li><p>SimpleGazeTracker installation directory</p></li>
+<li><p>/usr/local/lib/simplegazetracker (linux)</p></li>
+<li><p>/usr/lib/simplegazetracker (linux)</p></li>
+<li><p>Current directory</p></li>
 </ol>
 <p>SimpleGazeTracker requres font file (FreeSans.ttf) to render messages.
 Font file is searched from following directories. If font file is not found, SimpleGazeTracker is terminated immediately.</p>
 <ol class="arabic simple">
-<li>The directory where template files are found.</li>
-<li>/usr/share/fonts/truetype/freefont (linux)</li>
-<li>Current directory</li>
+<li><p>The directory where template files are found.</p></li>
+<li><p>/usr/share/fonts/truetype/freefont (linux)</p></li>
+<li><p>Current directory</p></li>
 </ol>
 </div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h3><a href="index.html">Table Of Contents</a></h3>
+<h3><a href="index.html">Table of Contents</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="commandline.html">Commandline options</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Configuration file and Data directory</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration file and Data directory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="keys.html">Keys</a></li>
+<li class="toctree-l1"><a class="reference internal" href="params.html">Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="setup_guide.html">Camera setup guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="online.html">Online resources</a></li>
 </ul>
