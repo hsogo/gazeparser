@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+GenericName=SimpleGazeTracker Server (Spinnaker)
+Name=SimpleGazeTracker (Spinnaker)
+Exec=sgtsrv-spinnaker
+TryExec=sgtsrv-spinnaker
+Type=Application
+Terminal=false
+Categories=Graphics;Science
+Icon=simplegazetracker.xpm
+
+Name[ja]=simplegazetracker-spinnaker.desktop
+Name[ja_JP]=simplegazetracker-spinnaker.desktop

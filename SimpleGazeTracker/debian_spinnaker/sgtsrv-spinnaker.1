@@ -1,0 +1,37 @@
+.TH SGTSRV-SPINNAKER 1 "March  18, 2021"
+.SH NAME
+sgtsrv-spinnaker \- SimpleGazeTracker server (Spinnaker edition)
+.SH SYNOPSIS
+.B sgtsrv-spinnaker
+[-configdir]
+[-datadir]
+[-config]
+[-cameraconfig]
+.SH DESCRIPTION
+Starts SimpleGazeTracker server.
+Configuration files are created at $HOME/.SimpleGazeTracker.
+Log and data files are created at $HOME/SimpleGazeTracker.
+These directories are created automatically if they don't exist.
+.SH OPTIONS
+.TP
+.BI -configdir=DIR
+Specify directory where SimpleGazeTracker's configuration files are located.
+If this parameter is not given, default directory is used. Spaces are not allowed
+before and after '='.
+.TP
+.BI -datadir=DIR
+Specify directory where SimpleGazeTracker's log files and data files are 
+output. If this parameter is not given, default directory is used.
+Spaces are not allowed before and after '='.
+.TP
+.BI -config=FILE
+Specify name of configuration file. Spaces are not allowed before and after '='.
+.SH AUTHOR
+sgtsrv-spinnaker was written by Hiroyuki Sogo <hsogo@ehime-u.ac.jp>.
+.PP
+This manual page was written by Hiroyuki Sogo <hsogo@ehime-u.ac.jp>,
+for the Debian project (and may be used by others).
+.SH SEE ALSO
+.PP
+http://gazeparser.sourceforget.net/
+

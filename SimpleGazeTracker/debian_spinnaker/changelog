@@ -1,0 +1,7 @@
+simplegazetracker-spinnaker (0.12.0) unstable; urgency=medium
+
+  * Spinnaker cameras are supported.
+  * Config files are unified.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Sat, 30 Nov 2019 18:00:00 +0900
+

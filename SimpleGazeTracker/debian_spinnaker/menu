@@ -1,0 +1,2 @@
+?package(simplegazetracker-spinnaker):needs="X11" section="Applications/Science/Medicine"\
+  title="SimpleGazeTracker Server (Spinnaker)" command="/usr/bin/sgtsrv-spinnaker" icon="/usr/share/pixmaps/simplegazetracker.xpm"
