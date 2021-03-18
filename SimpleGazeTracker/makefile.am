@@ -20,8 +20,8 @@ sgtsrv_spinnaker_SOURCES=common/GazeTrackerMain.cpp common/tcpipcom.cpp common/u
     common/DetectEye.cpp common/PlatformDependent.cpp common/GazeTrackerCommon.h\
     spinnaker/Camera_Spinnaker.cpp spinnaker/GazeTracker.h
 
-sgtsrv_spinnaker_LDADD=$(OPENCV_LIBS) $(SDL2_LIBS) $(LIBUSB_LIBS) -lSpinnaker
-sgtsrv_spinnaker_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL2_CFLAGS) $(LIBUSB_CFLAGS) -I/usr/include/spinnaker
+sgtsrv_spinnaker_LDADD=$(OPENCV_LIBS) $(SDL2_LIBS) $(LIBUSB_LIBS) -L/opt/spinnaker/lib -lSpinnaker
+sgtsrv_spinnaker_CPPFLAGS=$(OPENCV_CFLAGS) $(SDL2_CFLAGS) $(LIBUSB_CFLAGS) -I/opt/spinnaker/include
 
 else
 bin_PROGRAMS=sgtsrv
@@ -48,12 +48,12 @@ include $(srcdir)/docfiles.mk
 nobase_dist_data_DATA = $(doc_files)
 
 if FLYCAPTURE
-dist_data_DATA = flycapture2/CONFIG flycapture2/CONFIG_FLYCAPTURE2 $(freesans)
+dist_data_DATA = flycapture2/CONFIG_FLYCAPTURE2 $(freesans)
 else
 if SPINNAKER
-dist_data_DATA = spinnaker/CONFIG spinnaker/CONFIG_SPINNAKER $(freesans)
+dist_data_DATA = spinnaker/CONFIG_SPINNAKER $(freesans)
 else
-dist_data_DATA = opencv/CONFIG opencv/CONFIG_OPENCV $(freesans)
+dist_data_DATA = opencv/CONFIG_OPENCV $(freesans)
 endif
 endif
 
