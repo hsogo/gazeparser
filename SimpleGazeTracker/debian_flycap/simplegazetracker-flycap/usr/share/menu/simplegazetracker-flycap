@@ -1,2 +1,0 @@
-?package(simplegazetracker-flycap):needs="X11" section="Applications/Science/Medicine"\
-  title="SimpleGazeTracker Server (FlyCapture2)" command="/usr/bin/sgtsrv-flycap" icon="/usr/share/pixmaps/simplegazetracker.xpm"
