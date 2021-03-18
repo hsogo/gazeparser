@@ -11,7 +11,7 @@ Homepage: http://gazeparser.sourceforge.net/
 Package: simplegazetracker-flycap
 Architecture: amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: gazeparser, psychopy, octave-psychtoolbox-3, fonts-freefont-ttf, ttf-freefont
+Recommends: gazeparser, psychopy, fonts-freefont-ttf, ttf-freefont
 Description: Open-source eye tracker
  Open-source eye tracking software for experimental psychology.
  Please see http://gazeparser.sourceforge.net/ for detail.
