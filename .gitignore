@@ -32,6 +32,8 @@ compile
 GazeParser/debian/gazeparser/
 SimpleGazeTracker/debian_opencv/simplegazetracker/
 SimpleGazeTracker/debian_flycap/simplegazetracker-flycap/
+SimpleGazeTracker/debian_spinnaker/simplegazetracker-spinnaker/
+SimpleGazeTracker/*/.debhelper/
 
 #VisualStudio
 *.aps
