@@ -8,7 +8,7 @@ fi
 cd SimpleGazeTracker
 ./gen_docfiles
 mv debian_$1 debian
-dpkg-buildpackage
+dpkg-buildpackage -uc -us
 make distclean
 mv debian debian_$1
 cd ..

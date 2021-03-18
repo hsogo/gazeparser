@@ -1,8 +1,13 @@
+2021-03-19 Hiroyuki Sogo
+release: 0.12.0
+  * Configuration files are unified.
+  * Measure camera FPS during startup.
+
 2019-11-30 Hiroyuki Sogo
 release: 0.11.1
   * A new parameter named "MORPH_TRANS" is added.  If this value is more than 1, morphological closing is applied before detecting pupil candidate.  If less than -1, morphological opening is applied.
-  * A new menu item named "MorphologicalTrans" is added to adjust MORPH_TRANS.s
-s
+  * A new menu item named "MorphologicalTrans" is added to adjust MORPH_TRANS.
+
 2018-08-22 Hiroyuki Sogo
 
 release: 0.11.0

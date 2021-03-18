@@ -3,11 +3,11 @@ Upstream-Name: simplegazetracker-flycap
 Source: http://gazeparser.sourceforge.net/
 
 Files: *
-Copyright: 2012-2015 Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
+Copyright: 2012-2021 Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
 License: GPL-3.0+
 
 Files: debian/*
-Copyright: 2013-2015 Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
+Copyright: 2013-2021 Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
 License: GPL-3.0+
 
 License: GPL-3.0+

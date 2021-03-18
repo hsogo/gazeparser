@@ -5,7 +5,7 @@ import os
 
 from GazeParser import __version__
 
-version = '0.11.0'
+version = '0.12.0'
 
 setup(name='GazeParser',
       version=version,

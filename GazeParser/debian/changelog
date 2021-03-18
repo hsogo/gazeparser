@@ -1,3 +1,9 @@
+gazeparser (0.12.0) unstable; urgency=medium
+
+  * Self-paced calibration is supported.
+  * Calibration target flashes during sample acquisition.
+  * Add getCameraIFI(), getBufferSizeInfo() and getTrackerInfo() GazeParser.TrackingTools.
+
 gazeparser (0.11.1) unstable; urgency=medium
 
   * Bug in calcurating threshold for Microsaccade detection is fixed.
@@ -7,8 +13,8 @@ gazeparser (0.11.1) unstable; urgency=medium
 gazeparser (0.11.0) unstable; urgency=medium
 
   * Python3 is supported.
-  * PsychoPyComponent supports PsychoPy 1.90.0 or later.
-  * PsychoPyComponent no longer supports PsychoPy older than 1.84.0.
+  * PsychoPyComponent supports PsychoPy 1.90 or later.
+  * PsychoPyComponent no longer supports PsychoPy older than 1.84.
   * VisionEgg backend in TrackingTools is no longer supporeted.
   * EyelinkToGazeParser() and TobiiToGazeParser() is no longer supported.
 
