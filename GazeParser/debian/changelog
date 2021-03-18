@@ -2,7 +2,7 @@ gazeparser (0.12.0) unstable; urgency=medium
 
   * Self-paced calibration is supported.
   * Calibration target flashes during sample acquisition.
-  * Add getCameraIFI(), getBufferSizeInfo() and getTrackerInfo() GazeParser.TrackingTools.
+  * Add getCameraIFI(), getBufferSizeInfo() and getTrackerInfo() to GazeParser.TrackingTools.
 
 gazeparser (0.11.1) unstable; urgency=medium
 
