@@ -176,7 +176,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\common\icon.ico" />
-    <None Include="CONFIG_OPENCV" />
+    <None Include="CONFIG_OPENCV">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -170,7 +170,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\common\icon.ico" />
-    <None Include="CONFIG_FLYCAPTURE2" />
+    <None Include="CONFIG_FLYCAPTURE2">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

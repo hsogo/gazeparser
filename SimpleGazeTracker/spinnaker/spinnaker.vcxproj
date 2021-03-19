@@ -144,7 +144,9 @@
     <ResourceCompile Include="..\common\GazeTracker.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CONFIG_SPINNAKER" />
+    <None Include="CONFIG_SPINNAKER">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

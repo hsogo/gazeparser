@@ -33,19 +33,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_3F1A99DABD45434086613C382D7503DF"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_4A74698BF34243CD865C0BC2B6A4AFB3"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_51D1EEA7A7714C9D858D03FBD0C21147"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -93,6 +81,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_B40724FE673B40838298DD4C46C49C19"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_B877C3BE38CA43B2AC6657C62BF0FEA2"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -111,6 +105,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_C35A9DE92CF24E1883DAC0353341AB45"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_C67935CDD23144A39E6BFB63C5A67D43"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -118,12 +118,6 @@
         "Entry"
         {
         "MsmKey" = "8:_C942989C5B2C4F13B1E8F453FEF276AD"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_CE5C8F5F452243129FCB387F367A1C2B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -314,26 +308,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_51D1EEA7A7714C9D858D03FBD0C21147"
-            {
-            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world342.dll"
-            "TargetName" = "8:opencv_world342.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5A50DC52BF6D4BC7A2362E16B9DD2797"
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\SDL2.dll"
@@ -474,6 +448,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B40724FE673B40838298DD4C46C49C19"
+            {
+            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world451.dll"
+            "TargetName" = "8:opencv_world451.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B877C3BE38CA43B2AC6657C62BF0FEA2"
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_net.dll"
@@ -538,26 +532,6 @@
             {
             "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64\\vs2015\\swscale-4.dll"
             "TargetName" = "8:swscale-4.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CE5C8F5F452243129FCB387F367A1C2B"
-            {
-            "SourcePath" = "8:C:\\Program Files\\Point Grey Research\\FlyCapture2\\bin64\\vs2015\\PtGreyVideoEncoder_v140.dll"
-            "TargetName" = "8:PtGreyVideoEncoder_v140.dll"
             "Tag" = "8:"
             "Folder" = "8:_1AC9C3D24B554E0DB1EED7B7E26F93A7"
             "Condition" = "8:"
@@ -714,15 +688,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(FlyCapture2)"
-        "ProductCode" = "8:{C8B9F673-EF68-44A4-96E8-2BDB72867777}"
-        "PackageCode" = "8:{6F3EE3BC-F7F0-4ADC-BD98-C9434210B97F}"
+        "ProductCode" = "8:{C22176F1-AC47-4295-B62E-7F3F04822D6F}"
+        "PackageCode" = "8:{55A21DAC-BEBF-4D11-985D-1740939B5299}"
         "UpgradeCode" = "8:{6C186834-C51A-486A-B228-9BF8956470A1}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.11.1"
+        "ProductVersion" = "8:0.12.0"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1269,11 +1243,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_3F1A99DABD45434086613C382D7503DF"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_C35A9DE92CF24E1883DAC0353341AB45"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:FALSE"
-            "SourcePath" = "8:C:\\Program Files (x86)\\Common Files\\Merge Modules\\Microsoft_VC120_CRT_x64.msm"
+            "SourcePath" = "8:C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Redist\\MSVC\\v142\\MergeModules\\Microsoft_VC142_CRT_x64.msm"
                 "Properties"
                 {
                 }

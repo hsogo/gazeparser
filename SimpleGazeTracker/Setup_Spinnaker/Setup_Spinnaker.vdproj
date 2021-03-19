@@ -21,31 +21,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_17280F10A3AB4180B3B422278DFC10CE"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_1D314FB0D9D04163B0D4F19E07EE5D0A"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_2139EC7FFE3140AFB2D8F2F2982F457D"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_2528A4AAA3C74E04A0444C5D8380CF7A"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_4A78E797806E4268A51516235AAA50E8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -57,19 +33,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_9B399493665949BABA890C4779C31F75"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_9E91384CD43341C48C9515AC0A55E3A4"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_BD4E00D4550D4D3FA97743CDB6879796"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -81,19 +45,19 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_D5CB8677314C469AB8539A46D13F41C2"
-        "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_DBC5F66AA6244C14B787E82C519341AE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_F40F3A7FF3EC4B4C8DAC996675FA6C12"
+        "MsmKey" = "8:_DF09B521E4784CDCB5631C2870543240"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F201561394724920878E8EDC79449E8F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -204,70 +168,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_17280F10A3AB4180B3B422278DFC10CE"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_net.dll"
-            "TargetName" = "8:SDL2_net.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1D314FB0D9D04163B0D4F19E07EE5D0A"
-            {
-            "SourcePath" = "8:C:\\Program Files (x86)\\Measurement Computing\\DAQ\\cbw64.dll"
-            "TargetName" = "8:cbw64.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2139EC7FFE3140AFB2D8F2F2982F457D"
             {
             "SourcePath" = "8:..\\FreeSans.ttf"
             "TargetName" = "8:FreeSans.ttf"
-            "Tag" = "8:"
-            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4A78E797806E4268A51516235AAA50E8"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_ttf.dll"
-            "TargetName" = "8:SDL2_ttf.dll"
             "Tag" = "8:"
             "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
             "Condition" = "8:"
@@ -304,26 +208,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9B399493665949BABA890C4779C31F75"
-            {
-            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world342.dll"
-            "TargetName" = "8:opencv_world342.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9E91384CD43341C48C9515AC0A55E3A4"
             {
             "SourcePath" = "8:..\\common\\logo03.jpg"
@@ -344,50 +228,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BD4E00D4550D4D3FA97743CDB6879796"
-            {
-            "SourcePath" = "8:C:\\SDL2\\bin\\SDL2.dll"
-            "TargetName" = "8:SDL2.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CFD24A9A9E7849E6AC4E3B090091CCFA"
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\zlib1.dll"
             "TargetName" = "8:zlib1.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D5CB8677314C469AB8539A46D13F41C2"
-            {
-            "SourcePath" = "8:C:\\Program Files\\FLIR Systems\\Spinnaker\\bin\\vs2015\\Spinnaker_v140.dll"
-            "TargetName" = "8:Spinnaker_v140.dll"
             "Tag" = "8:"
             "Folder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
             "Condition" = "8:"
@@ -645,18 +489,18 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_92EAD39DFC204ABFA8F8933DEDA9033B"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_8CF63B6E317241888BC1712FC3B377BF"
             {
             "Name" = "8:SimpleGazeTracker(Spinnaker)"
             "Arguments" = "8:"
             "Description" = "8:"
             "ShowCmd" = "3:1"
-            "IconIndex" = "3:101"
+            "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_F40F3A7FF3EC4B4C8DAC996675FA6C12"
+            "Target" = "8:_F201561394724920878E8EDC79449E8F"
             "Folder" = "8:_B54E859A42104DF2B4C6FF1FDF328212"
             "WorkingFolder" = "8:_1D7DEB3625E24BE2999998FDFA04C8ED"
-            "Icon" = "8:_F40F3A7FF3EC4B4C8DAC996675FA6C12"
+            "Icon" = "8:"
             "Feature" = "8:"
             }
             "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_CA30A5648A6745FA8F2D218AAE9A214F"
@@ -1079,11 +923,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_2528A4AAA3C74E04A0444C5D8380CF7A"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_DF09B521E4784CDCB5631C2870543240"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:FALSE"
-            "SourcePath" = "8:C:\\Program Files (x86)\\Common Files\\Merge Modules\\Microsoft_VC120_CRT_x64.msm"
+            "SourcePath" = "8:C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Redist\\MSVC\\v142\\MergeModules\\Microsoft_VC142_CRT_x64.msm"
                 "Properties"
                 {
                 }
@@ -1096,7 +940,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_400B4B30DF8640BEB93D90DC58B67BF0"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_29BFFF4007D74A3395FE726931A02CCF"
             {
             "SourcePath" = "8:"
             "TargetName" = "8:"
@@ -1152,7 +996,7 @@
                 {
                 }
             }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_F40F3A7FF3EC4B4C8DAC996675FA6C12"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_F201561394724920878E8EDC79449E8F"
             {
             "SourcePath" = "8:..\\x64\\Release\\SimpleGazeTracker_Spinnaker.exe"
             "TargetName" = "8:"

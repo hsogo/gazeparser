@@ -153,7 +153,9 @@
     <Image Include="..\common\simplegazetracker.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CONFIG_IMAGETEST" />
+    <None Include="CONFIG_IMAGETEST">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

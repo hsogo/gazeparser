@@ -15,13 +15,13 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_00DCF315B51E44DB94172BDD91E121EE"
+        "MsmKey" = "8:_13D8AEB7C9ED4A60BFA55D8D457FAAC0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_13D8AEB7C9ED4A60BFA55D8D457FAAC0"
+        "MsmKey" = "8:_189D6B9B8D734A86B6656D578ECD8C9E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -87,7 +87,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_E633DE183C4140E8BE859AB7F33521AF"
+        "MsmKey" = "8:_DE683D98FC15490CA1371D0E99CEB9AA"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -192,26 +192,6 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_00DCF315B51E44DB94172BDD91E121EE"
-            {
-            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world342.dll"
-            "TargetName" = "8:opencv_world342.dll"
-            "Tag" = "8:"
-            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_13D8AEB7C9ED4A60BFA55D8D457FAAC0"
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\SDL2_ttf.dll"
@@ -412,6 +392,26 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DE683D98FC15490CA1371D0E99CEB9AA"
+            {
+            "SourcePath" = "8:C:\\opencv\\bin\\opencv_world451.dll"
+            "TargetName" = "8:opencv_world451.dll"
+            "Tag" = "8:"
+            "Folder" = "8:_9645BBB9143E43AABCA1BF6F53894010"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F70A16984FFE40D6A4AAE9BE99F62B6C"
             {
             "SourcePath" = "8:C:\\SDL2\\bin\\SDL2.dll"
@@ -532,15 +532,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:SimpleGazeTracker(OptiTrack)"
-        "ProductCode" = "8:{C8C32950-777B-437E-8117-6F67E523D3E0}"
-        "PackageCode" = "8:{B4C21909-B299-47B2-BB55-9EE9E2670578}"
+        "ProductCode" = "8:{2AA5F7B3-5E11-4BB2-B1AE-A6C7A146F47E}"
+        "PackageCode" = "8:{7EEB056B-E178-4021-90A4-34C97743FBA0}"
         "UpgradeCode" = "8:{78979124-0A62-4AA8-ABAB-E9F3208CED90}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:0.11.1"
+        "ProductVersion" = "8:0.12.0"
         "Manufacturer" = "8:GazeParserProject"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -1087,11 +1087,11 @@
         }
         "MergeModule"
         {
-            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_E633DE183C4140E8BE859AB7F33521AF"
+            "{CEE29DC0-9FBA-4B99-8D47-5BC643D9B626}:_189D6B9B8D734A86B6656D578ECD8C9E"
             {
             "UseDynamicProperties" = "11:TRUE"
             "IsDependency" = "11:FALSE"
-            "SourcePath" = "8:C:\\Program Files (x86)\\Common Files\\Merge Modules\\Microsoft_VC120_CRT_x64.msm"
+            "SourcePath" = "8:C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Redist\\MSVC\\v142\\MergeModules\\Microsoft_VC142_CRT_x64.msm"
                 "Properties"
                 {
                 }
