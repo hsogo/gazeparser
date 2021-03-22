@@ -2,12 +2,6 @@
 doc_files =\
 	doc/objects.inv \
 	doc/.buildinfo \
-	doc/_sources/keys.txt \
-	doc/_sources/online.txt \
-	doc/_sources/configdir.txt \
-	doc/_sources/index.txt \
-	doc/_sources/setup_guide.txt \
-	doc/_sources/commandline.txt \
 	doc/searchindex.js \
 	doc/index.html \
 	doc/commandline.html \
@@ -18,11 +12,15 @@ doc_files =\
 	doc/_static/ajax-loader.gif \
 	doc/_static/pygments.css \
 	doc/_static/jquery-1.11.1.js \
+	doc/_static/language_data.js \
 	doc/_static/underscore.js \
 	doc/_static/websupport.js \
 	doc/_static/minus.png \
+	doc/_static/documentation_options.js \
 	doc/_static/alabaster.css \
+	doc/_static/jquery-3.2.1.js \
 	doc/_static/basic.css \
+	doc/_static/jquery-3.5.1.js \
 	doc/_static/up-pressed.png \
 	doc/_static/underscore-1.3.1.js \
 	doc/_static/searchtools.js \
@@ -35,6 +33,7 @@ doc_files =\
 	doc/_static/doctools.js \
 	doc/_static/comment-bright.png \
 	doc/search.html \
+	doc/params.html \
 	doc/setup_guide.html \
 	doc/_images/example001.jpg \
 	doc/_images/setup005.png \

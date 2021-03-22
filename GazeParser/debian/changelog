@@ -4,11 +4,15 @@ gazeparser (0.12.0) unstable; urgency=medium
   * Calibration target flashes during sample acquisition.
   * Add getCameraIFI(), getBufferSizeInfo() and getTrackerInfo() to GazeParser.TrackingTools.
 
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Fri, 19 Mar 2020 18:00:00 +0900
+
 gazeparser (0.11.1) unstable; urgency=medium
 
   * Bug in calcurating threshold for Microsaccade detection is fixed.
   * Bug in getCameraImageSize() is fixed.
   * "config" option is added to Dummy backend of GazeParser.TrackingTools.
+
+ -- Hiroyuki Sogo <hsogo@ehime-u.ac.jp>  Sat, 30 Nov 2019 18:00:00 +0900
 
 gazeparser (0.11.0) unstable; urgency=medium
 
