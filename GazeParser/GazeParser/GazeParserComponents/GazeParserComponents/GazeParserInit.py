@@ -14,10 +14,6 @@ except:
     from psychopy.app.builder.components._base import BaseVisualComponent, Param
 from os import path
 
-thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
-iconFile = path.join(thisFolder,'GazeParserInit.png')
-tooltip = 'GazeParserInit: initialize GazeParser.TrackingTools'
-
 # want a complete, ordered list of codeParams in Builder._BaseParamsDlg, best to define once:
 paramNames = ['gpconfigfile', 'trconfigfile', 'ipaddress', 'calarea', 'caltargetpos', 'datafile', 'calibration', 'units', 'mode', 'modevar']
 
@@ -45,6 +41,10 @@ if GazeParser.config.VIEWING_DISTANCE != win.monitor.getDistance():
 class GazeParserInitComponent(BaseVisualComponent):
     """Initialize GazeParser.TrackingTools"""
     categories = ['GazeParser']
+    thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
+    iconFile = path.join(thisFolder,'GazeParserInit.png')
+    tooltip = 'GazeParserInit: initialize GazeParser.TrackingTools'
+    
     def __init__(self, exp, parentName, name='GazeParserInit',gpconfigfile="",trconfigfile="",ipaddress="",calarea="[-1.0,-1.0,1.0,1.0]",
                  caltargetpos="[[0.0,0.0],[-0.8,-0.8],[-0.8,0.0],[-0.8,0.8],[0.0,-0.8],[0.0,0.0],[0.0,0.8],[0.8,-0.8],[0.8,0.0],[0.8,0.8]]",
                  datafile="data.csv",mode='Normal',modevar='',units="pix",calibration=True,useMonitorInfo=True,fitImageBuffer=True):

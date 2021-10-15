@@ -14,9 +14,6 @@ except:
     from psychopy.app.builder.components._base import BaseVisualComponent, Param
 from os import path
 
-thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
-iconFile = path.join(thisFolder,'GazeParserCheck.png')
-tooltip = 'GazeParserCheck: Checking fixation with GazeParser.TrackingTools'
 
 # want a complete, ordered list of codeParams in Builder._BaseParamsDlg, best to define once:
 paramNames = ['pos', 'maxtry', 'permerror', 'key', 'mousebutton', 'units', 'mode', 'message1', 'message2', 'message3']
@@ -25,6 +22,10 @@ paramNames = ['pos', 'maxtry', 'permerror', 'key', 'mousebutton', 'units', 'mode
 class GazeParserCheckComponent(BaseVisualComponent):
     """Checking fixation with GazeParser.TrackingTools"""
     categories = ['GazeParser']
+    thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
+    iconFile = path.join(thisFolder,'GazeParserCheck.png')
+    tooltip = 'GazeParserCheck: Checking fixation with GazeParser.TrackingTools'
+    
     def __init__(self, exp, parentName, name='GazeParserCheck', pos=[0,0], maxtry=3, permerror=0.1, key="'space'",
                  mousebutton=0, units="pix", mode='check', message1="", message2="", message3=""):
         super(GazeParserCheckComponent, self).__init__(exp, parentName, name)

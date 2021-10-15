@@ -15,9 +15,6 @@ except:
 from os import path
 
 
-thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
-iconFile = path.join(thisFolder,'GazeParserGetPos.png')
-tooltip = 'GazeParserGetPos: sending a GetPos to SimpleGazeTracker'
 
 # want a complete, ordered list of codeParams in Builder._BaseParamsDlg, best to define once:
 paramNames = ['filler','binocular','ma']
@@ -25,6 +22,10 @@ paramNames = ['filler','binocular','ma']
 class GazeParserGetPosComponent(BaseVisualComponent):
     """Recording with GazeParser.TrackingTools"""
     categories = ['GazeParser']
+    thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
+    iconFile = path.join(thisFolder,'GazeParserGetPos.png')
+    tooltip = 'GazeParserGetPos: sending a GetPos to SimpleGazeTracker'
+
     def __init__(self, exp, parentName, name='GazeParserGetPos',
                 filler='-10000', binocular='Average', ma=1, units='from exp settings'):
         self.type='GazeParserGetPos'

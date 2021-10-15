@@ -14,16 +14,16 @@ except:
     from psychopy.app.builder.components._base import *
 from os import path
 
-thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
-iconFile = path.join(thisFolder,'GazeParserRec.png')
-tooltip = 'GazeParserRec: recording with GazeParser.TrackingTools'
-
 # want a complete, ordered list of codeParams in Builder._BaseParamsDlg, best to define once:
 paramNames = ['startmsg', 'stopmsg']
 
 class GazeParserRecComponent(BaseComponent):
     """Recording with GazeParser.TrackingTools"""
     categories = ['GazeParser']
+    thisFolder = path.abspath(path.dirname(__file__))#the absolute path to the folder containing this path
+    iconFile = path.join(thisFolder,'GazeParserRec.png')
+    tooltip = 'GazeParserRec: recording with GazeParser.TrackingTools'
+
     def __init__(self, exp, parentName, name='GazeParserRec', startmsg='routine start', stopmsg='routine end'):
         super(GazeParserRecComponent, self).__init__(exp, parentName, name)
         
