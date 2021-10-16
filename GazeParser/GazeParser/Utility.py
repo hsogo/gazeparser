@@ -20,6 +20,7 @@ import zlib
 import shutil
 import GazeParser
 import GazeParser.Core
+from packaging import version
 
 
 def save(filename, data, additionalData=None):
@@ -110,13 +111,14 @@ def load(filename, checkVersion=True):
             db.close()
     
     # if libraryVersion > dataVersion:
-    if compareVersion(D[0].__version__, GazeParser.__version__) < 0 and checkVersion:
+    #if compareVersion(D[0].__version__, GazeParser.__version__) < 0 and checkVersion:
+    if checkVersion and version.parse(D[0].__version__) < version.parse(GazeParser.__version__):
         lackingattributes = checkAttributes(D[0])
         if len(lackingattributes) > 0:
-            print('Version of the data file is older than GazeParser version. Some features may not work correctly. (lacking attributes:%s)' % ','.join(lackingattributes))
+            print('Version of the data file is older than GazeParser version. Some features may not work. (lacking attributes:%s)' % ','.join(lackingattributes))
     return (D, A)
 
-
+'''
 def compareVersion(testVersion, baseVersion):
     """
     Compare Version numbers. If testVersion is newer than baseVersion, positive
@@ -139,7 +141,7 @@ def compareVersion(testVersion, baseVersion):
 
     # equal
     return 0
-
+'''
 
 def join(newFileName, fileList):
     """
