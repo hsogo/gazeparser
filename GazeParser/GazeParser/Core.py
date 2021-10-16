@@ -1686,8 +1686,11 @@ class GazeData(object):
                                 self.__class__.__name__)
 
         if hasattr(self, 'recordingDate'):
-            date = '{:d}/{:02d}/{:02d}-{:02d}:{:02d}:{:02d}'.format(*self.recordingDate)
-            msg += '{}, {}, {:.1f}s>'.format(date, self.recordedEye, self.T[-1]/1000.0)
+            try:
+                date = '{:d}/{:02d}/{:02d}-{:02d}:{:02d}:{:02d}'.format(*self.recordingDate)
+                msg += '{}, {}, {:.1f}s>'.format(date, self.recordedEye, self.T[-1]/1000.0)
+            except:
+                msg += 'invalid_date, {}, {:.1f}s>'.format(self.recordedEye, self.T[-1]/1000.0)
         else:
             msg += 'no_date, {}, {:.1f}s>'.format(self.recordedEye, self.T[-1]/1000.0)
         
