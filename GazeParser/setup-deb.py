@@ -36,9 +36,9 @@ paths, calculating saccade trajectory curvature and so on.
       url='http://sourceforge.net/p/gazeparser/',
       license='GNU GPL',
       install_requires=[],
-      packages=['GazeParser', 'GazeParser.app'],
+      packages=['GazeParser', 'GazeParser.app', 'GazeParser.TrackingTools'],
       package_data={'GazeParser': ['*.cfg','GazeParserComponents/*.*'],
                     'GazeParser.app': ['img/*.png', 'img/*.ico',
                                        'img/*.gif', '*.cfg']},
-      scripts=['gazeparser_viewer','setup_for_psychopy.py']
+      scripts=['gazeparser_viewer']
       )

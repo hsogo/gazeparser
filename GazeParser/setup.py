@@ -36,12 +36,12 @@ See http://sourceforge.net/p/gazeparser/ for detail.
       author_email='hsogo12600@gmail.com',
       url='http://sourceforge.net/p/gazeparser/',
       license='GNU GPL',
-      install_requires=['scipy', 'numpy', 'matplotlib'],
+      install_requires=['scipy', 'numpy', 'matplotlib', 'packaging'],
       packages=['GazeParser', 'GazeParser.app', 'GazeParser.TrackingTools'],
       package_data={'GazeParser': ['LICENSE.txt', '*.cfg',
                                    'GazeParserComponents/*.*',
                                    'GazeParserComponents/GazeParserComponents/*.*'],
                     'GazeParser.app': ['img/*.png', 'img/*.ico',
                                        'img/*.gif', '*.cfg']},
-      scripts=['GazeParser_post_install.py', 'setup_for_psychopy.py']
+      scripts=['GazeParser_post_install.py']
       )
