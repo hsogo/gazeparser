@@ -81,6 +81,8 @@ class Config(object):
                     print('Warning: configuration file (%s) was not found. Default parameters were set.' % ConfigFile)
                     self.ConfigFile = None
         self.ConfigFile = ConfigFile
+        if not os.path.isfile(ConfigFile):
+            raise ValueError('%s does not exit.' % ConfigFile)
 
         cfgp.read(ConfigFile)
         optionDict = {}
