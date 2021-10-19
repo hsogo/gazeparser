@@ -20,8 +20,8 @@ def test_convert():
     (D_testconf01_usefp, A) = GazeParser.load(wd/'data/test01_testconf01_usefp.db')
     (D_testconf01_nofp, A) = GazeParser.load(wd/'data/test01_testconf01_nofp.db')
 
-    #(D_ref, A) = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
-    #assert D_ref == D_noconf_usefp
+    (D_ref, A) = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
+    assert D_ref == D_noconf_usefp
 
     (D_ref, A) = GazeParser.load(wd/'data/test01_testconf01_usefp_ref.db')
     assert D_ref == D_testconf01_usefp
