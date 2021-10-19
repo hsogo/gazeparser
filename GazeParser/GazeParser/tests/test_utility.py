@@ -2,14 +2,12 @@ import GazeParser
 import GazeParser.Utility
 import numpy as np
 
-def test_compareVersion():
-    assert GazeParser.Utility.compareVersion('0.10.1', '0.10.0') == 1
-    assert GazeParser.Utility.compareVersion('0.11.1', '0.11.1') == 0
-    assert GazeParser.Utility.compareVersion('0.10.0', '0.10.1') == -1
+import pathlib
+wd = pathlib.Path(__file__).resolve().parent
 
 
 def test_checkAttributes():
-    (D, A) = GazeParser.load('data/test_0.6.5.db')
+    (D, A) = GazeParser.load(wd/'data/test_0.6.5.db')
     assert ['_CalPointData', '_USBIOChannels', '_USBIOData', '_recordingDate'].sort() == GazeParser.Utility.checkAttributes(D[0]).sort()
 
 

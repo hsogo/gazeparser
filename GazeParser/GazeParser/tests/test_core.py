@@ -3,6 +3,9 @@
 import GazeParser
 import numpy as np
 
+import pathlib
+wd = pathlib.Path(__file__).resolve().parent
+
 sac_starttime = [
     70.045,
     1452.678,
@@ -139,7 +142,7 @@ msg_text = [
     u'end trial']
 
 def test_relative():
-    D, A = GazeParser.load('data/test01_noconf_usefp_ref.db')
+    D, A = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
 
     for i in range(D[0].nSac):
         assert sac_starttime[i] == D[0].Sac[i].startTime
@@ -163,7 +166,7 @@ def test_relative():
         assert e.relativeStartTime(D[0].Msg[i].time) == relative_msg[i-1]
 
 def test_prev_next():
-    D, A = GazeParser.load('data/test01_noconf_usefp_ref.db')
+    D, A = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
 
     e = D[0].Msg[0]
     i = 0
@@ -196,7 +199,7 @@ def test_prev_next():
     assert e.startTime == 0.0
 
 def test_message():
-    D, A = GazeParser.load('data/test01_noconf_usefp_ref.db')
+    D, A = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
 
     assert D[0].getMessageTextList() == msg_text
     
@@ -209,7 +212,7 @@ def test_message():
     
 
 def test_saccade():
-    D, A = GazeParser.load('data/test01_noconf_usefp_ref.db')
+    D, A = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
 
     dur = D[0].getSacDur()
     for i in range(D[0].nSac):
@@ -230,7 +233,7 @@ def test_saccade():
     # getSacTraj
 
 def test_fixation():
-    D, A = GazeParser.load('data/test01_noconf_usefp_ref.db')
+    D, A = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
 
     dur = D[0].getFixDur()
     for i in range(D[0].nFix):

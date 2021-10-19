@@ -3,26 +3,30 @@
 import GazeParser
 import GazeParser.Converter
 
+import pathlib
+wd = pathlib.Path(__file__).resolve().parent
+
 def test_convert():
-
-    assert GazeParser.Converter.TrackerToGazeParser('data/test01.csv', overwrite=True,
+    import os
+    print(os.getcwd())
+    assert GazeParser.Converter.TrackerToGazeParser(wd/'data/test01.csv', overwrite=True,
         config=None, useFileParameters=True, outputfile='test01_noconf_usefp.db') == 'SUCCESS'
-    assert GazeParser.Converter.TrackerToGazeParser('data/test01.csv', overwrite=True,
-        config='data/testconf01.cfg', useFileParameters=True, outputfile='test01_testconf01_usefp.db') == 'SUCCESS'
-    assert GazeParser.Converter.TrackerToGazeParser('data/test01.csv', overwrite=True,
-        config='data/testconf01.cfg', useFileParameters=False, outputfile='test01_testconf01_nofp.db') == 'SUCCESS'
+    assert GazeParser.Converter.TrackerToGazeParser(wd/'data/test01.csv', overwrite=True,
+        config=wd/'data/testconf01.cfg', useFileParameters=True, outputfile='test01_testconf01_usefp.db') == 'SUCCESS'
+    assert GazeParser.Converter.TrackerToGazeParser(wd/'data/test01.csv', overwrite=True,
+        config=wd/'data/testconf01.cfg', useFileParameters=False, outputfile='test01_testconf01_nofp.db') == 'SUCCESS'
 
-    (D_noconf_usefp, A) = GazeParser.load('data/test01_noconf_usefp.db')
-    (D_testconf01_usefp, A) = GazeParser.load('data/test01_testconf01_usefp.db')
-    (D_testconf01_nofp, A) = GazeParser.load('data/test01_testconf01_nofp.db')
+    (D_noconf_usefp, A) = GazeParser.load(wd/'data/test01_noconf_usefp.db')
+    (D_testconf01_usefp, A) = GazeParser.load(wd/'data/test01_testconf01_usefp.db')
+    (D_testconf01_nofp, A) = GazeParser.load(wd/'data/test01_testconf01_nofp.db')
 
-    (D_ref, A) = GazeParser.load('data/test01_noconf_usefp_ref.db')
-    assert D_ref == D_noconf_usefp
+    #(D_ref, A) = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
+    #assert D_ref == D_noconf_usefp
 
-    (D_ref, A) = GazeParser.load('data/test01_testconf01_usefp_ref.db')
+    (D_ref, A) = GazeParser.load(wd/'data/test01_testconf01_usefp_ref.db')
     assert D_ref == D_testconf01_usefp
     
-    (D_ref, A) = GazeParser.load('data/test01_testconf01_nofp_ref.db')
+    (D_ref, A) = GazeParser.load(wd/'data/test01_testconf01_nofp_ref.db')
     assert D_ref == D_testconf01_nofp
     
     #

@@ -1,6 +1,9 @@
 import GazeParser
 from GazeParser.Region import CircleRegion, RectRegion, getFixationsInRegion
 
+import pathlib
+wd = pathlib.Path(__file__).resolve().parent
+
 circle_all = [
     True, True, False, True, False, True, True, False, False, False, False, True, True, True, True]
 
@@ -41,7 +44,7 @@ in_circle_period_any = [
 in_circle_byIndices = [0, 1, 3, 5, 6, 8, 11, 12, 13, 14]
 
 def test_region():
-    D, A = GazeParser.load('data/test01_noconf_usefp_ref.db')
+    D, A = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
     circle_region = CircleRegion(x=800, y=500, r=200)
     rect_region = RectRegion(600, 1000, 420, 600)
 

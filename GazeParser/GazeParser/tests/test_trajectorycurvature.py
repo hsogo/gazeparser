@@ -3,6 +3,9 @@ import numpy as np
 from GazeParser.TrajectoryCurvature import \
     getAreaCurvature, getInitialDirection, getMaximumDeviation, getRotatedTrajectory
 
+import pathlib
+wd = pathlib.Path(__file__).resolve().parent
+
 float_tolerance = 0.0000000001
 
 area_curvature = [
@@ -72,7 +75,7 @@ max_dev = [
 
 
 def test_curvature():
-    D, A = GazeParser.load('data/test01_noconf_usefp_ref.db')
+    D, A = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
     for i in range(D[0].nSac):
         traj = D[0].Sac[i].getTraj()
         rtraj = getRotatedTrajectory(traj)

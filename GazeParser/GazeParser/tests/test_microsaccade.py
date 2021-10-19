@@ -2,6 +2,9 @@ import GazeParser
 from GazeParser.MicroSaccade import MicroSacc
 import numpy as np
 
+import pathlib
+wd = pathlib.Path(__file__).resolve().parent
+
 ms_index = np.array([
            5.,    10.,    15.,    20.,    31.,   582.,   745.,   768.,
          937.,   964.,  1087.,  1127.,  1192.,  1343.,  1428.,  1757.,
@@ -13,7 +16,7 @@ def test_microsacc():
 
     import GazeParser
     from GazeParser.MicroSaccade import MicroSacc
-    D, A = GazeParser.load('data/test01_noconf_usefp_ref.db')
+    D, A = GazeParser.load(wd/'data/test01_noconf_usefp_ref.db')
 
     m = MicroSacc(D[0].L, 400)
 
