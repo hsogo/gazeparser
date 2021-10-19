@@ -2511,7 +2511,7 @@ class mainFrame(wx.Frame):
         self.mainToolbar.AddTool(ID_PREV_TR, 'Prev', wx.Bitmap(os.path.join(iconImgPath,'previous.png')), wx.Bitmap(os.path.join(iconImgPath,'previous_disabled.png')))
         self.tcNTrials = wx.TextCtrl(self.mainToolbar, wx.ID_ANY, '(no data)', style=wx.TE_RIGHT)
         self.tcNTrials.Enable(False)
-        self.tcJumpTo = wx.TextCtrl(self.mainToolbar, ID_JUMP_TO, style=wx.TE_RIGHT)
+        self.tcJumpTo = wx.TextCtrl(self.mainToolbar, ID_JUMP_TO, style=wx.TE_RIGHT|wx.TE_PROCESS_ENTER)
         self.tcJumpTo.Bind(wx.EVT_TEXT_ENTER, self.jumpToTrial)
         self.mainToolbar.AddControl(self.tcNTrials)
         self.mainToolbar.AddControl(self.tcJumpTo)
