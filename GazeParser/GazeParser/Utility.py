@@ -100,7 +100,7 @@ def load(filename, checkVersion=True):
                 import bsddb3
             except ImportError:
                 raise RuntimeError('bsddb3 is necessary to read old GazePaser data file in Python3.')
-            db = bsddb3.hashopen(filename, 'r')
+            db = bsddb3.hashopen(str(filename), 'r')
             s = zlib.decompress(db[b'GazeData'])
             D = pickle.loads(s, encoding='latin-1')
             if b'AdditionalData' in db:
@@ -118,30 +118,6 @@ def load(filename, checkVersion=True):
             print('Version of the data file is older than GazeParser version. Some features may not work. (lacking attributes:%s)' % ','.join(lackingattributes))
     return (D, A)
 
-'''
-def compareVersion(testVersion, baseVersion):
-    """
-    Compare Version numbers. If testVersion is newer than baseVersion, positive
-    number is returned. If testVersion is older than baseVersion, negative number
-    is returned. Otherwise, 0 is returned.
-
-    :param str testVersion:
-        A string which represents version number.
-    :param str baseVersion:
-        A string which represents version number.
-    :return:
-        See above.
-    """
-    baseVer = list(map(int, baseVersion.split('.')))
-    testVer = list(map(int, testVersion.split('.')))
-    if testVer > baseVer:
-        return 1
-    elif testVer < baseVer:
-        return -1
-
-    # equal
-    return 0
-'''
 
 def join(newFileName, fileList):
     """
