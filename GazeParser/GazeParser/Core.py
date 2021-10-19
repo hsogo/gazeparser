@@ -154,7 +154,7 @@ class SaccadeData(object):
         if not isinstance(other, SaccadeData):
             return False
         for attr in ('startTime', 'endTime', 'duration', 'amplitude', 'length'):
-            if getattr(self, attr) != getattr(other, attr):
+            if getattr(self, attr) - getattr(other, attr) > float_tolerance:
                 return False
         for attr in ('direction',):
             # return value of arctan2() may be different between 32bit and 64bit Python.
