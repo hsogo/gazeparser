@@ -21,6 +21,11 @@ except:
     from scipy.stats import nanmean
 from scipy.signal import butter, lfilter, lfilter_zi, filtfilt
 
+try:
+    import pathlib
+    has_pathlib = True
+except:
+    has_pathlib = False
 
 def parseBlinkCandidates(T, HVs, config):
     index = 0
@@ -482,6 +487,9 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
         elif sys.version_info[0] == 2 and isinstance(config, unicode):
             if verbose: print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif has_pathlib and isinstance(config, pathlib.Path):
+            if verbose: print('Load configuration file: %s' % str(config))
+            config = GazeParser.Configuration.Config(ConfigFile=str(config))
         elif config is None:
             if verbose: print('Use default configuration.')
             config = GazeParser.Configuration.Config()
