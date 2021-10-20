@@ -29,7 +29,8 @@ except:
 
 def parseBlinkCandidates(T, HVs, config):
     index = 0
-    blinkCandidates = []
+    blinkCandIndex = []
+    blinkCandDur = []
     isBlink = False
     blinkStart = None
 
@@ -40,7 +41,8 @@ def parseBlinkCandidates(T, HVs, config):
         if isBlink:
             if not nanList[index]:
                 dur = T[index-1]-T[blinkStart]
-                blinkCandidates.append([blinkStart, index, dur])
+                blinkCandIndex.append([blinkStart, index])
+                blinkCandDur.append(dur)
                 isBlink = False
         else:
             if nanList[index]:
@@ -52,10 +54,10 @@ def parseBlinkCandidates(T, HVs, config):
     # check last blink
     if isBlink:
         dur = T[index]-T[blinkStart]
-        blinkCandidates.append([blinkStart, index, dur])
-    blinkCandidates = numpy.array(blinkCandidates, dtype=numpy.int)
+        blinkCandIndex.append([blinkStart, index])
+        blinkCandDur.append(dur)
 
-    return blinkCandidates
+    return numpy.array(blinkCandIndex, dtype=numpy.int), numpy.array(blinkCandDur)
 
 
 def parseSaccadeCandidatesWithVACriteria(T, HV, config):
@@ -75,14 +77,16 @@ def parseSaccadeCandidatesWithVACriteria(T, HV, config):
 
     index = 0
     isSaccade = False
-    saccadeCandidates = []
+    SacCandIndex = []
+    SacCandDur = []
     saccadeStart = None
     while index < len(absAcceleration):
         if isSaccade:
             if numpy.isnan(absVelocity[index]) or absVelocity[index] <= config.SACCADE_VELOCITY_THRESHOLD:
                 dur = T[index-1]-T[saccadeStart]
                 # saccadeCandidates.append([saccadeStart, index, dur, absAcceleration[saccadeStart-1], absAcceleration[index-1]])
-                saccadeCandidates.append([saccadeStart, index, dur])
+                SacCandIndex.append([saccadeStart, index])
+                SacCandDur.append(dur)
                 isSaccade = False
         else:
             if absVelocity[index] > config.SACCADE_VELOCITY_THRESHOLD and absAcceleration[index-1] > config.SACCADE_ACCELERATION_THRESHOLD:
@@ -95,10 +99,10 @@ def parseSaccadeCandidatesWithVACriteria(T, HV, config):
     if isSaccade:
         dur = T[index]-T[saccadeStart]
         # saccadeCandidates.append([saccadeStart, index-1, dur, absAcceleration[saccadeStart-1], absAcceleration[index-1]])
-        saccadeCandidates.append([saccadeStart, index-1, dur])
-    saccadeCandidates = numpy.array(saccadeCandidates, dtype=numpy.int)
+        SacCandIndex.append([saccadeStart, index-1])
+        SacCandDur.append(dur)
 
-    return saccadeCandidates
+    return numpy.array(SacCandIndex, dtype=numpy.int), numpy.array(SacCandDur)
 
 
 def buildEventListBinocular(T, LHV, RHV, config):
@@ -106,108 +110,128 @@ def buildEventListBinocular(T, LHV, RHV, config):
     deg2pix = numpy.array([config.DOTS_PER_CENTIMETER_H, config.DOTS_PER_CENTIMETER_V])/cm2deg
     pix2deg = 1.0/deg2pix
 
-    saccadeCandidatesL = parseSaccadeCandidatesWithVACriteria(T, LHV, config)
-    saccadeCandidatesR = parseSaccadeCandidatesWithVACriteria(T, RHV, config)
-    blinkCandidates = parseBlinkCandidates(T, numpy.hstack((LHV, RHV)), config)
+    sacCandL, sacCandDurL = parseSaccadeCandidatesWithVACriteria(T, LHV, config)
+    sacCandR, sacCandDurR = parseSaccadeCandidatesWithVACriteria(T, RHV, config)
+    blinkCand, blinkCandDur = parseBlinkCandidates(T, numpy.hstack((LHV, RHV)), config)
 
     # delete small saccade first, then check fixation
     # check saccade duration
-    if len(saccadeCandidatesL) > 0:
-        idx = numpy.where(saccadeCandidatesL[:, 2] > config.SACCADE_MINIMUM_DURATION)[0]
+    if len(sacCandL) > 0:
+        idx = numpy.where(sacCandDurL > config.SACCADE_MINIMUM_DURATION)[0]
         if len(idx) > 0:
-            saccadeCandidatesL = saccadeCandidatesL[idx, :]
+            sacCandL = sacCandL[idx, :]
+            sacCandDurL = sacCandDurL[idx]
         else:
-            saccadeCandidatesL = []
-    if len(saccadeCandidatesR) > 0:
-        idx = numpy.where(saccadeCandidatesR[:, 2] > config.SACCADE_MINIMUM_DURATION)[0]
+            sacCandL = []
+            sacCandDurL = []
+    if len(sacCandR) > 0:
+        idx = numpy.where(sacCandDurR > config.SACCADE_MINIMUM_DURATION)[0]
         if len(idx) > 0:
-            saccadeCandidatesR = saccadeCandidatesR[idx, :]
+            sacCandR = sacCandR[idx, :]
+            sacCandDurR = sacCandDurR[idx]
         else:
-            saccadeCandidatesR = []
+            sacCandR = []
+            sacCandDurR = []
 
-    saccadeCandidates = []
+    sacCand = []
+    sacCandDur = []
     # check binocular coincidence
-    for index in range(len(saccadeCandidatesL)):
-        overlap = numpy.where((saccadeCandidatesR[:, 1] >= saccadeCandidatesL[index, 0]) &
-                              (saccadeCandidatesR[:, 0] <= saccadeCandidatesL[index, 1]))[0]
+    for idx in range(len(sacCandL)):
+        overlap = numpy.where((sacCandR[:, 1] >= sacCandL[idx, 0]) &
+                              (sacCandR[:, 0] <= sacCandL[idx, 1]))[0]
         if len(overlap) > 0:
-            startIndex = min(saccadeCandidatesL[index, 0], saccadeCandidatesR[overlap[0], 0])
-            endIndex = max(saccadeCandidatesL[index, 1], saccadeCandidatesR[overlap[-1], 1])
-            if len(saccadeCandidates) > 0 and saccadeCandidates[-1][1] > startIndex:
+            startIndex = min(sacCandL[idx, 0], sacCandR[overlap[0], 0])
+            endIndex = max(sacCandL[idx, 1], sacCandR[overlap[-1], 1])
+            if len(sacCand) > 0 and sacCand[-1][1] > startIndex:
                 pass
             else:
-                saccadeCandidates.append([startIndex, endIndex, T[endIndex]-T[startIndex]])
-    saccadeCandidates = numpy.array(saccadeCandidates)
+                sacCand.append([startIndex, endIndex])
+                sacCandDur.append(T[endIndex]-T[startIndex])
+    sacCand = numpy.array(sacCand, dtype=numpy.int)
+    sacCandDur = numpy.array(sacCandDur)
 
     # amplitude
     amplitudeCheckList = []
-    for idx in range(len(saccadeCandidates)):
-        ampL = numpy.linalg.norm((LHV[saccadeCandidates[idx, 1], :]-LHV[saccadeCandidates[idx, 0], :])*pix2deg)
-        ampR = numpy.linalg.norm((RHV[saccadeCandidates[idx, 1], :]-RHV[saccadeCandidates[idx, 0], :])*pix2deg)
+    for idx in range(len(sacCand)):
+        ampL = numpy.linalg.norm((LHV[sacCand[idx, 1], :]-LHV[sacCand[idx, 0], :])*pix2deg)
+        ampR = numpy.linalg.norm((RHV[sacCand[idx, 1], :]-RHV[sacCand[idx, 0], :])*pix2deg)
         if (ampL+ampR)/2.0 >= config.SACCADE_MINIMUM_AMPLITUDE:
             amplitudeCheckList.append(idx)
-    saccadeCandidates = saccadeCandidates[amplitudeCheckList, :]
+    sacCand = sacCand[amplitudeCheckList, :]
+    sacCandDur = sacCandDur[amplitudeCheckList]
 
     # find fixations
     # at first, check whether data starts with fixation or saccade.
-    if saccadeCandidates[0, 0] > 0:
-        dur = T[saccadeCandidates[0, 0]-1]-T[0]
-        fixationCandidates = [[0, saccadeCandidates[0, 0]-1, dur]]
+    if sacCand[0, 0] > 0:
+        dur = T[sacCand[0, 0]-1]-T[0]
+        fixCand = [[0, sacCand[0, 0]-1]]
+        fixCandDur = [dur]
     else:
-        fixationCandidates = []
+        fixCand = []
+        fixCandDur = []
 
     #
-    for index in range(saccadeCandidates.shape[0]-1):
-        dur = T[saccadeCandidates[index+1, 0]-1]-T[saccadeCandidates[index, 1]-1]
-        fixationCandidates.append([saccadeCandidates[index, 1], saccadeCandidates[index+1, 0], dur])
+    for idx in range(sacCand.shape[0]-1):
+        dur = T[sacCand[idx+1, 0]-1]-T[sacCand[idx, 1]-1]
+        fixCand.append([sacCand[idx, 1], sacCand[idx+1, 0]])
+        fixCandDur.append(dur)
 
     # check last fixation
-    if saccadeCandidates[-1, 1] != len(T)-1:
-        dur = T[-1] - T[saccadeCandidates[-1, 1]]
-        fixationCandidates.append([saccadeCandidates[-1, 1], len(T)-1, dur])
-    fixationCandidates = numpy.array(fixationCandidates, dtype=numpy.int)
+    if sacCand[-1, 1] != len(T)-1:
+        dur = T[-1] - T[sacCand[-1, 1]]
+        fixCand.append([sacCand[-1, 1], len(T)-1])
+        fixCandDur.append(dur)
+    fixCand = numpy.array(fixCand)
+    fixCandDur = numpy.array(fixCandDur)
 
     # merge small inter-saccadic fixation to saccade.
-    tooShortFixation = numpy.where(fixationCandidates[:, 2] <= config.FIXATION_MINIMUM_DURATION)[0]
-    for index in tooShortFixation:
-        prevSaccadeIndex = numpy.where(saccadeCandidates[:, 1] == fixationCandidates[index, 0])[0]
+    tooShortFixation = numpy.where(fixCandDur <= config.FIXATION_MINIMUM_DURATION)[0]
+    for idx in tooShortFixation:
+        prevSaccadeIndex = numpy.where(sacCand[:, 1] == fixCand[idx, 0])[0]
         if len(prevSaccadeIndex) != 1:
             continue
         nextSaccadeIndex = prevSaccadeIndex+1
-        if nextSaccadeIndex >= saccadeCandidates.shape[0]:  # there is no following saccade.
+        if nextSaccadeIndex >= sacCand.shape[0]:  # there is no following saccade.
             continue
-        saccadeCandidates[prevSaccadeIndex, 1] = saccadeCandidates[nextSaccadeIndex, 1]
-        saccadeCandidates[prevSaccadeIndex, 2] = T[int(saccadeCandidates[nextSaccadeIndex, 1])]-T[int(saccadeCandidates[prevSaccadeIndex, 0])]
-        saccadeCandidates = numpy.delete(saccadeCandidates, nextSaccadeIndex, 0)
+        sacCand[prevSaccadeIndex, 1] = sacCand[nextSaccadeIndex, 1]
+        sacCandDur[prevSaccadeIndex] = T[sacCand[nextSaccadeIndex, 1]]-T[sacCand[prevSaccadeIndex, 0]]
+        sacCand = numpy.delete(sacCand, nextSaccadeIndex, 0)
+        sacCandDur = numpy.delete(sacCandDur, nextSaccadeIndex, 0)
 
-    fixationCandidates = fixationCandidates[fixationCandidates[:, 2] > config.FIXATION_MINIMUM_DURATION, :]
+    idx = fixCandDur > config.FIXATION_MINIMUM_DURATION
+    fixCand = fixCand[idx, :]
+    fixCandDur = fixCandDur[idx]
 
     # find blinks
     # TODO: check break of fixation and saccades by blink.
-    if len(blinkCandidates) > 0:
-        blinkCandidates = blinkCandidates[blinkCandidates[:, 2] > config.BLINK_MINIMUM_DURATION]
+    if len(blinkCandDur) > 0:
+        idx = blinkCandDur > config.BLINK_MINIMUM_DURATION
+        blinkCand = blinkCand[idx, :]
+        blinkCandDur = blinkCandDur[idx]
 
     # bulild lists
     saccadeList = []
     fixationList = []
     blinkList = []
 
-    for s in saccadeCandidates:
+    for i, s in enumerate(sacCand):
         sx = (LHV[s[0], 0]+RHV[s[0], 0])/2.0
         sy = (LHV[s[0], 1]+RHV[s[0], 1])/2.0
         ex = (LHV[s[1], 0]+RHV[s[1], 0])/2.0
         ey = (LHV[s[1], 1]+RHV[s[1], 1])/2.0
+        dur = sacCandDur[i]
         amp = numpy.linalg.norm((pix2deg[0]*(ex-sx), pix2deg[1]*(ey-sy)))
-        saccadeList.append(GazeParser.SaccadeData((T[s[0]], T[s[1]]), (s[2], sx, sy, ex, ey, amp), T))
+        saccadeList.append(GazeParser.SaccadeData((T[s[0]], T[s[1]]), (dur, sx, sy, ex, ey, amp), T))
 
     if not (numpy.isnan(LHV[:, 0]).all() and numpy.isnan(RHV[:, 0]).all()):  # Fixation is not appended if all values are none.
-        for f in fixationCandidates:
+        for i, f in enumerate(fixCand):
             cx = nanmean(numpy.hstack((LHV[f[0]:f[1]+1, 0], RHV[f[0]:f[1]+1, 0])))
             cy = nanmean(numpy.hstack((LHV[f[0]:f[1]+1, 1], RHV[f[0]:f[1]+1, 1])))
-            fixationList.append(GazeParser.FixationData((T[f[0]], T[f[1]]), (f[2], cx, cy), T))
+            dur = fixCandDur[i]
+            fixationList.append(GazeParser.FixationData((T[f[0]], T[f[1]]), (dur, cx, cy), T))
 
-    for b in blinkCandidates:
-        blinkList.append(GazeParser.BlinkData((T[b[0]], T[b[1]]), b[2], T))
+    for i, b in enumerate(blinkCand):
+        blinkList.append(GazeParser.BlinkData((T[b[0]], T[b[1]]), blinkCandDur[i], T))
 
     return (saccadeList, fixationList, blinkList)
 
@@ -217,90 +241,107 @@ def buildEventListMonocular(T, HV, config):
     deg2pix = numpy.array([config.DOTS_PER_CENTIMETER_H, config.DOTS_PER_CENTIMETER_V])/cm2deg
     pix2deg = 1.0/deg2pix
 
-    saccadeCandidates = parseSaccadeCandidatesWithVACriteria(T, HV, config)
-    blinkCandidates = parseBlinkCandidates(T, HV, config)
+    sacCand, sacCandDur = parseSaccadeCandidatesWithVACriteria(T, HV, config)
+    blinkCand, blinkCandDur = parseBlinkCandidates(T, HV, config)
 
     # delete small saccade first, then check fixation
-    if len(saccadeCandidates) > 0:
+    if len(sacCand) > 0:
         # check saccade duration
-        idx = numpy.where(saccadeCandidates[:, 2] > config.SACCADE_MINIMUM_DURATION)[0]
-        saccadeCandidates = saccadeCandidates[idx, :]
+        idx = numpy.where(sacCandDur > config.SACCADE_MINIMUM_DURATION)[0]
+        sacCand = sacCand[idx, :]
+        sacCandDur = sacCandDur[idx]
 
         # check saccade amplitude
         amplitudeCheckList = []
-        for idx in range(len(saccadeCandidates)):
-            if numpy.linalg.norm((HV[saccadeCandidates[idx, 1], :]-HV[saccadeCandidates[idx, 0], :])*pix2deg) >= config.SACCADE_MINIMUM_AMPLITUDE:
+        for idx in range(len(sacCand)):
+            if numpy.linalg.norm((HV[sacCand[idx, 1], :]-HV[sacCand[idx, 0], :])*pix2deg) >= config.SACCADE_MINIMUM_AMPLITUDE:
                 amplitudeCheckList.append(idx)
         if len(amplitudeCheckList) > 0:
-            saccadeCandidates = saccadeCandidates[amplitudeCheckList, :]
+            sacCand = sacCand[amplitudeCheckList, :]
+            sacCandDur = sacCandDur[amplitudeCheckList]
         else:
-            saccadeCandidates = []
+            sacCand = []
+            sacCandDur = []
 
     # find fixations
-    if len(saccadeCandidates) > 0:
+    if len(sacCand) > 0:
         # check whether data starts with fixation or saccade.
-        if saccadeCandidates[0, 0] > 0:
-            dur = T[saccadeCandidates[0, 0]-1]-T[0]
-            fixationCandidates = [[0, saccadeCandidates[0, 0]-1, dur]]
+        if sacCand[0, 0] > 0:
+            dur = T[sacCand[0, 0]-1]-T[0]
+            fixCand = [[0, sacCand[0, 0]-1]]
+            fixCandDur = [dur]
         else:
-            fixationCandidates = []
+            fixCand = []
+            fixCandDur = []
 
         #
-        for index in range(saccadeCandidates.shape[0]-1):
-            dur = T[saccadeCandidates[index+1, 0]-1]-T[saccadeCandidates[index, 1]-1]
-            fixationCandidates.append([saccadeCandidates[index, 1], saccadeCandidates[index+1, 0], dur])
+        for idx in range(sacCand.shape[0]-1):
+            dur = T[sacCand[idx+1, 0]-1]-T[sacCand[idx, 1]-1]
+            fixCand.append([sacCand[idx, 1], sacCand[idx+1, 0]])
+            fixCandDur.append(dur)
 
         # check last fixation
-        if saccadeCandidates[-1, 1] != len(T)-1:
-            dur = T[-1] - T[saccadeCandidates[-1, 1]]
-            fixationCandidates.append([saccadeCandidates[-1, 1], len(T)-1, dur])
-        fixationCandidates = numpy.array(fixationCandidates, dtype=numpy.int)
+        if sacCand[-1, 1] != len(T)-1:
+            dur = T[-1] - T[sacCand[-1, 1]]
+            fixCand.append([sacCand[-1, 1], len(T)-1])
+            fixCandDur.append(dur)
+        fixCand = numpy.array(fixCand, dtype=numpy.int)
+        fixCandDur = numpy.array(fixCandDur)
+
 
         # merge small inter-saccadic fixation to saccade.
-        tooShortFixation = numpy.where(fixationCandidates[:, 2] <= config.FIXATION_MINIMUM_DURATION)[0]
-        for index in tooShortFixation:
-            prevSaccadeIndex = numpy.where(saccadeCandidates[:, 1] == fixationCandidates[index, 0])[0]
+        tooShortFixation = numpy.where(fixCandDur <= config.FIXATION_MINIMUM_DURATION)[0]
+        for idx in tooShortFixation:
+            prevSaccadeIndex = numpy.where(sacCand[:, 1] == fixCand[idx, 0])[0]
             if len(prevSaccadeIndex) != 1:
                 continue
             nextSaccadeIndex = prevSaccadeIndex+1
-            if nextSaccadeIndex >= saccadeCandidates.shape[0]:  # there is no following saccade.
+            if nextSaccadeIndex >= sacCand.shape[0]:  # there is no following saccade.
                 continue
-            saccadeCandidates[prevSaccadeIndex, 1] = saccadeCandidates[nextSaccadeIndex, 1]
+            sacCand[prevSaccadeIndex, 1] = sacCand[nextSaccadeIndex, 1]
             # saccadeCandidates[prevSaccadeIndex, 4] = saccadeCandidates[nextSaccadeIndex, 4]
-            saccadeCandidates[prevSaccadeIndex, 2] = T[int(saccadeCandidates[nextSaccadeIndex, 1])]-T[int(saccadeCandidates[prevSaccadeIndex, 0])]
-            saccadeCandidates = numpy.delete(saccadeCandidates, nextSaccadeIndex, 0)
+            sacCandDur[prevSaccadeIndex,] = T[sacCand[nextSaccadeIndex, 1]]-T[sacCand[prevSaccadeIndex, 0]]
+            sacCand = numpy.delete(sacCand, nextSaccadeIndex, 0)
+            sacCandDur = numpy.delete(sacCandDur, nextSaccadeIndex, 0)
 
-        fixationCandidates = fixationCandidates[fixationCandidates[:, 2] > config.FIXATION_MINIMUM_DURATION, :]
+        idx = fixCandDur > config.FIXATION_MINIMUM_DURATION
+        fixCand = fixCand[idx, :]
+        fixCandDur = fixCandDur[idx]
 
     else:  # no saccade candidate is found.
-        fixationCandidates = numpy.array([[0, len(T)-1, T[-1]-T[0]]], dtype=numpy.int)
+        fixCand = numpy.array([[0, len(T)-1]])
+        fixCandDur = numpy.array([T[-1]-T[0]])
 
     # find blinks
     # TODO: check break of fixation and saccades by blink.
-    if len(blinkCandidates) > 0:
-        blinkCandidates = blinkCandidates[blinkCandidates[:, 2] > config.BLINK_MINIMUM_DURATION]
+    if len(blinkCandDur) > 0:
+        idx = blinkCandDur > config.BLINK_MINIMUM_DURATION
+        blinkCand = blinkCand[idx, :]
+        blinkCandDur = blinkCandDur[idx]
 
     # bulild lists
     saccadeList = []
     fixationList = []
     blinkList = []
 
-    for s in saccadeCandidates:
+    for i, s in enumerate(sacCand):
         sx = HV[s[0], 0]
         sy = HV[s[0], 1]
         ex = HV[s[1], 0]
         ey = HV[s[1], 1]
+        dur = sacCandDur[i]
         amp = numpy.linalg.norm((pix2deg[0]*(ex-sx), pix2deg[1]*(ey-sy)))
-        saccadeList.append(GazeParser.SaccadeData((T[s[0]], T[s[1]]), (s[2], sx, sy, ex, ey, amp), T))
+        saccadeList.append(GazeParser.SaccadeData((T[s[0]], T[s[1]]), (dur, sx, sy, ex, ey, amp), T))
 
     if not numpy.isnan(HV[:, 0]).all():  # Fixation is not appended if all values are none.
-        for f in fixationCandidates:
+        for i, f in enumerate(fixCand):
             cx = nanmean(HV[f[0]:f[1]+1, 0])
             cy = nanmean(HV[f[0]:f[1]+1, 1])
-            fixationList.append(GazeParser.FixationData((T[f[0]], T[f[1]]), (f[2], cx, cy), T))
+            dur = fixCandDur[i]
+            fixationList.append(GazeParser.FixationData((T[f[0]], T[f[1]]), (dur, cx, cy), T))
 
-    for b in blinkCandidates:
-        blinkList.append(GazeParser.BlinkData((T[b[0]], T[b[1]]), b[2], T))
+    for i, b in enumerate(blinkCand):
+        blinkList.append(GazeParser.BlinkData((T[b[0]], T[b[1]]), blinkCandDur[i], T))
 
     return (saccadeList, fixationList, blinkList)
 
@@ -313,7 +354,7 @@ def buildMsgList(M):
     return msglist
 
 
-def rectifyData(T, HV, frequency):
+def resampleData(T, HV, frequency):
     """
     :param T: Timestamp (N x 1)
     :param HV: Horizontal and vertical gaze position (N x 2)
@@ -331,7 +372,7 @@ def rectifyData(T, HV, frequency):
     return [ti, numpy.vstack((hi, vi)).transpose()]
 
 
-def rectifyTimeStamp(t, threshold=None):
+def resampleTimeStamp(t, threshold=None):
     """
     :param t: Timestamp (N x 1)
     :param threshold:
@@ -552,8 +593,8 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
             elif itemList[0] == '#STOP_REC':
                 if config.RECORDED_EYE == 'B':
                     if config.RESAMPLING > 0:
-                        tmpT, tmpLHV = rectifyData(numpy.array(T), numpy.array(LHV), config.RESAMPLING)
-                        tmpT, tmpRHV = rectifyData(numpy.array(T), numpy.array(LHV), config.RESAMPLING)
+                        tmpT, tmpLHV = resampleData(numpy.array(T), numpy.array(LHV), config.RESAMPLING)
+                        tmpT, tmpRHV = resampleData(numpy.array(T), numpy.array(LHV), config.RESAMPLING)
 
                         Llist = applyFilter(tmpT, tmpLHV, config, decimals=effectiveDigit)
                         Rlist = applyFilter(tmpT, tmpRHV, config, decimals=effectiveDigit)
@@ -570,7 +611,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 else:  # monocular
                     if config.RECORDED_EYE == 'L':
                         if config.RESAMPLING > 0:
-                            Tlist, tmpHV = rectifyData(numpy.array(T), numpy.array(HV), config.RESAMPLING)
+                            Tlist, tmpHV = resampleData(numpy.array(T), numpy.array(HV), config.RESAMPLING)
                             Llist = applyFilter(Tlist, tmpHV, config, decimals=effectiveDigit)
                         else:
                             Tlist = numpy.array(T)
@@ -579,7 +620,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                         Rlist = None
                     elif config.RECORDED_EYE == 'R':
                         if config.RESAMPLING > 0:
-                            Tlist, tmpHV = rectifyData(numpy.array(T), numpy.array(HV), config.RESAMPLING)
+                            Tlist, tmpHV = resampleData(numpy.array(T), numpy.array(HV), config.RESAMPLING)
                             Rlist = applyFilter(Tlist, tmpHV, config, decimals=effectiveDigit)
                         else:
                             Tlist = numpy.array(T)
