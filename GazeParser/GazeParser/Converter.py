@@ -40,7 +40,7 @@ def parseBlinkCandidates(T, HVs, config):
     while index < lenNanList-1:
         if isBlink:
             if not nanList[index]:
-                dur = T[index-1]-T[blinkStart]
+                dur = T[index]-T[blinkStart]
                 blinkCandIndex.append([blinkStart, index])
                 blinkCandDur.append(dur)
                 isBlink = False
@@ -83,7 +83,7 @@ def parseSaccadeCandidatesWithVACriteria(T, HV, config):
     while index < len(absAcceleration):
         if isSaccade:
             if numpy.isnan(absVelocity[index]) or absVelocity[index] <= config.SACCADE_VELOCITY_THRESHOLD:
-                dur = T[index-1]-T[saccadeStart]
+                dur = T[index]-T[saccadeStart]
                 # saccadeCandidates.append([saccadeStart, index, dur, absAcceleration[saccadeStart-1], absAcceleration[index-1]])
                 SacCandIndex.append([saccadeStart, index])
                 SacCandDur.append(dur)
@@ -161,46 +161,51 @@ def buildEventListBinocular(T, LHV, RHV, config):
     sacCandDur = sacCandDur[amplitudeCheckList]
 
     # find fixations
-    # at first, check whether data starts with fixation or saccade.
-    if sacCand[0, 0] > 0:
-        dur = T[sacCand[0, 0]-1]-T[0]
-        fixCand = [[0, sacCand[0, 0]-1]]
-        fixCandDur = [dur]
-    else:
-        fixCand = []
-        fixCandDur = []
+    if len(sacCand) > 0:
+        # at first, check whether data starts with fixation or saccade.
+        if sacCand[0, 0] > 0:
+            dur = T[sacCand[0, 0]]-T[0]
+            fixCand = [[0, sacCand[0, 0]]]
+            fixCandDur = [dur]
+        else:
+            fixCand = []
+            fixCandDur = []
 
-    #
-    for idx in range(sacCand.shape[0]-1):
-        dur = T[sacCand[idx+1, 0]-1]-T[sacCand[idx, 1]-1]
-        fixCand.append([sacCand[idx, 1], sacCand[idx+1, 0]])
-        fixCandDur.append(dur)
+        #
+        for idx in range(sacCand.shape[0]-1):
+            dur = T[sacCand[idx+1, 0]]-T[sacCand[idx, 1]]
+            fixCand.append([sacCand[idx, 1], sacCand[idx+1, 0]])
+            fixCandDur.append(dur)
 
-    # check last fixation
-    if sacCand[-1, 1] != len(T)-1:
-        dur = T[-1] - T[sacCand[-1, 1]]
-        fixCand.append([sacCand[-1, 1], len(T)-1])
-        fixCandDur.append(dur)
-    fixCand = numpy.array(fixCand)
-    fixCandDur = numpy.array(fixCandDur)
+        # check last fixation
+        if sacCand[-1, 1] != len(T)-1:
+            dur = T[-1] - T[sacCand[-1, 1]]
+            fixCand.append([sacCand[-1, 1], len(T)-1])
+            fixCandDur.append(dur)
+        fixCand = numpy.array(fixCand)
+        fixCandDur = numpy.array(fixCandDur)
 
-    # merge small inter-saccadic fixation to saccade.
-    tooShortFixation = numpy.where(fixCandDur <= config.FIXATION_MINIMUM_DURATION)[0]
-    for idx in tooShortFixation:
-        prevSaccadeIndex = numpy.where(sacCand[:, 1] == fixCand[idx, 0])[0]
-        if len(prevSaccadeIndex) != 1:
-            continue
-        nextSaccadeIndex = prevSaccadeIndex+1
-        if nextSaccadeIndex >= sacCand.shape[0]:  # there is no following saccade.
-            continue
-        sacCand[prevSaccadeIndex, 1] = sacCand[nextSaccadeIndex, 1]
-        sacCandDur[prevSaccadeIndex] = T[sacCand[nextSaccadeIndex, 1]]-T[sacCand[prevSaccadeIndex, 0]]
-        sacCand = numpy.delete(sacCand, nextSaccadeIndex, 0)
-        sacCandDur = numpy.delete(sacCandDur, nextSaccadeIndex, 0)
+        # merge small inter-saccadic fixation to saccade.
+        tooShortFixation = numpy.where(fixCandDur <= config.FIXATION_MINIMUM_DURATION)[0]
+        for idx in tooShortFixation:
+            prevSaccadeIndex = numpy.where(sacCand[:, 1] == fixCand[idx, 0])[0]
+            if len(prevSaccadeIndex) != 1:
+                continue
+            nextSaccadeIndex = prevSaccadeIndex+1
+            if nextSaccadeIndex >= sacCand.shape[0]:  # there is no following saccade.
+                continue
+            sacCand[prevSaccadeIndex, 1] = sacCand[nextSaccadeIndex, 1]
+            sacCandDur[prevSaccadeIndex] = T[sacCand[nextSaccadeIndex, 1]]-T[sacCand[prevSaccadeIndex, 0]]
+            sacCand = numpy.delete(sacCand, nextSaccadeIndex, 0)
+            sacCandDur = numpy.delete(sacCandDur, nextSaccadeIndex, 0)
 
-    idx = fixCandDur > config.FIXATION_MINIMUM_DURATION
-    fixCand = fixCand[idx, :]
-    fixCandDur = fixCandDur[idx]
+        idx = fixCandDur > config.FIXATION_MINIMUM_DURATION
+        fixCand = fixCand[idx, :]
+        fixCandDur = fixCandDur[idx]
+
+    else:  # no saccade candidate is found.
+        fixCand = numpy.array([[0, len(T)-1]])
+        fixCandDur = numpy.array([T[-1]-T[0]])
 
     # find blinks
     # TODO: check break of fixation and saccades by blink.
@@ -267,8 +272,8 @@ def buildEventListMonocular(T, HV, config):
     if len(sacCand) > 0:
         # check whether data starts with fixation or saccade.
         if sacCand[0, 0] > 0:
-            dur = T[sacCand[0, 0]-1]-T[0]
-            fixCand = [[0, sacCand[0, 0]-1]]
+            dur = T[sacCand[0, 0]]-T[0]
+            fixCand = [[0, sacCand[0, 0]]]
             fixCandDur = [dur]
         else:
             fixCand = []
@@ -276,7 +281,7 @@ def buildEventListMonocular(T, HV, config):
 
         #
         for idx in range(sacCand.shape[0]-1):
-            dur = T[sacCand[idx+1, 0]-1]-T[sacCand[idx, 1]-1]
+            dur = T[sacCand[idx+1, 0]]-T[sacCand[idx, 1]]
             fixCand.append([sacCand[idx, 1], sacCand[idx+1, 0]])
             fixCandDur.append(dur)
 
