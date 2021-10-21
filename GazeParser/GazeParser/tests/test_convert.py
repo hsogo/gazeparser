@@ -30,10 +30,10 @@ def test_convert():
     assert D_ref == D_testconf01_nofp
     
     #
-    assert D_noconf_usefp[0].nSac == 14
-    assert (D_noconf_usefp[0].Sac[5].start == [699.9, 622.0]).all()
-    assert D_testconf01_usefp[0].nSac == 13
-    assert (D_testconf01_usefp[0].Sac[5].start == [699.9, 622.0]).all()
+    assert D_noconf_usefp[0].nSac == 25
+    assert (D_noconf_usefp[0].Sac[5].start == [837.1, 513.4]).all()
+    assert D_testconf01_usefp[0].nSac == 24
+    assert (D_testconf01_usefp[0].Sac[5].start == [837.1, 513.4]).all()
     assert D_testconf01_nofp[0].nSac == 10
     assert (D_testconf01_nofp[0].Sac[5].start == [777.8, 740.8]).all()
     
