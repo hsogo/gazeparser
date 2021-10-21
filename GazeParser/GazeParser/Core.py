@@ -650,7 +650,7 @@ class GazeData(object):
         self._CalPointData = None
         self._recordingDate = recordingDate
 
-        self._EventList = self._getEventList(self.T[0], self.T[-1])[0]
+        self._EventList = self._getEventList()[0]
         for s in self._Sac:
             s._setParent(self)
 
@@ -1047,7 +1047,9 @@ class GazeData(object):
                 evtimelist = numpy.array([float(m.time)])
                 evlist = numpy.array([m])
             else:
-                idx = numpy.where(m.time < evtimelist)[0]
+                # not < but <= to insert Message events before 
+                # events that have same time.
+                idx = numpy.where(m.time <= evtimelist)[0]
                 if idx.size > 0:
                     evtimelist = numpy.insert(evtimelist, idx[0], m.time)
                     evlist = numpy.insert(evlist, idx[0], m)
