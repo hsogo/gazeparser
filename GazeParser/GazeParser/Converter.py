@@ -851,3 +851,166 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     return 'SUCCESS'
 
 
+def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, verbose=False):
+    """
+    Convert a PsychoPy-Tobii-Controller TSV file to a GazeParser file.
+    Text export configuration should be 'All data'.
+    If TSV file name is 'foo.tsv', the output file name is 'foo.db'
+
+    :param str inputfile:
+        name of PsychoPy-Tobii-Controller TSV file to be converted.
+    :param Boolean overwrite:
+        If this parameter is true, output file is overwritten.
+        The default value is False.
+    :param GazeParser.Configuration, str config:
+        An instance of GazeParser.Configuration that Specifies
+        conversion configurations.  If value is a string, it is
+        interpreted as a filename of GazeParser.configuration file.
+        If value is none, default configuration is used.
+        The default value is None.
+    :param str outputfile:
+        Name of output file. If None, extension of input file name
+        is replaced with '.db'.
+    """
+    (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
+    filenameRoot, ext = os.path.splitext(srcFilename)
+    inputfileFullpath = os.path.join(workDir, srcFilename)
+    additionalDataFileName = os.path.join(workDir, filenameRoot+'.txt')
+    if outputfile is None:
+        dstFileName = os.path.join(workDir, filenameRoot+'.db')
+    else:
+        dstFileName = os.path.join(workDir, outputfile)
+
+    if verbose: print('TobiiToGazeParser start.')
+    if os.path.exists(dstFileName) and (not overwrite):
+        if verbose: print('Can not open %s.' % dstFileName)
+        return 'CANNOT_OPEN_OUTPUT_FILE'
+
+    if not isinstance(config, GazeParser.Configuration.Config):
+        if isinstance(config, str):
+            if verbose: print('Load configuration file: %s' % config)
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif sys.version_info[0] == 2 and isinstance(config, unicode):
+            if verbose: print('Load configuration file: %s' % config)
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif config is None:
+            if verbose: print('Use default configuration.')
+            config = GazeParser.Configuration.Config()
+        else:
+            raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
+
+    fid = codecs.open(inputfileFullpath, "r", 'utf-8')
+
+    Data = []
+    field = {}
+    EventRecMode = 'Separated'
+    RecordingDate = '1970/01/01'
+    RecordingTime = '00:00:00'
+
+    flgInBlock = False
+
+    for line in fid:
+        itemList = line.rstrip().split('\t')
+        if not flgInBlock:
+            if itemList[0] == 'Recording resolution:':
+                config.SCREEN_WIDTH = int(itemList[1].split('x')[0])
+                config.SCREEN_HEIGHT = int(itemList[1].split('x')[1])
+                if verbose: 
+                    print('SCREEN_WIDTH: %d' % config.SCREEN_WIDTH)
+                    print('SCREEN_HEIGHT: %d' % config.SCREEN_HEIGHT)
+            elif itemList[0] == 'Recording date:':
+                RecordingDate = itemList[1]
+            elif itemList[0] == 'Recording time:':
+                RecordingTime = itemList[1]
+            elif itemList[0] == 'Event recording mode:':
+                EventRecMode = itemList[1]
+
+            elif itemList[0] == 'Session Start':
+                flgInBlock = True
+                T = []
+                P = []
+                LHV = []
+                RHV = []
+                M = []
+
+        else:
+            if itemList[0] == 'TimeStamp':
+                field = {}
+                for i in range(len(itemList)):
+                    field[itemList[i]] = i
+
+            elif itemList[0] == 'Session End':
+                # convert to numpy.ndarray
+                Tlist = numpy.array(T)
+                Plist = numpy.array(P)
+                Llist = numpy.array(LHV)
+                Rlist = numpy.array(RHV)
+
+                # build MessageData
+                MsgList = []
+                for msg in range(len(M)):
+                    MsgList.append(GazeParser.MessageData(M[msg]))
+
+                # build GazeData
+                recdatestr = list(map(int, RecordingDate.split('/') + RecordingTime.split(':')))
+                (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
+
+                G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)
+
+                Data.append(G)
+
+                flgInBlock = False
+
+            else:
+                if EventRecMode == 'Embedded' or ('Event' not in field):
+                    isGazeDataAvailable = False
+                    # record gaze position
+                    if itemList[field['GazePointXLeft']] != '':
+                        isGazeDataAvailable = True
+                        if itemList[field['ValidityLeft']] != '4':
+                            LHV.append((float(itemList[field['GazePointXLeft']]), float(itemList[field['GazePointYLeft']])))
+                        else:  # pupil was not found
+                            LHV.append((numpy.NaN, numpy.NaN))
+
+                    if itemList[field['GazePointXRight']] != '':
+                        isGazeDataAvailable = True
+                        if itemList[field['ValidityRight']] != '4':
+                            RHV.append((float(itemList[field['GazePointXRight']]), float(itemList[field['GazePointYRight']])))
+                        else:  # pupil was not found
+                            RHV.append((numpy.NaN, numpy.NaN))
+
+                    # record timeStamp if gaze data is available
+                    if isGazeDataAvailable:
+                        T.append(float(itemList[field['TimeStamp']]))
+                        P.append((float(itemList[field['PupilLeft']]), float(itemList[field['PupilRight']])))
+                
+                elif EventRecMode == 'Embedded' or ('Event' in field):
+                    # record event
+                    if itemList[field['Event']] != '':
+                        M.append((float(itemList[field['TimeStamp']]), itemList[field['Event']]))
+
+    # last fixation ... check exact format of Tobii data later.
+    # FIX.append(int(itemList[field['TimeStamp']]))
+
+    print('saving...')
+    if os.path.exists(additionalDataFileName):
+        if verbose: print('Additional data file is found.')
+        adfp = open(additionalDataFileName)
+        ad = []
+        for line in adfp:
+            data = line.split('\t')
+            for di in range(len(data)):
+                try:
+                    data[di] = int(data[di])
+                except:
+                    try:
+                        data[di] = float(data[di])
+                    except:
+                        pass
+            ad.append(data)
+        GazeParser.save(dstFileName, Data, additionalData=ad)
+    else:
+        GazeParser.save(dstFileName, Data)
+
+    if verbose: print('done.')
+    return 'SUCCESS'
