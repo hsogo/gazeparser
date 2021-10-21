@@ -26,9 +26,9 @@ import sys
 import warnings
 
 if sys.version_info[0] == 2:
-    import ConfigParser as configparser
+    from ConfigParser import SafeConfigParser as ConfigParser
 else:
-    import configparser
+    from configparser import ConfigParser
 import shutil
 
 import numpy
@@ -84,7 +84,7 @@ class BaseController(object):
             If None, TrackingTools.cfg in the GazeParser configuration directory
             is used. Default value is None.
         """
-        cfgp = configparser.SafeConfigParser()
+        cfgp = ConfigParser()
         cfgp.optionxform = str
 
         if configFile is None:  # use default settings
