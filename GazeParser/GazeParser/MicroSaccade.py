@@ -282,10 +282,14 @@ def buildMicroSaccadeListBinocular(gazeData, samplingFreq=None, velocityType='sl
 
 
 def nan_greater(v1, v2):
+    # this comparison returns True if the element is nan. 
     idx = numpy.where(v1!=v1)[0]
-    if idx == []:
+
+    # nan was not found. compare in a regular way.
+    if len(idx) == 0:
         return v1 > v2
     
+    # nan was found.
     val = numpy.zeros(v1.shape, dtype=numpy.bool)
     val[idx] = False
     idx = numpy.where(v1==v1)[0]
