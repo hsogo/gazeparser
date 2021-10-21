@@ -1057,6 +1057,9 @@ class GazeData(object):
                     evtimelist = numpy.append(evtimelist, m.time)
                     evlist = numpy.append(evlist, m)
         
+        if len(evtimelist)==0:
+            return [], []
+
         if since is None:
             since = evtimelist[0]
         
