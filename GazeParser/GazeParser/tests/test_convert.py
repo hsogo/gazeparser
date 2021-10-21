@@ -7,8 +7,6 @@ import pathlib
 wd = pathlib.Path(__file__).resolve().parent
 
 def test_convert():
-    import os
-    print(os.getcwd())
     assert GazeParser.Converter.TrackerToGazeParser(wd/'data/test01.csv', overwrite=True,
         config=None, useFileParameters=True, outputfile='test01_noconf_usefp.db') == 'SUCCESS'
     assert GazeParser.Converter.TrackerToGazeParser(wd/'data/test01.csv', overwrite=True,
@@ -42,3 +40,9 @@ def test_convert():
     assert D_noconf_usefp[0].Msg[1].text == u'刺激の場所は 960 540'
     assert D_testconf01_usefp[0].Msg[1].text == u'刺激の場所は 960 540'
     assert D_testconf01_nofp[0].Msg[1].text == u'刺激の場所は 960 540'
+
+def test_convert_bin():
+    assert GazeParser.Converter.TrackerToGazeParser(wd/'data/test02.csv', overwrite=True,
+            config=None, useFileParameters=True, outputfile='test02_noconf_usefp.db') == 'SUCCESS'
+    assert GazeParser.Converter.TrackerToGazeParser(wd/'data/test02.csv', overwrite=True,
+            config=wd/'data/testconf02.cfg', useFileParameters=False, outputfile='test02_testconf02_nofp.db') == 'SUCCESS'
