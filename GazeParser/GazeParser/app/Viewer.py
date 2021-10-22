@@ -969,7 +969,14 @@ class interactiveConfigFrame(wx.Frame):
             if self.newConfig.RECORDED_EYE == 'B':
                 self.newL = applyFilter(self.D[self.tr].T, self.D[self.tr].L, self.newConfig, decimals=8) + offset
                 self.newR = applyFilter(self.D[self.tr].T, self.D[self.tr].R, self.newConfig, decimals=8) + offset
-                (SacList, FixList, BlinkList) = buildEventListBinocular(self.D[self.tr].T, self.newL, self.newR, self.newConfig)
+                print(self.newConfig.AVERAGE_LR)
+                if self.newConfig.AVERAGE_LR == 0:
+                    (SacList, FixList, BlinkList) = buildEventListBinocular(self.D[self.tr].T, self.newL, self.newR, self.newConfig)
+                elif self.newConfig.AVERAGE_LR == 1:
+                    newB = numpy.nanmean([self.newL, self.newR], axis=0)
+                    (SacList, FixList, BlinkList) = buildEventListMonocular(self.D[self.tr].T, newB, self.newConfig)
+                else:
+                    raise ValueError('AVERAGE_LR must be 0 or 1')
             else:  # monocular
                 if self.newConfig.RECORDED_EYE == 'L':
                     self.newL = applyFilter(self.D[self.tr].T, self.D[self.tr].L, self.newConfig, decimals=8) + offset

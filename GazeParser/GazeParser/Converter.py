@@ -608,7 +608,14 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                         Llist = applyFilter(Tlist, numpy.array(LHV), config, decimals=effectiveDigit)
                         Rlist = applyFilter(Tlist, numpy.array(RHV), config, decimals=effectiveDigit)
 
-                    (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
+                    if config.AVERAGE_LR == 0:
+                        (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
+                    elif config.AVERAGE_LR == 1:
+                        Blist = numpy.nanmean([Llist,Rlist], axis=0)
+                        (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
+                    else:
+                        raise ValueError('AVERAGE_LR must be 0 or 1.')
+
                     if not (idxLP is None and idxRP is None):
                         Plist = numpy.array([LP, RP]).transpose()
                     else:
@@ -872,6 +879,8 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, ve
         Name of output file. If None, extension of input file name
         is replaced with '.db'.
     """
+    effectiveDigit = 2
+
     (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
     filenameRoot, ext = os.path.splitext(srcFilename)
     inputfileFullpath = os.path.join(workDir, srcFilename)
@@ -943,8 +952,8 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, ve
                 # convert to numpy.ndarray
                 Tlist = numpy.array(T)
                 Plist = numpy.array(P)
-                Llist = numpy.array(LHV)
-                Rlist = numpy.array(RHV)
+                Llist = applyFilter(Tlist, numpy.array(LHV), config, decimals=effectiveDigit)
+                Rlist = applyFilter(Tlist, numpy.array(RHV), config, decimals=effectiveDigit)
 
                 # build MessageData
                 MsgList = []
@@ -953,7 +962,11 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, ve
 
                 # build GazeData
                 recdatestr = list(map(int, RecordingDate.split('/') + RecordingTime.split(':')))
-                (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
+                if config.AVERAGE_LR == 0:
+                    (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
+                elif config.AVERAGE_LR == 1:
+                    Blist = numpy.nanmean([Llist,Rlist], axis=0)
+                    (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
 
                 G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)
 

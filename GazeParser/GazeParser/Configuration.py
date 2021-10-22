@@ -17,6 +17,7 @@ import GazeParser
 
 GazeParserDefaults = {
     'RECORDED_EYE': 'L',
+    'AVERAGE_LR': 1,
     'SCREEN_ORIGIN': 'BottomLeft',
     'TRACKER_ORIGIN': 'BottomLeft',
     'SCREEN_WIDTH': 1024,
@@ -38,6 +39,7 @@ GazeParserDefaults = {
 }
 
 GazeParserOptions = ['RECORDED_EYE',
+                     'AVERAGE_LR',
                      'SCREEN_ORIGIN',
                      'TRACKER_ORIGIN',
                      'SCREEN_WIDTH',
