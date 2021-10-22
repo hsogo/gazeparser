@@ -78,8 +78,10 @@ class MicroSacc(object):
             self.ms = self._microsacc(data, v)
         else:
             # self.ms = self._binsacc(data[:, 0:2], data[:, 2:4])
-            lms = self._microsacc(data[:, 0:2], v)
-            rms = self._microsacc(data[:, 2:4], v)
+            lv = self.vecvel(data[:, 0:2])
+            rv = self.vecvel(data[:, 2:4])
+            lms = self._microsacc(data[:, 0:2], lv)
+            rms = self._microsacc(data[:, 2:4], rv)
             self.ms = self._binsacc(lms, rms)
 
     def _vecvel(self, data):
