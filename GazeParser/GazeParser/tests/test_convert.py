@@ -46,3 +46,7 @@ def test_convert_bin():
             config=None, useFileParameters=True, outputfile='test02_noconf_usefp.db') == 'SUCCESS'
     assert GazeParser.Converter.TrackerToGazeParser(wd/'data/test02.csv', overwrite=True,
             config=wd/'data/testconf02.cfg', useFileParameters=False, outputfile='test02_testconf02_nofp.db') == 'SUCCESS'
+
+def test_convert_ptc():
+    assert GazeParser.Converter.PTCToGazeParser(wd/'data/test03_ptc.tsv', overwrite=True,
+            config=wd/'data/testconf03.cfg', outputfile='test03_ptc_testconf03.db') == 'SUCCESS'
