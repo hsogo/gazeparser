@@ -861,7 +861,6 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
 def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, verbose=False):
     """
     Convert a PsychoPy-Tobii-Controller TSV file to a GazeParser file.
-    Text export configuration should be 'All data'.
     If TSV file name is 'foo.tsv', the output file name is 'foo.db'
 
     :param str inputfile:
@@ -902,6 +901,9 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, ve
         elif sys.version_info[0] == 2 and isinstance(config, unicode):
             if verbose: print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif has_pathlib and isinstance(config, pathlib.Path):
+            if verbose: print('Load configuration file: %s' % str(config))
+            config = GazeParser.Configuration.Config(ConfigFile=str(config))
         elif config is None:
             if verbose: print('Use default configuration.')
             config = GazeParser.Configuration.Config()
@@ -1005,7 +1007,7 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, ve
     # last fixation ... check exact format of Tobii data later.
     # FIX.append(int(itemList[field['TimeStamp']]))
 
-    print('saving...')
+    if verbose: print('saving...')
     if os.path.exists(additionalDataFileName):
         if verbose: print('Additional data file is found.')
         adfp = open(additionalDataFileName)
@@ -1027,3 +1029,5 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, ve
 
     if verbose: print('done.')
     return 'SUCCESS'
+
+
