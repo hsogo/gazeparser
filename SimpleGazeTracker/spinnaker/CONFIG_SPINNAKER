@@ -22,6 +22,7 @@ USBIO_BOARD=
 USBIO_AD=
 USBIO_DI=
 MORPH_TRANS=0
+OPEN_SETUP_GUIDE=1
 
 [SimpleGazeTrackerCamera]
 # Camera specific parameters for Spinnaker Edition
