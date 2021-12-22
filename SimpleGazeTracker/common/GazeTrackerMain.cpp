@@ -1303,12 +1303,30 @@ int main(int argc, char** argv)
 
 	//if CONFIG file is not found in g_ParamPath, copy it.
 	if (!useCustomConfigFile) {
-		if (FAILED(checkAndCopyFile(g_ParamPath, getDefaultConfigFileName(), g_AppDirPath))) {
-			snprintf(g_errorMessage, sizeof(g_errorMessage), "\"%s\" file is not found. Confirm that SimpleGazeTracker is properly installed.\n", getDefaultConfigFileName());
+		if (FAILED(checkFile(g_ParamPath, getDefaultConfigFileName()))) {
+			snprintf(g_errorMessage, sizeof(g_errorMessage), "Configuration file is not found.\nSimpleGazeTracker creates a new configuration file named %s at %s and abort.\n\nPlease open %s with text editor and modify it if necessary.\nThen, restart SimpleGazeTracker.", getDefaultConfigFileName(), g_ParamPath.c_str(), getDefaultConfigFileName());
 			printf("%s\n", g_errorMessage);
-			g_LogFS << "Error: \"" << getDefaultConfigFileName() << "\" file is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+			g_LogFS << "Warning: Default configuration file is not found at " << g_ParamPath << ". SimpleGazeTracker creates a new configuration file." << std::endl;
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-				"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
+				"SimpleGazeTracker", g_errorMessage, NULL);
+
+			if (FAILED(checkAndCopyFile(g_ParamPath, getDefaultConfigFileName(), g_AppDirPath))) {
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Default configuration file (\"%s\") is not found. Confirm that SimpleGazeTracker is properly installed.\n", getDefaultConfigFileName());
+				printf("%s\n", g_errorMessage);
+				g_LogFS << "Error: Default configuration file (\"" << getDefaultConfigFileName() << "\") is not found. Confirm that SimpleGazeTracker is properly installed." << std::endl;
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+					"SimpleGazeTracker initialization failed", g_errorMessage, NULL);
+				return -1;
+			}
+			if (openLocation(g_ParamPath) != 0) {
+				snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open %s. Please open this directory manually.", g_ParamPath.c_str());
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Failed to open location", g_errorMessage, NULL);
+			}
+			//TODO open HTML help
+			if (openHTMLdoc("params.html") == E_FAIL) {
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+					"Error", "Help document is not installed.", NULL);
+			}
 			return -1;
 		}
 	}
@@ -1544,7 +1562,7 @@ int main(int argc, char** argv)
 			SDL_arraysize(sdlYesNoMessageBoxButtons), sdlYesNoMessageBoxButtons, NULL
 		};
 		if (SDL_ShowMessageBox(&messageboxdata, &sdlButtonID) >= 0 && sdlButtonID == 0) {
-			if (openHTMLdoc("setup_guide.html") == E_FAIL) {
+			if (openHTMLdoc("config_guide.html") == E_FAIL) {
 				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
 					"Error", "Help document is not installed.", NULL);
 			}
