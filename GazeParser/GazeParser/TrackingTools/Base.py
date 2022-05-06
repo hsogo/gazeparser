@@ -26,9 +26,9 @@ import sys
 import warnings
 
 if sys.version_info[0] == 2:
-    from ConfigParser import SafeConfigParser as ConfigParser
+    import ConfigParser as configparser
 else:
-    from configparser import ConfigParser
+    import configparser
 import shutil
 
 import numpy
@@ -84,7 +84,7 @@ class BaseController(object):
             If None, TrackingTools.cfg in the GazeParser configuration directory
             is used. Default value is None.
         """
-        cfgp = ConfigParser()
+        cfgp = configparser.SafeConfigParser()
         cfgp.optionxform = str
 
         if configFile is None:  # use default settings
@@ -832,14 +832,14 @@ class BaseController(object):
                 return data
         return 'WARNING: menu string was not received.'
 
-    def getCalibrationResults(self, timeout=0.2):
+    def getCalibrationResults(self, timeout=2.0):
         """
         Get a summary of calibration results.
         *Usually, you don't need use this method.*
 
         :param float timeout:
             If the Host Tracker PC does not respond within this duration, '----'
-            is returned. Unit is second. Default value is 0.2
+            is returned. Unit is second. Default value is 2.0
         :return:
             a tuple mean error and maximum error. Mean and maximum error are
             the distance between calibration taget position and gaze position
@@ -856,7 +856,7 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                # print('timeout')
+                print('getCalibrationResults: timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
@@ -1073,7 +1073,7 @@ class BaseController(object):
             # draw screen
             self.updateScreen()
 
-    def getCalibrationResultsDetail(self, timeout=0.2):
+    def getCalibrationResultsDetail(self, timeout=2.0):
         """
         Get detailed calibration results.
 
@@ -1082,7 +1082,7 @@ class BaseController(object):
 
         :param float timeout:
             If the Tracker Host PC does not respond within this duration, '----'
-            is returned. Unit is second. Default value is 0.2
+            is returned. Unit is second. Default value is 2.0
         :return:
             Detailed Calibration
         """
@@ -1093,14 +1093,14 @@ class BaseController(object):
         startTime = self.clock()
         while isInLoop:
             if self.clock()-startTime > timeout:
-                # print('timeout')
+                print('getCalibrationResultsDetail: timeout')
                 break
             [r, w, c] = select.select(self.readSockList, [], [], 0)
             for x in r:
                 try:
                     newData = x.recv(4096)
                 except:
-                    # print('recv error in getCalibrationResults')
+                    print('recv error in getCalibrationResults')
                     isInLoop = False
                 if newData:
                     if b'\0' in newData:
@@ -1139,11 +1139,14 @@ class BaseController(object):
                         self.putCalibrationResultsImage()
                         return None
 
+                    self.latestCalibrationResultsList = []
                     for i in range(int(len(retval)/6)):
                         self.latestCalibrationResultsList.append(retval[6*i:6*i+6])
 
             except:
                 print('plotCalibrationResultsDetail: data was not successfully received.')
+        else:
+            print('getCalibrationResultsDetail: no data.')
 
         self.plotCalibrationResultsDetail()
 
