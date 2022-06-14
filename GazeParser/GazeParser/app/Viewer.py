@@ -2103,7 +2103,12 @@ class configColorDialog(wx.Dialog):
         dlg.GetColourData().SetChooseFull(True)
         if dlg.ShowModal() == wx.ID_OK:
             col = dlg.GetColourData().GetColour().Get()
-            self.newColorDict[name] = '#%02X%02X%02X' % col
+            if len(col) == 3: #RGB
+                self.newColorDict[name] = '#%02X%02X%02X' % col
+            elif len(col) == 4: #RGBA
+                self.newColorDict[name] = '#%02X%02X%02X' % col[0:3]
+            else:
+                messageDialogShowerror(None, 'Error', 'Invalid color code (%s)' % str(col))
             self.buttonDict[name].SetBackgroundColour(self.newColorDict[name])
             self.buttonDict[name].SetForegroundColour(getTextColor(self.newColorDict[name]))
             self.buttonDict[name].SetLabel(self.newColorDict[name])
