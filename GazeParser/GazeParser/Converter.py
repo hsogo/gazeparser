@@ -14,6 +14,7 @@ import os
 import re
 import sys
 import codecs
+import warnings
 from scipy.interpolate import interp1d
 try:
     from numpy import nanmean
@@ -858,7 +859,7 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     return 'SUCCESS'
 
 
-def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, verbose=False):
+def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, unitcnv=None, verbose=False):
     """
     Convert a PsychoPy-Tobii-Controller TSV file to a GazeParser file.
     If TSV file name is 'foo.tsv', the output file name is 'foo.db'
@@ -877,8 +878,16 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, ve
     :param str outputfile:
         Name of output file. If None, extension of input file name
         is replaced with '.db'.
+    :param str unitcnv:
+        Covert unit. Currently, only 'height2pix' is supported.
+        Default value is None (no conversion).
     """
     effectiveDigit = 2
+
+    if unitcnv is not None:
+        if not (unitcnv in ('height2pix',)):
+            if verbose: print('Invalid unit conversion (%s).' % unitcnv)
+            return 'INVALID_UNIT_CONVERSION'
 
     (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
     filenameRoot, ext = os.path.splitext(srcFilename)
@@ -954,8 +963,13 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, ve
                 # convert to numpy.ndarray
                 Tlist = numpy.array(T)
                 Plist = numpy.array(P)
-                Llist = applyFilter(Tlist, numpy.array(LHV), config, decimals=effectiveDigit)
-                Rlist = applyFilter(Tlist, numpy.array(RHV), config, decimals=effectiveDigit)
+                LHV = numpy.array(LHV)
+                RHV = numpy.array(RHV)
+                if unitcnv == 'height2pix':
+                    LHV *= config.SCREEN_HEIGHT
+                    RHV *= config.SCREEN_HEIGHT
+                Llist = applyFilter(Tlist, LHV, config, decimals=effectiveDigit)
+                Rlist = applyFilter(Tlist, RHV, config, decimals=effectiveDigit)
 
                 # build MessageData
                 MsgList = []
@@ -967,7 +981,10 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, ve
                 if config.AVERAGE_LR == 0:
                     (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
                 elif config.AVERAGE_LR == 1:
-                    Blist = numpy.nanmean([Llist,Rlist], axis=0)
+                    #suppress "RuntimeWarning: Mean of empty slice" when both L and R are NaN
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", category=RuntimeWarning)
+                        Blist = numpy.nanmean([Llist,Rlist], axis=0)
                     (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
 
                 G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)
