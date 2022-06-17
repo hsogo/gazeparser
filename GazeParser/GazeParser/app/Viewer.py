@@ -3287,8 +3287,8 @@ class mainFrame(wx.Frame):
             xmax = sf[0]*self.currentPlotArea[1]
             ymin = sf[1]*self.currentPlotArea[2]
             ymax = sf[1]*self.currentPlotArea[3]
-            xstep = (xmax-xmin)/128.0
-            ystep = (ymax-ymin)/128.0
+            xstep = (xmax-xmin)/512.0
+            ystep = (ymax-ymin)/512.0
             xmesh, ymesh = numpy.meshgrid(numpy.arange(xmin, xmax, xstep),
                                           numpy.arange(ymin, ymax, ystep))
             heatmap = numpy.zeros(xmesh.shape)
@@ -3296,12 +3296,13 @@ class mainFrame(wx.Frame):
                 if numpy.isnan(fixcenter[idx, 0]) or numpy.isnan(fixcenter[idx, 1]):
                     continue
                 heatmap = heatmap + fixdur[idx, 0]*numpy.exp(-((xmesh-fixcenter[idx, 0])/50)**2-((ymesh-fixcenter[idx, 1])/50)**2)
+            masked_heatmap = numpy.ma.masked_where(heatmap < 0.001, heatmap)
             cmap = matplotlib.cm.get_cmap('hot')
             cmap._init()
             alphas = numpy.linspace(0.0, 5.0, cmap.N)
             alphas[numpy.where(alphas > 0.8)[0]] = 0.8
             cmap._lut[:-3, -1] = alphas
-            self.ax.imshow(heatmap, extent=(xmin, xmax, ymin, ymax), origin='lower', cmap=cmap)
+            self.ax.imshow(masked_heatmap, extent=(xmin, xmax, ymin, ymax), origin='lower', cmap=cmap)
 
             for f in range(self.D[self.tr].nFix):
                 if self.selectiontype == 'Emphasize':
