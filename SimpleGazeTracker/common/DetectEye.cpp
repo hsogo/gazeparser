@@ -252,8 +252,8 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 		//If g_isShowingCameraImage is true, draw ellipse with thick line and draw cross.
 		if(g_isShowingCameraImage){
 			cv::ellipse(g_DstImg,r,CV_RGB(0,255,0));
-			cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-20),cv::Point2f(r.center.x,r.center.y+20),CV_RGB(0,255,0));
-			cv::line(g_DstImg,cv::Point2f(r.center.x-20,r.center.y),cv::Point2f(r.center.x+20,r.center.y),CV_RGB(0,255,0));
+			cv::line(g_DstImg,cv::Point2f(r.center.x,r.center.y-MaxWidth),cv::Point2f(r.center.x,r.center.y+MaxWidth),CV_RGB(0,255,0));
+			cv::line(g_DstImg,cv::Point2f(r.center.x-MaxWidth,r.center.y),cv::Point2f(r.center.x+MaxWidth,r.center.y),CV_RGB(0,255,0));
 		}
 		firstCandidateRects[numCandidates] = r;
 		firstCandidatePoints[numCandidates] = *it;
@@ -366,8 +366,17 @@ int detectPupilPurkinjeMono(int Threshold1, int PurkinjeSearchArea, int Purkinje
 	candidateRectFine = cv::fitEllipse(cv::Mat(candidatePointsFine));
 	if(g_isShowingCameraImage){
 		cv::ellipse(g_DstImg,candidateRectFine,CV_RGB(0,255,192),2);
-		cv::line(g_DstImg,cv::Point2f(candidateRectFine.center.x,candidateRectFine.center.y-20),cv::Point2f(candidateRectFine.center.x,candidateRectFine.center.y+20),CV_RGB(0,255,192));
-		cv::line(g_DstImg,cv::Point2f(candidateRectFine.center.x-20,candidateRectFine.center.y),cv::Point2f(candidateRectFine.center.x+20,candidateRectFine.center.y),CV_RGB(0,255,192));
+		cv::line(g_DstImg, cv::Point2f(candidateRectFine.center.x-MinWidth, candidateRectFine.center.y-2), cv::Point2f(candidateRectFine.center.x-MinWidth, candidateRectFine.center.y+2), CV_RGB(0, 255, 192));
+		cv::line(g_DstImg, cv::Point2f(candidateRectFine.center.x+MinWidth, candidateRectFine.center.y-2), cv::Point2f(candidateRectFine.center.x+MinWidth, candidateRectFine.center.y+2), CV_RGB(0, 255, 192));
+		cv::line(g_DstImg, cv::Point2f(candidateRectFine.center.x-2, candidateRectFine.center.y-MinWidth), cv::Point2f(candidateRectFine.center.x+2, candidateRectFine.center.y-MinWidth), CV_RGB(0, 255, 192));
+		cv::line(g_DstImg, cv::Point2f(candidateRectFine.center.x-2, candidateRectFine.center.y+MinWidth), cv::Point2f(candidateRectFine.center.x+2, candidateRectFine.center.y+MinWidth), CV_RGB(0, 255, 192));
+		cv::line(g_DstImg, cv::Point2f(candidateRectFine.center.x - MaxWidth, candidateRectFine.center.y - 5), cv::Point2f(candidateRectFine.center.x - MaxWidth, candidateRectFine.center.y + 5), CV_RGB(0, 255, 192));
+		cv::line(g_DstImg, cv::Point2f(candidateRectFine.center.x + MaxWidth, candidateRectFine.center.y - 5), cv::Point2f(candidateRectFine.center.x + MaxWidth, candidateRectFine.center.y + 5), CV_RGB(0, 255, 192));
+		cv::line(g_DstImg, cv::Point2f(candidateRectFine.center.x - 5, candidateRectFine.center.y - MaxWidth), cv::Point2f(candidateRectFine.center.x + 5, candidateRectFine.center.y - MaxWidth), CV_RGB(0, 255, 192));
+		cv::line(g_DstImg, cv::Point2f(candidateRectFine.center.x - 5, candidateRectFine.center.y + MaxWidth), cv::Point2f(candidateRectFine.center.x + 5, candidateRectFine.center.y + MaxWidth), CV_RGB(0, 255, 192));
+
+		cv::line(g_DstImg,cv::Point2f(candidateRectFine.center.x,candidateRectFine.center.y-MaxWidth),cv::Point2f(candidateRectFine.center.x,candidateRectFine.center.y+MaxWidth),CV_RGB(0,255,192));
+		cv::line(g_DstImg,cv::Point2f(candidateRectFine.center.x-MaxWidth,candidateRectFine.center.y),cv::Point2f(candidateRectFine.center.x+MaxWidth,candidateRectFine.center.y),CV_RGB(0,255,192));
 	}
 
 
