@@ -15,6 +15,8 @@ import re
 import sys
 import codecs
 import warnings
+import h5py
+from datetime import datetime
 from scipy.interpolate import interp1d
 try:
     from numpy import nanmean
@@ -1048,3 +1050,298 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, un
     return 'SUCCESS'
 
 
+def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, 
+    startMsg='RecStart .*', stopMsg='RecStop .*', 
+    recdate=None, unitcnv=None, verbose=False):
+    """
+    Convert a PsychoPy HDF5 file to a GazeParser file.
+
+    :param str inputfile:
+        name of PsychoPy HDF5 file to be converted.
+    :param Boolean overwrite:
+        If this parameter is true, output file is overwritten.
+        The default value is False.
+    :param GazeParser.Configuration, str config:
+        An instance of GazeParser.Configuration that Specifies
+        conversion configurations.  If value is a string, it is
+        interpreted as a filename of GazeParser.configuration file.
+        If value is none, default configuration is used.
+        The default value is None.
+    :param str outputfile:
+        Name of output file. If None, extension of input file name
+        is replaced with '.db'.
+    :param str startMsg:
+        Message string for 'start recording'.  Default is 'RecStart .*'
+        re.match() is used to match to event texts.
+    :param str stopMsg:
+        Message string for 'stop recording'.  Default is 'RecStop .*'
+        re.match() is used to match to event texts.
+    :param str recdate:
+        Specify recording date in 'YYYY/mm/dd-HH:MM:SS'.
+        If None, timestamp of HDF5 file is used.
+    :param str unitcnv:
+        Covert unit. Currently, only 'height2pix' is supported.
+        Default value is None (no conversion).
+    """
+    effectiveDigit = 2
+
+    if unitcnv is not None:
+        if not (unitcnv in ('height2pix',)):
+            if verbose: print('Invalid unit conversion (%s).' % unitcnv)
+            return 'INVALID_UNIT_CONVERSION'
+
+    (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
+    filenameRoot, ext = os.path.splitext(srcFilename)
+    inputfileFullpath = os.path.join(workDir, srcFilename)
+    additionalDataFileName = os.path.join(workDir, filenameRoot+'.txt')
+    if outputfile is None:
+        dstFileName = os.path.join(workDir, filenameRoot+'.db')
+    else:
+        dstFileName = os.path.join(workDir, outputfile)
+
+    if verbose: print('PsychoPyHDF5ToGazeParser start.')
+    if os.path.exists(dstFileName) and (not overwrite):
+        if verbose: print('Can not open %s.' % dstFileName)
+        return 'CANNOT_OPEN_OUTPUT_FILE'
+
+    if not isinstance(config, GazeParser.Configuration.Config):
+        if isinstance(config, str):
+            if verbose: print('Load configuration file: %s' % config)
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif sys.version_info[0] == 2 and isinstance(config, unicode):
+            if verbose: print('Load configuration file: %s' % config)
+            config = GazeParser.Configuration.Config(ConfigFile=config)
+        elif has_pathlib and isinstance(config, pathlib.Path):
+            if verbose: print('Load configuration file: %s' % str(config))
+            config = GazeParser.Configuration.Config(ConfigFile=str(config))
+        elif config is None:
+            if verbose: print('Use default configuration.')
+            config = GazeParser.Configuration.Config()
+        else:
+            raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
+
+
+
+    Data = []
+    field = {}
+    EventRecMode = 'Separated'
+    RecordingDate = '1970/01/01'
+    RecordingTime = '00:00:00'
+
+    if recdate is None:
+        file_stat = os.stat(inputfileFullpath)
+        ctime = datetime.fromtimestamp(file_stat.st_ctime)
+        RecordingDate = ctime.strftime('%Y/%m/%d')
+        RecordingTime = ctime.strftime('%H:%M:%S')
+    else:
+        RecordingDate, RecordingTime = recdate.split('-')
+
+    # PsychoPy coordinate system is 'center'
+    config.SCREEN_ORIGIN = 'center'
+    config.TRACKER_ORIGIN = 'center'
+
+    # config.RECORDED_EYE = 'B'
+
+    hdf = h5py.File(inputfileFullpath)
+    startMatch = re.compile(startMsg)
+    stopMatch = re.compile(stopMsg)
+
+    start_time_list = []
+    stop_time_list = []
+    start_time_msg = []
+    stop_time_msg = []
+
+    msgdata = hdf['/data_collection/events/experiment/MessageEvent']
+    for i in range(len(msgdata)):
+        msg_text = msgdata[i]['text'].decode('UTF-8')
+        if startMatch.match(msg_text):
+            start_time_list.append(msgdata[i]['time'])
+            start_time_msg.append(msgdata[i]['text'])
+        elif stopMatch.match(msg_text):
+            stop_time_list.append(msgdata[i]['time'])
+            stop_time_msg.append(msgdata[i]['text'])
+    
+    if len(start_time_list) != len(stop_time_list):
+        print('Numbers of RecStart and RecStop messages are not equal')
+        return 'INVALID_RECSTART_RECSTOP_MESSAGES'
+    for i in range(len(start_time_list)):
+        if start_time_list[i] >= stop_time_list[i]:
+            print('Time of RecStop is earlier than that of RecStart')
+            return 'INVALID_RECSTART_RECSTOP_MESSAGES'
+
+    bindata = hdf['/data_collection/events/eyetracker/BinocularEyeSampleEvent']
+
+    current_block = 0
+    current_message = 0
+
+    T = []
+    P = []
+    LHV = []
+    RHV = []
+    M = []
+
+    for i in range(len(bindata)):
+        if bindata[i]['time'] > stop_time_list[current_block] or i == len(bindata)-1:
+
+            # convert to numpy.ndarray
+            start_time_sec = T[0]
+            Tlist = 1000*(numpy.array(T)-start_time_sec)
+            Plist = numpy.array(P)
+            LHV = numpy.array(LHV)
+            RHV = numpy.array(RHV)
+            if unitcnv == 'height2pix':
+                LHV *= config.SCREEN_HEIGHT
+                RHV *= config.SCREEN_HEIGHT
+            Llist = applyFilter(Tlist, LHV, config, decimals=effectiveDigit)
+            Rlist = applyFilter(Tlist, RHV, config, decimals=effectiveDigit)
+
+            # find messages in this block
+            while msgdata[current_message]['time'] < start_time_list[current_block]:
+                current_message += 1
+            
+            while current_message < len(msgdata) and msgdata[current_message]['time'] <= stop_time_list[current_block]:
+                M.append((1000*(msgdata[current_message]['time']-start_time_sec), msgdata[current_message]['text'].decode('UTF-8')))
+                current_message += 1
+
+            # build MessageData
+            MsgList = []
+            for msg in range(len(M)):
+                MsgList.append(GazeParser.MessageData(M[msg]))
+
+            # build GazeData
+            recdatestr = list(map(int, RecordingDate.split('/') + RecordingTime.split(':')))
+            if config.AVERAGE_LR == 0:
+                (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
+            elif config.AVERAGE_LR == 1:
+                #suppress "RuntimeWarning: Mean of empty slice" when both L and R are NaN
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", category=RuntimeWarning)
+                    Blist = numpy.nanmean([Llist,Rlist], axis=0)
+                (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
+
+            G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)
+
+            Data.append(G)
+
+            T = []
+            P = []
+            LHV = []
+            RHV = []
+            M = []
+            current_block += 1
+
+            if verbose:
+                print('Block {}'.format(current_block))
+
+        else:
+            if bindata[i]['time'] < start_time_list[current_block]:
+                continue
+        
+            if bindata[i]['status'] < 20:  # left is invalid = 20, both are invalid = 22
+                LHV.append((bindata[i]['left_gaze_x'], bindata[i]['left_gaze_y']))
+            else:  # pupil was not found
+                LHV.append((numpy.NaN, numpy.NaN))
+
+            if bindata[i]['status'] % 20 != 2:  # right is invalid = 2, both are invalid = 22
+                RHV.append((bindata[i]['right_gaze_x'], bindata[i]['right_gaze_y']))
+            else:  # pupil was not found
+                RHV.append((numpy.NaN, numpy.NaN))
+
+            T.append(bindata[i]['time'])
+            P.append((bindata[i]['left_pupil_measure1'], bindata[i]['right_pupil_measure1']))
+
+
+    """"
+            if itemList[0] == 'TimeStamp':
+                field = {}
+                for i in range(len(itemList)):
+                    field[itemList[i]] = i
+
+            elif itemList[0] == 'Session End':
+                # convert to numpy.ndarray
+                Tlist = numpy.array(T)
+                Plist = numpy.array(P)
+                LHV = numpy.array(LHV)
+                RHV = numpy.array(RHV)
+                if unitcnv == 'height2pix':
+                    LHV *= config.SCREEN_HEIGHT
+                    RHV *= config.SCREEN_HEIGHT
+                Llist = applyFilter(Tlist, LHV, config, decimals=effectiveDigit)
+                Rlist = applyFilter(Tlist, RHV, config, decimals=effectiveDigit)
+
+                # build MessageData
+                MsgList = []
+                for msg in range(len(M)):
+                    MsgList.append(GazeParser.MessageData(M[msg]))
+
+                # build GazeData
+                recdatestr = list(map(int, RecordingDate.split('/') + RecordingTime.split(':')))
+                if config.AVERAGE_LR == 0:
+                    (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
+                elif config.AVERAGE_LR == 1:
+                    #suppress "RuntimeWarning: Mean of empty slice" when both L and R are NaN
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", category=RuntimeWarning)
+                        Blist = numpy.nanmean([Llist,Rlist], axis=0)
+                    (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
+
+                G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)
+
+                Data.append(G)
+
+                flgInBlock = False
+
+            else:
+                if EventRecMode == 'Embedded' or ('Event' not in field):
+                    isGazeDataAvailable = False
+                    # record gaze position
+                    if itemList[field['GazePointXLeft']] != '':
+                        isGazeDataAvailable = True
+                        if itemList[field['ValidityLeft']] != '4':
+                            LHV.append((float(itemList[field['GazePointXLeft']]), float(itemList[field['GazePointYLeft']])))
+                        else:  # pupil was not found
+                            LHV.append((numpy.NaN, numpy.NaN))
+
+                    if itemList[field['GazePointXRight']] != '':
+                        isGazeDataAvailable = True
+                        if itemList[field['ValidityRight']] != '4':
+                            RHV.append((float(itemList[field['GazePointXRight']]), float(itemList[field['GazePointYRight']])))
+                        else:  # pupil was not found
+                            RHV.append((numpy.NaN, numpy.NaN))
+
+                    # record timeStamp if gaze data is available
+                    if isGazeDataAvailable:
+                        T.append(float(itemList[field['TimeStamp']]))
+                        P.append((float(itemList[field['PupilLeft']]), float(itemList[field['PupilRight']])))
+                
+                elif EventRecMode == 'Embedded' or ('Event' in field):
+                    # record event
+                    if itemList[field['Event']] != '':
+                        M.append((float(itemList[field['TimeStamp']]), itemList[field['Event']]))
+
+    # last fixation ... check exact format of Tobii data later.
+    # FIX.append(int(itemList[field['TimeStamp']]))
+    """
+
+    if verbose: print('saving...')
+    if os.path.exists(additionalDataFileName):
+        if verbose: print('Additional data file is found.')
+        adfp = open(additionalDataFileName)
+        ad = []
+        for line in adfp:
+            data = line.split('\t')
+            for di in range(len(data)):
+                try:
+                    data[di] = int(data[di])
+                except:
+                    try:
+                        data[di] = float(data[di])
+                    except:
+                        pass
+            ad.append(data)
+        GazeParser.save(dstFileName, Data, additionalData=ad)
+    else:
+        GazeParser.save(dstFileName, Data)
+
+    if verbose: print('done.')
+    return 'SUCCESS'
