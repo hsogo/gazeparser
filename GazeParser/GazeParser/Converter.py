@@ -1171,157 +1171,54 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
 
     bindata = hdf['/data_collection/events/eyetracker/BinocularEyeSampleEvent']
 
-    current_block = 0
-    current_message = 0
-
-    T = []
-    P = []
-    LHV = []
-    RHV = []
-    M = []
-
-    for i in range(len(bindata)):
-        if bindata[i]['time'] > stop_time_list[current_block] or i == len(bindata)-1:
-
-            # convert to numpy.ndarray
-            start_time_sec = T[0]
-            Tlist = 1000*(numpy.array(T)-start_time_sec)
-            Plist = numpy.array(P)
-            LHV = numpy.array(LHV)
-            RHV = numpy.array(RHV)
-            if unitcnv == 'height2pix':
-                LHV *= config.SCREEN_HEIGHT
-                RHV *= config.SCREEN_HEIGHT
-            Llist = applyFilter(Tlist, LHV, config, decimals=effectiveDigit)
-            Rlist = applyFilter(Tlist, RHV, config, decimals=effectiveDigit)
-
-            # find messages in this block
-            while msgdata[current_message]['time'] < start_time_list[current_block]:
-                current_message += 1
-            
-            while current_message < len(msgdata) and msgdata[current_message]['time'] <= stop_time_list[current_block]:
-                M.append((1000*(msgdata[current_message]['time']-start_time_sec), msgdata[current_message]['text'].decode('UTF-8')))
-                current_message += 1
-
-            # build MessageData
-            MsgList = []
-            for msg in range(len(M)):
-                MsgList.append(GazeParser.MessageData(M[msg]))
-
-            # build GazeData
-            recdatestr = list(map(int, RecordingDate.split('/') + RecordingTime.split(':')))
-            if config.AVERAGE_LR == 0:
-                (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
-            elif config.AVERAGE_LR == 1:
-                #suppress "RuntimeWarning: Mean of empty slice" when both L and R are NaN
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore", category=RuntimeWarning)
-                    Blist = numpy.nanmean([Llist,Rlist], axis=0)
-                (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
-
-            G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)
-
-            Data.append(G)
-
-            T = []
-            P = []
-            LHV = []
-            RHV = []
-            M = []
-            current_block += 1
-
-            if verbose:
-                print('Block {}'.format(current_block))
-
-        else:
-            if bindata[i]['time'] < start_time_list[current_block]:
-                continue
-        
-            if bindata[i]['status'] < 20:  # left is invalid = 20, both are invalid = 22
-                LHV.append((bindata[i]['left_gaze_x'], bindata[i]['left_gaze_y']))
-            else:  # pupil was not found
-                LHV.append((numpy.NaN, numpy.NaN))
-
-            if bindata[i]['status'] % 20 != 2:  # right is invalid = 2, both are invalid = 22
-                RHV.append((bindata[i]['right_gaze_x'], bindata[i]['right_gaze_y']))
-            else:  # pupil was not found
-                RHV.append((numpy.NaN, numpy.NaN))
-
-            T.append(bindata[i]['time'])
-            P.append((bindata[i]['left_pupil_measure1'], bindata[i]['right_pupil_measure1']))
+    left_invalid = bindata['status'] < 20  # left is invalid = 20, both are invalid = 22
+    right_invalid = bindata['status'] % 20 != 2  # right is invalid = 2, both are invalid = 22
+    bindata[left_invalid]['left_gaze_x'] = numpy.NaN
+    bindata[left_invalid]['left_gaze_y'] = numpy.NaN
+    bindata[right_invalid]['right_gaze_x'] = numpy.NaN
+    bindata[right_invalid]['right_gaze_y'] = numpy.NaN
 
 
-    """"
-            if itemList[0] == 'TimeStamp':
-                field = {}
-                for i in range(len(itemList)):
-                    field[itemList[i]] = i
+    for block in range(len(start_time_list)):
+        block_idx = (start_time_list[block] <= bindata['time']) & (bindata['time'] <= stop_time_list[block])
 
-            elif itemList[0] == 'Session End':
-                # convert to numpy.ndarray
-                Tlist = numpy.array(T)
-                Plist = numpy.array(P)
-                LHV = numpy.array(LHV)
-                RHV = numpy.array(RHV)
-                if unitcnv == 'height2pix':
-                    LHV *= config.SCREEN_HEIGHT
-                    RHV *= config.SCREEN_HEIGHT
-                Llist = applyFilter(Tlist, LHV, config, decimals=effectiveDigit)
-                Rlist = applyFilter(Tlist, RHV, config, decimals=effectiveDigit)
+        T = numpy.array(bindata[block_idx]['time'])
+        start_time_sec = T[0]
+        Tlist = 1000*(numpy.array(T)-start_time_sec)
 
-                # build MessageData
-                MsgList = []
-                for msg in range(len(M)):
-                    MsgList.append(GazeParser.MessageData(M[msg]))
+        LHV = numpy.vstack([bindata[block_idx]['left_gaze_x'], bindata[block_idx]['left_gaze_y']]).T
+        RHV = numpy.vstack([bindata[block_idx]['right_gaze_x'], bindata[block_idx]['right_gaze_y']]).T
+        if unitcnv == 'height2pix':
+            LHV *= config.SCREEN_HEIGHT
+            RHV *= config.SCREEN_HEIGHT
+        Llist = applyFilter(Tlist, LHV, config, decimals=effectiveDigit)
+        Rlist = applyFilter(Tlist, RHV, config, decimals=effectiveDigit)
+        print(bindata[block_idx]['left_gaze_x'].shape, LHV.shape)
 
-                # build GazeData
-                recdatestr = list(map(int, RecordingDate.split('/') + RecordingTime.split(':')))
-                if config.AVERAGE_LR == 0:
-                    (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
-                elif config.AVERAGE_LR == 1:
-                    #suppress "RuntimeWarning: Mean of empty slice" when both L and R are NaN
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("ignore", category=RuntimeWarning)
-                        Blist = numpy.nanmean([Llist,Rlist], axis=0)
-                    (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
+        Plist = numpy.vstack([bindata[block_idx]['left_pupil_measure1'], bindata[block_idx]['right_pupil_measure1']]).T
 
-                G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)
+        msg_idx = (start_time_list[block] <= msgdata['time']) & (msgdata['time'] <= stop_time_list[block])
+        msg_time = 1000*(msgdata[msg_idx]['time']-start_time_sec)
+        msg_text = msgdata[msg_idx]['text']
+        MsgList = []
+        for i in range(len(msg_time)):
+            MsgList.append(GazeParser.MessageData((msg_time[i], msg_text[i].decode('UTF-8'))))
 
-                Data.append(G)
+        # build GazeData
+        recdatestr = list(map(int, RecordingDate.split('/') + RecordingTime.split(':')))
+        if config.AVERAGE_LR == 0:
+            (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
+        elif config.AVERAGE_LR == 1:
+            #suppress "RuntimeWarning: Mean of empty slice" when both L and R are NaN
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=RuntimeWarning)
+                Blist = numpy.nanmean([Llist,Rlist], axis=0)
+            (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
 
-                flgInBlock = False
+        G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)
 
-            else:
-                if EventRecMode == 'Embedded' or ('Event' not in field):
-                    isGazeDataAvailable = False
-                    # record gaze position
-                    if itemList[field['GazePointXLeft']] != '':
-                        isGazeDataAvailable = True
-                        if itemList[field['ValidityLeft']] != '4':
-                            LHV.append((float(itemList[field['GazePointXLeft']]), float(itemList[field['GazePointYLeft']])))
-                        else:  # pupil was not found
-                            LHV.append((numpy.NaN, numpy.NaN))
+        Data.append(G)
 
-                    if itemList[field['GazePointXRight']] != '':
-                        isGazeDataAvailable = True
-                        if itemList[field['ValidityRight']] != '4':
-                            RHV.append((float(itemList[field['GazePointXRight']]), float(itemList[field['GazePointYRight']])))
-                        else:  # pupil was not found
-                            RHV.append((numpy.NaN, numpy.NaN))
-
-                    # record timeStamp if gaze data is available
-                    if isGazeDataAvailable:
-                        T.append(float(itemList[field['TimeStamp']]))
-                        P.append((float(itemList[field['PupilLeft']]), float(itemList[field['PupilRight']])))
-                
-                elif EventRecMode == 'Embedded' or ('Event' in field):
-                    # record event
-                    if itemList[field['Event']] != '':
-                        M.append((float(itemList[field['TimeStamp']]), itemList[field['Event']]))
-
-    # last fixation ... check exact format of Tobii data later.
-    # FIX.append(int(itemList[field['TimeStamp']]))
-    """
 
     if verbose: print('saving...')
     if os.path.exists(additionalDataFileName):
