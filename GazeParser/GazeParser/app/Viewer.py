@@ -20,6 +20,7 @@ if sys.version_info[0] == 2:
 else:
     from configparser import ConfigParser
 import shutil
+import datetime
 try:
     import Image
     import ImageTk
@@ -134,7 +135,7 @@ def messageDialogAskopenfilenames(parent=None, filetypes='', initialdir=''):
         return [os.path.join(d, f) for f in flist]
     else:
         dlg.Destroy()
-        return ''
+        return []
 
 def messageDialogAsksaveasfilename(parent=None, filetypes='', initialdir='', initialfile=''):
     dlg = wx.FileDialog(parent, defaultDir=initialdir, defaultFile=initialfile, wildcard=filetypes, style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
@@ -241,14 +242,17 @@ class animationDialog(wx.Dialog):
         self.ID_STARTCTRL = wx_NewIdRef()
         self.ID_STOPCTRL = wx_NewIdRef()
         
-        TIMER_ID = wx_NewIdRef()
-        self.timer = wx.Timer(self, TIMER_ID)
-        wx.EVT_TIMER(self, TIMER_ID, self.onTimer) 
+        #TIMER_ID = wx_NewIdRef()
+        #self.timer = wx.Timer(self, TIMER_ID)
+        #wx.EVT_TIMER(self, TIMER_ID, self.onTimer)
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.onTimer)
         
         self.saveMovie = False
         
         viewPanel = wx.Panel(self, wx.ID_ANY)
-        self.fig = matplotlib.figure.Figure( None )
+        #self.fig = matplotlib.figure.Figure( figsize=(self.D[self.tr].config.SCREEN_WIDTH/200, self.D[self.tr].config.SCREEN_HEIGHT/200) )
+        self.fig = matplotlib.figure.Figure(  )
         self.canvas = FigureCanvasWxAgg( viewPanel, wx.ID_ANY, self.fig )
         self.ax = self.fig.add_axes([80.0/self.conf.CANVAS_WIDTH,  # 80px
                                      60.0/self.conf.CANVAS_HEIGHT,  # 60px
@@ -294,7 +298,7 @@ class animationDialog(wx.Dialog):
         stSkip = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'Skip:')
         self.tcSkip = wx.TextCtrl(self.fpsPanel, wx.ID_ANY, '1', style=wx.TE_PROCESS_ENTER|wx.TE_RIGHT)
         estimDur = float(len(self.D[self.tr].T))/(15*1)
-        self.stEstimate = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'Estimated movie duration: %.1f sec' % (estimDur))
+        self.stEstimate = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'Estimated movie duration: %.1f sec (%s)' % (estimDur, datetime.timedelta(seconds=estimDur)))
         self.tcFPS.Bind(wx.EVT_TEXT_ENTER, self.updateEstimation)
         self.tcSkip.Bind(wx.EVT_TEXT_ENTER, self.updateEstimation)
         box = wx.BoxSizer(wx.HORIZONTAL)
@@ -383,28 +387,50 @@ class animationDialog(wx.Dialog):
         try:
             fps = int(self.tcFPS.GetValue())
         except:
-            self.tcFPS.GetValue('15')
+            self.tcFPS.SetValue('15')
+            fps = 15
         try:
             skip = int(self.tcSkip.GetValue())
         except:
-            self.tcSkip.GetValue('1')
+            self.tcSkip.SetValue('1')
+            skip = 1
         if fps<=0:
-            self.tcFPS.GetValue('15')
+            self.tcFPS.SetValue('15')
             fps = 15
         if skip<=0:
-            self.tcFPS.GetValue('1')
+            self.tcFPS.SetValue('1')
             skip=1
         st = int(self.tcStart.GetValue())
         e = int(self.tcStop.GetValue())
         estimDur = float(e-st)/(fps*skip)
-        self.stEstimate.SetLabel('Estimated movie duration: %.1f sec' % (estimDur))
+        self.stEstimate.SetLabel('Estimated movie duration: %.1f sec (%s)' % (estimDur, datetime.timedelta(seconds=estimDur)))
 
     def startAnimation(self, event=None):
         self.saveMovie = self.cbSaveToFile.GetValue()
         self.skip = int(self.tcSkip.GetValue())
         if self.saveMovie:
             fps = int(self.tcFPS.GetValue())
-            FFMpegWriter = matplotlib.animation.writers['ffmpeg']
+            try:
+                FFMpegWriter = matplotlib.animation.writers['ffmpeg']
+            except:
+                if sys.platform == 'win32':
+                    try:
+                        import imageio_ffmpeg
+                        bindir = os.path.join(os.path.dirname(imageio_ffmpeg.__file__),'binaries')
+                        for f in os.listdir(bindir):
+                            m = re.match('ffmpeg.*\.exe', f)
+                            if m is not None:
+                                ffmpeg_path = os.path.join(bindir,f)
+                                matplotlib.rcParams['animation.ffmpeg_path'] = ffmpeg_path
+                                FFMpegWriter = matplotlib.animation.writers['ffmpeg']
+                                break
+                    except:
+                        messageDialogShowinfo(self, 'Info', 'FFmpeg is not found. Add ffmpeg to PATH or install imageio_ffmpeg package.')
+                        return
+                else:
+                    messageDialogShowinfo(self, 'Info', 'FFmpeg is not found. Add ffmpeg to PATH.')
+                    return
+
             metadata = dict(title=self.parent.dataFileName, artist='GazeParser Data Viewer', comment='Trial %d' % (self.tr))
             self.writer = FFMpegWriter(fps=fps, bitrate=-1, metadata=metadata)
             fname = messageDialogAsksaveasfilename(self, initialdir=self.parent.initialDataDir, filetypes='mp4 file (*.mp4)|*.mp4')
@@ -450,7 +476,8 @@ class animationDialog(wx.Dialog):
 
     def onTimer(self, event=None):
         if self.index < self.stopindex:
-            self.ax.set_title('time: %.1f' % self.D[self.tr].T[self.index])
+            t = self.D[self.tr].T[self.index]
+            self.ax.set_title('time: %.1f ms (%s)' % (t, datetime.timedelta(seconds=t/1000)))
             if self.hasLData:
                 self.l.set_data(self.sf[0]*self.D[self.tr].L[self.index][0], self.sf[1]*self.D[self.tr].L[self.index][1])
             if self.hasRData:
@@ -3581,6 +3608,9 @@ class mainFrame(wx.Frame):
         dlg.Destroy()
 
     def animation(self, event=None):
+        if self.D is None:
+            messageDialogShowinfo(self, 'info', 'Data must be loaded before using this function')
+            return
         dlg = animationDialog(parent=self, id=wx.ID_ANY)
         dlg.ShowModal()
         dlg.Destroy()
