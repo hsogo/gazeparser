@@ -522,47 +522,55 @@ class animationDialog(wx.Dialog):
         self.fig.canvas.draw()
 
 
-class convertSGTDialog(wx.Dialog):
+class convertDialog(wx.Dialog):
     def __init__(self, parent, id=wx.ID_ANY):
-        super(convertSGTDialog, self).__init__(parent=parent, id=id, title='SimpleGazeTracker csv converter')
+        super(convertDialog, self).__init__(parent=parent, id=id, title='GazeParser datafile converter')
 
         self.mainWindow = parent
         if self.mainWindow is None:
-            if initialdir is None:
-                self.initialDataDir = GazeParser.homeDir
-            else:
-                self.initialDataDir = initialdir
+            self.initialDataDir = GazeParser.homeDir
         else:
             self.initialDataDir = self.mainWindow.initialDataDir
         self.configuration = GazeParser.Configuration.Config()
         
         self.paramEntryDict = {}
+
+        self.commandPanel = wx.Panel(self, wx.ID_ANY)
+
+        self.datafileTypeChoices = ['SimpleGazeTracker CSV',
+            'PsychoPy_Tobii_Controller TSV']
+        self.datafileType = 'SimpleGazeTracker CSV'
+        self.rbDatafileType = wx.RadioBox(self.commandPanel, wx.ID_ANY, 'Datafile Type', choices=self.datafileTypeChoices, style=wx.RA_VERTICAL)
+        self.rbDatafileType.Bind(wx.EVT_RADIOBOX, self.onClickDatafileType)
         
         self.useEmbeddedChoices = ['Use parameters embedded in the data file',
             'Use parameters shown in this dialog']
-        self.useEmbeddedCodes = [True, False]
-        commandPanel = wx.Panel(self, wx.ID_ANY)
-        self.rbUseEmbedded = wx.RadioBox(commandPanel, wx.ID_ANY, 'Use embedded parameters', choices=self.useEmbeddedChoices, style=wx.RA_VERTICAL)
-        self.rbUseEmbedded.Bind(wx.EVT_RADIOBOX, self.onClickRadiobutton)
+        self.rbUseEmbedded = wx.RadioBox(self.commandPanel, wx.ID_ANY, 'Use embedded parameters', choices=self.useEmbeddedChoices, style=wx.RA_VERTICAL)
+        self.rbUseEmbedded.Bind(wx.EVT_RADIOBOX, self.onClickUseEmbedded)
 
-        self.cbOverwrite = wx.CheckBox(commandPanel, wx.ID_ANY, 'Overwrite')
-        loadConfigButton = wx.Button(commandPanel, wx.ID_ANY, 'Load Configuration File')
-        exportConfigButton = wx.Button(commandPanel, wx.ID_ANY, 'Export current parameters')
-        convertButton = wx.Button(commandPanel, wx.ID_ANY, 'Convert Files')
-        cancelButton = wx.Button(commandPanel, wx.ID_ANY, 'Close')
+        self.cbHeightToPix = wx.CheckBox(self.commandPanel, wx.ID_ANY, 'Height to Pix')
+        self.cbHeightToPix.Hide()
+
+        self.cbOverwrite = wx.CheckBox(self.commandPanel, wx.ID_ANY, 'Overwrite')
+        loadConfigButton = wx.Button(self.commandPanel, wx.ID_ANY, 'Load Configuration File')
+        exportConfigButton = wx.Button(self.commandPanel, wx.ID_ANY, 'Export current parameters')
+        convertButton = wx.Button(self.commandPanel, wx.ID_ANY, 'Convert Files')
+        cancelButton = wx.Button(self.commandPanel, wx.ID_ANY, 'Close')
         loadConfigButton.Bind(wx.EVT_BUTTON, self.loadConfig)
         exportConfigButton.Bind(wx.EVT_BUTTON, self.exportConfig)
         convertButton.Bind(wx.EVT_BUTTON, self.convertFiles)
         cancelButton.Bind(wx.EVT_BUTTON, self.cancel)
         
         box = wx.BoxSizer(wx.VERTICAL)
-        box.Add(self.rbUseEmbedded)
+        box.Add(self.rbDatafileType, flag=wx.EXPAND)
+        box.Add(self.rbUseEmbedded, flag=wx.EXPAND)
+        box.Add(self.cbHeightToPix, flag=wx.TOP|wx.ALIGN_CENTER, border=20)
         box.Add(loadConfigButton, flag=wx.TOP|wx.ALIGN_CENTER, border=20)
         box.Add(exportConfigButton, flag=wx.ALIGN_CENTER)
         box.Add(convertButton, flag=wx.TOP|wx.ALIGN_CENTER, border=5)
         box.Add(self.cbOverwrite, flag=wx.ALIGN_CENTER)
         box.Add(cancelButton, flag=wx.TOP|wx.ALIGN_CENTER, border=20)
-        commandPanel.SetSizer(box)
+        self.commandPanel.SetSizer(box)
 
         self.filterCommands = ['identity', 'ma', 'butter', 'butter_filtfilt']
         
@@ -576,7 +584,7 @@ class convertSGTDialog(wx.Dialog):
                     self.paramEntryDict[key].SetValue(unicode(getattr(self.configuration, key)))
                 else:
                     self.paramEntryDict[key].SetValue(getattr(self.configuration, key))
-                self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickRadiobutton)
+                self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickUseEmbedded)
             else:
                 if sys.version_info[0] == 2:
                     self.paramEntryDict[key] = wx.TextCtrl(self.paramPanel, wx.ID_ANY, unicode(getattr(self.configuration, key)))
@@ -584,17 +592,25 @@ class convertSGTDialog(wx.Dialog):
                     self.paramEntryDict[key] = wx.TextCtrl(self.paramPanel, wx.ID_ANY, str(getattr(self.configuration, key)))
             box.Add(self.paramEntryDict[key])
         self.paramPanel.SetSizer(box)
-        self.onClickRadiobutton()
+        self.onClickUseEmbedded()
         
         box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(commandPanel, flag=wx.ALL, border=5)
+        box.Add(self.commandPanel, flag=wx.ALL, border=5)
         box.Add(self.paramPanel, flag=wx.ALL, border=5)
         self.SetSizerAndFit(box)
         
         self.Show()
 
     def convertFiles(self, event=None):
-        fnames = messageDialogAskopenfilenames(self, filetypes='SimpleGazeTracker CSV file (*.csv)|*.csv', initialdir=self.initialDataDir)
+        datafileType = self.datafileTypeChoices[self.rbDatafileType.GetSelection()]
+        if datafileType == 'SimpleGazeTracker CSV':
+            fnames = messageDialogAskopenfilenames(self, filetypes='SimpleGazeTracker CSV file (*.csv)|*.csv', initialdir=self.initialDataDir)
+        elif datafileType == 'PsychoPy_Tobii_Controller TSV':
+            fnames = messageDialogAskopenfilenames(self, filetypes='PsychoPy_Tobii_Controller TSV file (*.tsv)|*.tsv', initialdir=self.initialDataDir)
+        else:
+            messageDialogShowerror(self, 'Error', 'Invalid datafile type ({})'.format(datafileType))
+            return
+
         if fnames == []:
             messageDialogShowinfo(self, 'info', 'No files')
             return
@@ -608,7 +624,11 @@ class convertSGTDialog(wx.Dialog):
         else:
             overwrite = False
 
-        usefileparameters = self.useEmbeddedCodes[self.rbUseEmbedded.GetSelection()]
+        if datafileType == 'SimpleGazeTracker CSV':
+            usefileparameters = True if self.rbUseEmbedded.GetSelection()==0 else False
+
+        if datafileType == 'PsychoPy_Tobii_Controller TSV':
+            unitcnv = 'height2pix' if self.cbHeightToPix.GetValue() else None
 
         self.updateParameters()
 
@@ -617,7 +637,10 @@ class convertSGTDialog(wx.Dialog):
         for f in fnames:
             res = 'FAILED'
             try:
-                res = GazeParser.Converter.TrackerToGazeParser(f, overwrite=overwrite, config=self.configuration, useFileParameters=usefileparameters)
+                if datafileType == 'SimpleGazeTracker CSV':
+                    res = GazeParser.Converter.TrackerToGazeParser(f, overwrite=overwrite, config=self.configuration, useFileParameters=usefileparameters)
+                elif datafileType == 'PsychoPy_Tobii_Controller TSV':
+                    res = GazeParser.Converter.PTCToGazeParser(f, overwrite=overwrite, config=self.configuration, unitcnv=unitcnv)
             except:
                 info = sys.exc_info()
                 tbinfo = traceback.format_tb(info[2])
@@ -663,7 +686,7 @@ class convertSGTDialog(wx.Dialog):
             self.mainWindow.initialDataDir = self.initialDataDir
 
         for key in GazeParser.Configuration.GazeParserOptions:
-            self.paramEntryDict[key].SetValue(getattr(self.configuration, key))
+            self.paramEntryDict[key].SetValue(str(getattr(self.configuration, key)))
 
     def exportConfig(self, event=None):
         """
@@ -711,8 +734,22 @@ class convertSGTDialog(wx.Dialog):
             else:
                 setattr(self.configuration, key, value)
 
-    def onClickRadiobutton(self, event=None):
-        if self.useEmbeddedCodes[self.rbUseEmbedded.GetSelection()]:
+    def onClickDatafileType(self, event=None):
+        if self.rbDatafileType.GetSelection()==0:
+            self.datafileType = 'SimpleGazeTracker CSV'
+            self.rbUseEmbedded.Show()
+            self.cbHeightToPix.Hide()
+        else:
+            self.datafileType = 'PsychoPy_Tobii_Controller TSV'
+            self.rbUseEmbedded.SetSelection(1) # Use parameters shown in this dialog
+            self.rbUseEmbedded.Hide()
+            self.cbHeightToPix.Show()
+        
+        self.commandPanel.Layout()
+        self.onClickUseEmbedded()
+
+    def onClickUseEmbedded(self, event=None):
+        if self.rbUseEmbedded.GetSelection()==0:
             self.paramPanel.Enable(False)
         else:
             self.paramPanel.Enable(True)
@@ -2530,14 +2567,14 @@ class mainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.configColor, id=ID_CONF_COLOR)
         self.Bind(wx.EVT_MENU, self.configFont, id=ID_CONF_FONT)
         self.Bind(wx.EVT_MENU, self.configStimImage, id=ID_CONF_STIMIMAGE)
-        self.menu_tools.Append(ID_TOOL_CONVERT, 'Convert  SimpleGazeTracker CSV')
+        self.menu_tools.Append(ID_TOOL_CONVERT, 'Convert Datafiles to GazeParser .db files')
         self.menu_tools.Append(ID_TOOL_EDITCONFIG, 'Edit GazeParser Configuration File')
         self.menu_tools.AppendSeparator()
         self.menu_tools.Append(ID_TOOL_GETLATENCY, 'Saccade latency')
         self.menu_tools.Append(ID_TOOL_GETFIXREG, 'Fixations in region')
         self.menu_tools.AppendSeparator()
         self.menu_tools.Append(ID_TOOL_ANIMATION, 'Animation')
-        self.Bind(wx.EVT_MENU, self.convertSGT, id=ID_TOOL_CONVERT)
+        self.Bind(wx.EVT_MENU, self.convertDatafiles, id=ID_TOOL_CONVERT)
         self.Bind(wx.EVT_MENU, self.interactiveConfig, id=ID_TOOL_EDITCONFIG)
         self.Bind(wx.EVT_MENU, self.getLatency, id=ID_TOOL_GETLATENCY)
         self.Bind(wx.EVT_MENU, self.getFixationsInRegion, id=ID_TOOL_GETFIXREG)
@@ -3501,8 +3538,8 @@ class mainFrame(wx.Frame):
         self.selectionlist = {'Sac': [], 'Fix': [], 'Msg': [], 'Blink': []}
         self.plotData()
 
-    def convertSGT(self, event=None):
-        dlg = convertSGTDialog(parent=self)
+    def convertDatafiles(self, event=None):
+        dlg = convertDialog(parent=self)
         dlg.ShowModal()
         dlg.Destroy()
 
