@@ -450,10 +450,7 @@ class MessageData(object):
         else:
             text = self.text
         
-        if sys.version_info[0] == 2:
-            msg += '{:.3f}s, {}>'.format(self.time/1000.0, text.encode(locale.getpreferredencoding()))
-        else:
-            msg += '{:.3f}s, {}>'.format(self.time/1000.0, text)
+        msg += '{:.3f}s, {}>'.format(self.time/1000.0, text)
         
         return msg
 

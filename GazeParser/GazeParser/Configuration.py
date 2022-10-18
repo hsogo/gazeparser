@@ -9,10 +9,7 @@ from __future__ import print_function
 
 import os
 import sys
-if sys.version_info[0] == 2:
-    from ConfigParser import SafeConfigParser as ConfigParser
-else:
-    from configparser import ConfigParser
+from configparser import ConfigParser
 import GazeParser
 
 GazeParserDefaults = {

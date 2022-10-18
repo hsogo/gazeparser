@@ -25,10 +25,7 @@ import os
 import sys
 import warnings
 
-if sys.version_info[0] == 2:
-    import ConfigParser as configparser
-else:
-    import configparser
+import configparser
 import shutil
 
 import numpy
@@ -370,8 +367,6 @@ class BaseController(object):
             If an unicode string is passed as a message,
             it is converted to UTF-8 before sending.
         """
-        if sys.version_info[0] == 2 and isinstance(message, unicode):
-            message = message.encode('utf-8')
         self.sendCommand('insertMessage'+chr(0)+message+chr(0))
 
     def sendSettings(self, configDict):
@@ -406,8 +401,6 @@ class BaseController(object):
             If an unicode string is passed as a message,
             it is converted to UTF-8 before sending.
         """
-        if sys.version_info[0] == 2 and isinstance(message, unicode):
-            message = message.encode('utf-8')
         self.sendCommand('startRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
 
@@ -426,8 +419,6 @@ class BaseController(object):
             If an unicode string is passed as a message,
             it is converted to UTF-8 before sending.
         """
-        if sys.version_info[0] == 2 and isinstance(message, unicode):
-            message = message.encode('utf-8')
         self.sendCommand('stopRecording'+chr(0)+message+chr(0))
         time.sleep(wait)
 
@@ -826,10 +817,7 @@ class BaseController(object):
                     data += newData
 
         if hasGotMenu:
-            if sys.version_info[0] > 2:
-                return data.decode()
-            else:
-                return data
+            return data.decode()
         return 'WARNING: menu string was not received.'
 
     def getCalibrationResults(self, timeout=2.0):
@@ -917,10 +905,7 @@ class BaseController(object):
                 if delimiterIndex+1 < len(data):
                     print('getCameraImage: %d bytes after \\0' % (len(data)-(delimiterIndex+1)))
                     self.prevBuffer = data[(delimiterIndex+1):]
-                if sys.version_info[0] > 2:
-                    imgdata = [data[idx] for idx in range(delimiterIndex)]
-                else:
-                    imgdata = [ord(data[idx]) for idx in range(delimiterIndex)]
+                imgdata = [data[idx] for idx in range(delimiterIndex)]
                 hasGotImage = True
             if self.clock()-startTime > timeout:
                 break
@@ -951,7 +936,7 @@ class BaseController(object):
 
         *Usually, you don't need use this method.*
         """
-        if sys.version_info[0] > 2 and isinstance(command, str):
+        if isinstance(command, str):
             command = command.encode('utf-8')
         self.sendSock.send(command)
 

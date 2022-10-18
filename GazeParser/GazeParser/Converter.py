@@ -533,9 +533,6 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
         if isinstance(config, str):
             if verbose: print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
-        elif sys.version_info[0] == 2 and isinstance(config, unicode):
-            if verbose: print('Load configuration file: %s' % config)
-            config = GazeParser.Configuration.Config(ConfigFile=config)
         elif has_pathlib and isinstance(config, pathlib.Path):
             if verbose: print('Load configuration file: %s' % str(config))
             config = GazeParser.Configuration.Config(ConfigFile=str(config))
@@ -909,9 +906,6 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, un
         if isinstance(config, str):
             if verbose: print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
-        elif sys.version_info[0] == 2 and isinstance(config, unicode):
-            if verbose: print('Load configuration file: %s' % config)
-            config = GazeParser.Configuration.Config(ConfigFile=config)
         elif has_pathlib and isinstance(config, pathlib.Path):
             if verbose: print('Load configuration file: %s' % str(config))
             config = GazeParser.Configuration.Config(ConfigFile=str(config))
@@ -1106,9 +1100,6 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
 
     if not isinstance(config, GazeParser.Configuration.Config):
         if isinstance(config, str):
-            if verbose: print('Load configuration file: %s' % config)
-            config = GazeParser.Configuration.Config(ConfigFile=config)
-        elif sys.version_info[0] == 2 and isinstance(config, unicode):
             if verbose: print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif has_pathlib and isinstance(config, pathlib.Path):

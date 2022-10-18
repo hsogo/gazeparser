@@ -11,11 +11,7 @@ import os
 import sys
 import numpy
 import warnings
-if sys.version_info[0] == 2:
-    import cPickle as pickle
-    import anydbm
-else:
-    import pickle
+import pickle
 import zlib
 import shutil
 import GazeParser
@@ -35,10 +31,6 @@ def save(filename, data, additionalData=None):
     :param additionalData:
         Additional data (if necessary).
     """
-
-    if sys.version_info[0] == 2:
-        if isinstance(filename, unicode):
-            filename = filename.encode(sys.getfilesystemencoding())
 
     with open(filename, 'wb') as fp:
         data_dict = {'GazeData':data, 'AdditionalData':additionalData}
@@ -63,20 +55,13 @@ def load(filename, checkVersion=True):
     if not os.path.isfile(filename):
         raise ValueError('%s is not exist.' % filename)
 
-    if sys.version_info[0] == 2:
-        if isinstance(filename, unicode):
-            filename = filename.encode(sys.getfilesystemencoding())
-    
     fp = open(filename, 'rb')
     try:
         s = zlib.decompress(fp.read())
-        if sys.version_info[0] == 2:
+        try:
             data_dict = pickle.loads(s)
-        else:
-            try:
-                data_dict = pickle.loads(s)
-            except UnicodeDecodeError:
-                data_dict = pickle.loads(s, encoding='latin-1')
+        except UnicodeDecodeError:
+            data_dict = pickle.loads(s, encoding='latin-1')
         D = data_dict['GazeData']
         A = data_dict['AdditionalData']
         fp.close()
@@ -85,30 +70,19 @@ def load(filename, checkVersion=True):
         # old data file
         print('Warning: This data file is made by old GazeParser. It is recommended to re-save data in the new file format.')
         warnings.warn('loading old-format data file', DeprecationWarning)
-        if sys.version_info[0] == 2:
-            db = anydbm.open(filename, 'r')
-            s = zlib.decompress(db['GazeData'])
-            D = pickle.loads(s)
-            if 'AdditionalData' in db:
-                s = zlib.decompress(db['AdditionalData'])
-                A = pickle.loads(s)
-            else:
-                A = None
-            db.close()
+        try:
+            import bsddb3
+        except ImportError:
+            raise RuntimeError('bsddb3 is necessary to read old GazePaser data file in Python3.')
+        db = bsddb3.hashopen(str(filename), 'r')
+        s = zlib.decompress(db[b'GazeData'])
+        D = pickle.loads(s, encoding='latin-1')
+        if b'AdditionalData' in db:
+            s = zlib.decompress(db[b'AdditionalData'])
+            A = pickle.loads(s, encoding='latin-1')
         else:
-            try:
-                import bsddb3
-            except ImportError:
-                raise RuntimeError('bsddb3 is necessary to read old GazePaser data file in Python3.')
-            db = bsddb3.hashopen(str(filename), 'r')
-            s = zlib.decompress(db[b'GazeData'])
-            D = pickle.loads(s, encoding='latin-1')
-            if b'AdditionalData' in db:
-                s = zlib.decompress(db[b'AdditionalData'])
-                A = pickle.loads(s, encoding='latin-1')
-            else:
-                A = None
-            db.close()
+            A = None
+        db.close()
     
     # if libraryVersion > dataVersion:
     #if compareVersion(D[0].__version__, GazeParser.__version__) < 0 and checkVersion:
