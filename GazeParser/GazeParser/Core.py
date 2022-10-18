@@ -13,7 +13,8 @@ import re
 import sys
 import locale
 
-float_tolerance = 0.000000000001
+#float_tolerance = 0.000000000001
+float_tolerance = 1e-05
 
 class SaccadeData(object):
     """
@@ -150,6 +151,23 @@ class SaccadeData(object):
     def getPreviousEvent(self, step=1, eventType=None):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
     
+    def isCloseTo(self, other, time_tolerance=0.01, pix_tolerance=0.01, dir_tolerance=0.0001745, deg_tolerance=0.001):
+        if not isinstance(other, SaccadeData):
+            return False
+        for attr in ('startTime', 'endTime', 'duration', 'length'):
+            if getattr(self, attr) - getattr(other, attr) > time_tolerance:
+                return False
+        for attr in ('amplitude',):
+            if getattr(self, attr) - getattr(other, attr) > deg_tolerance:
+                return False
+        for attr in ('direction',):
+            if getattr(self, attr) - getattr(other, attr) > dir_tolerance:
+                return False
+        for attr in ('start', 'end'):
+            if (getattr(self, attr) - getattr(other, attr) > pix_tolerance).any():
+                return False
+        return True
+
     def __eq__(self, other):
         if not isinstance(other, SaccadeData):
             return False
@@ -298,6 +316,17 @@ class FixationData(object):
     def getPreviousEvent(self, step=1, eventType=None):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
 
+    def isCloseTo(self, other, time_tolerance=0.1, pix_tolerance=0.1):
+        if not isinstance(other, FixationData):
+            return False
+        for attr in ('startTime', 'endTime', 'duration'):
+            if getattr(self, attr) - getattr(other, attr) > time_tolerance:
+                return False
+        for attr in ('center',):
+            if (getattr(self, attr) - getattr(other, attr) > pix_tolerance).any():
+                return False
+        return True
+
     def __eq__(self, other):
         if not isinstance(other, FixationData):
             return False
@@ -376,6 +405,17 @@ class MessageData(object):
         if self._parent is not None:
             self._parent.sortMessagesByTime()
             self._parent.sortEventListByTime()
+
+    def isCloseTo(self, other, time_tolerance=0.01):
+        if not isinstance(other, MessageData):
+            return False
+        for attr in ('time', ):
+            if getattr(self, attr) - getattr(other, attr) > time_tolerance:
+                return False
+        for attr in ('text',):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+        return True
 
     def __eq__(self, other):
         if not isinstance(other, MessageData):
@@ -503,6 +543,14 @@ class BlinkData(object):
 
     def getPreviousEvent(self, step=1, eventType=None):
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
+
+    def isCloseTo(self, other, time_tolerance=0.01):
+        if not isinstance(other, BlinkData):
+            return False
+        for attr in ('startTime', 'endTime', 'duration'):
+            if getattr(self, attr) - getattr(other, attr) > time_tolerance:
+                return False
+        return True
 
     def __eq__(self, other):
         if not isinstance(other, BlinkData):
@@ -1661,6 +1709,42 @@ class GazeData(object):
             return a
         else:
             raise ValueError('contents must be \'point\', \'accuracy\', \'precision\' or \'All\'.')
+
+    def isCloseTo(self, other, verbose=False):
+        if not isinstance(other, GazeData):
+            return False
+        for attr in ('L', 'R', 'T', 'Pupil'):
+            attr1 = getattr(self, attr)
+            attr2 = getattr(other, attr)
+            if isinstance(attr1, numpy.ndarray) and isinstance(attr2, numpy.ndarray):
+                if not numpy.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
+                    if verbose:
+                        print("{} is not close.".format(attr))
+                    return False
+            elif attr1 is None and isinstance(attr2, numpy.ndarray):
+                if verbose:
+                    print("{} is absent".format(attr))
+                return False
+            elif attr2 is None and isinstance(attr1, numpy.ndarray):
+                if verbose:
+                    print("{} is absent".format(attr))
+                return False
+        for attr in ('nSac', 'nFix', 'nMsg', 'nBlink', 'recordedEye', 'recordingDate'):
+            if getattr(self, attr) != getattr(other, attr):
+                if verbose:
+                    print("{} is not equal".format(attr))
+                return False
+        for attr in ('Sac', 'Fix', 'Msg', 'Blink'):
+            if len(getattr(self, attr)) != len(getattr(other, attr)):
+                if verbose:
+                    print("Length of {} is different".format(attr))
+                return False
+            for i in range(len(getattr(self, attr))):
+                if not getattr(self, attr)[i].isCloseTo(getattr(other, attr)[i]):
+                    if verbose:
+                        print("{}[{}] is not close".format(attr,i))
+                    return False
+        return True
 
     def __eq__(self, other):
         if not isinstance(other, GazeData):
