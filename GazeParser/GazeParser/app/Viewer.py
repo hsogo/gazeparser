@@ -55,6 +55,9 @@ from GazeParser.Converter import buildEventListBinocular, buildEventListMonocula
 matplotlib.interactive( True )
 #matplotlib.use( 'WXAgg' )
 
+matplotlib.rcParams['axes.xmargin'] = 0
+matplotlib.rcParams['axes.ymargin'] = 0
+
 from packaging import version
 
 
@@ -248,8 +251,7 @@ class animationDialog(wx.Dialog):
         self.saveMovie = False
         
         viewPanel = wx.Panel(self, wx.ID_ANY)
-        #self.fig = matplotlib.figure.Figure( figsize=(self.D[self.tr].config.SCREEN_WIDTH/200, self.D[self.tr].config.SCREEN_HEIGHT/200) )
-        self.fig = matplotlib.figure.Figure(  )
+        self.fig = matplotlib.figure.Figure( figsize=(self.D[self.tr].config.SCREEN_WIDTH/200, self.D[self.tr].config.SCREEN_HEIGHT/200) ) # half of screen resolution
         self.canvas = FigureCanvasWxAgg( viewPanel, wx.ID_ANY, self.fig )
         self.ax = self.fig.add_axes([80.0/self.conf.CANVAS_WIDTH,  # 80px
                                      60.0/self.conf.CANVAS_HEIGHT,  # 60px
@@ -310,6 +312,10 @@ class animationDialog(wx.Dialog):
         self.startButton = wx.Button(buttonPanel, wx.ID_ANY, 'Start animation')
         self.stopButton = wx.Button(buttonPanel, wx.ID_ANY, 'Stop animation')
         self.stopButton.Enable(False)
+        self.cbShowAxes = wx.CheckBox(buttonPanel, wx.ID_ANY, 'Show axes')
+        self.showAxes = True
+        self.cbShowAxes.SetValue(self.showAxes)
+        self.cbShowAxes.Bind(wx.EVT_CHECKBOX, self.plotData)
         self.cbSaveToFile = wx.CheckBox(buttonPanel, wx.ID_ANY, 'Save to file')
         self.cancelButton = wx.Button(buttonPanel, wx.ID_ANY, 'Close')
         self.startButton.Bind(wx.EVT_BUTTON, self.startAnimation)
@@ -319,6 +325,7 @@ class animationDialog(wx.Dialog):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.startButton)
         hbox.Add(self.stopButton)
+        hbox.Add(self.cbShowAxes)
         hbox.Add(self.cbSaveToFile)
         hbox.Add(self.cancelButton)
         buttonPanel.SetSizerAndFit(hbox)
@@ -442,12 +449,21 @@ class animationDialog(wx.Dialog):
         self.ax.set_xlim(xlim)
         self.ax.set_ylim(ylim)
         # set plotrange and axis labels
-        if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
-            self.ax.set_xlabel('Vertical gaze position (pix)', fontproperties=self.fontPlotText)
-            self.ax.set_ylabel('Horizontal gaze position (pix)', fontproperties=self.fontPlotText)
-        elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
-            self.ax.set_xlabel('Vertical gaze position (deg)', fontproperties=self.fontPlotText)
-            self.ax.set_ylabel('Horizontal gaze position (deg)', fontproperties=self.fontPlotText)
+
+        if self.showAxes:
+            self.ax.set_position([80.0/self.conf.CANVAS_WIDTH, 60.0/self.conf.CANVAS_HEIGHT,
+                1.0-2*80.0/self.conf.CANVAS_WIDTH, 1.0-2*60.0/self.conf.CANVAS_HEIGHT])
+            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+                self.ax.set_xlabel('Vertical gaze position (pix)', fontproperties=self.fontPlotText)
+                self.ax.set_ylabel('Horizontal gaze position (pix)', fontproperties=self.fontPlotText)
+            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+                self.ax.set_xlabel('Vertical gaze position (deg)', fontproperties=self.fontPlotText)
+                self.ax.set_ylabel('Horizontal gaze position (deg)', fontproperties=self.fontPlotText)
+        else:
+            self.ax.set_position([0.0, 0.0, 1.0, 1.0])
+            self.ax.axis('off')
+
+
         if self.hasLData:
             self.l, = self.ax.plot([],[],'-o', color=self.conf.COLOR_TRAJECTORY_L_X)
         if self.hasLData:
@@ -473,8 +489,9 @@ class animationDialog(wx.Dialog):
 
     def onTimer(self, event=None):
         if self.index < self.stopindex:
-            t = self.D[self.tr].T[self.index]
-            self.ax.set_title('time: %.1f ms (%s)' % (t, datetime.timedelta(seconds=t/1000)))
+            if self.showAxes:
+                t = self.D[self.tr].T[self.index]
+                self.ax.set_title('time: %.1f ms (%s)' % (t, datetime.timedelta(seconds=t/1000)))
             if self.hasLData:
                 self.l.set_data(self.sf[0]*self.D[self.tr].L[self.index][0], self.sf[1]*self.D[self.tr].L[self.index][1])
             if self.hasRData:
@@ -490,6 +507,8 @@ class animationDialog(wx.Dialog):
         self.Close()
 
     def plotData(self, event=None):
+        self.showAxes = self.cbShowAxes.GetValue()
+
         xlim = self.ax.get_xlim()
         ylim = self.ax.get_ylim()
         self.ax.clear()
@@ -500,7 +519,6 @@ class animationDialog(wx.Dialog):
         e = self.stopSlider.GetValue()
 
         # ---- xy plot ----
-        # plot fixations
         if self.hasLData:
             self.ax.plot(self.sf[0]*self.D[self.tr].L[st:e,0], self.sf[1]*self.D[self.tr].L[st:e,1], '-', color=self.conf.COLOR_TRAJECTORY_L_X)
         if self.hasRData:
@@ -508,14 +526,21 @@ class animationDialog(wx.Dialog):
         # ---- xy plot ----
 
         # set plotrange and axis labels
-        if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
-            self.ax.set_xlabel('Vertical gaze position (pix)', fontproperties=self.fontPlotText)
-            self.ax.set_ylabel('Horizontal gaze position (pix)', fontproperties=self.fontPlotText)
-        elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
-            self.ax.set_xlabel('Vertical gaze position (deg)', fontproperties=self.fontPlotText)
-            self.ax.set_ylabel('Horizontal gaze position (deg)', fontproperties=self.fontPlotText)
+        if self.showAxes:
+            self.ax.set_position([80.0/self.conf.CANVAS_WIDTH, 60.0/self.conf.CANVAS_HEIGHT,
+                1.0-2*80.0/self.conf.CANVAS_WIDTH, 1.0-2*60.0/self.conf.CANVAS_HEIGHT])
+            if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
+                self.ax.set_xlabel('Vertical gaze position (pix)', fontproperties=self.fontPlotText)
+                self.ax.set_ylabel('Horizontal gaze position (pix)', fontproperties=self.fontPlotText)
+            elif self.conf.CANVAS_XYAXES_UNIT.upper() == 'DEG':
+                self.ax.set_xlabel('Vertical gaze position (deg)', fontproperties=self.fontPlotText)
+                self.ax.set_ylabel('Horizontal gaze position (deg)', fontproperties=self.fontPlotText)
 
-        self.ax.set_title('%s: Trial %d / %d' % (os.path.basename(self.dataFileName), self.tr+1, len(self.D)), fontproperties=self.fontPlotText)
+            self.ax.set_title('%s: Trial %d / %d' % (os.path.basename(self.dataFileName), self.tr+1, len(self.D)), fontproperties=self.fontPlotText)
+        else:
+            self.ax.set_position([0.0, 0.0, 1.0, 1.0])
+            self.ax.axis('off')
+        
         self.fig.canvas.draw()
 
 
