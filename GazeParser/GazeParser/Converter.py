@@ -15,7 +15,6 @@ import re
 import sys
 import codecs
 import warnings
-import h5py
 from datetime import datetime
 from scipy.interpolate import interp1d
 try:
@@ -23,6 +22,12 @@ try:
 except:
     from scipy.stats import nanmean
 from scipy.signal import butter, lfilter, lfilter_zi, filtfilt
+
+try:
+    import h5py
+    has_h5py = True
+except:
+    has_h5py = False
 
 try:
     import pathlib
@@ -1077,6 +1082,10 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
         Covert unit. Currently, only 'height2pix' is supported.
         Default value is None (no conversion).
     """
+    if not has_h5py:
+        if verbose: print('h5py package is required for PPHDF5ToGazeParser.')
+        return 'NO_H5PY'
+
     effectiveDigit = 2
 
     if unitcnv is not None:
