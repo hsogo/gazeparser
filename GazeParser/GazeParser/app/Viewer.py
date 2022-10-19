@@ -466,7 +466,7 @@ class animationDialog(wx.Dialog):
 
         if self.hasLData:
             self.l, = self.ax.plot([],[],'-o', color=self.conf.COLOR_TRAJECTORY_L_X)
-        if self.hasLData:
+        if self.hasRData:
             self.r, = self.ax.plot([],[],'-o', color=self.conf.COLOR_TRAJECTORY_R_X)
         self.startButton.Enable(False)
         self.stopButton.Enable(True)
