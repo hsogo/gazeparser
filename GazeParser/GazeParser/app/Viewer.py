@@ -81,6 +81,7 @@ ID_VIEW_XY = wx_NewIdRef()
 ID_VIEW_SCATTER = wx_NewIdRef()
 ID_VIEW_HEATMAP = wx_NewIdRef()
 ID_SHOW_FIXNUM = wx_NewIdRef()
+ID_SHOW_SELECTED_ONLY = wx_NewIdRef()
 ID_SHOW_STIMIMAGE = wx_NewIdRef()
 ID_CONF_GRID = wx_NewIdRef()
 ID_CONF_COLOR = wx_NewIdRef()
@@ -693,10 +694,13 @@ class convertDialog(wx.Dialog):
         else:
             initialdir = GazeParser.homeDir
         self.configFileName = messageDialogAskopenfilename(self, filetypes=self.ftypes, initialdir=self.initialDataDir)
+        if self.configFileName == '':
+            return
         try:
             self.configuration = GazeParser.Configuration.Config(self.configFileName)
         except:
             messageDialogShowerror(self, 'GazeParser.Configuration.GUI', 'Cannot read %s.\nThis file may not be a GazeParser ConfigFile' % self.configFileName)
+            return
 
         if self.mainWindow is not None:
             self.mainWindow.initialDataDir = self.initialDataDir
@@ -2330,6 +2334,7 @@ class ViewerOptions(object):
           ['CANVAS_HEIGHT', int],
           ['CANVAS_DEFAULT_VIEW', str],
           ['CANVAS_SHOW_FIXNUMBER', bool],
+          ['CANVAS_SHOW_SELECTED_ONLY', bool],
           ['CANVAS_SHOW_STIMIMAGE', bool],
           ['CANVAS_FONT_FILE', str],
           ['CANVAS_XYAXES_UNIT', str],
@@ -2559,12 +2564,18 @@ class mainFrame(wx.Frame):
             show_fix_num.Check(True)
         else:
             show_fix_num.Check(False)
+        show_selected_only = self.menu_view.AppendCheckItem(ID_SHOW_SELECTED_ONLY, 'Show selected only (Scatter, Heatmap)')
+        if self.conf.CANVAS_SHOW_SELECTED_ONLY:
+            show_selected_only.Check(True)
+        else:
+            show_selected_only.Check(False)
         show_stim_img = self.menu_view.AppendCheckItem(ID_SHOW_STIMIMAGE, 'Show Stimulus Image')
         if self.conf.CANVAS_SHOW_FIXNUMBER:
             show_stim_img.Check(True)
         else:
             show_stim_img.Check(False)
         self.Bind(wx.EVT_MENU, self.toggleFixNum, id=ID_SHOW_FIXNUM)
+        self.Bind(wx.EVT_MENU, self.toggleSelectedOnly, id=ID_SHOW_SELECTED_ONLY)
         self.Bind(wx.EVT_MENU, self.toggleStimImage, id=ID_SHOW_STIMIMAGE)
         self.menu_view.AppendSeparator()
         self.menu_view.Append(ID_CONF_GRID, 'Config grid')
@@ -2754,6 +2765,15 @@ class mainFrame(wx.Frame):
             #self.showFixationNumberItem.set(1)
 
         self.plotData()
+
+    def toggleSelectedOnly(self, event=None):
+        if self.conf.CANVAS_SHOW_SELECTED_ONLY:
+            self.conf.CANVAS_SHOW_SELECTED_ONLY = False
+        else:
+            self.conf.CANVAS_SHOW_SELECTED_ONLY = True
+
+        if self.plotStyle in ['SCATTER','HEATMAP']:
+            self.plotData()
 
     def toggleStimImage(self, event=None):
         if self.conf.CANVAS_SHOW_STIMIMAGE:
@@ -3328,8 +3348,13 @@ class mainFrame(wx.Frame):
             # plot fixations
             fixcenter = self.D[self.tr].getFixCenter()
             fixdur = self.D[self.tr].getFixDur().flatten()
-            self.ax.plot(fixcenter[:, 0], fixcenter[:, 1], 'k-')
-            self.ax.scatter(fixcenter[:, 0], fixcenter[:, 1], s=fixdur, c=fixdur, alpha=0.7)
+            if self.conf.CANVAS_SHOW_SELECTED_ONLY and self.selectiontype == 'Extract':
+                sidx = self.selectionlist['Fix']
+                self.ax.plot(fixcenter[sidx, 0], fixcenter[sidx, 1], 'k-')
+                self.ax.scatter(fixcenter[sidx, 0], fixcenter[sidx, 1], s=fixdur[sidx], c=fixdur[sidx], alpha=0.7)
+            else:
+                self.ax.plot(fixcenter[:, 0], fixcenter[:, 1], 'k-')
+                self.ax.scatter(fixcenter[:, 0], fixcenter[:, 1], s=fixdur, c=fixdur, alpha=0.7)
             for f in range(self.D[self.tr].nFix):
                 if self.selectiontype == 'Emphasize':
                     if f in self.selectionlist['Fix']:
@@ -3366,6 +3391,8 @@ class mainFrame(wx.Frame):
             heatmap = numpy.zeros(xmesh.shape)
             for idx in range(fixcenter.shape[0]):
                 if numpy.isnan(fixcenter[idx, 0]) or numpy.isnan(fixcenter[idx, 1]):
+                    continue
+                if self.conf.CANVAS_SHOW_SELECTED_ONLY and self.selectiontype == 'Extract' and not idx in self.selectionlist['Fix']:
                     continue
                 heatmap = heatmap + fixdur[idx, 0]*numpy.exp(-((xmesh-fixcenter[idx, 0])/50)**2-((ymesh-fixcenter[idx, 1])/50)**2)
             masked_heatmap = numpy.ma.masked_where(heatmap < 0.001, heatmap)
