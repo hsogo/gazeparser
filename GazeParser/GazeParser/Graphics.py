@@ -111,18 +111,30 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
             traj = [sf*traj[0], sf*traj[1]]
 
         if style == 'XY':
-            if eye != 'B':  # monocular
-                pyplot.plot(traj[:, 0], traj[:, 1], '.-')
-                pyplot.text(traj[0, 0], traj[0, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(traj[-1, 0], traj[-1, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-            else:  # binocular
-                pyplot.plot(traj[0][:, 0], traj[0][:, 1], '.-', label='L')
-                pyplot.plot(traj[1][:, 0], traj[1][:, 1], '.-', label='R')
-                pyplot.text(traj[0][0, 0], traj[0][0, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(traj[0][-1, 0], traj[0][-1, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(traj[0][0, 0], traj[0][0, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(traj[1][-1, 0], traj[1][-1, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+            if eye == 'B':  # binocular
+                notNansL = numpy.where(numpy.logical_not(numpy.isnan(traj[0][:,0])))[0]
+                if len(notNansL) > 0:
+                    s = notNansL[0]
+                    e = notNansL[-1]
+                    pyplot.plot(traj[0][s:e+1, 0], traj[0][s:e+1, 1], '.-', label='L')
+                    pyplot.text(traj[0][s, 0], traj[0][s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+                    pyplot.text(traj[0][e, 0], traj[0][e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+                notNansR = numpy.where(numpy.logical_not(numpy.isnan(traj[1][:,0])))[0]
+                if len(notNansR) > 0:
+                    s = notNansR[0]
+                    e = notNansR[-1]
+                    pyplot.plot(traj[1][s:e+1, 0], traj[1][s:e+1, 1], '.-', label='R')
+                    pyplot.text(traj[1][s, 0], traj[1][s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+                    pyplot.text(traj[1][e, 0], traj[1][e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
                 pyplot.legend()
+            else:  # monocular
+                notNans = numpy.where(numpy.logical_not(numpy.isnan(traj[:,0])))[0]
+                if len(notNans)>0:
+                    s = notNans[0]
+                    e = notNans[-1]
+                    pyplot.plot(traj[s:e+1, 0], traj[s:e+1, 1], '.-')
+                    pyplot.text(traj[s, 0], traj[s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+                    pyplot.text(traj[e, 0], traj[e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
         elif style == 'XYT':
             si = data.startIndex
             ei = data.endIndex+1
@@ -144,6 +156,9 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
         if eye is None:
             eye = data._recordedEye
 
+        if eye not in ('L','R','B'):
+            raise ValueError('eye must be \'L\', \'R\', or \'B\'.')
+
         if period[0] is None:
             si = 0
         else:
@@ -159,28 +174,37 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
             sf = data._pix2deg
 
         if style == 'XY':
-            if eye == 'L':
-                L = sf*data._L
-                pyplot.plot(L[si:ei, 0], L[si:ei, 1], '.-')
-                pyplot.text(L[0, 0], L[0, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(L[-1, 0], L[-1, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-            elif eye == 'R':
-                R = sf*data._R
-                pyplot.plot(R[si:ei, 0], R[si:ei, 1], '.-')
-                pyplot.text(R[0, 0], R[0, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(R[-1, 0], R[-1, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-            elif eye == 'B':
-                L = sf*data._L
-                R = sf*data._R
-                pyplot.plot(L[si:ei, 0], L[si:ei, 1], '.-', label='L')
-                pyplot.plot(R[si:ei, 0], R[si:ei, 1], '.-', label='R')
-                pyplot.text(L[0, 0], L[0, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(L[-1, 0], L[-1, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(R[0, 0], R[0, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                pyplot.text(R[-1, 0], R[-1, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+            if eye == 'B':
+                traj = (sf*data._L[si:ei, :], sf*data._R[si:ei, :])
+                notNansL = numpy.where(numpy.logical_not(numpy.isnan(traj[0][:,0])))[0]
+                if len(notNansL) > 0:
+                    s = notNansL[0]
+                    e = notNansL[-1]
+                    pyplot.plot(traj[0][s:e+1, 0], traj[0][s:e+1, 1], '.-', label='L')
+                    pyplot.text(traj[0][s, 0], traj[0][s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+                    pyplot.text(traj[0][e, 0], traj[0][e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+                notNansR = numpy.where(numpy.logical_not(numpy.isnan(traj[1][:,0])))[0]
+                if len(notNansR) > 0:
+                    s = notNansR[0]
+                    e = notNansR[-1]
+                    pyplot.plot(traj[1][s:e+1, 0], traj[1][s:e+1, 1], '.-', label='R')
+                    pyplot.text(traj[1][s, 0], traj[1][s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+                    pyplot.text(traj[1][e, 0], traj[1][e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
                 pyplot.legend()
             else:
-                raise ValueError('eye must be \'L\', \'R\', or \'B\'.')
+                if eye == 'L':
+                    traj = sf*data._L[si:ei, :]
+                else: #R
+                    traj = sf*data._R[si:ei, :]
+
+                notNans = numpy.where(numpy.logical_not(numpy.isnan(traj[:,0])))[0]
+                if len(notNans)>0:
+                    s = notNans[0]
+                    e = notNans[-1]
+                    pyplot.plot(traj[s:e+1, 0], traj[s:e+1, 1], '.-')
+                    pyplot.text(traj[s, 0], traj[s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+                    pyplot.text(traj[e, 0], traj[e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
+
         elif style == 'XYT':
             if eye == 'L':
                 L = sf*data._L
