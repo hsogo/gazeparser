@@ -44,12 +44,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Program Files (x86)\Measurement Computing\DAQ\C;C:\opencv\build\include;C:\SDL2\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\opencv\build\x64\vc15\lib;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files (x86)\Measurement Computing\DAQ\C;C:\opencv\build\include;C:\SDL2\SDL2-2.24.2\include;C:\SDL2\SDL2_net-2.2.0\include;C:\SDL2\SDL2_ttf-2.20.1\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\SDL2\SDL2_ttf-2.20.1\lib\x64;C:\SDL2\SDL2-2.24.2\lib\x64;C:\SDL2\SDL2_net-2.2.0\lib\x64;C:\opencv\build\x64\vc15\lib;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Program Files (x86)\Measurement Computing\DAQ\C;C:\opencv\build\include;C:\SDL2\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\opencv\build\x64\vc15\lib;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files (x86)\Measurement Computing\DAQ\C;C:\opencv\build\include;C:\SDL2\SDL2-2.24.2\include;C:\SDL2\SDL2_net-2.2.0\include;C:\SDL2\SDL2_ttf-2.20.1\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\SDL2\SDL2_ttf-2.20.1\lib\x64;C:\SDL2\SDL2-2.24.2\lib\x64;C:\SDL2\SDL2_net-2.2.0\lib\x64;C:\opencv\build\x64\vc15\lib;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

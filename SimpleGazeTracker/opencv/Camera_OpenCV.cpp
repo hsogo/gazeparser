@@ -13,7 +13,7 @@
 #include <fstream>
 #include <string>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>

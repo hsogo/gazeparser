@@ -43,10 +43,10 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;c:\sdl2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
-    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;c:\sdl2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;C:\SDL2\SDL2-2.24.2\include;C:\SDL2\SDL2_net-2.2.0\include;C:\SDL2\SDL2_ttf-2.20.1\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_net-2.2.0\lib\x64;C:\SDL2\SDL2_ttf-2.20.1\lib\x64;C:\SDL2\SDL2-2.24.2\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\include;c:\opencv\build\include;C:\SDL2\SDL2-2.24.2\include;C:\SDL2\SDL2_net-2.2.0\include;C:\SDL2\SDL2_ttf-2.20.1\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\Program Files (x86)\OptiTrack\Camera SDK\lib;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_net-2.2.0\lib\x64;C:\SDL2\SDL2_ttf-2.20.1\lib\x64;C:\SDL2\SDL2-2.24.2\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

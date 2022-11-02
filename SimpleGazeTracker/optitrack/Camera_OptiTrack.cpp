@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "GazeTracker.h"
 #include <cameralibrary.h>
 #include <atlbase.h>

@@ -43,13 +43,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files\Point Grey Research\FlyCapture2\include;C:\opencv\build\include;C:\SDL2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Point Grey Research\FlyCapture2\lib64\vs2015;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files\Point Grey Research\FlyCapture2\include;C:\opencv\build\include;C:\SDL2\SDL2-2.24.2\include;C:\SDL2\SDL2_net-2.2.0\include;C:\SDL2\SDL2_ttf-2.20.1\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files\Point Grey Research\FlyCapture2\lib64\vs2015;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_ttf-2.20.1\lib\x64;C:\SDL2\SDL2_net-2.2.0\lib\x64;C:\SDL2\SDL2-2.24.2\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Program Files\Point Grey Research\FlyCapture2\include;C:\opencv\build\include;C:\SDL2\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\Point Grey Research\FlyCapture2\lib64\vs2015;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_ttf-2.0.14\lib\x64;C:\SDL2\SDL2_net-2.0.1\lib\x64;C:\SDL2\SDL2-2.0.8\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files\Point Grey Research\FlyCapture2\include;C:\opencv\build\include;C:\SDL2\SDL2-2.24.2\include;C:\SDL2\SDL2_net-2.2.0\include;C:\SDL2\SDL2_ttf-2.20.1\include;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files\Point Grey Research\FlyCapture2\lib64\vs2015;C:\opencv\build\x64\vc15\lib;C:\SDL2\SDL2_ttf-2.20.1\lib\x64;C:\SDL2\SDL2_net-2.2.0\lib\x64;C:\SDL2\SDL2-2.24.2\lib\x64;C:\Program Files (x86)\Measurement Computing\DAQ\C;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

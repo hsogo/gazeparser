@@ -15,8 +15,8 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_ttf.h>
 
 #include <fstream>
 #include <iostream>
