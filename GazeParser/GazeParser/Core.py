@@ -146,9 +146,42 @@ class SaccadeData(object):
             raise ValueError('Eye must be \'L\', \'R\', \'B\' or None.')
 
     def getNextEvent(self, step=1, eventType=None):
+        """
+        Get an event next to the argument. If no next event, return None.
+
+        :param event:
+            An instance of SaccadeData, FixaionData, BlinkData or MessageData.
+            Timestamp (a float value) is also accepted.
+        :param integer step:
+            If an integer (n) is given, the n-th next event is returned.
+            Default value is 1.
+        :param str eventType:
+            If 'saccade', 'fixation', 'blink' or 'message' is given, only
+            events of given type are considered.
+        :return:
+            Event object. If there is no next event, return None.
+        """
+
         return self._parent.getNextEvent(self, step=step, eventType=eventType)
 
     def getPreviousEvent(self, step=1, eventType=None):
+        """
+        Get an event previous to the argument.
+        If no previous event, return None.
+
+        :param event:
+            An instance of SaccadeData, FixaionData, BlinkData or MessageData.
+            Timestamp is also accepted.
+        :param integer step:
+            If an integer (n) is given, the n-th previous event is returned.
+            Default value is 1.
+        :param str eventType:
+            If 'saccade', 'fixation', 'blink' or 'message' is given, only
+            events of given type are considered.
+        :return:
+            Event object. If there is no previous event, return None.
+        """
+
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
     
     def isCloseTo(self, other, time_tolerance=0.01, pix_tolerance=0.01, dir_tolerance=0.0001745, deg_tolerance=0.001):
@@ -311,9 +344,42 @@ class FixationData(object):
             return (self._parent.L[s:e+1], self._parent.R[s:e+1])
 
     def getNextEvent(self, step=1, eventType=None):
+        """
+        Get an event next to the argument. If no next event, return None.
+
+        :param event:
+            An instance of SaccadeData, FixaionData, BlinkData or MessageData.
+            Timestamp (a float value) is also accepted.
+        :param integer step:
+            If an integer (n) is given, the n-th next event is returned.
+            Default value is 1.
+        :param str eventType:
+            If 'saccade', 'fixation', 'blink' or 'message' is given, only
+            events of given type are considered.
+        :return:
+            Event object. If there is no next event, return None.
+        """
+
         return self._parent.getNextEvent(self, step=step, eventType=eventType)
 
     def getPreviousEvent(self, step=1, eventType=None):
+        """
+        Get an event previous to the argument.
+        If no previous event, return None.
+
+        :param event:
+            An instance of SaccadeData, FixaionData, BlinkData or MessageData.
+            Timestamp is also accepted.
+        :param integer step:
+            If an integer (n) is given, the n-th previous event is returned.
+            Default value is 1.
+        :param str eventType:
+            If 'saccade', 'fixation', 'blink' or 'message' is given, only
+            events of given type are considered.
+        :return:
+            Event object. If there is no previous event, return None.
+        """
+
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
 
     def isCloseTo(self, other, time_tolerance=0.1, pix_tolerance=0.1):
@@ -380,9 +446,42 @@ class MessageData(object):
             raise ValueError('Argument does not include this message.')
 
     def getNextEvent(self, step=1, eventType=None):
+        """
+        Get an event next to the argument. If no next event, return None.
+
+        :param event:
+            An instance of SaccadeData, FixaionData, BlinkData or MessageData.
+            Timestamp (a float value) is also accepted.
+        :param integer step:
+            If an integer (n) is given, the n-th next event is returned.
+            Default value is 1.
+        :param str eventType:
+            If 'saccade', 'fixation', 'blink' or 'message' is given, only
+            events of given type are considered.
+        :return:
+            Event object. If there is no next event, return None.
+        """
+
         return self._parent.getNextEvent(self, step=step, eventType=eventType)
 
     def getPreviousEvent(self, step=1, eventType=None):
+        """
+        Get an event previous to the argument.
+        If no previous event, return None.
+
+        :param event:
+            An instance of SaccadeData, FixaionData, BlinkData or MessageData.
+            Timestamp is also accepted.
+        :param integer step:
+            If an integer (n) is given, the n-th previous event is returned.
+            Default value is 1.
+        :param str eventType:
+            If 'saccade', 'fixation', 'blink' or 'message' is given, only
+            events of given type are considered.
+        :return:
+            Event object. If there is no previous event, return None.
+        """
+
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
 
     def delete(self):
@@ -536,9 +635,42 @@ class BlinkData(object):
             raise ValueError('Argument does not include this blink.')
 
     def getNextEvent(self, step=1, eventType=None):
+        """
+        Get an event next to the argument. If no next event, return None.
+
+        :param event:
+            An instance of SaccadeData, FixaionData, BlinkData or MessageData.
+            Timestamp (a float value) is also accepted.
+        :param integer step:
+            If an integer (n) is given, the n-th next event is returned.
+            Default value is 1.
+        :param str eventType:
+            If 'saccade', 'fixation', 'blink' or 'message' is given, only
+            events of given type are considered.
+        :return:
+            Event object. If there is no next event, return None.
+        """
+
         return self._parent.getNextEvent(self, step=step, eventType=eventType)
 
     def getPreviousEvent(self, step=1, eventType=None):
+        """
+        Get an event previous to the argument.
+        If no previous event, return None.
+
+        :param event:
+            An instance of SaccadeData, FixaionData, BlinkData or MessageData.
+            Timestamp is also accepted.
+        :param integer step:
+            If an integer (n) is given, the n-th previous event is returned.
+            Default value is 1.
+        :param str eventType:
+            If 'saccade', 'fixation', 'blink' or 'message' is given, only
+            events of given type are considered.
+        :return:
+            Event object. If there is no previous event, return None.
+        """
+
         return self._parent.getPreviousEvent(self, step=step, eventType=eventType)
 
     def isCloseTo(self, other, time_tolerance=0.01):
