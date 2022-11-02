@@ -83,7 +83,8 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
         plotted to the end. The unit of these values are millisecond.
         Default value is (None, None).
     :param str style:
-        'XY' or 'XYT' is accepted.  Default value is 'XY'.
+        'XY', 'XYT', or 'TXY' is accepted ('XTY' and 'TXY' gives the same output).
+        Default value is 'XY'.
     :param tuple xlim:
         If this value is not None, the value is passed tomatplotlib.pyplot.xlim().
         Default value is None.
@@ -135,7 +136,7 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
                     pyplot.plot(traj[s:e+1, 0], traj[s:e+1, 1], '.-')
                     pyplot.text(traj[s, 0], traj[s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
                     pyplot.text(traj[e, 0], traj[e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-        elif style == 'XYT':
+        elif style in ('XYT', 'TXY'):
             si = data.startIndex
             ei = data.endIndex+1
             t = data.parent._T
@@ -150,7 +151,7 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
                 pyplot.plot(t[si:ei], traj[1][:, 1], '.-', label='RY')
                 pyplot.legend()
         else:
-            raise ValueError('style must be XY or XYT.')
+            raise ValueError('style must be XY, XYT, or TXY.')
 
     elif isinstance(data, GazeParser.Core.GazeData):
         if eye is None:
@@ -205,7 +206,7 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
                     pyplot.text(traj[s, 0], traj[s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
                     pyplot.text(traj[e, 0], traj[e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
 
-        elif style == 'XYT':
+        elif style in ('XYT', 'TXY'):
             if eye == 'L':
                 L = sf*data._L
                 pyplot.plot(data._T[si:ei], L[si:ei, 0], '.-', label='X')
@@ -227,7 +228,7 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
             else:
                 raise ValueError('eye must be \'L\', \'R\', or \'B\'.')
         else:
-            raise ValueError('style must be XY or XYT.')
+            raise ValueError('style must be XY, XYT, or TXY.')
 
     if xlim is not None:
         pyplot.xlim(xlim)
