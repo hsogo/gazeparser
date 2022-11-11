@@ -295,18 +295,20 @@ class animationDialog(wx.Dialog):
         self.fpsPanel = wx.Panel(self, wx.ID_ANY)
         stFPS = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'FPS:')
         self.tcFPS = wx.TextCtrl(self.fpsPanel, wx.ID_ANY, '15', style=wx.TE_PROCESS_ENTER|wx.TE_RIGHT)
-        stSkip = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'Skip:')
-        self.tcSkip = wx.TextCtrl(self.fpsPanel, wx.ID_ANY, '1', style=wx.TE_PROCESS_ENTER|wx.TE_RIGHT)
+        stStep = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'Step:')
+        self.tcStep = wx.TextCtrl(self.fpsPanel, wx.ID_ANY, '1', style=wx.TE_PROCESS_ENTER|wx.TE_RIGHT)
         estimDur = float(len(self.D[self.tr].T))/(15*1)
         self.stEstimate = wx.StaticText(self.fpsPanel, wx.ID_ANY, 'Estimated movie duration: %.1f sec (%s)' % (estimDur, datetime.timedelta(seconds=estimDur)))
+        self.stProgress = wx.StaticText(self.fpsPanel, wx.ID_ANY, '-/- (-%)')
         self.tcFPS.Bind(wx.EVT_TEXT_ENTER, self.updateEstimation)
-        self.tcSkip.Bind(wx.EVT_TEXT_ENTER, self.updateEstimation)
+        self.tcStep.Bind(wx.EVT_TEXT_ENTER, self.updateEstimation)
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(stFPS, flag=wx.LEFT, border=5)
         box.Add(self.tcFPS)
-        box.Add(stSkip, flag=wx.LEFT, border=5)
-        box.Add(self.tcSkip)
+        box.Add(stStep, flag=wx.LEFT, border=5)
+        box.Add(self.tcStep)
         box.Add(self.stEstimate, flag=wx.LEFT, border=5)
+        box.Add(self.stProgress, flag=wx.LEFT, border=5)
         self.fpsPanel.SetSizer(box)
 
         buttonPanel = wx.Panel(self, wx.ID_ANY)
@@ -342,7 +344,7 @@ class animationDialog(wx.Dialog):
 
         self.Show()
         
-        #TODO: fps skip res *bitrate
+        #TODO: fps Step res *bitrate
 
     def updateRangeSlider(self, event=None):
         st = self.startSlider.GetValue()
@@ -395,24 +397,24 @@ class animationDialog(wx.Dialog):
             self.tcFPS.SetValue('15')
             fps = 15
         try:
-            skip = int(self.tcSkip.GetValue())
+            step = int(self.tcStep.GetValue())
         except:
-            self.tcSkip.SetValue('1')
-            skip = 1
+            self.tcStep.SetValue('1')
+            step = 1
         if fps<=0:
             self.tcFPS.SetValue('15')
             fps = 15
-        if skip<=0:
+        if step<=0:
             self.tcFPS.SetValue('1')
-            skip=1
+            step=1
         st = int(self.tcStart.GetValue())
         e = int(self.tcStop.GetValue())
-        estimDur = float(e-st)/(fps*skip)
+        estimDur = float(e-st)/(fps*step)
         self.stEstimate.SetLabel('Estimated movie duration: %.1f sec (%s)' % (estimDur, datetime.timedelta(seconds=estimDur)))
 
     def startAnimation(self, event=None):
         self.saveMovie = self.cbSaveToFile.GetValue()
-        self.skip = int(self.tcSkip.GetValue())
+        self.step = int(self.tcStep.GetValue())
         if self.saveMovie:
             fps = int(self.tcFPS.GetValue())
             try:
@@ -443,6 +445,7 @@ class animationDialog(wx.Dialog):
                 return
             self.writer.setup(self.fig, fname, dpi=100)
         self.index = self.startSlider.GetValue()-1
+        self.startindex = self.index
         self.stopindex = self.stopSlider.GetValue()
         xlim = self.ax.get_xlim()
         ylim = self.ax.get_ylim()
@@ -484,12 +487,16 @@ class animationDialog(wx.Dialog):
         self.stopButton.Enable(False)
         self.cancelButton.Enable(True)
         self.rangePanel.Enable(True)
-        
+
+        self.stProgress.SetLabelText('-/- (-%)')
         if event is None:
             messageDialogShowinfo(self, 'Info', 'Finished')
 
     def onTimer(self, event=None):
         if self.index < self.stopindex:
+            total = self.stopindex-self.startindex
+            current = self.index-self.startindex
+            self.stProgress.SetLabelText('{}/{} ({:.1f}%)'.format(current,total,(current/total)*100))
             if self.showAxes:
                 t = self.D[self.tr].T[self.index]
                 self.ax.set_title('time: %.1f ms (%s)' % (t, datetime.timedelta(seconds=t/1000)))
@@ -497,7 +504,7 @@ class animationDialog(wx.Dialog):
                 self.l.set_data(self.sf[0]*self.D[self.tr].L[self.index][0], self.sf[1]*self.D[self.tr].L[self.index][1])
             if self.hasRData:
                 self.r.set_data(self.sf[0]*self.D[self.tr].R[self.index][0], self.sf[1]*self.D[self.tr].R[self.index][1])
-            self.index += self.skip
+            self.index += self.step
             self.canvas.draw()
             if self.saveMovie:
                 self.writer.grab_frame()
