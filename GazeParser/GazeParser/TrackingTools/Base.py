@@ -130,10 +130,9 @@ class BaseController(object):
         self.captureNo = 0
         self.datafilename = ''
 
-        if sys.platform == 'win32':
-            self.clock = time.clock
-        else:
-            self.clock = time.time
+        # time.clock has beeen removed in Python 3.8, so we use 
+        # time.perf_counter in all platforms
+        self.clock = time.perf_counter
 
         self.latestCalibrationResultsList = None
 
