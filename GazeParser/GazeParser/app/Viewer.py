@@ -225,13 +225,14 @@ class animationDialog(wx.Dialog):
         self.parent = parent
         self.D = parent.D
         self.tr = parent.tr
+        self.stimImage = parent.stimImage
+        self.stimImageExtent = parent.stimImageExtent
         self.conf = parent.conf
         self.plotAreaXY = parent.plotAreaXY
         self.fontPlotText = parent.fontPlotText
         self.dataFileName = parent.dataFileName
         self.hasLData = parent.hasLData
         self.hasRData = parent.hasRData
-
 
         if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
             self.sf = (1.0, 1.0)
@@ -324,7 +325,7 @@ class animationDialog(wx.Dialog):
         self.startButton.Bind(wx.EVT_BUTTON, self.startAnimation)
         self.stopButton.Bind(wx.EVT_BUTTON, self.stopAnimation)
         self.cancelButton.Bind(wx.EVT_BUTTON, self.cancel)
-        
+
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.startButton)
         hbox.Add(self.stopButton)
@@ -476,6 +477,8 @@ class animationDialog(wx.Dialog):
         self.stopButton.Enable(True)
         self.cancelButton.Enable(False)
         self.rangePanel.Enable(False)
+        self.cbShowAxes.Enable(False)
+        self.cbSaveToFile.Enable(False)
 
         self.timer.Start(100)
 
@@ -487,6 +490,8 @@ class animationDialog(wx.Dialog):
         self.stopButton.Enable(False)
         self.cancelButton.Enable(True)
         self.rangePanel.Enable(True)
+        self.cbShowAxes.Enable(True)
+        self.cbSaveToFile.Enable(True)
 
         self.stProgress.SetLabelText('-/- (-%)')
         if event is None:
@@ -497,9 +502,12 @@ class animationDialog(wx.Dialog):
             total = self.stopindex-self.startindex
             current = self.index-self.startindex
             self.stProgress.SetLabelText('{}/{} ({:.1f}%)'.format(current,total,(current/total)*100))
+
             if self.showAxes:
                 t = self.D[self.tr].T[self.index]
                 self.ax.set_title('time: %.1f ms (%s)' % (t, datetime.timedelta(seconds=t/1000)))
+            if self.conf.CANVAS_SHOW_STIMIMAGE:
+                self.ax.imshow(self.stimImage, extent=self.stimImageExtent, origin='upper')
             if self.hasLData:
                 self.l.set_data(self.sf[0]*self.D[self.tr].L[self.index][0], self.sf[1]*self.D[self.tr].L[self.index][1])
             if self.hasRData:
@@ -522,6 +530,10 @@ class animationDialog(wx.Dialog):
         self.ax.clear()
         self.ax.set_xlim(xlim)
         self.ax.set_ylim(ylim)
+
+        # stimulus image
+        if self.conf.CANVAS_SHOW_STIMIMAGE:
+            self.ax.imshow(self.stimImage, extent=self.stimImageExtent, origin='upper')
 
         st = self.startSlider.GetValue()-1 # 1 must be subtracted
         e = self.stopSlider.GetValue()
@@ -1764,7 +1776,7 @@ class configStimImageDialog(wx.Dialog):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(wx.StaticText(editPanel, wx.ID_ANY, 'StimImage Prefix'), flag=wx.ALL, border=5)
         hbox.Add(self.tcStimImagePrefix, flag=wx.ALL, border=5)
-        editPanel.SetSizer(hbox)
+        editPanel.SetSizerAndFit(hbox)
 
         buttonPanel = wx.Panel(self, wx.ID_ANY)
         okButton = wx.Button(buttonPanel, wx.ID_ANY, 'Ok')
@@ -1775,9 +1787,13 @@ class configStimImageDialog(wx.Dialog):
         hbox.Add(okButton)
         hbox.Add(cancelButton)
         buttonPanel.SetSizer(hbox)
-        
+
+        instlabel = wx.StaticText(self, wx.ID_ANY, 'set "EMBEDDED_IMAGES" to read images embedded in the datafile.')
+        instlabel.Wrap(editPanel.GetSize()[0])
+
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(editPanel, flag=wx.EXPAND|wx.ALL, border=5)
+        vbox.Add(editPanel, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=5)
+        vbox.Add(instlabel, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
         vbox.Add(buttonPanel, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(vbox)
 
@@ -1966,7 +1982,7 @@ class editMessageDialog(wx.Dialog):
         tcCurrentTime.Enable(False)
         tcCurrentText.Enable(False)
         box = wx.FlexGridSizer(3, 3, 0, 0)
-        box.Add(wx.StaticText(self, wx.ID_ANY, ''), flag=wx.LEFT|wx.RIGHT, border=5)
+        box.Add(wx.StaticText(editPanel, wx.ID_ANY, ''), flag=wx.LEFT|wx.RIGHT, border=5)
         box.Add(wx.StaticText(editPanel, wx.ID_ANY, 'Current'), flag=wx.LEFT|wx.RIGHT, border=5)
         box.Add(wx.StaticText(editPanel, wx.ID_ANY, 'New'), flag=wx.LEFT|wx.RIGHT, border=5)
         box.Add(wx.StaticText(editPanel, wx.ID_ANY, 'Time'), flag=wx.LEFT|wx.RIGHT, border=5)
@@ -2451,7 +2467,6 @@ class ViewerOptions(object):
         else:
             for section, params in self.options:
                 for optName, optType in params:
-                    setattr(self, optName, optType(appConf.get(section, optName)))
                     try:
                         setattr(self, optName, optType(appConf.get(section, optName)))
                     except:
@@ -2492,7 +2507,7 @@ class mainFrame(wx.Frame):
         self.tr = 0
         self.plotAreaXY = [0, 1024, 0, 768]
         self.plotAreaTXY = [0, 3000, 0, 1024]
-        self.showStimImage = False
+        # self.showStimImage = False
         self.stimImage = None
         self.stimImageExtent = [0, 1024, 0, 768]
         self.dataFileName = 'Please open data file.'
@@ -2928,17 +2943,38 @@ class mainFrame(wx.Frame):
     def loadStimImage(self):
         msg = self.D[self.tr].findMessage('!STIMIMAGE', useRegexp=False)
         sep = ' '
-        if os.path.isabs(self.conf.COMMAND_STIMIMAGE_PATH):
-            imagePath = self.conf.COMMAND_STIMIMAGE_PATH
-        else:
-            imagePath = os.path.join(os.path.split(self.dataFileName)[0], self.conf.COMMAND_STIMIMAGE_PATH)
         self.stimImage = None
+
         if len(msg) == 0:
             return False
         elif len(msg) > 1:
             messageDialogShowerror(self, 'Error', 'Multiple !STIMIMAGE commands in this trial.')
             return False
-        else:
+
+        if self.conf.COMMAND_STIMIMAGE_PATH == 'EMBEDDED_IMAGES': # use embedded image
+            try:
+                img_names = self.C['EMBEDDED_IMAGES']['NAMES']
+                img_list = self.C['EMBEDDED_IMAGES']['IMAGES']
+            except:
+                messageDialogShowerror(self, 'Error', 'EMBEDDED_IMAGES is specified, but images are not appropriately embedded.')
+                return False
+            params = msg[0].text.split(sep)
+            if params[0] != '!STIMIMAGE':
+                messageDialogShowerror(self, 'Error', '!STIMIMAGE command must be at the beginning of message text.')
+                return False
+
+            if not params[1] in img_names:
+                messageDialogShowerror(self, 'Error', 'Image named %s is not embedded.' % params[1])
+                return False
+
+            self.stimImage = img_list[img_names.index(params[1])]
+
+        else: # read from file
+            if os.path.isabs(self.conf.COMMAND_STIMIMAGE_PATH):
+                imagePath = self.conf.COMMAND_STIMIMAGE_PATH
+            else:
+                imagePath = os.path.join(os.path.split(self.dataFileName)[0], self.conf.COMMAND_STIMIMAGE_PATH)
+
             params = msg[0].text.split(sep)
             if params[0] != '!STIMIMAGE':
                 messageDialogShowerror(self, 'Error', '!STIMIMAGE command must be at the beginning of message text.')
@@ -2948,34 +2984,34 @@ class mainFrame(wx.Frame):
                 self.stimImage = Image.open(imageFilename)
             except:
                 messageDialogShowerror(self, 'Error', 'Cannot open %s as StimImage.' % imageFilename)
-                return
+                return False
 
-            # set extent [left, right, bottom, top] (See matplotlib.pyplot.imshow)
-            if len(params) == 4:
-                # left and bottom are specified.
-                try:
-                    self.stimImageExtent[0] = float(params[2])
-                    self.stimImageExtent[2] = float(params[3])
-                except:
-                    messageDialogShowerror(self, 'Error', 'Invalid extent: %s' % sep.join(params[2:]))
-                    self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
-                    return False
+        # set extent [left, right, bottom, top] (See matplotlib.pyplot.imshow)
+        if len(params) == 4:
+            # left and bottom are specified.
+            try:
+                self.stimImageExtent[0] = float(params[2])
+                self.stimImageExtent[2] = float(params[3])
+            except:
+                messageDialogShowerror(self, 'Error', 'Invalid extent: %s' % sep.join(params[2:]))
+                self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
+                return False
 
-                self.stimImageExtent[1] = self.stimImageExtent[0] + self.stimImage.size[0]
-                self.stimImageExtent[3] = self.stimImageExtent[2] + self.stimImage.size[1]
-            if len(params) == 6:
-                # left, right, bottom and top are specified.
-                try:
-                    self.stimImageExtent[0] = float(params[2])
-                    self.stimImageExtent[1] = float(params[3])
-                    self.stimImageExtent[2] = float(params[4])
-                    self.stimImageExtent[3] = float(params[5])
-                except:
-                    messageDialogShowerror(self, 'Error', 'Invalid extent: %s' % sep.join(params[2:]))
-                    self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
-                    return False
+            self.stimImageExtent[1] = self.stimImageExtent[0] + self.stimImage.size[0]
+            self.stimImageExtent[3] = self.stimImageExtent[2] + self.stimImage.size[1]
+        if len(params) == 6:
+            # left, right, bottom and top are specified.
+            try:
+                self.stimImageExtent[0] = float(params[2])
+                self.stimImageExtent[1] = float(params[3])
+                self.stimImageExtent[2] = float(params[4])
+                self.stimImageExtent[3] = float(params[5])
+            except:
+                messageDialogShowerror(self, 'Error', 'Invalid extent: %s' % sep.join(params[2:]))
+                self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
+                return False
 
-            return True
+        return True
 
     def savefile(self, event=None):
         if self.D is None:
@@ -3692,6 +3728,8 @@ class mainFrame(wx.Frame):
             return
         dlg = animationDialog(parent=self, id=wx.ID_ANY)
         dlg.ShowModal()
+        if dlg.timer.IsRunning():
+            dlg.timer.Stop()
         dlg.Destroy()
 
 class ViewerApp(wx.App):

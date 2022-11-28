@@ -313,3 +313,131 @@ def rebuildData(gazeData):
         raise ValueError('Parameter must be a GazeParser.Core.GazeData object or a list of GazeParser.Core.GazeData object')
 
     return None
+
+def appendAdditionalData(filename, data, newFilename=None, key=None, replace=False, asDict=True):
+    """
+    Append additional data to GazeParser data file.
+    By default, the additional data is supposed as a Dictionary object 
+    and the data is appended to it.  In order to append data as-is,
+    set asDict=False.
+
+    :param str filename:
+        Name of GazeParser data file to which the data will be appended.
+    :param any data:
+        Data to be appended.
+    :param str newFilename:
+        Specify the name of output file.  If this parameter is None,
+        the source data file will be overwritten.
+        Default value is None.
+    :param str key:
+        The key to get value from dictionary object.
+        This parameter is required if asDict=True.
+    :param bool replace:
+        If True, Existing additional data will be replaced.
+        Default value is False.
+    :param bool asDict:
+        If True, the additional data is supposed as a Dictionary object 
+        and the data is appended to it.  Default value is True.
+    :return:
+        True if scceed.
+    """
+    D, A = load(filename)
+    if (A is not None) and (not replace):
+        raise ValueError('{} already has additional data. Set replace=True to replace it with new data'.format(filename))
+    
+    if asDict:
+        if A is None:
+            A = {}
+        if isinstance(A, dict):
+            A[key] = data
+        else:
+            raise ValueError('Additional data in {} is not a dict object.'.format(filename))
+
+    else:
+        A = data
+    
+    if newFilename is None:
+        save(filename, D, A)
+    else:
+        save(newFilename, D, A)
+    
+    return True
+
+def embedStimImages(filename, imageDict, newFilename=None, replace=False):
+    """
+    Embed stimulus images to GazeParser data file.
+    
+    :param str filename:
+        Name of GazeParser data file to which the data will be appended.
+    :param dict imageDict:
+        A dictionary object that contains name of images and image data.
+        The dictionay must have keys named 'NAMES' and 'IMAGES'.
+        A list of image names must be paierd with 'NAMES' and a list of 
+        image data must be paired with 'IMAGES'. The N-th name is treated
+        as the N-th image.
+    :param str newFilename:
+        Specify the name of output file.  If this parameter is None,
+        the source data file will be overwritten.
+        Default value is None.
+    :param bool replace:
+        If True, Existing embedded images will be replaced.
+        Default value is False.
+    :return:
+        True if scceed.
+    """
+    D, A = load(filename)
+    if (A is not None) and (not isinstance(A, dict)) and (not replace):
+        raise ValueError('Additonal data in {} is not a dict object. replace=True to replace it with new data'.format(filename))
+
+    if isinstance(A, dict) and 'EMBEDDED_IMAGES' in A and (not replace):
+        raise ValueError('{} already has embedded images. replace=True to replace it with new data'.format(filename))
+
+    if not isinstance(imageDict, dict):
+        raise ValueError('Images must be a dictionary object.')
+
+    if not ('NAMES' in imageDict and 'IMAGES' in imageDict):
+        raise ValueError('Images must have keys named \'NAMES\' and \'IMAGES\'.')
+    
+    if len(imageDict['NAMES']) != len(imageDict['IMAGES']):
+        raise ValueError('Length of NAMES and IMAGES must be equal.')
+
+    if not isinstance(A, dict):
+        # If replace=False, exception has already been raised.
+        # So we can replace original A with an empty dictionary object.
+        A = {}
+    
+    A['EMBEDDED_IMAGES'] = imageDict
+
+    if newFilename is None:
+        save(filename, D, A)
+    else:
+        save(newFilename, D, A)
+    
+    return True
+
+def removeEmbeddedImages(filename, newFilename=None):
+    """
+    Remove embedded stimulus images from GazeParser data file.
+    
+    :param str filename:
+        Name of GazeParser data file from which the data will be removed.
+    :param str newFilename:
+        Specify the name of output file.  If this parameter is None,
+        the source data file will be overwritten.
+        Default value is None.
+    :return:
+        Removed image data.
+    """
+    D, A = load(filename)
+    try:
+        images = A.pop('EMBEDDED_IMAGES')
+    except:
+        raise KeyError('Stimulus images are not embedded in {}'.format(filename))
+    
+    if newFilename is None:
+        save(filename, D, A)
+    else:
+        save(newFilename, D, A)
+
+    return images
+
