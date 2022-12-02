@@ -1280,7 +1280,7 @@ class getFixationsInRegionDialog(wx.Dialog):
             nFixList = []
             nTrial = 0
             for tr in range(len(self.D)):
-                msglist = self.D[tr].findMessage('!FIXINREGION', useRegexp=False)
+                msglist = self.D[tr].findMessage('!REGION', useRegexp=False)
                 if len(msglist) > 0:
                     fixlistTrial = []
                     labelsTrial = []
@@ -1289,37 +1289,59 @@ class getFixationsInRegionDialog(wx.Dialog):
                         period = [0, 0]
                         try:
                             label = commands[1]
+
+                            regionparam = commands[2].split('_')
+                            if regionparam[0] == 'CIRCLE':
+                                region = GazeParser.Region.CircleRegion(float(regionparam[1]),
+                                                                        float(regionparam[2]),
+                                                                        float(regionparam[3]))
+                            elif regionparam[0] == 'RECT':
+                                region = GazeParser.Region.RectRegion(float(regionparam[1]),
+                                                                      float(regionparam[2]),
+                                                                      float(regionparam[3]),
+                                                                      float(regionparam[4]))
+
                             try:
-                                period[0] = float(commands[2])
+                                period[0] = float(commands[3])
                             except:  # label
-                                if commands[2] == '!BEGINNING':
+                                if commands[3] == '!NONE':
                                     period[0] = None
                                 else:
-                                    period[0] = self.D[tr].findMessage(commands[2])[0].time
+                                    from_msg = self.D[tr].findMessage(commands[3])
+                                    if len(from_msg) == 1:
+                                        period[0] = from_msg[0].time
+                                    else:
+                                        messageDialogShowerror(self, 'Error', 'Invalid FROM parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
+                                        return
                             try:
-                                period[1] = float(commands[3])
+                                period[1] = float(commands[4])
                             except:  # label
-                                if commands[3] == '!END':
+                                if commands[4] == '!NONE':
                                     period[1] = None
                                 else:
-                                    period[1] = self.D[tr].findMessage(commands[3])[0].time
-                            regiontype = commands[4]
-                            if regiontype == 'CIRCLE':
-                                region = GazeParser.Region.CircleRegion(float(commands[5]),
-                                                                        float(commands[6]),
-                                                                        float(commands[7]))
-                                pi = 8
-                            elif regiontype == 'RECT':
-                                region = GazeParser.Region.RectRegion(float(commands[5]),
-                                                                      float(commands[6]),
-                                                                      float(commands[7]),
-                                                                      float(commands[8]))
-                                pi = 9
+                                    to_msg = self.D[tr].findMessage(commands[4])
+                                    if len(from_msg) == 1:
+                                        period[1] = to_msg[0].time
+                                    else:
+                                        messageDialogShowerror(self, 'Error', 'Invalid TO parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
+                                        return
 
-                            if len(commands) > pi:
-                                useCenter = True if commands[pi].lower() == 'true' else False
-                                containsTime = commands[pi+1]
-                                containsTraj = commands[pi+2]
+                            if len(commands) > 5:
+                                val = commands[5].lower()
+                                if not val in ('true', 'false'):
+                                    messageDialogShowerror(self, 'Error', 'Invalid "useCenter" parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
+                                    return
+                                useCenter = True if val == 'true' else False
+                                val = commands[6].lower()
+                                if not val in ('all', 'any'):
+                                    messageDialogShowerror(self, 'Error', 'Invalid "containsTime" parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
+                                    return
+                                containsTime = val
+                                val = commands[7].lower()
+                                if not val in ('all', 'any'):
+                                    messageDialogShowerror(self, 'Error', 'Invalid "containsTraj" parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
+                                    return
+                                containsTraj = val
                             else:
                                 useCenter = True
                                 containsTime = 'all'
@@ -1778,6 +1800,9 @@ class configStimImageDialog(wx.Dialog):
         hbox.Add(self.tcStimImagePrefix, flag=wx.ALL, border=5)
         editPanel.SetSizerAndFit(hbox)
 
+        self.cbEmbedded = wx.CheckBox(self, wx.ID_ANY, 'Use embedded images if available')
+        self.cbEmbedded.SetValue(self.mainWindow.conf.COMMAND_USE_EMBEDDED_IMAGE)
+
         buttonPanel = wx.Panel(self, wx.ID_ANY)
         okButton = wx.Button(buttonPanel, wx.ID_ANY, 'Ok')
         cancelButton = wx.Button(buttonPanel, wx.ID_ANY, 'Cancel')
@@ -1788,12 +1813,9 @@ class configStimImageDialog(wx.Dialog):
         hbox.Add(cancelButton)
         buttonPanel.SetSizer(hbox)
 
-        instlabel = wx.StaticText(self, wx.ID_ANY, 'set "EMBEDDED_IMAGES" to read images embedded in the datafile.')
-        instlabel.Wrap(editPanel.GetSize()[0])
-
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(editPanel, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, border=5)
-        vbox.Add(instlabel, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+        vbox.Add(self.cbEmbedded, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
         vbox.Add(buttonPanel, flag=wx.ALIGN_RIGHT)
         self.SetSizerAndFit(vbox)
 
@@ -1802,6 +1824,7 @@ class configStimImageDialog(wx.Dialog):
     def setValue(self, event=None):
         self.mainWindow.conf.COMMAND_STIMIMAGE_PATH = self.tcStimImagePrefix.GetValue()
         self.mainWindow.loadStimImage()
+        self.mainWindow.loadRegion()
         self.mainWindow.plotData()
 
         self.Close()
@@ -1954,6 +1977,7 @@ class insertNewMessageDialog(wx.Dialog):
 
         self.mainWindow.updateMsgBox()
         self.mainWindow.loadStimImage()
+        self.loadRegion()
         self.mainWindow.plotData()
 
         self.mainWindow.dataModified = True
@@ -2028,6 +2052,7 @@ class editMessageDialog(wx.Dialog):
 
         self.mainWindow.updateMsgBox()
         self.mainWindow.loadStimImage()
+        self.loadRegion()
         self.mainWindow.plotData()
 
         self.mainWindow.dataModified = True
@@ -2359,6 +2384,7 @@ class ViewerOptions(object):
           ['CANVAS_SHOW_FIXNUMBER', bool],
           ['CANVAS_SHOW_SELECTED_ONLY', bool],
           ['CANVAS_SHOW_STIMIMAGE', bool],
+          ['CANVAS_SHOW_REGION', bool],
           ['CANVAS_FONT_FILE', str],
           ['CANVAS_XYAXES_UNIT', str],
           ['CANVAS_GRID_ABSCISSA_XY', str],
@@ -2382,10 +2408,12 @@ class ViewerOptions(object):
           ['COLOR_BLINK_HATCH', str],
           ['COLOR_MESSAGE_CURSOR', str],
           ['COLOR_MESSAGE_FC', str],
-          ['COLOR_MESSAGE_BG', str]]],
+          ['COLOR_MESSAGE_BG', str],
+          ['COLOR_REGION_EC', str]]],
         ['Command',
          [['COMMAND_SEPARATOR', str],
-          ['COMMAND_STIMIMAGE_PATH', str]]],
+          ['COMMAND_STIMIMAGE_PATH', str],
+          ['COMMAND_USE_EMBEDDED_IMAGE', bool]]],
         ['Recent',
          [['RECENT_DIR01', str],
           ['RECENT_DIR02', str],
@@ -2470,7 +2498,7 @@ class ViewerOptions(object):
                     try:
                         setattr(self, optName, optType(appConf.get(section, optName)))
                     except:
-                        messageDialogShowerror(None, 'error', 'could not read option [%s]%s.\nConfiguration file (%s) may be corrupted.' % (section, optName, self.viewerConfigFile))
+                        messageDialogShowerror(None, 'error', 'could not read option [%s]%s.\nConfiguration file (%s) may be corrupted. Try to remove this file and restart.' % (section, optName, self.viewerConfigFile))
                         sys.exit()
 
         # set recent directories
@@ -2509,6 +2537,7 @@ class mainFrame(wx.Frame):
         self.plotAreaTXY = [0, 3000, 0, 1024]
         # self.showStimImage = False
         self.stimImage = None
+        self.region = []
         self.stimImageExtent = [0, 1024, 0, 768]
         self.dataFileName = 'Please open data file.'
         self.dataModified = False
@@ -2911,7 +2940,7 @@ class mainFrame(wx.Frame):
         self.tcJumpTo.SetValue('1')
 
         self.loadStimImage()
-
+        self.loadRegion()
         self.plotData()
         self.updateMsgBox()
         
@@ -2951,25 +2980,26 @@ class mainFrame(wx.Frame):
             messageDialogShowerror(self, 'Error', 'Multiple !STIMIMAGE commands in this trial.')
             return False
 
-        if self.conf.COMMAND_STIMIMAGE_PATH == 'EMBEDDED_IMAGES': # use embedded image
+        found_embedded_image = False
+        if self.conf.COMMAND_USE_EMBEDDED_IMAGE: # use embedded image
             try:
                 img_names = self.C['EMBEDDED_IMAGES']['NAMES']
                 img_list = self.C['EMBEDDED_IMAGES']['IMAGES']
+                found_keys = True
             except:
-                messageDialogShowerror(self, 'Error', 'EMBEDDED_IMAGES is specified, but images are not appropriately embedded.')
-                return False
-            params = msg[0].text.split(sep)
-            if params[0] != '!STIMIMAGE':
-                messageDialogShowerror(self, 'Error', '!STIMIMAGE command must be at the beginning of message text.')
-                return False
+                found_keys = False
+            if found_keys:
+                params = msg[0].text.split(sep)
+                if params[0] != '!STIMIMAGE':
+                    messageDialogShowerror(self, 'Error', '!STIMIMAGE command must be at the beginning of message text.')
+                    return
+                else:
+                    if params[1] in img_names:
+                        self.stimImage = img_list[img_names.index(params[1])]
+                        found_embedded_image = True
 
-            if not params[1] in img_names:
-                messageDialogShowerror(self, 'Error', 'Image named %s is not embedded.' % params[1])
-                return False
-
-            self.stimImage = img_list[img_names.index(params[1])]
-
-        else: # read from file
+        #else: # read from file
+        if not found_embedded_image:
             if os.path.isabs(self.conf.COMMAND_STIMIMAGE_PATH):
                 imagePath = self.conf.COMMAND_STIMIMAGE_PATH
             else:
@@ -3012,6 +3042,41 @@ class mainFrame(wx.Frame):
                 return False
 
         return True
+
+    def loadRegion(self):
+        msglist = self.D[self.tr].findMessage('!REGION', useRegexp=False)
+        sep = ' '
+        self.region = []
+
+        for msg in msglist:
+            commands = msg.text.split(sep)
+            try:
+                label = commands[1]
+
+                regionparam = commands[2].split('_')
+                if regionparam[0] == 'CIRCLE':
+                    region = GazeParser.Region.CircleRegion(float(regionparam[1]),
+                                                            float(regionparam[2]),
+                                                            float(regionparam[3]))
+                elif regionparam[0] == 'RECT':
+                    region = GazeParser.Region.RectRegion(float(regionparam[1]),
+                                                            float(regionparam[2]),
+                                                            float(regionparam[3]),
+                                                            float(regionparam[4]))
+                else:
+                    raise ValueError('Invalid REGION: {}'.format(commands[2]))
+            except:
+                info = sys.exc_info()
+                tbinfo = traceback.format_tb(info[2])
+                errormsg = ''
+                for tbi in tbinfo:
+                    errormsg += tbi
+                errormsg += '  %s' % str(info[1])
+                messageDialogShowerror(self, 'Error', msg.text+'\n\n'+errormsg)
+                continue
+            
+            self.region.append((label, region))
+
 
     def savefile(self, event=None):
         if self.D is None:
@@ -3076,6 +3141,7 @@ class mainFrame(wx.Frame):
         self.selectionlist = {'Sac': [], 'Fix': [], 'Msg': [], 'Blink': []}
         self.selectiontype = 'Emphasize'
         self.loadStimImage()
+        self.loadRegion()
         self.plotData()
         self.updateMsgBox()
 
@@ -3101,6 +3167,7 @@ class mainFrame(wx.Frame):
         self.selectionlist = {'Sac': [], 'Fix': [], 'Msg': [], 'Blink': []}
         self.selectiontype = 'Emphasize'
         self.loadStimImage()
+        self.loadRegion()
         self.plotData()
         self.updateMsgBox()
 
@@ -3320,7 +3387,7 @@ class mainFrame(wx.Frame):
 
         if self.plotStyle in XYPLOTMODES and self.stimImage is not None and self.conf.CANVAS_SHOW_STIMIMAGE:
             self.ax.imshow(self.stimImage, extent=self.stimImageExtent, origin='upper')
-
+        
         if self.plotStyle == 'XY':
             # plot fixations
             for f in range(self.D[self.tr].nFix):
@@ -3530,6 +3597,12 @@ class mainFrame(wx.Frame):
                              bbox=dict(boxstyle="round", fc=self.conf.COLOR_MESSAGE_BG, clip_on=True, clip_box=self.ax.bbox),
                              fontproperties=self.fontPlotText, clip_on=True)
 
+        if self.plotStyle in XYPLOTMODES and self.conf.CANVAS_SHOW_REGION:
+            for (label, region) in self.region:
+                self.ax.add_patch(matplotlib.patches.Rectangle([region.x1, -region.y2], region.x2-region.x1, region.y2-region.y1,
+                                                               ec=self.conf.COLOR_REGION_EC, fill=False))
+                self.ax.text(region.x1, -region.y2, label, color=self.conf.COLOR_REGION_EC, fontproperties=self.fontPlotText)
+
         # set plotrange and axis labels
         if self.plotStyle in XYPLOTMODES:
             if self.conf.CANVAS_XYAXES_UNIT.upper() == 'PIX':
@@ -3702,6 +3775,7 @@ class mainFrame(wx.Frame):
                 m.delete()
             self.updateMsgBox()
             self.loadStimImage()
+            self.loadRegion()
             self.plotData()
 
             self.dataModified = True

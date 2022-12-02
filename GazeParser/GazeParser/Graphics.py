@@ -64,7 +64,7 @@ def drawScatterPlot(data):
 
 def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=None, units='pix'):
     """
-    Plot gaze trajectory easily.
+    Plot gaze trajectory.
 
     :param data:
         If GazeParser.Core.SaccadeData or GazeParser.Core.FixationData instance
