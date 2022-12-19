@@ -12,6 +12,21 @@ import numpy
 
 class CircleRegion(object):
     def __init__(self, x, y, r):
+        """
+        Create a circular region.
+
+        :param float x:
+            X coordinate of the center of the region.
+        :param float y:
+            Y coordinate of the center of the region.
+        :param float r:
+            Radius of the region.
+        """
+        for val in x, y, r:
+            try:
+                float(val)
+            except:
+                raise ValueError('{} is not a number.'.format(val))
         if r <= 0:
             raise ValueError('r must be a positive value')
 
@@ -45,10 +60,28 @@ class CircleRegion(object):
 
 class RectRegion(object):
     def __init__(self, x1, x2, y1, y2):
+        """
+        Create a rectangular region.
+        Vertices 1 and 2 must be diagonal. if x2 is smaller than
+        than x1, they are swapped (same for y1 and y2).
+
+        :param float x1:
+            X coordinate of the vertex 1
+        :param float x2:
+            X coordinate of the vertex 2
+        :param float y1:
+            Y coordinate of the vertex 1
+        :param float y2:
+            Y coordinate of the vertex 2
+        """
         if x1 >= x2:
-            raise ValueError('x1 must be smaller than x2')
+            tmp = x2
+            x2 = x1
+            x1 = tmp
         if y1 >= y2:
-            raise ValueError('y1 must be smaller than y2')
+            tmp = y2
+            y2 = y1
+            y1 = tmp
 
         self.x1 = x1
         self.x2 = x2
@@ -76,6 +109,41 @@ class RectRegion(object):
                 return True
             else:
                 return False
+
+class ImageRegion(object):
+    def __init__(self, image, origin='center'):
+        if not isinstance(image, numpy.ndarray):
+            try:
+                image = numpy.asarray(image)
+            except:
+                raise ValueError('Cannot convert image to numpy.ndarray')
+        
+        if image.ndim != 2:
+            raise ValueError('Image must be 2D (monochrome) array')
+
+        self.imageArray = image
+
+    def contains(self, data, mode='all'):
+        if not mode.lower() in ('all', 'any'):
+            raise ValueError('mode must be "all" or "any".')
+
+        if not isinstance(data, numpy.ndarray):
+            data = numpy.asarray(data)
+
+        if hasattr(data[0], '__iter__'):  # assume list of points
+            # y, x
+            values = self.imageArray[data[:,1],data[:,0]]
+            if mode.lower() == 'all':
+                return values.all()
+            else:  # any
+                return values.any()
+
+        else:  # point
+            if self.imageArray[data[1],data[0]] > 0:
+                return True
+            else:
+                return False
+
 
 
 def getFixationsInRegion(data, region, period=[None, None], useCenter=True, containsTime='all', containsTraj='all', byIndices=False):
