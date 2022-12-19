@@ -1290,54 +1290,54 @@ class getFixationsInRegionDialog(wx.Dialog):
                         try:
                             label = commands[1]
 
-                            regionparam = commands[2].split('_')
-                            if regionparam[0] == 'CIRCLE':
-                                region = GazeParser.Region.CircleRegion(float(regionparam[1]),
-                                                                        float(regionparam[2]),
-                                                                        float(regionparam[3]))
-                            elif regionparam[0] == 'RECT':
-                                region = GazeParser.Region.RectRegion(float(regionparam[1]),
+                            regionparam = commands[3].split(',')
+                            if commands[2] == 'CIRCLE':
+                                region = GazeParser.Region.CircleRegion(float(regionparam[0]),
+                                                                        float(regionparam[1]),
+                                                                        float(regionparam[2]))
+                            elif commands[2] == 'RECT':
+                                region = GazeParser.Region.RectRegion(float(regionparam[0]),
+                                                                      float(regionparam[1]),
                                                                       float(regionparam[2]),
-                                                                      float(regionparam[3]),
-                                                                      float(regionparam[4]))
+                                                                      float(regionparam[3]))
 
                             try:
-                                period[0] = float(commands[3])
+                                period[0] = float(commands[4])
                             except:  # label
-                                if commands[3] == '!NONE':
+                                if commands[4] == '!NONE':
                                     period[0] = None
                                 else:
-                                    from_msg = self.D[tr].findMessage(commands[3])
+                                    from_msg = self.D[tr].findMessage(commands[4])
                                     if len(from_msg) == 1:
                                         period[0] = from_msg[0].time
                                     else:
                                         messageDialogShowerror(self, 'Error', 'Invalid FROM parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
                                         return
                             try:
-                                period[1] = float(commands[4])
+                                period[1] = float(commands[5])
                             except:  # label
-                                if commands[4] == '!NONE':
+                                if commands[5] == '!NONE':
                                     period[1] = None
                                 else:
-                                    to_msg = self.D[tr].findMessage(commands[4])
+                                    to_msg = self.D[tr].findMessage(commands[5])
                                     if len(from_msg) == 1:
                                         period[1] = to_msg[0].time
                                     else:
                                         messageDialogShowerror(self, 'Error', 'Invalid TO parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
                                         return
 
-                            if len(commands) > 5:
-                                val = commands[5].lower()
+                            if len(commands) > 6:
+                                val = commands[6].lower()
                                 if not val in ('true', 'false'):
                                     messageDialogShowerror(self, 'Error', 'Invalid "useCenter" parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
                                     return
                                 useCenter = True if val == 'true' else False
-                                val = commands[6].lower()
+                                val = commands[7].lower()
                                 if not val in ('all', 'any'):
                                     messageDialogShowerror(self, 'Error', 'Invalid "containsTime" parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
                                     return
                                 containsTime = val
-                                val = commands[7].lower()
+                                val = commands[8].lower()
                                 if not val in ('all', 'any'):
                                     messageDialogShowerror(self, 'Error', 'Invalid "containsTraj" parameter in REGION.\n(Trial:{}, Message:{})'.format(tr+1, msg))
                                     return
@@ -1470,11 +1470,11 @@ class getFixationsInRegionDialog(wx.Dialog):
                 line = 0
                 for i in range(len(data)):
                     for fi in range(len(data[i])):
-                        self.parent.jumplistbox.InsertStringItem(line, str(i+1))
-                        self.parent.jumplistbox.SetStringItem(line, 1, '%10.1f' % data[i][fi].startTime)
-                        self.parent.jumplistbox.SetStringItem(line, 2, labels[i][fi])
-                        self.parent.jumplistbox.SetStringItem(line, 3, '%.1f,%.1f' % tuple(data[i][fi].center))
-                        self.parent.jumplistbox.SetStringItem(line, 4, '%10.1f' % data[i][fi].duration)
+                        self.parent.jumplistbox.InsertItem(line, str(i+1))
+                        self.parent.jumplistbox.SetItem(line, 1, '%10.1f' % data[i][fi].startTime)
+                        self.parent.jumplistbox.SetItem(line, 2, labels[i][fi])
+                        self.parent.jumplistbox.SetItem(line, 3, '%.1f,%.1f' % tuple(data[i][fi].center))
+                        self.parent.jumplistbox.SetItem(line, 4, '%10.1f' % data[i][fi].duration)
                         line += 1
                 self.jumplistSortAscend = True
                 self.jumplistSortColumn = 0
@@ -1648,12 +1648,12 @@ class getSaccadeLatencyDialog(wx.Dialog):
                     self.parent.jumplistbox.InsertColumn(4, 'Latency', width=wx.LIST_AUTOSIZE)
                     self.parent.jumplistbox.InsertColumn(5, 'Amplitude', width=wx.LIST_AUTOSIZE)
                     for n in range(nSac):
-                        self.parent.jumplistbox.InsertStringItem(n, str(trdata[n][0]+1))
-                        self.parent.jumplistbox.SetStringItem(n, 1, '%10.1f' % trdata[n][1])
-                        self.parent.jumplistbox.SetStringItem(n, 2, trdata[n][2])
-                        self.parent.jumplistbox.SetStringItem(n, 3, '%.1f,%.1f' % tuple(sacdata[n][2:4]))
-                        self.parent.jumplistbox.SetStringItem(n, 4, '%10.1f' % sacdata[n][0])
-                        self.parent.jumplistbox.SetStringItem(n, 5, '%.1f' % sacdata[n][1])
+                        self.parent.jumplistbox.InsertItem(n, str(trdata[n][0]+1))
+                        self.parent.jumplistbox.SetItem(n, 1, '%10.1f' % trdata[n][1])
+                        self.parent.jumplistbox.SetItem(n, 2, trdata[n][2])
+                        self.parent.jumplistbox.SetItem(n, 3, '%.1f,%.1f' % tuple(sacdata[n][2:4]))
+                        self.parent.jumplistbox.SetItem(n, 4, '%10.1f' % sacdata[n][0])
+                        self.parent.jumplistbox.SetItem(n, 5, '%.1f' % sacdata[n][1])
                     self.jumplistSortAscend = True
                     self.jumplistSortColumn = 0
 
@@ -3015,31 +3015,35 @@ class mainFrame(wx.Frame):
             except:
                 messageDialogShowerror(self, 'Error', 'Cannot open %s as StimImage.' % imageFilename)
                 return False
+        
+        extent = params[2].split(',')
 
         # set extent [left, right, bottom, top] (See matplotlib.pyplot.imshow)
-        if len(params) == 4:
+        if len(extent) == 2:
             # left and bottom are specified.
             try:
-                self.stimImageExtent[0] = float(params[2])
-                self.stimImageExtent[2] = float(params[3])
+                self.stimImageExtent[0] = float(extent[0])
+                self.stimImageExtent[2] = float(extent[1])
             except:
-                messageDialogShowerror(self, 'Error', 'Invalid extent: %s' % sep.join(params[2:]))
+                messageDialogShowerror(self, 'Error', 'Invalid image extent: %s' % sep.join(params[2]))
                 self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
                 return False
 
             self.stimImageExtent[1] = self.stimImageExtent[0] + self.stimImage.size[0]
             self.stimImageExtent[3] = self.stimImageExtent[2] + self.stimImage.size[1]
-        if len(params) == 6:
+        elif len(extent) == 4:
             # left, right, bottom and top are specified.
             try:
-                self.stimImageExtent[0] = float(params[2])
-                self.stimImageExtent[1] = float(params[3])
-                self.stimImageExtent[2] = float(params[4])
-                self.stimImageExtent[3] = float(params[5])
+                self.stimImageExtent[0] = float(extent[0])
+                self.stimImageExtent[1] = float(extent[1])
+                self.stimImageExtent[2] = float(extent[2])
+                self.stimImageExtent[3] = float(extent[3])
             except:
-                messageDialogShowerror(self, 'Error', 'Invalid extent: %s' % sep.join(params[2:]))
+                messageDialogShowerror(self, 'Error', 'Invalid image extent: %s' % sep.join(params[2]))
                 self.ImageExtent = [0, self.stimImage.size[0], 0, self.stimImage.size[1]]
                 return False
+        else:
+                messageDialogShowerror(self, 'Warning', 'Invalid image extent: %s' % sep.join(params[2]))
 
         return True
 
@@ -3053,18 +3057,19 @@ class mainFrame(wx.Frame):
             try:
                 label = commands[1]
 
-                regionparam = commands[2].split('_')
-                if regionparam[0] == 'CIRCLE':
-                    region = GazeParser.Region.CircleRegion(float(regionparam[1]),
-                                                            float(regionparam[2]),
-                                                            float(regionparam[3]))
-                elif regionparam[0] == 'RECT':
-                    region = GazeParser.Region.RectRegion(float(regionparam[1]),
-                                                            float(regionparam[2]),
-                                                            float(regionparam[3]),
-                                                            float(regionparam[4]))
+                regionparam = commands[3].split(',')
+
+                if commands[2] == 'CIRCLE':
+                    region = GazeParser.Region.CircleRegion(float(regionparam[0]),
+                                                            float(regionparam[1]),
+                                                            float(regionparam[2]))
+                elif commands[2] == 'RECT':
+                    region = GazeParser.Region.RectRegion(float(regionparam[0]),
+                                                          float(regionparam[1]),
+                                                          float(regionparam[2]),
+                                                          float(regionparam[3]))
                 else:
-                    raise ValueError('Invalid REGION: {}'.format(commands[2]))
+                    raise ValueError('Invalid REGION: {} {}'.format(commands[2],commands[3]))
             except:
                 info = sys.exc_info()
                 tbinfo = traceback.format_tb(info[2])
@@ -3192,6 +3197,9 @@ class mainFrame(wx.Frame):
             messageDialogShowerror(self, 'Error', 'No Data')
             return
 
+        redraw_plot = True
+        if self.tr == newtr:
+            redraw_plot = False
         self.tr = newtr
         if self.tr == 0:
             self.menu_view.FindItemById(ID_PREV_TR).Enable(False)
@@ -3214,8 +3222,10 @@ class mainFrame(wx.Frame):
             xlim = self.ax.get_xlim()
             ylim = self.ax.get_ylim()
 
-            # plot new trial widthout drawing
-            self.plotData(draw=False)
+            if redraw_plot:
+                self.loadStimImage()
+                self.loadRegion()
+            self.plotData(draw=redraw_plot)
 
             # restore plot range
             self.ax.set_xlim(xlim)
@@ -3224,6 +3234,8 @@ class mainFrame(wx.Frame):
             # then jump to time
             self.jumpToTime(event)
         else:
+            self.loadStimImage()
+            self.loadRegion()
             self.plotData()
         
     def jumpToTime(self, event=None):
@@ -3282,7 +3294,7 @@ class mainFrame(wx.Frame):
             indexList = indexList[-1::-1] # reverse
         for row in range(rows):
             for col in range(cols):
-                self.jumplistbox.SetStringItem(row, col, items[indexList[row]][col])
+                self.jumplistbox.SetItem(row, col, items[indexList[row]][col])
 
     def updateInfo(self, event=None):
         if event.Id == ID_JUMPLIST_EVENT:
@@ -3599,9 +3611,9 @@ class mainFrame(wx.Frame):
 
         if self.plotStyle in XYPLOTMODES and self.conf.CANVAS_SHOW_REGION:
             for (label, region) in self.region:
-                self.ax.add_patch(matplotlib.patches.Rectangle([region.x1, -region.y2], region.x2-region.x1, region.y2-region.y1,
+                self.ax.add_patch(matplotlib.patches.Rectangle([region.x1, region.y1], region.x2-region.x1, region.y2-region.y1,
                                                                ec=self.conf.COLOR_REGION_EC, fill=False))
-                self.ax.text(region.x1, -region.y2, label, color=self.conf.COLOR_REGION_EC, fontproperties=self.fontPlotText)
+                self.ax.text(region.x1, region.y2, label, color=self.conf.COLOR_REGION_EC, fontproperties=self.fontPlotText)
 
         # set plotrange and axis labels
         if self.plotStyle in XYPLOTMODES:
