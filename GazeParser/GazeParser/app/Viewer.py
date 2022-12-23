@@ -469,10 +469,13 @@ class animationDialog(wx.Dialog):
             self.ax.axis('off')
 
 
+        if self.conf.CANVAS_SHOW_STIMIMAGE:
+            self.ax.imshow(self.stimImage, extent=self.stimImageExtent, origin='upper')
         if self.hasLData:
             self.l, = self.ax.plot([],[],'-o', color=self.conf.COLOR_TRAJECTORY_L_X)
         if self.hasRData:
             self.r, = self.ax.plot([],[],'-o', color=self.conf.COLOR_TRAJECTORY_R_X)
+
         self.startButton.Enable(False)
         self.stopButton.Enable(True)
         self.cancelButton.Enable(False)
@@ -506,8 +509,6 @@ class animationDialog(wx.Dialog):
             if self.showAxes:
                 t = self.D[self.tr].T[self.index]
                 self.ax.set_title('time: %.1f ms (%s)' % (t, datetime.timedelta(seconds=t/1000)))
-            if self.conf.CANVAS_SHOW_STIMIMAGE:
-                self.ax.imshow(self.stimImage, extent=self.stimImageExtent, origin='upper')
             if self.hasLData:
                 self.l.set_data(self.sf[0]*self.D[self.tr].L[self.index][0], self.sf[1]*self.D[self.tr].L[self.index][1])
             if self.hasRData:
@@ -708,10 +709,10 @@ class convertDialog(wx.Dialog):
     def loadConfig(self, event=None):
         # self.ftypes = [('GazeParser ConfigFile', '*.cfg')]
         self.ftypes = 'GazeParser ConfigFile (*.cfg)|*.cfg'
-        if os.path.exists(GazeParser.configDir):
-            initialdir = GazeParser.configDir
-        else:
-            initialdir = GazeParser.homeDir
+        #if os.path.exists(GazeParser.configDir):
+        #    initialdir = GazeParser.configDir
+        #else:
+        #    initialdir = GazeParser.homeDir
         self.configFileName = messageDialogAskopenfilename(self, filetypes=self.ftypes, initialdir=self.initialDataDir)
         if self.configFileName == '':
             return
@@ -722,6 +723,7 @@ class convertDialog(wx.Dialog):
             return
 
         if self.mainWindow is not None:
+            self.initialDataDir = os.path.split(self.configFileName)[0]
             self.mainWindow.initialDataDir = self.initialDataDir
 
         for key in GazeParser.Configuration.GazeParserOptions:
