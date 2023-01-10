@@ -14,6 +14,7 @@ import warnings
 import pickle
 import zlib
 import shutil
+import platform
 import GazeParser
 import GazeParser.Core
 from packaging import version
@@ -441,3 +442,19 @@ def removeEmbeddedImages(filename, newFilename=None):
 
     return images
 
+def openLocation(path):
+    """
+    Open location in GUI
+
+    :param str path: Path to the location.
+    """
+
+    os_name = platform.system()
+    if os_name == 'Windows':
+        os.system('start {}'.format(path))
+    elif os_name == 'Darwin':
+        os.system('open {}'.format(path))
+    elif os_name == 'Linux':
+        os.system('xdg-open {}'.format(path))
+    else:
+        raise RuntimeError('openLocation: {} is not supported.'.format(os_name))
