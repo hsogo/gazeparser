@@ -1442,7 +1442,7 @@ class getFixationsInRegionDialog(wx.Dialog):
 
         # output data
         #ans = messageDialogAskyesno('Info', '%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList), nTrial))
-        dlg = messageDialogAsk3buttonDialog(self, message='%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList), nTrial), buttons=['Export to file', 'Register with jump list', 'Cancel'])
+        dlg = messageDialogAsk3buttonDialog(self, message='%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList), nTrial), buttons=['Export to file', 'Register on jump list', 'Cancel'])
         dlg.ShowModal()
         ans = dlg.GetSelection()
         dlg.Destroy()
@@ -1451,7 +1451,7 @@ class getFixationsInRegionDialog(wx.Dialog):
             fname = messageDialogAsksaveasfilename(self, initialdir=self.initialDataDir)
             if fname != '':
                 fp = open(fname, 'w')
-                fp.write('Trial\tLabel\tStarting\tFinish\tDuration\tCenterX\tCenterY\n')
+                fp.write('Trial\tLabel\tStart\tEnd\tDuration\tCenterX\tCenterY\n')
                 for i in range(len(data)):
                     for fi in range(len(data[i])):
                         fp.write('%d\t%s\t%.1f\t%.1f\t%.1f\t%.2f\t%.2f\n' % (i, labels[i][fi],
@@ -1464,7 +1464,7 @@ class getFixationsInRegionDialog(wx.Dialog):
                 messageDialogShowinfo(self, 'Info', 'Done.')
             else:
                 messageDialogShowinfo(self, 'Info', 'Canceled.')
-        elif ans == 1: # register with jump list
+        elif ans == 1: # register on jump list
                 self.parent.jumplistbox.ClearAll()
                 self.parent.jumplistbox.InsertColumn(0, 'Trial', width=40)
                 self.parent.jumplistbox.InsertColumn(1, 'Time', width=wx.LIST_AUTOSIZE)
@@ -1626,7 +1626,7 @@ class getSaccadeLatencyDialog(wx.Dialog):
                 self.ax.hist(latdata)
                 self.fig.canvas.draw()
                 #ans = messageDialogAskyesno('Export', '%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
-                dlg = messageDialogAsk3buttonDialog(self, message='%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg), buttons=['Export to file', 'Register with jump list', 'Cancel'])
+                dlg = messageDialogAsk3buttonDialog(self, message='%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg), buttons=['Export to file', 'Register on jump list', 'Cancel'])
                 dlg.ShowModal()
                 ans = dlg.GetSelection()
                 dlg.Destroy()
@@ -2445,6 +2445,7 @@ class ViewerOptions(object):
                 appConf.readfp(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
         except UnicodeDecodeError:
             messageDialogShowinfo(None, 'info', 'Could not open %s.\nCheck if the file is encoded in UTF-8.' % (self.viewerConfigFile))
+            GazeParser.Utility.openLocation(appConfigDir)
             sys.exit()
 
         try:
@@ -2462,7 +2463,8 @@ class ViewerOptions(object):
                     appConf.readfp(codecs.open(self.viewerConfigFile, 'r', 'utf8'))
                 self.VIEWER_VERSION = appConf.get('Version', 'VIEWER_VERSION')
             else:
-                messageDialogShowinfo(None, 'info', 'Please correct configuration file manually.')
+                messageDialogShowinfo(None, 'info', 'Please correct configuration file ({}) manually.'.format(self.viewerConfigFile))
+                GazeParser.Utility.openLocation(appConfigDir)
                 sys.exit()
 
         doMerge = False
@@ -2472,7 +2474,8 @@ class ViewerOptions(object):
                 shutil.copyfile(self.viewerConfigFile, self.viewerConfigFile+'.bak')
                 doMerge = True
             else:
-                messageDialogShowinfo(None, 'info', 'Please update configuration file manually.')
+                messageDialogShowinfo(None, 'info', 'Please update configuration file ({}) manually.'.format(self.viewerConfigFile))
+                GazeParser.Utility.openLocation(appConfigDir)
                 sys.exit()
 
         if doMerge:
@@ -2502,7 +2505,8 @@ class ViewerOptions(object):
                     try:
                         setattr(self, optName, optType(appConf.get(section, optName)))
                     except:
-                        messageDialogShowerror(None, 'error', 'could not read option [%s]%s.\nConfiguration file (%s) may be corrupted. Try to remove this file and restart.' % (section, optName, self.viewerConfigFile))
+                        messageDialogShowerror(None, 'error', 'could not read option [%s]%s.\nConfiguration file (%s) may be corrupted. Please fix or remove this file and restart.' % (section, optName, self.viewerConfigFile))
+                        GazeParser.Utility.openLocation(appConfigDir)
                         sys.exit()
 
         # set recent directories
@@ -2751,7 +2755,14 @@ class mainFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, menu[1], item)
         self.msglistbox.Bind(wx.EVT_CONTEXT_MENU, self.showPopupMsglistbox)
 
-        
+        menus = (('Delete selected jump point(s)',self.deleteJumplist),)
+        self.popup_jumplistbox = wx.Menu()
+        for menu in menus:
+            item = self.popup_jumplistbox.Append(-1, menu[0])
+            item.Enable(True)
+            self.Bind(wx.EVT_MENU, menu[1], item)
+        self.jumplistbox.Bind(wx.EVT_CONTEXT_MENU, self.showPopupJumplistbox)
+
         self._mgr = wx.aui.AuiManager(self)
         self._mgr.AddPane(self.viewPanel, wx.aui.AuiPaneInfo().Name("DataView").
             Caption("Data View").CenterPane().CloseButton(False).MaximizeButton(True))
@@ -3286,9 +3297,9 @@ class mainFrame(wx.Frame):
         rows = self.jumplistbox.GetItemCount()
         cols = self.jumplistbox.GetColumnCount()
         for row in range(rows):
-            item = [self.jumplistbox.GetItem(itemId=row, col=col).GetText() for col in range(cols)]
+            item = [self.jumplistbox.GetItem(row, col=col).GetText() for col in range(cols)]
             items.append(item)
-            itemStr = self.jumplistbox.GetItem(itemId=row, col=targetCol).GetText()
+            itemStr = self.jumplistbox.GetItem(row, col=targetCol).GetText()
             try:
                 targetColItems.append(float(itemStr))
             except:
@@ -3326,6 +3337,12 @@ class mainFrame(wx.Frame):
         pos = event.GetPosition()
         pos = self.msglistbox.ScreenToClient(pos)
         self.msglistbox.PopupMenu(self.popup_msglistbox, pos)
+        event.Skip()
+
+    def showPopupJumplistbox(self, event=None):
+        pos = event.GetPosition()
+        pos = self.jumplistbox.ScreenToClient(pos)
+        self.jumplistbox.PopupMenu(self.popup_jumplistbox, pos)
         event.Skip()
 
     def configGrid(self, event=None):
@@ -3796,6 +3813,17 @@ class mainFrame(wx.Frame):
 
             self.dataModified = True
 
+    def deleteJumplist(self, event=None):
+        selected = []
+        for idx in range(self.jumplistbox.GetItemCount()):
+            if self.jumplistbox.GetItemState(idx, wx.LIST_STATE_SELECTED) != 0:
+                selected.append(idx)
+
+        ans = messageDialogAskyesno(self, 'Warning', 'You cannot undo this operation. Are you sure to delete selected jump points?')
+        if ans:
+            selected.reverse()
+            for idx in selected:
+                self.jumplistbox.DeleteItem(idx)
 
     def configFont(self, event=None):
         dlg = fontSelectDialog(parent=self, id=wx.ID_ANY)
