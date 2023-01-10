@@ -1254,8 +1254,10 @@ class getFixationsInRegionDialog(wx.Dialog):
     def onClickRadiobutton(self, event=None):
         if self.commandCodes[self.rbCommandChoice.GetSelection()] == 'embedded':
             self.customCommandPanel.Enable(False)
+            self.rbSpatialCriteria.Enable(False)
         else:
             self.customCommandPanel.Enable(True)
+            self.rbSpatialCriteria.Enable(True)
             if self.rbCircleRegion.GetValue()==1:
                 self.tcCircleRegionX.Enable(True)
                 self.tcCircleRegionY.Enable(True)
