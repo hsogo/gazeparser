@@ -5,18 +5,18 @@ import os
 
 from GazeParser import __version__
 
-version = '0.12.0'
+version = '0.12.1'
 
 setup(name='GazeParser',
       version=version,
       description='Gaze tracking, parsing and visualization tools',
       long_description="""
-The GazeParser is a package for people who want to research human eye movements 
-such as psychologists.  For recording, this package is designed to synchronize
-a video-based eye-tracking Windows application with the VisionEgg or Psychopy 
-stimulus-presentation packages. For analyzing, this package provides various 
-functions such as detecting saccades and fixations, plotting and comparing scan 
-paths, calculating saccade trajectory curvature and so on.
+The GazeParser is a package intended for research on eye movement.
+This package compries comprises several functions for gaze data analysis, 
+including saccade and fixation detection, scan path plotting and comparison,
+and saccade trajectory curvature calculation.
+Additionally, this package provides a module to control SimpleGazeTracker 
+(an open-source video-based eye-tracking application) from PsychoPy.
 """,
       classifiers=[
           # http://pypi.python.org/pypi?%3Aaction=list_classifiers
