@@ -24,7 +24,7 @@ class GazeParserMessageComponent(BaseComponent):
     iconFile = path.join(thisFolder,'GazeParserMessage.png')
     tooltip = 'GazeParserMessage: sending a message to SimpleGazeTracker'
 
-    def __init__(self, exp, parentName, name='GazeParserMessage', timeType='time (s)', time=0.0, text='message'):
+    def __init__(self, exp, parentName, name='GazeParserMessage', timeType='time (s)', time=0.0, text='message', sync=False):
         self.type='GazeParserMessage'
         self.url="http://gazeparser.sourceforge.net/"
         super(GazeParserMessageComponent, self).__init__(exp, parentName, name)
@@ -43,6 +43,10 @@ class GazeParserMessageComponent(BaseComponent):
             updates='constant', allowedUpdates=['constant','set every repeat'],
             hint="Message text",
             label="Message text")
+        self.params['sync']=Param(text, valType='bool', allowedTypes=[],
+            updates='constant', allowedUpdates=[],
+            hint='Message is recorded when the screen is flipped',
+            label='Sync timing with screen')
 
         # these inherited params are harmless but might as well trim:
         for p in ['startType', 'startVal', 'startEstim', 'stopVal', 'stopType', 'durationEstim']:
@@ -52,22 +56,29 @@ class GazeParserMessageComponent(BaseComponent):
         buff.writeIndented('%(name)s_sent=False\n' % (self.params))
 
     def writeFrameCode(self,buff):
+        if self.params['sync'].val:
+            code1 = 'win.callOnFlip(GazeParserTracker.sendMessage, %(text)s)\n' % (self.params)
+            code2 = 'win.callOnFlip(logging.exp, \'GazeParser SendMessage, %%s=%(time)s\')\n)' % (self.params) 
+        else:
+            code1 = 'GazeParserTracker.sendMessage(%(text)s)\n' % (self.params)
+            code2 = 'logging.exp(\'GazeParser SendMessage, %%s=%(time)s\')\n' % (self.params)
+
         if self.params['timeType'].val=='time (s)':
             buff.writeIndented('if %(name)s_sent==False and %(time)s<=t:\n' % (self.params))
             buff.setIndentLevel(+1, relative=True)
-            buff.writeIndented('GazeParserTracker.sendMessage(%(text)s)\n' % (self.params))
-            buff.writeIndented('logging.exp(\'GazeParser SendMessage time=%(time)s\')\n' % (self.params))
+            buff.writeIndented(code1)
+            buff.writeIndented(code2 % ('time'))
             buff.writeIndented('%(name)s_sent=True\n' % (self.params))
             buff.setIndentLevel(-1, relative=True)
         elif self.params['timeType'].val=='frame N':
             buff.writeIndented('if %(time)s==frameN:\n' % (self.params))
             buff.setIndentLevel(+1, relative=True)
-            buff.writeIndented('GazeParserTracker.sendMessage(%(text)s)\n' % (self.params))
-            buff.writeIndented('logging.exp(\'GazeParser SendMessage frameN=%(time)s\')\n' % (self.params))
+            buff.writeIndented(code1)
+            buff.writeIndented(code2 % ('frameN'))
             buff.setIndentLevel(-1, relative=True)
         else: # condition
             buff.writeIndented('if %(time)s:\n' % (self.params))
             buff.setIndentLevel(+1, relative=True)
-            buff.writeIndented('GazeParserTracker.sendMessage(%(text)s)\n' % (self.params))
-            buff.writeIndented('logging.exp(\'GazeParser SendMessage condition=%(time)s\')\n' % (self.params))
+            buff.writeIndented(code1)
+            buff.writeIndented(code2 % ('condition'))
             buff.setIndentLevel(-1, relative=True)
