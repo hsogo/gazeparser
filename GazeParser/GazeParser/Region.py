@@ -8,6 +8,7 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy
+import warnings
 
 
 class CircleRegion(object):
@@ -146,7 +147,7 @@ class ImageRegion(object):
 
 
 
-def getFixationsInRegion(data, region, period=[None, None], useCenter=True, containsTime='all', containsTraj='all', byIndices=False):
+def getFixationsInRegion(data, region, period=[None, None], useCenter=True, containsTime='all', containsTraj='all', eye=None, byIndices=False):
     """
     Get a list of fixations which are included in a region.
 
@@ -173,6 +174,11 @@ def getFixationsInRegion(data, region, period=[None, None], useCenter=True, cont
         included in a region specified by 'region' parameter. If useCenter is
         True, this parameter is ignored.
         Default value is 'all'.
+    :param str eye:
+        When the data is binocular, gaze position of the left and right eye
+        is averaged by default.  If you want to use only left eye, set 'L' to 
+        this parameter.  Similary, set 'R' for right eye.  If the data is
+        monocular, this parameter will be ignored.
     :param bool byIndices:
         If True, a list of indices are returned instead of
         :class:`~GazeParser.Core.FixationData` object.
@@ -194,15 +200,30 @@ def getFixationsInRegion(data, region, period=[None, None], useCenter=True, cont
     else:
         fromAttr = 'endTime'
         toAttr = 'startTime'
-
+    
     for fi in range(len(data.Fix)):
         if period[0] <= getattr(data.Fix[fi], fromAttr) and getattr(data.Fix[fi], toAttr) <= period[1]:
             if useCenter:
                 if region.contains(data.Fix[fi].center, mode=containsTraj):
                     fixlist.append(fi)
             else:
-                if region.contains(data.Fix[fi].getTraj(), mode=containsTraj):
-                    fixlist.append(fi)
+                if data.recordedEye == 'B':
+                    if eye is None:
+                        bintraj = data.Fix[fi].getTraj()
+                        with warnings.catch_warnings():
+                            warnings.simplefilter("ignore", category=RuntimeWarning)
+                            traj = numpy.nanmean(bintraj, axis=0)
+                    elif eye == 'L':
+                        traj = data.Fix[fi].getTraj(eye='L')
+                    elif eye == 'R':
+                        traj = data.Fix[fi].getTraj(eye='R')
+                    else:
+                        raise ValueError("eye must be 'L', 'R' or None")
+                    if region.contains(traj, mode=containsTraj):
+                        fixlist.append(fi)
+                else:
+                    if region.contains(data.Fix[fi].getTraj(), mode=containsTraj):
+                        fixlist.append(fi)
 
     if byIndices:
         return fixlist
