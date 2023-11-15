@@ -65,7 +65,7 @@ def parseBlinkCandidates(T, HVs, config):
         blinkCandIndex.append([blinkStart, index])
         blinkCandDur.append(dur)
 
-    return numpy.array(blinkCandIndex, dtype=numpy.int), numpy.array(blinkCandDur)
+    return numpy.array(blinkCandIndex, dtype=numpy.int32), numpy.array(blinkCandDur)
 
 
 def parseSaccadeCandidatesWithVACriteria(T, HV, config):
@@ -110,7 +110,7 @@ def parseSaccadeCandidatesWithVACriteria(T, HV, config):
         SacCandIndex.append([saccadeStart, index-1])
         SacCandDur.append(dur)
 
-    return numpy.array(SacCandIndex, dtype=numpy.int), numpy.array(SacCandDur)
+    return numpy.array(SacCandIndex, dtype=numpy.int32), numpy.array(SacCandDur)
 
 
 def buildEventListBinocular(T, LHV, RHV, config):
@@ -155,7 +155,7 @@ def buildEventListBinocular(T, LHV, RHV, config):
             else:
                 sacCand.append([startIndex, endIndex])
                 sacCandDur.append(T[endIndex]-T[startIndex])
-    sacCand = numpy.array(sacCand, dtype=numpy.int)
+    sacCand = numpy.array(sacCand, dtype=numpy.int32)
     sacCandDur = numpy.array(sacCandDur)
 
     if len(sacCand) > 0:
@@ -299,7 +299,7 @@ def buildEventListMonocular(T, HV, config):
             dur = T[-1] - T[sacCand[-1, 1]]
             fixCand.append([sacCand[-1, 1], len(T)-1])
             fixCandDur.append(dur)
-        fixCand = numpy.array(fixCand, dtype=numpy.int)
+        fixCand = numpy.array(fixCand, dtype=numpy.int32)
         fixCandDur = numpy.array(fixCandDur)
 
 
