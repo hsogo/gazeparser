@@ -2807,12 +2807,15 @@ class mainFrame(wx.Frame):
     def toggleView(self, event=None):
         if self.plotStyle == 'XY':
             self.plotStyle = 'SCATTER'
+            self.currentPlotArea = self.plotAreaXY
             self.menu_view.Check(ID_VIEW_SCATTER, True)
         elif self.plotStyle == 'SCATTER':
             self.plotStyle = 'HEATMAP'
+            self.currentPlotArea = self.plotAreaXY
             self.menu_view.Check(ID_VIEW_HEATMAP, True)
         elif self.plotStyle == 'HEATMAP':
             self.plotStyle = 'TXY'
+            self.currentPlotArea = self.plotAreaTXY
             self.menu_view.Check(ID_VIEW_TXY, True)
         else:  # XYT
             self.plotStyle = 'XY'
