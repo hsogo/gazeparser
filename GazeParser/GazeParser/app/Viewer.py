@@ -591,28 +591,40 @@ class convertDialog(wx.Dialog):
         self.rbUseEmbedded = wx.RadioBox(self.commandPanel, wx.ID_ANY, 'Use embedded parameters', choices=self.useEmbeddedChoices, style=wx.RA_VERTICAL)
         self.rbUseEmbedded.Bind(wx.EVT_RADIOBOX, self.onClickUseEmbedded)
 
-        self.cbHeightToPix = wx.CheckBox(self.commandPanel, wx.ID_ANY, 'Height to Pix')
-        self.cbHeightToPix.Hide()
+        self.tobiiOptionPanel = wx.StaticBox(self.commandPanel, wx.ID_ANY, 'Conversion options')
+        tobiiOptionSizer = wx.StaticBoxSizer(self.tobiiOptionPanel, wx.VERTICAL)
+        self.cbHeightToPix = wx.CheckBox(self.tobiiOptionPanel, wx.ID_ANY, 'Height to Pix')
+        tobiiOptionSizer.Add(self.cbHeightToPix)
+        self.tobiiOptionPanel.Hide()
 
-        self.cbOverwrite = wx.CheckBox(self.commandPanel, wx.ID_ANY, 'Overwrite')
-        loadConfigButton = wx.Button(self.commandPanel, wx.ID_ANY, 'Load Configuration File')
-        exportConfigButton = wx.Button(self.commandPanel, wx.ID_ANY, 'Export current parameters')
-        convertButton = wx.Button(self.commandPanel, wx.ID_ANY, 'Convert Files')
-        cancelButton = wx.Button(self.commandPanel, wx.ID_ANY, 'Close')
+        configFilePanel = wx.StaticBox(self.commandPanel, wx.ID_ANY, 'Configuration file')
+        configFileSizer = wx.StaticBoxSizer(configFilePanel, wx.VERTICAL)
+        loadConfigButton = wx.Button(configFilePanel, wx.ID_ANY, 'Load Configuration File')
+        exportConfigButton = wx.Button(configFilePanel, wx.ID_ANY, 'Export current parameters')
         loadConfigButton.Bind(wx.EVT_BUTTON, self.loadConfig)
         exportConfigButton.Bind(wx.EVT_BUTTON, self.exportConfig)
+        configFileSizer.Add(loadConfigButton, flag=wx.EXPAND)
+        configFileSizer.Add(exportConfigButton, flag=wx.EXPAND)
+
+        convertPanel = wx.StaticBox(self.commandPanel, wx.ID_ANY, 'Convert')
+        convertSizer = wx.StaticBoxSizer(convertPanel, wx.VERTICAL)
+        self.cbOverwrite = wx.CheckBox(convertPanel, wx.ID_ANY, 'Overwrite')
+        convertButton = wx.Button(convertPanel, wx.ID_ANY, 'Convert Files')
         convertButton.Bind(wx.EVT_BUTTON, self.convertFiles)
+        convertSizer.Add(convertButton, flag=wx.EXPAND)
+        convertSizer.Add(self.cbOverwrite, flag=wx.EXPAND)
+
+        cancelButton = wx.Button(self.commandPanel, wx.ID_ANY, 'Close')
         cancelButton.Bind(wx.EVT_BUTTON, self.cancel)
-        
+
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.rbDatafileType, flag=wx.EXPAND)
         box.Add(self.rbUseEmbedded, flag=wx.EXPAND)
-        box.Add(self.cbHeightToPix, flag=wx.TOP|wx.ALIGN_CENTER, border=20)
-        box.Add(loadConfigButton, flag=wx.TOP|wx.ALIGN_CENTER, border=20)
-        box.Add(exportConfigButton, flag=wx.ALIGN_CENTER)
-        box.Add(convertButton, flag=wx.TOP|wx.ALIGN_CENTER, border=5)
-        box.Add(self.cbOverwrite, flag=wx.ALIGN_CENTER)
-        box.Add(cancelButton, flag=wx.TOP|wx.ALIGN_CENTER, border=20)
+        box.Add(tobiiOptionSizer, flag=wx.EXPAND)
+        box.Add(configFileSizer, flag=wx.TOP|wx.EXPAND, border=30)
+        box.Add(convertSizer, flag=wx.TOP|wx.EXPAND, border=10)
+        box.Add(cancelButton, flag=wx.TOP|wx.ALIGN_CENTER, border=30)
+
         self.commandPanel.SetSizer(box)
 
         self.filterCommands = ['identity', 'ma', 'butter', 'butter_filtfilt']
@@ -671,30 +683,34 @@ class convertDialog(wx.Dialog):
 
         donelist = []
         errorlist = []
-        for f in fnames:
-            res = 'FAILED'
-            try:
-                if datafileType == 'SimpleGazeTracker CSV':
-                    res = GazeParser.Converter.TrackerToGazeParser(f, overwrite=overwrite, config=self.configuration, useFileParameters=usefileparameters)
-                elif datafileType == 'PsychoPy_Tobii_Controller TSV':
-                    res = GazeParser.Converter.PTCToGazeParser(f, overwrite=overwrite, config=self.configuration, unitcnv=unitcnv)
-            except:
-                info = sys.exc_info()
-                tbinfo = traceback.format_tb(info[2])
-                errormsg = ''
-                for tbi in tbinfo:
-                    errormsg += tbi
-                errormsg += '  %s' % str(info[1])
-                errorlist.append(f)
-                if not messageDialogAskyesno(self, 'Error', errormsg + '\n\nConvert remaining files?'):
-                    break
-            else:
-                if res == 'SUCCESS':
-                    donelist.append(f)
-                else:
+        nProcessed = 0
+        with wx.ProgressDialog(title='Converting...',message='0/{}'.format(len(fnames)),maximum=len(fnames)) as progressDlg:
+            for f in fnames:
+                res = 'FAILED'
+                try:
+                    if datafileType == 'SimpleGazeTracker CSV':
+                        res = GazeParser.Converter.TrackerToGazeParser(f, overwrite=overwrite, config=self.configuration, useFileParameters=usefileparameters)
+                    elif datafileType == 'PsychoPy_Tobii_Controller TSV':
+                        res = GazeParser.Converter.PTCToGazeParser(f, overwrite=overwrite, config=self.configuration, unitcnv=unitcnv)
+                except:
+                    info = sys.exc_info()
+                    tbinfo = traceback.format_tb(info[2])
+                    errormsg = ''
+                    for tbi in tbinfo:
+                        errormsg += tbi
+                    errormsg += '  %s' % str(info[1])
                     errorlist.append(f)
-                    if not messageDialogAskyesno(self, 'Error', res + '\n\nConvert remaining files?'):
+                    if not messageDialogAskyesno(self, 'Error', errormsg + '\n\nConvert remaining files?'):
                         break
+                else:
+                    if res == 'SUCCESS':
+                        donelist.append(f)
+                    else:
+                        errorlist.append(f)
+                        if not messageDialogAskyesno(self, 'Error', res + '\n\nConvert remaining files?'):
+                            break
+                nProcessed += 1
+                progressDlg.Update(value=nProcessed, newmsg='{}/{}'.format(nProcessed, len(fnames)))
         msg = 'Convertion done.\n'
         if len(donelist) <= 16:
             msg += '\n'.join(donelist)
@@ -779,12 +795,14 @@ class convertDialog(wx.Dialog):
         if self.rbDatafileType.GetSelection()==0:
             self.datafileType = 'SimpleGazeTracker CSV'
             self.rbUseEmbedded.Show()
-            self.cbHeightToPix.Hide()
+            #self.cbHeightToPix.Hide()
+            self.tobiiOptionPanel.Hide()
         else:
             self.datafileType = 'PsychoPy_Tobii_Controller TSV'
             self.rbUseEmbedded.SetSelection(1) # Use parameters shown in this dialog
             self.rbUseEmbedded.Hide()
-            self.cbHeightToPix.Show()
+            #self.cbHeightToPix.Show()
+            self.tobiiOptionPanel.Show()
         
         self.commandPanel.Layout()
         self.onClickUseEmbedded()
