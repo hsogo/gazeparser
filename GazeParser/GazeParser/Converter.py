@@ -158,15 +158,16 @@ def buildEventListBinocular(T, LHV, RHV, config):
     sacCand = numpy.array(sacCand, dtype=numpy.int)
     sacCandDur = numpy.array(sacCandDur)
 
-    # amplitude
-    amplitudeCheckList = []
-    for idx in range(len(sacCand)):
-        ampL = numpy.linalg.norm((LHV[sacCand[idx, 1], :]-LHV[sacCand[idx, 0], :])*pix2deg)
-        ampR = numpy.linalg.norm((RHV[sacCand[idx, 1], :]-RHV[sacCand[idx, 0], :])*pix2deg)
-        if (ampL+ampR)/2.0 >= config.SACCADE_MINIMUM_AMPLITUDE:
-            amplitudeCheckList.append(idx)
-    sacCand = sacCand[amplitudeCheckList, :]
-    sacCandDur = sacCandDur[amplitudeCheckList]
+    if len(sacCand) > 0:
+        # amplitude
+        amplitudeCheckList = []
+        for idx in range(len(sacCand)):
+            ampL = numpy.linalg.norm((LHV[sacCand[idx, 1], :]-LHV[sacCand[idx, 0], :])*pix2deg)
+            ampR = numpy.linalg.norm((RHV[sacCand[idx, 1], :]-RHV[sacCand[idx, 0], :])*pix2deg)
+            if (ampL+ampR)/2.0 >= config.SACCADE_MINIMUM_AMPLITUDE:
+                amplitudeCheckList.append(idx)
+        sacCand = sacCand[amplitudeCheckList, :]
+        sacCandDur = sacCandDur[amplitudeCheckList]
 
     # find fixations
     if len(sacCand) > 0:
