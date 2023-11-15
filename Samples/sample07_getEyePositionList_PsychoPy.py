@@ -2,7 +2,7 @@ import psychopy.visual
 import psychopy.event
 import psychopy.core
 import sys
-import numpy
+import numpy as np
 import random
 
 import GazeParser.TrackingTools
@@ -170,8 +170,8 @@ for tr in range(10):
             tracker.recordCurrentMousePos()
         
         gazedata = tracker.getEyePositionList(nsamp)
-        vel = numpy.diff(gazedata, axis=0)[:,1:3]
-        absvel = numpy.apply_along_axis(numpy.linalg.norm, 1, vel)
+        vel = np.diff(gazedata, axis=0)[:,1:3]
+        absvel = np.apply_along_axis(np.linalg.norm, 1, vel)
         if (absvel>threshold*dpd/fps).all():
             if not saccade_detected and trialClock.getTime()>=1.5:
                 saccade_detected = True

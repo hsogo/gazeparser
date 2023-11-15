@@ -2,7 +2,7 @@ import psychopy.visual
 import psychopy.event
 import psychopy.core
 import sys
-import numpy
+import numpy as np
 import OpenGL.GL
 import os
 try:
@@ -112,8 +112,8 @@ while True:
         break
 
 maskImageSize = 512
-meshx,meshy = numpy.meshgrid(range(-maskImageSize/2,maskImageSize/2),range(-maskImageSize/2,maskImageSize/2))
-imgArray = numpy.ones((maskImageSize,maskImageSize,4),numpy.uint8)*128
+meshx,meshy = np.meshgrid(range(-maskImageSize/2,maskImageSize/2),range(-maskImageSize/2,maskImageSize/2))
+imgArray = np.ones((maskImageSize,maskImageSize,4),np.uint8)*128
 maskimage = Image.fromarray(imgArray,mode='RGBA')
 
 stim = psychopy.visual.ImageStim(win,fname)
@@ -122,7 +122,7 @@ mask.setSize((max(win.size)*2,max(win.size)*2))
 
 for tr in range(5):
     windowSize = 6.0*(tr+1)
-    imgArray[:,:,3] = 255*(1-numpy.exp(-(meshx/windowSize)**2-(meshy/windowSize)**2))
+    imgArray[:,:,3] = 255*(1-np.exp(-(meshx/windowSize)**2-(meshy/windowSize)**2))
     maskimage = Image.fromarray(imgArray,mode='RGBA')
     mask.setImage(maskimage)
     

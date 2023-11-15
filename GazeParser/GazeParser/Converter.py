@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy
+import numpy as np
 import GazeParser
 import GazeParser.Configuration
 import os
@@ -42,7 +42,7 @@ def parseBlinkCandidates(T, HVs, config):
     isBlink = False
     blinkStart = None
 
-    nanList = numpy.apply_along_axis(numpy.all, 1, numpy.isnan(HVs))
+    nanList = np.apply_along_axis(np.all, 1, np.isnan(HVs))
     lenNanList = len(nanList)
 
     while index < lenNanList-1:
@@ -65,23 +65,23 @@ def parseBlinkCandidates(T, HVs, config):
         blinkCandIndex.append([blinkStart, index])
         blinkCandDur.append(dur)
 
-    return numpy.array(blinkCandIndex, dtype=numpy.int32), numpy.array(blinkCandDur)
+    return np.array(blinkCandIndex, dtype=np.int32), np.array(blinkCandDur)
 
 
 def parseSaccadeCandidatesWithVACriteria(T, HV, config):
-    cm2deg = 180/numpy.pi*numpy.arctan(1.0/config.VIEWING_DISTANCE)
-    deg2pix = numpy.array([config.DOTS_PER_CENTIMETER_H, config.DOTS_PER_CENTIMETER_V])/cm2deg
+    cm2deg = 180/np.pi*np.arctan(1.0/config.VIEWING_DISTANCE)
+    deg2pix = np.array([config.DOTS_PER_CENTIMETER_H, config.DOTS_PER_CENTIMETER_V])/cm2deg
     pix2deg = 1.0/deg2pix
 
-    Tdiff = numpy.diff(T).reshape(-1, 1)
-    HVdeg = numpy.zeros(HV.shape)
+    Tdiff = np.diff(T).reshape(-1, 1)
+    HVdeg = np.zeros(HV.shape)
     HVdeg[:, 0] = HV[:, 0] * pix2deg[0]
     HVdeg[:, 1] = HV[:, 1] * pix2deg[1]
 
-    velocity = numpy.diff(HVdeg, axis=0) / Tdiff * 1000   # millisecond to second
-    acceleration = numpy.diff(velocity, axis=0) / Tdiff[:-1] * 1000
-    absVelocity = numpy.apply_along_axis(numpy.linalg.norm, 1, velocity)
-    absAcceleration = numpy.apply_along_axis(numpy.linalg.norm, 1, acceleration)
+    velocity = np.diff(HVdeg, axis=0) / Tdiff * 1000   # millisecond to second
+    acceleration = np.diff(velocity, axis=0) / Tdiff[:-1] * 1000
+    absVelocity = np.apply_along_axis(np.linalg.norm, 1, velocity)
+    absAcceleration = np.apply_along_axis(np.linalg.norm, 1, acceleration)
 
     index = 0
     isSaccade = False
@@ -90,7 +90,7 @@ def parseSaccadeCandidatesWithVACriteria(T, HV, config):
     saccadeStart = None
     while index < len(absAcceleration):
         if isSaccade:
-            if numpy.isnan(absVelocity[index]) or absVelocity[index] <= config.SACCADE_VELOCITY_THRESHOLD:
+            if np.isnan(absVelocity[index]) or absVelocity[index] <= config.SACCADE_VELOCITY_THRESHOLD:
                 dur = T[index]-T[saccadeStart]
                 # saccadeCandidates.append([saccadeStart, index, dur, absAcceleration[saccadeStart-1], absAcceleration[index-1]])
                 SacCandIndex.append([saccadeStart, index])
@@ -110,22 +110,22 @@ def parseSaccadeCandidatesWithVACriteria(T, HV, config):
         SacCandIndex.append([saccadeStart, index-1])
         SacCandDur.append(dur)
 
-    return numpy.array(SacCandIndex, dtype=numpy.int32), numpy.array(SacCandDur)
+    return np.array(SacCandIndex, dtype=np.int32), np.array(SacCandDur)
 
 
 def buildEventListBinocular(T, LHV, RHV, config):
-    cm2deg = 180/numpy.pi*numpy.arctan(1.0/config.VIEWING_DISTANCE)
-    deg2pix = numpy.array([config.DOTS_PER_CENTIMETER_H, config.DOTS_PER_CENTIMETER_V])/cm2deg
+    cm2deg = 180/np.pi*np.arctan(1.0/config.VIEWING_DISTANCE)
+    deg2pix = np.array([config.DOTS_PER_CENTIMETER_H, config.DOTS_PER_CENTIMETER_V])/cm2deg
     pix2deg = 1.0/deg2pix
 
     sacCandL, sacCandDurL = parseSaccadeCandidatesWithVACriteria(T, LHV, config)
     sacCandR, sacCandDurR = parseSaccadeCandidatesWithVACriteria(T, RHV, config)
-    blinkCand, blinkCandDur = parseBlinkCandidates(T, numpy.hstack((LHV, RHV)), config)
+    blinkCand, blinkCandDur = parseBlinkCandidates(T, np.hstack((LHV, RHV)), config)
 
     # delete small saccade first, then check fixation
     # check saccade duration
     if len(sacCandL) > 0:
-        idx = numpy.where(sacCandDurL > config.SACCADE_MINIMUM_DURATION)[0]
+        idx = np.where(sacCandDurL > config.SACCADE_MINIMUM_DURATION)[0]
         if len(idx) > 0:
             sacCandL = sacCandL[idx, :]
             sacCandDurL = sacCandDurL[idx]
@@ -133,7 +133,7 @@ def buildEventListBinocular(T, LHV, RHV, config):
             sacCandL = []
             sacCandDurL = []
     if len(sacCandR) > 0:
-        idx = numpy.where(sacCandDurR > config.SACCADE_MINIMUM_DURATION)[0]
+        idx = np.where(sacCandDurR > config.SACCADE_MINIMUM_DURATION)[0]
         if len(idx) > 0:
             sacCandR = sacCandR[idx, :]
             sacCandDurR = sacCandDurR[idx]
@@ -145,7 +145,7 @@ def buildEventListBinocular(T, LHV, RHV, config):
     sacCandDur = []
     # check binocular coincidence
     for idx in range(len(sacCandL)):
-        overlap = numpy.where((sacCandR[:, 1] >= sacCandL[idx, 0]) &
+        overlap = np.where((sacCandR[:, 1] >= sacCandL[idx, 0]) &
                               (sacCandR[:, 0] <= sacCandL[idx, 1]))[0]
         if len(overlap) > 0:
             startIndex = min(sacCandL[idx, 0], sacCandR[overlap[0], 0])
@@ -155,15 +155,15 @@ def buildEventListBinocular(T, LHV, RHV, config):
             else:
                 sacCand.append([startIndex, endIndex])
                 sacCandDur.append(T[endIndex]-T[startIndex])
-    sacCand = numpy.array(sacCand, dtype=numpy.int32)
-    sacCandDur = numpy.array(sacCandDur)
+    sacCand = np.array(sacCand, dtype=np.int32)
+    sacCandDur = np.array(sacCandDur)
 
     if len(sacCand) > 0:
         # amplitude
         amplitudeCheckList = []
         for idx in range(len(sacCand)):
-            ampL = numpy.linalg.norm((LHV[sacCand[idx, 1], :]-LHV[sacCand[idx, 0], :])*pix2deg)
-            ampR = numpy.linalg.norm((RHV[sacCand[idx, 1], :]-RHV[sacCand[idx, 0], :])*pix2deg)
+            ampL = np.linalg.norm((LHV[sacCand[idx, 1], :]-LHV[sacCand[idx, 0], :])*pix2deg)
+            ampR = np.linalg.norm((RHV[sacCand[idx, 1], :]-RHV[sacCand[idx, 0], :])*pix2deg)
             if (ampL+ampR)/2.0 >= config.SACCADE_MINIMUM_AMPLITUDE:
                 amplitudeCheckList.append(idx)
         sacCand = sacCand[amplitudeCheckList, :]
@@ -191,13 +191,13 @@ def buildEventListBinocular(T, LHV, RHV, config):
             dur = T[-1] - T[sacCand[-1, 1]]
             fixCand.append([sacCand[-1, 1], len(T)-1])
             fixCandDur.append(dur)
-        fixCand = numpy.array(fixCand)
-        fixCandDur = numpy.array(fixCandDur)
+        fixCand = np.array(fixCand)
+        fixCandDur = np.array(fixCandDur)
 
         # merge small inter-saccadic fixation to saccade.
-        tooShortFixation = numpy.where(fixCandDur <= config.FIXATION_MINIMUM_DURATION)[0]
+        tooShortFixation = np.where(fixCandDur <= config.FIXATION_MINIMUM_DURATION)[0]
         for idx in tooShortFixation:
-            prevSaccadeIndex = numpy.where(sacCand[:, 1] == fixCand[idx, 0])[0]
+            prevSaccadeIndex = np.where(sacCand[:, 1] == fixCand[idx, 0])[0]
             if len(prevSaccadeIndex) != 1:
                 continue
             nextSaccadeIndex = prevSaccadeIndex+1
@@ -205,16 +205,16 @@ def buildEventListBinocular(T, LHV, RHV, config):
                 continue
             sacCand[prevSaccadeIndex, 1] = sacCand[nextSaccadeIndex, 1]
             sacCandDur[prevSaccadeIndex] = T[sacCand[nextSaccadeIndex, 1]]-T[sacCand[prevSaccadeIndex, 0]]
-            sacCand = numpy.delete(sacCand, nextSaccadeIndex, 0)
-            sacCandDur = numpy.delete(sacCandDur, nextSaccadeIndex, 0)
+            sacCand = np.delete(sacCand, nextSaccadeIndex, 0)
+            sacCandDur = np.delete(sacCandDur, nextSaccadeIndex, 0)
 
         idx = fixCandDur > config.FIXATION_MINIMUM_DURATION
         fixCand = fixCand[idx, :]
         fixCandDur = fixCandDur[idx]
 
     else:  # no saccade candidate is found.
-        fixCand = numpy.array([[0, len(T)-1]])
-        fixCandDur = numpy.array([T[-1]-T[0]])
+        fixCand = np.array([[0, len(T)-1]])
+        fixCandDur = np.array([T[-1]-T[0]])
 
     # find blinks
     # TODO: check break of fixation and saccades by blink.
@@ -234,13 +234,13 @@ def buildEventListBinocular(T, LHV, RHV, config):
         ex = (LHV[s[1], 0]+RHV[s[1], 0])/2.0
         ey = (LHV[s[1], 1]+RHV[s[1], 1])/2.0
         dur = sacCandDur[i]
-        amp = numpy.linalg.norm((pix2deg[0]*(ex-sx), pix2deg[1]*(ey-sy)))
+        amp = np.linalg.norm((pix2deg[0]*(ex-sx), pix2deg[1]*(ey-sy)))
         saccadeList.append(GazeParser.SaccadeData((T[s[0]], T[s[1]]), (dur, sx, sy, ex, ey, amp), T))
 
-    if not (numpy.isnan(LHV[:, 0]).all() and numpy.isnan(RHV[:, 0]).all()):  # Fixation is not appended if all values are none.
+    if not (np.isnan(LHV[:, 0]).all() and np.isnan(RHV[:, 0]).all()):  # Fixation is not appended if all values are none.
         for i, f in enumerate(fixCand):
-            cx = nanmean(numpy.hstack((LHV[f[0]:f[1]+1, 0], RHV[f[0]:f[1]+1, 0])))
-            cy = nanmean(numpy.hstack((LHV[f[0]:f[1]+1, 1], RHV[f[0]:f[1]+1, 1])))
+            cx = nanmean(np.hstack((LHV[f[0]:f[1]+1, 0], RHV[f[0]:f[1]+1, 0])))
+            cy = nanmean(np.hstack((LHV[f[0]:f[1]+1, 1], RHV[f[0]:f[1]+1, 1])))
             dur = fixCandDur[i]
             fixationList.append(GazeParser.FixationData((T[f[0]], T[f[1]]), (dur, cx, cy), T))
 
@@ -251,8 +251,8 @@ def buildEventListBinocular(T, LHV, RHV, config):
 
 
 def buildEventListMonocular(T, HV, config):
-    cm2deg = 180/numpy.pi*numpy.arctan(1.0/config.VIEWING_DISTANCE)
-    deg2pix = numpy.array([config.DOTS_PER_CENTIMETER_H, config.DOTS_PER_CENTIMETER_V])/cm2deg
+    cm2deg = 180/np.pi*np.arctan(1.0/config.VIEWING_DISTANCE)
+    deg2pix = np.array([config.DOTS_PER_CENTIMETER_H, config.DOTS_PER_CENTIMETER_V])/cm2deg
     pix2deg = 1.0/deg2pix
 
     sacCand, sacCandDur = parseSaccadeCandidatesWithVACriteria(T, HV, config)
@@ -261,14 +261,14 @@ def buildEventListMonocular(T, HV, config):
     # delete small saccade first, then check fixation
     if len(sacCand) > 0:
         # check saccade duration
-        idx = numpy.where(sacCandDur > config.SACCADE_MINIMUM_DURATION)[0]
+        idx = np.where(sacCandDur > config.SACCADE_MINIMUM_DURATION)[0]
         sacCand = sacCand[idx, :]
         sacCandDur = sacCandDur[idx]
 
         # check saccade amplitude
         amplitudeCheckList = []
         for idx in range(len(sacCand)):
-            if numpy.linalg.norm((HV[sacCand[idx, 1], :]-HV[sacCand[idx, 0], :])*pix2deg) >= config.SACCADE_MINIMUM_AMPLITUDE:
+            if np.linalg.norm((HV[sacCand[idx, 1], :]-HV[sacCand[idx, 0], :])*pix2deg) >= config.SACCADE_MINIMUM_AMPLITUDE:
                 amplitudeCheckList.append(idx)
         if len(amplitudeCheckList) > 0:
             sacCand = sacCand[amplitudeCheckList, :]
@@ -299,14 +299,14 @@ def buildEventListMonocular(T, HV, config):
             dur = T[-1] - T[sacCand[-1, 1]]
             fixCand.append([sacCand[-1, 1], len(T)-1])
             fixCandDur.append(dur)
-        fixCand = numpy.array(fixCand, dtype=numpy.int32)
-        fixCandDur = numpy.array(fixCandDur)
+        fixCand = np.array(fixCand, dtype=np.int32)
+        fixCandDur = np.array(fixCandDur)
 
 
         # merge small inter-saccadic fixation to saccade.
-        tooShortFixation = numpy.where(fixCandDur <= config.FIXATION_MINIMUM_DURATION)[0]
+        tooShortFixation = np.where(fixCandDur <= config.FIXATION_MINIMUM_DURATION)[0]
         for idx in tooShortFixation:
-            prevSaccadeIndex = numpy.where(sacCand[:, 1] == fixCand[idx, 0])[0]
+            prevSaccadeIndex = np.where(sacCand[:, 1] == fixCand[idx, 0])[0]
             if len(prevSaccadeIndex) != 1:
                 continue
             nextSaccadeIndex = prevSaccadeIndex+1
@@ -315,16 +315,16 @@ def buildEventListMonocular(T, HV, config):
             sacCand[prevSaccadeIndex, 1] = sacCand[nextSaccadeIndex, 1]
             # saccadeCandidates[prevSaccadeIndex, 4] = saccadeCandidates[nextSaccadeIndex, 4]
             sacCandDur[prevSaccadeIndex,] = T[sacCand[nextSaccadeIndex, 1]]-T[sacCand[prevSaccadeIndex, 0]]
-            sacCand = numpy.delete(sacCand, nextSaccadeIndex, 0)
-            sacCandDur = numpy.delete(sacCandDur, nextSaccadeIndex, 0)
+            sacCand = np.delete(sacCand, nextSaccadeIndex, 0)
+            sacCandDur = np.delete(sacCandDur, nextSaccadeIndex, 0)
 
         idx = fixCandDur > config.FIXATION_MINIMUM_DURATION
         fixCand = fixCand[idx, :]
         fixCandDur = fixCandDur[idx]
 
     else:  # no saccade candidate is found.
-        fixCand = numpy.array([[0, len(T)-1]])
-        fixCandDur = numpy.array([T[-1]-T[0]])
+        fixCand = np.array([[0, len(T)-1]])
+        fixCandDur = np.array([T[-1]-T[0]])
 
     # find blinks
     # TODO: check break of fixation and saccades by blink.
@@ -344,10 +344,10 @@ def buildEventListMonocular(T, HV, config):
         ex = HV[s[1], 0]
         ey = HV[s[1], 1]
         dur = sacCandDur[i]
-        amp = numpy.linalg.norm((pix2deg[0]*(ex-sx), pix2deg[1]*(ey-sy)))
+        amp = np.linalg.norm((pix2deg[0]*(ex-sx), pix2deg[1]*(ey-sy)))
         saccadeList.append(GazeParser.SaccadeData((T[s[0]], T[s[1]]), (dur, sx, sy, ex, ey, amp), T))
 
-    if not numpy.isnan(HV[:, 0]).all():  # Fixation is not appended if all values are none.
+    if not np.isnan(HV[:, 0]).all():  # Fixation is not appended if all values are none.
         for i, f in enumerate(fixCand):
             cx = nanmean(HV[f[0]:f[1]+1, 0])
             cy = nanmean(HV[f[0]:f[1]+1, 1])
@@ -377,13 +377,13 @@ def resampleData(T, HV, frequency):
     if frequency <= 0:
         raise ValueError('Frequency must be a positive number.')
     interval = 1000.0/frequency
-    ti = numpy.arange(0, T[-1], interval)
+    ti = np.arange(0, T[-1], interval)
     interpolaterH = interp1d(T, HV[:, 0])
     interpolaterV = interp1d(T, HV[:, 1])
     hi = interpolaterH(ti)
     vi = interpolaterV(ti)
 
-    return [ti, numpy.vstack((hi, vi)).transpose()]
+    return [ti, np.vstack((hi, vi)).transpose()]
 
 
 def resampleTimeStamp(t, threshold=None):
@@ -395,14 +395,14 @@ def resampleTimeStamp(t, threshold=None):
 
         This function is obsolete.
     """
-    tdiff = numpy.diff(t)
-    average = numpy.mean(tdiff)
+    tdiff = np.diff(t)
+    average = np.mean(tdiff)
     if threshold is None:
         threshold = average * 0.1  # 25%
     for i in range(len(tdiff)-1):
         d1 = tdiff[i]-average
         d2 = tdiff[i+1]-average
-        if d1*d2 < 0 and numpy.abs(d1) > threshold and numpy.abs(d2) > threshold:
+        if d1*d2 < 0 and np.abs(d1) > threshold and np.abs(d2) > threshold:
             t[i+1] -= tdiff[i]-average
             tdiff[i] = t[i+1]-t[i]
             tdiff[i+1] = t[i+2]-t[i+1]
@@ -418,22 +418,22 @@ def linearInterpolation(t, w):
     :param w: Data to be interpolated (N x 1)
     :return: Filled data.
     """
-    # w[0] and w[-1] must not be numpy.nan.
-    if numpy.isnan(w[0]):
+    # w[0] and w[-1] must not be np.nan.
+    if np.isnan(w[0]):
         i = 0
-        while(numpy.isnan(w[i])):
+        while(np.isnan(w[i])):
             i += 1
             if i >= len(w):  # all values are None.
                 return w
         w[0] = w[i]
-    if numpy.isnan(w[-1]):
+    if np.isnan(w[-1]):
         i = len(w)-1
-        while(numpy.isnan(w[i])):
+        while(np.isnan(w[i])):
             i -= 1
         w[-1] = w[i]
 
-    # nanIndex = numpy.where(numpy.isnan(w))[0]
-    validIndex = numpy.where(w == w)[0]  # numpy.where(numpy.isnan(w) == False)[0]
+    # nanIndex = np.where(np.isnan(w))[0]
+    validIndex = np.where(w == w)[0]  # np.where(np.isnan(w) == False)[0]
 
     interpolater = interp1d(t[validIndex], w[validIndex])
     return interpolater(t)
@@ -461,8 +461,8 @@ def applyFilter(T, HV, config, decimals=2):
     filterOrder = config.FILTER_ORDER
     filterWn = config.FILTER_WN
 
-    nanListH = numpy.isnan(HV[:, 0])
-    nanListV = numpy.isnan(HV[:, 1])
+    nanListH = np.isnan(HV[:, 0])
+    nanListV = np.isnan(HV[:, 1])
     H = linearInterpolation(T, HV[:, 0])
     V = linearInterpolation(T, HV[:, 1])
 
@@ -480,17 +480,17 @@ def applyFilter(T, HV, config, decimals=2):
             filteredV = filtfilt(B, A, V)
 
     elif filter == 'ma':
-        weight = numpy.ones(filterSize)/filterSize
-        filteredH = numpy.convolve(H, weight, 'same')
-        filteredV = numpy.convolve(V, weight, 'same')
+        weight = np.ones(filterSize)/filterSize
+        filteredH = np.convolve(H, weight, 'same')
+        filteredV = np.convolve(V, weight, 'same')
 
-    filteredH = numpy.round(filteredH, decimals=decimals)
-    filteredV = numpy.round(filteredV, decimals=decimals)
+    filteredH = np.round(filteredH, decimals=decimals)
+    filteredV = np.round(filteredV, decimals=decimals)
 
-    filteredH[nanListH] = numpy.nan
-    filteredV[nanListV] = numpy.nan
+    filteredH[nanListH] = np.nan
+    filteredV[nanListV] = np.nan
 
-    return numpy.vstack((filteredH, filteredV)).transpose()
+    return np.vstack((filteredH, filteredV)).transpose()
 
 
 def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParameters=True, outputfile=None, verbose=False):
@@ -604,58 +604,58 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
             elif itemList[0] == '#STOP_REC':
                 if config.RECORDED_EYE == 'B':
                     if config.RESAMPLING > 0:
-                        tmpT, tmpLHV = resampleData(numpy.array(T), numpy.array(LHV), config.RESAMPLING)
-                        tmpT, tmpRHV = resampleData(numpy.array(T), numpy.array(LHV), config.RESAMPLING)
+                        tmpT, tmpLHV = resampleData(np.array(T), np.array(LHV), config.RESAMPLING)
+                        tmpT, tmpRHV = resampleData(np.array(T), np.array(LHV), config.RESAMPLING)
 
                         Llist = applyFilter(tmpT, tmpLHV, config, decimals=effectiveDigit)
                         Rlist = applyFilter(tmpT, tmpRHV, config, decimals=effectiveDigit)
                     else:
-                        Tlist = numpy.array(T)
-                        Llist = applyFilter(Tlist, numpy.array(LHV), config, decimals=effectiveDigit)
-                        Rlist = applyFilter(Tlist, numpy.array(RHV), config, decimals=effectiveDigit)
+                        Tlist = np.array(T)
+                        Llist = applyFilter(Tlist, np.array(LHV), config, decimals=effectiveDigit)
+                        Rlist = applyFilter(Tlist, np.array(RHV), config, decimals=effectiveDigit)
 
                     if config.AVERAGE_LR == 0:
                         (SacList, FixList, BlinkList) = buildEventListBinocular(Tlist, Llist, Rlist, config)
                     elif config.AVERAGE_LR == 1:
-                        Blist = numpy.nanmean([Llist,Rlist], axis=0)
+                        Blist = np.nanmean([Llist,Rlist], axis=0)
                         (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
                     else:
                         raise ValueError('AVERAGE_LR must be 0 or 1.')
 
                     if not (idxLP is None and idxRP is None):
-                        Plist = numpy.array([LP, RP]).transpose()
+                        Plist = np.array([LP, RP]).transpose()
                     else:
                         Plist = None
                 else:  # monocular
                     if config.RECORDED_EYE == 'L':
                         if config.RESAMPLING > 0:
-                            Tlist, tmpHV = resampleData(numpy.array(T), numpy.array(HV), config.RESAMPLING)
+                            Tlist, tmpHV = resampleData(np.array(T), np.array(HV), config.RESAMPLING)
                             Llist = applyFilter(Tlist, tmpHV, config, decimals=effectiveDigit)
                         else:
-                            Tlist = numpy.array(T)
-                            Llist = applyFilter(Tlist, numpy.array(HV), config, decimals=effectiveDigit)
+                            Tlist = np.array(T)
+                            Llist = applyFilter(Tlist, np.array(HV), config, decimals=effectiveDigit)
                         (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Llist, config)
                         Rlist = None
                     elif config.RECORDED_EYE == 'R':
                         if config.RESAMPLING > 0:
-                            Tlist, tmpHV = resampleData(numpy.array(T), numpy.array(HV), config.RESAMPLING)
+                            Tlist, tmpHV = resampleData(np.array(T), np.array(HV), config.RESAMPLING)
                             Rlist = applyFilter(Tlist, tmpHV, config, decimals=effectiveDigit)
                         else:
-                            Tlist = numpy.array(T)
-                            Rlist = applyFilter(Tlist, numpy.array(HV), config, decimals=effectiveDigit)
+                            Tlist = np.array(T)
+                            Rlist = applyFilter(Tlist, np.array(HV), config, decimals=effectiveDigit)
                         (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Rlist, config)
                         Llist = None
                     if idxP is not None:
-                        Plist = numpy.array(P).transpose()
+                        Plist = np.array(P).transpose()
                     else:
                         Plist = None
 
                 MsgList = buildMsgList(M)
                 G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, config.RECORDED_EYE, config=config, recordingDate=startRec)
                 if idxC is not None:
-                    G.setCameraSpecificData(numpy.array(C))
+                    G.setCameraSpecificData(np.array(C))
                 if idxUSBIO is not None:
-                    G.setUSBIOData(usbioFormat, numpy.array(USBIO))
+                    G.setUSBIOData(usbioFormat, np.array(USBIO))
                 if len(CALPOINT)>0:
                     G.setCalPointData(CALPOINT)
                 Data.append(G)
@@ -688,15 +688,15 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                     try:
                         itemList[idx] = float(itemList[idx])
                     except:
-                        itemList[idx] = numpy.NaN
+                        itemList[idx] = np.NaN
                 if config.RECORDED_EYE == 'L':
                     accuracy = itemList[3:5]
                     precision = itemList[5:7]
-                    accuracy.extend([numpy.NaN,numpy.NaN])
-                    precision.extend([numpy.NaN,numpy.NaN])
+                    accuracy.extend([np.NaN,np.NaN])
+                    precision.extend([np.NaN,np.NaN])
                 elif config.RECORDED_EYE == 'R':
-                    accuracy = [numpy.NaN,numpy.NaN]
-                    precision = [numpy.NaN,numpy.NaN]
+                    accuracy = [np.NaN,np.NaN]
+                    precision = [np.NaN,np.NaN]
                     accuracy.extend(itemList[3:5])
                     precision.extend(itemList[5:7])
                 else:
@@ -796,13 +796,13 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 except:
                     if itemList[1] == 'NOPUPIL':  # NOPUPIL may be blink. todo: should other meassages be also treated as a blink?
                         B.append([len(T)-1, T[-1]])
-                    xL = numpy.NaN
-                    yL = numpy.NaN
-                    xR = numpy.NaN
-                    yR = numpy.NaN
+                    xL = np.NaN
+                    yL = np.NaN
+                    xR = np.NaN
+                    yR = np.NaN
                     if not (idxLP is None and idxRP is None):
-                        lP = numpy.NaN
-                        rP = numpy.NaN
+                        lP = np.NaN
+                        rP = np.NaN
                 finally:
                     LHV.append([xL, yL])
                     RHV.append([xR, yR])
@@ -818,10 +818,10 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 except:
                     if itemList[1] == 'NOPUPIL':  # NOPUPIL may be blink. todo: should other meassages be also treated as a blink?
                         B.append([len(T)-1, T[-1]])
-                    x = numpy.NaN
-                    y = numpy.NaN
+                    x = np.NaN
+                    y = np.NaN
                     if idxP is not None:
-                        p = numpy.NaN
+                        p = np.NaN
                 finally:
                     HV.append([x, y])
                     if idxP is not None:
@@ -962,11 +962,11 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, un
                     field[itemList[i]] = i
 
             elif itemList[0] == 'Session End':
-                # convert to numpy.ndarray
-                Tlist = numpy.array(T)
-                Plist = numpy.array(P)
-                LHV = numpy.array(LHV)
-                RHV = numpy.array(RHV)
+                # convert to np.ndarray
+                Tlist = np.array(T)
+                Plist = np.array(P)
+                LHV = np.array(LHV)
+                RHV = np.array(RHV)
                 if unitcnv == 'height2pix':
                     LHV *= config.SCREEN_HEIGHT
                     RHV *= config.SCREEN_HEIGHT
@@ -986,7 +986,7 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, un
                     #suppress "RuntimeWarning: Mean of empty slice" when both L and R are NaN
                     with warnings.catch_warnings():
                         warnings.simplefilter("ignore", category=RuntimeWarning)
-                        Blist = numpy.nanmean([Llist,Rlist], axis=0)
+                        Blist = np.nanmean([Llist,Rlist], axis=0)
                     (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
 
                 G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)
@@ -1004,14 +1004,14 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, un
                         if itemList[field['ValidityLeft']] != '4':
                             LHV.append((float(itemList[field['GazePointXLeft']]), float(itemList[field['GazePointYLeft']])))
                         else:  # pupil was not found
-                            LHV.append((numpy.NaN, numpy.NaN))
+                            LHV.append((np.NaN, np.NaN))
 
                     if itemList[field['GazePointXRight']] != '':
                         isGazeDataAvailable = True
                         if itemList[field['ValidityRight']] != '4':
                             RHV.append((float(itemList[field['GazePointXRight']]), float(itemList[field['GazePointYRight']])))
                         else:  # pupil was not found
-                            RHV.append((numpy.NaN, numpy.NaN))
+                            RHV.append((np.NaN, np.NaN))
 
                     # record timeStamp if gaze data is available
                     if isGazeDataAvailable:
@@ -1174,21 +1174,21 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
 
     left_invalid = bindata['status'] < 20  # left is invalid = 20, both are invalid = 22
     right_invalid = bindata['status'] % 20 != 2  # right is invalid = 2, both are invalid = 22
-    bindata[left_invalid]['left_gaze_x'] = numpy.NaN
-    bindata[left_invalid]['left_gaze_y'] = numpy.NaN
-    bindata[right_invalid]['right_gaze_x'] = numpy.NaN
-    bindata[right_invalid]['right_gaze_y'] = numpy.NaN
+    bindata[left_invalid]['left_gaze_x'] = np.NaN
+    bindata[left_invalid]['left_gaze_y'] = np.NaN
+    bindata[right_invalid]['right_gaze_x'] = np.NaN
+    bindata[right_invalid]['right_gaze_y'] = np.NaN
 
 
     for block in range(len(start_time_list)):
         block_idx = (start_time_list[block] <= bindata['time']) & (bindata['time'] <= stop_time_list[block])
 
-        T = numpy.array(bindata[block_idx]['time'])
+        T = np.array(bindata[block_idx]['time'])
         start_time_sec = T[0]
-        Tlist = 1000*(numpy.array(T)-start_time_sec)
+        Tlist = 1000*(np.array(T)-start_time_sec)
 
-        LHV = numpy.vstack([bindata[block_idx]['left_gaze_x'], bindata[block_idx]['left_gaze_y']]).T
-        RHV = numpy.vstack([bindata[block_idx]['right_gaze_x'], bindata[block_idx]['right_gaze_y']]).T
+        LHV = np.vstack([bindata[block_idx]['left_gaze_x'], bindata[block_idx]['left_gaze_y']]).T
+        RHV = np.vstack([bindata[block_idx]['right_gaze_x'], bindata[block_idx]['right_gaze_y']]).T
         if unitcnv == 'height2pix':
             LHV *= config.SCREEN_HEIGHT
             RHV *= config.SCREEN_HEIGHT
@@ -1196,7 +1196,7 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
         Rlist = applyFilter(Tlist, RHV, config, decimals=effectiveDigit)
         print(bindata[block_idx]['left_gaze_x'].shape, LHV.shape)
 
-        Plist = numpy.vstack([bindata[block_idx]['left_pupil_measure1'], bindata[block_idx]['right_pupil_measure1']]).T
+        Plist = np.vstack([bindata[block_idx]['left_pupil_measure1'], bindata[block_idx]['right_pupil_measure1']]).T
 
         msg_idx = (start_time_list[block] <= msgdata['time']) & (msgdata['time'] <= stop_time_list[block])
         msg_time = 1000*(msgdata[msg_idx]['time']-start_time_sec)
@@ -1213,7 +1213,7 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
             #suppress "RuntimeWarning: Mean of empty slice" when both L and R are NaN
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore", category=RuntimeWarning)
-                Blist = numpy.nanmean([Llist,Rlist], axis=0)
+                Blist = np.nanmean([Llist,Rlist], axis=0)
             (SacList, FixList, BlinkList) = buildEventListMonocular(Tlist, Blist, config)
 
         G = GazeParser.GazeData(Tlist, Llist, Rlist, SacList, FixList, MsgList, BlinkList, Plist, 'B', config=config, recordingDate=recdatestr)

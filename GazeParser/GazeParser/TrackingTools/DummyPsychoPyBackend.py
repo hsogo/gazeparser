@@ -15,6 +15,7 @@ except ImportError:
     from PIL import Image
     from PIL import ImageDraw
 
+import numpy as np
 import warnings
 
 from .PsychoPyBackend import ControllerPsychoPyBackend
@@ -100,10 +101,10 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         Use recordCurrentMousePos() method to record mouse position.
         """
         l = len(self.mousePosList)
-        while l <= numpy.abs(n):
+        while l <= np.abs(n):
             self.mousePosList.insert(0,self.mousePosList[0])
             l = len(self.mousePosList)
-        ml = numpy.array(self.mousePosList)
+        ml = np.array(self.mousePosList)
 
         if units != 'pix':
             ml[1:3] = self.convertFromPix(ml[1:3].reshape((1, -1)), units).reshape((-1, 2))
@@ -126,9 +127,9 @@ class DummyPsychoPyBackend(ControllerPsychoPyBackend):
         Dummy function for debugging. This method returns mouse position list.
         Use recordCurrentMousePos() method to record mouse position.
         """
-        ml = numpy.array(self.mousePosList)
+        ml = np.array(self.mousePosList)
         if units != 'pix':
-            ml[:, 1:3] = numpy.array(self.convertFromPix(ml[:, 1:3].reshape((1, -1)), units)).reshape((-1, 2))
+            ml[:, 1:3] = np.array(self.convertFromPix(ml[:, 1:3].reshape((1, -1)), units)).reshape((-1, 2))
 
         if getPupil:
             return ml

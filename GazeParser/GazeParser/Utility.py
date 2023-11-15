@@ -9,7 +9,7 @@ from __future__ import print_function
 
 import os
 import sys
-import numpy
+import numpy as np
 import warnings
 import pickle
 import zlib
@@ -180,7 +180,7 @@ def sortrows(d, cols, order=None):
     """
     if order is None:
         order = [True for i in range(len(cols))]
-    ndx = numpy.arange(len(d))
+    ndx = np.arange(len(d))
     for i in range(len(cols)-1, -1, -1):
         if order[i]:
             idx = d[ndx, cols[i]].argsort(kind='mergesort')

@@ -32,7 +32,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy
+import numpy as np
 from GazeParser.Core import SaccadeData
 
 
@@ -86,7 +86,7 @@ class MicroSacc(object):
 
     def _vecvel(self, data):
         N = len(data)
-        v = numpy.zeros((N, 2))
+        v = np.zeros((N, 2))
         if self.velocityType == 'fast':
             v[1:-1] = self.samplingFreq/2.0 * (data[2:]-data[:-2])
         elif self.velocityType == 'slow':
@@ -94,13 +94,13 @@ class MicroSacc(object):
         return v
 
     def _microsacc(self, data, vdata):
-        msdx = numpy.sqrt(numpy.nanmedian(vdata[:, 0]**2) - numpy.nanmedian(vdata[:, 0])**2)
-        msdy = numpy.sqrt(numpy.nanmedian(vdata[:, 1]**2) - numpy.nanmedian(vdata[:, 1])**2)
+        msdx = np.sqrt(np.nanmedian(vdata[:, 0]**2) - np.nanmedian(vdata[:, 0])**2)
+        msdy = np.sqrt(np.nanmedian(vdata[:, 1]**2) - np.nanmedian(vdata[:, 1])**2)
         radiusX = self.vfac * msdx
         radiusY = self.vfac * msdy
         
-        #idx = numpy.where(((vdata[:, 0]/radiusX)**2 + (vdata[:, 1]/radiusY)**2) > 1)[0]
-        idx = numpy.where(nan_greater((vdata[:, 0]/radiusX)**2 + (vdata[:, 1]/radiusY)**2, 1))[0]
+        #idx = np.where(((vdata[:, 0]/radiusX)**2 + (vdata[:, 1]/radiusY)**2) > 1)[0]
+        idx = np.where(nan_greater((vdata[:, 0]/radiusX)**2 + (vdata[:, 1]/radiusY)**2, 1))[0]
 
         N = len(idx)
         sac = []
@@ -125,19 +125,19 @@ class MicroSacc(object):
             sac.append([idx[a], idx[b]])
             nsac += 1
 
-        sac = numpy.array(sac)
-        sac = numpy.hstack((sac, numpy.zeros((nsac, 5))))
-        vabs = numpy.sqrt(vdata[:, 0]**2+vdata[:, 1]**2)
+        sac = np.array(sac)
+        sac = np.hstack((sac, np.zeros((nsac, 5))))
+        vabs = np.sqrt(vdata[:, 0]**2+vdata[:, 1]**2)
         for s in range(len(sac)):
             a = int(sac[s, 0])
             b = int(sac[s, 1])
-            vpeak = numpy.max(vabs[a:b+1])
-            ampl = numpy.linalg.norm(data[a, :2]-data[b, :2])
+            vpeak = np.max(vabs[a:b+1])
+            ampl = np.linalg.norm(data[a, :2]-data[b, :2])
             sac[s, 2] = vpeak
             sac[s, 3] = ampl
             delx = data[b, 0] - data[a, 0]
             dely = data[b, 1] - data[a, 1]
-            phi = 180/numpy.pi*numpy.arctan2(dely, delx)
+            phi = 180/np.pi*np.arctan2(dely, delx)
             sac[s, 4] = phi
             sac[s, 5] = delx
             sac[s, 6] = dely
@@ -160,7 +160,7 @@ def _binsacc(L, R):
     for i in range(NL):
         l1 = L[i, 0]
         l2 = L[i, 1]
-        overlap = numpy.where((R[:, 1] >= l1) & (R[:, 0] <= l2))[0]
+        overlap = np.where((R[:, 1] >= l1) & (R[:, 0] <= l2))[0]
         if len(overlap) > 0:
             r1 = R[overlap[0], 0]
             r2 = R[overlap[0], 1]
@@ -174,7 +174,7 @@ def _binsacc(L, R):
             dyr = R[overlap[0], 6]
             dx = dxl+dxr
             dy = dyl+dyr
-            phi = 180/numpy.pi*numpy.arctan2(dy, dx)
+            phi = 180/np.pi*np.arctan2(dy, dx)
             sac.append([min([l1, r1]), max([l2, r2]), (vl+vr)/2.0, (ampl+ampr)/2.0,
                         phi, (dxl+dxr)/2.0, (dyr+dyl)/2.0])
             nsac += 1
@@ -192,8 +192,8 @@ def _binsacc(L, R):
             dy2 = sac[k+1][6]
             dx = dx1+dx2
             dy = dy1+dy2
-            amp = numpy.sqrt(dx**2+dy**2)
-            phi = 180/numpy.pi*numpy.arctan2(dy, dx)
+            amp = np.sqrt(dx**2+dy**2)
+            phi = 180/np.pi*np.arctan2(dy, dx)
             sac[k][3] = amp
             sac[k][4] = phi
             sac[k][5] = dx
@@ -201,7 +201,7 @@ def _binsacc(L, R):
             del sac[k+1]
             nsac -= 1
 
-    return numpy.array(sac)
+    return np.array(sac)
 
 
 def buildMicroSaccadesListMonocular(gazeData, eye, samplingFreq=None, velocityType='slow', vfac=6, minSamples=3):
@@ -226,7 +226,7 @@ def buildMicroSaccadesListMonocular(gazeData, eye, samplingFreq=None, velocityTy
         HV = gazeData.R
 
     if samplingFreq is None:
-        samplingFreq = 1000.0/numpy.mean(numpy.diff(T))
+        samplingFreq = 1000.0/np.mean(np.diff(T))
 
     msobj = MicroSacc(HV, samplingFreq, velocityType, vfac, minSamples)
     ms = msobj.ms
@@ -241,7 +241,7 @@ def buildMicroSaccadesListMonocular(gazeData, eye, samplingFreq=None, velocityTy
                                    (sx, sy, ex, ey, ms[index, 3], gazeData.Pix2Deg(ms[index, 3])),
                                    T))
 
-    return numpy.array(saclist)
+    return np.array(saclist)
 
 
 def buildMicroSaccadeListBinocular(gazeData, samplingFreq=None, velocityType='slow', vfac=6, minSamples=3):
@@ -259,7 +259,7 @@ def buildMicroSaccadeListBinocular(gazeData, samplingFreq=None, velocityType='sl
         Default value is 3.
     """
     if samplingFreq is None:
-        samplingFreq = 1000.0/numpy.mean(numpy.diff(gazeData.T))
+        samplingFreq = 1000.0/np.mean(np.diff(gazeData.T))
 
     msL = MicroSacc(gazeData.L, samplingFreq, velocityType, vfac, minSamples).ms
     msR = MicroSacc(gazeData.R, samplingFreq, velocityType, vfac, minSamples).ms
@@ -280,21 +280,21 @@ def buildMicroSaccadeListBinocular(gazeData, samplingFreq=None, velocityType='sl
                                    (sx, sy, ex, ey, ms[index, 3], gazeData.Pix2Deg(ms[index, 3])),
                                    T))
 
-    return numpy.array(saclist)
+    return np.array(saclist)
 
 
 def nan_greater(v1, v2):
     # this comparison returns True if the element is nan. 
-    idx = numpy.where(v1!=v1)[0]
+    idx = np.where(v1!=v1)[0]
 
     # nan was not found. compare in a regular way.
     if len(idx) == 0:
         return v1 > v2
     
     # nan was found.
-    val = numpy.zeros(v1.shape, dtype=numpy.bool)
+    val = np.zeros(v1.shape, dtype=np.bool)
     val[idx] = False
-    idx = numpy.where(v1==v1)[0]
+    idx = np.where(v1==v1)[0]
     val[idx] = (v1[idx] > v2)
     
     return val

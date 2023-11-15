@@ -8,7 +8,7 @@ from __future__ import division
 from __future__ import print_function
 
 import matplotlib.pyplot as pyplot
-import numpy
+import numpy as np
 import GazeParser
 # from scipy import fftpack
 # from scipy.stats import nanstd, nanmean
@@ -22,22 +22,22 @@ def drawHeatMap(data, meshsize):
         :class:`GazeParser.Core.FixationData` objects.
     :param meshsize: An array of 2x3 items.
     """
-    xmesh, ymesh = numpy.meshgrid(numpy.arange(meshsize[0][0], meshsize[0][1], meshsize[0][2]),
-                                  numpy.arange(meshsize[1][0], meshsize[1][1], meshsize[1][2]))
-    heatmap = numpy.zeros(xmesh.shape)
+    xmesh, ymesh = np.meshgrid(np.arange(meshsize[0][0], meshsize[0][1], meshsize[0][2]),
+                                  np.arange(meshsize[1][0], meshsize[1][1], meshsize[1][2]))
+    heatmap = np.zeros(xmesh.shape)
     if isinstance(data, GazeParser.GazeData):
         xy = data.getFixCenter()
         dur = data.getFixDur()
     else:
-        xy = numpy.zeros((2, len(data)))
-        dur = numpy.zeros(len(data))
+        xy = np.zeros((2, len(data)))
+        dur = np.zeros(len(data))
         for i in range(len(data)):
             xy[i, :] = data[i].center
             dur[i] = data[i].duration
     for idx in range(xy.shape[0]):
-        if numpy.isnan(xy[idx, 0]) or numpy.isnan(xy[idx, 1]):
+        if np.isnan(xy[idx, 0]) or np.isnan(xy[idx, 1]):
             continue
-        heatmap = heatmap + dur[idx, 0]*numpy.exp(-((xmesh-xy[idx, 0])/50)**2-((ymesh-xy[idx, 1])/50)**2)
+        heatmap = heatmap + dur[idx, 0]*np.exp(-((xmesh-xy[idx, 0])/50)**2-((ymesh-xy[idx, 1])/50)**2)
     pyplot.hot()
     pyplot.imshow(heatmap, extent=(meshsize[0][0], meshsize[0][1], meshsize[1][0], meshsize[1][1]), origin='lower')
 
@@ -51,8 +51,8 @@ def drawScatterPlot(data):
         xy = data.getFixCenter()
         dur = data.getFixDur()
     else:
-        xy = numpy.zeros((2, len(data)))
-        dur = numpy.zeros(len(data))
+        xy = np.zeros((2, len(data)))
+        dur = np.zeros(len(data))
         for i in range(len(data)):
             xy[i, :] = data[i].center
             dur[i] = data[i].duration
@@ -113,14 +113,14 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
 
         if style == 'XY':
             if eye == 'B':  # binocular
-                notNansL = numpy.where(numpy.logical_not(numpy.isnan(traj[0][:,0])))[0]
+                notNansL = np.where(np.logical_not(np.isnan(traj[0][:,0])))[0]
                 if len(notNansL) > 0:
                     s = notNansL[0]
                     e = notNansL[-1]
                     pyplot.plot(traj[0][s:e+1, 0], traj[0][s:e+1, 1], '.-', label='L')
                     pyplot.text(traj[0][s, 0], traj[0][s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
                     pyplot.text(traj[0][e, 0], traj[0][e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                notNansR = numpy.where(numpy.logical_not(numpy.isnan(traj[1][:,0])))[0]
+                notNansR = np.where(np.logical_not(np.isnan(traj[1][:,0])))[0]
                 if len(notNansR) > 0:
                     s = notNansR[0]
                     e = notNansR[-1]
@@ -129,7 +129,7 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
                     pyplot.text(traj[1][e, 0], traj[1][e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
                 pyplot.legend()
             else:  # monocular
-                notNans = numpy.where(numpy.logical_not(numpy.isnan(traj[:,0])))[0]
+                notNans = np.where(np.logical_not(np.isnan(traj[:,0])))[0]
                 if len(notNans)>0:
                     s = notNans[0]
                     e = notNans[-1]
@@ -163,11 +163,11 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
         if period[0] is None:
             si = 0
         else:
-            si = numpy.where(data._T >= period[0])[0][0]
+            si = np.where(data._T >= period[0])[0][0]
         if period[0] is None:
             ei = -1
         else:
-            ei = numpy.where(data._T <= period[1])[0][-1]
+            ei = np.where(data._T <= period[1])[0][-1]
 
         if units.lower() == 'pix':
             sf = (1.0, 1.0)
@@ -177,14 +177,14 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
         if style == 'XY':
             if eye == 'B':
                 traj = (sf*data._L[si:ei, :], sf*data._R[si:ei, :])
-                notNansL = numpy.where(numpy.logical_not(numpy.isnan(traj[0][:,0])))[0]
+                notNansL = np.where(np.logical_not(np.isnan(traj[0][:,0])))[0]
                 if len(notNansL) > 0:
                     s = notNansL[0]
                     e = notNansL[-1]
                     pyplot.plot(traj[0][s:e+1, 0], traj[0][s:e+1, 1], '.-', label='L')
                     pyplot.text(traj[0][s, 0], traj[0][s, 1], 'S', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
                     pyplot.text(traj[0][e, 0], traj[0][e, 1], 'E', ha='center', va='center', bbox=dict(boxstyle="round", fc="0.8"))
-                notNansR = numpy.where(numpy.logical_not(numpy.isnan(traj[1][:,0])))[0]
+                notNansR = np.where(np.logical_not(np.isnan(traj[1][:,0])))[0]
                 if len(notNansR) > 0:
                     s = notNansR[0]
                     e = notNansR[-1]
@@ -198,7 +198,7 @@ def quickPlot(data, eye=None, period=(None, None), style='XY', xlim=None, ylim=N
                 else: #R
                     traj = sf*data._R[si:ei, :]
 
-                notNans = numpy.where(numpy.logical_not(numpy.isnan(traj[:,0])))[0]
+                notNans = np.where(np.logical_not(np.isnan(traj[:,0])))[0]
                 if len(notNans)>0:
                     s = notNans[0]
                     e = notNans[-1]

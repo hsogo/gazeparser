@@ -7,7 +7,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy
+import numpy as np
 import warnings
 
 
@@ -42,18 +42,18 @@ class CircleRegion(object):
         if hasattr(data[0], '__iter__'):  # assume list of points
             if mode.lower() == 'all':
                     for p in data:
-                        if numpy.linalg.norm((p[0]-self.x, p[1]-self.y)) >= self.r:
+                        if np.linalg.norm((p[0]-self.x, p[1]-self.y)) >= self.r:
                             return False
                     return True
             else:  # any
                 if hasattr(data[0], '__iter__'):  # assume list of points
                     for p in data:
-                        if numpy.linalg.norm((p[0]-self.x, p[1]-self.y)) < self.r:
+                        if np.linalg.norm((p[0]-self.x, p[1]-self.y)) < self.r:
                             return True
                     return False
 
         else:  # point
-            if numpy.linalg.norm((data[0]-self.x, data[1]-self.y)) < self.r:
+            if np.linalg.norm((data[0]-self.x, data[1]-self.y)) < self.r:
                 return True
             else:
                 return False
@@ -113,9 +113,9 @@ class RectRegion(object):
 
 class ImageRegion(object):
     def __init__(self, image, origin='center'):
-        if not isinstance(image, numpy.ndarray):
+        if not isinstance(image, np.ndarray):
             try:
-                image = numpy.asarray(image)
+                image = np.asarray(image)
             except:
                 raise ValueError('Cannot convert image to numpy.ndarray')
         
@@ -128,8 +128,8 @@ class ImageRegion(object):
         if not mode.lower() in ('all', 'any'):
             raise ValueError('mode must be "all" or "any".')
 
-        if not isinstance(data, numpy.ndarray):
-            data = numpy.asarray(data)
+        if not isinstance(data, np.ndarray):
+            data = np.asarray(data)
 
         if hasattr(data[0], '__iter__'):  # assume list of points
             # y, x
@@ -212,7 +212,7 @@ def getFixationsInRegion(data, region, period=[None, None], useCenter=True, cont
                         bintraj = data.Fix[fi].getTraj()
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore", category=RuntimeWarning)
-                            traj = numpy.nanmean(bintraj, axis=0)
+                            traj = np.nanmean(bintraj, axis=0)
                     elif eye == 'L':
                         traj = data.Fix[fi].getTraj(eye='L')
                     elif eye == 'R':

@@ -41,7 +41,7 @@ import wx.aui
 import matplotlib
 #import functools
 import traceback
-import numpy
+import numpy as np
 import matplotlib
 import matplotlib.figure
 import matplotlib.font_manager
@@ -1078,7 +1078,7 @@ class interactiveConfigFrame(wx.Frame):
                 if self.newConfig.AVERAGE_LR == 0:
                     (SacList, FixList, BlinkList) = buildEventListBinocular(self.D[self.tr].T, self.newL, self.newR, self.newConfig)
                 elif self.newConfig.AVERAGE_LR == 1:
-                    newB = numpy.nanmean([self.newL, self.newR], axis=0)
+                    newB = np.nanmean([self.newL, self.newR], axis=0)
                     (SacList, FixList, BlinkList) = buildEventListMonocular(self.D[self.tr].T, newB, self.newConfig)
                 else:
                     raise ValueError('AVERAGE_LR must be 0 or 1')
@@ -1441,8 +1441,8 @@ class getFixationsInRegionDialog(wx.Dialog):
                 nTrial += 1
 
         # output data
-        #ans = messageDialogAskyesno('Info', '%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList), nTrial))
-        dlg = messageDialogAsk3buttonDialog(self, message='%d fixations are found in %d trials.\nExport data?' % (numpy.sum(nFixList), nTrial), buttons=['Export to file', 'Register on jump list', 'Cancel'])
+        #ans = messageDialogAskyesno('Info', '%d fixations are found in %d trials.\nExport data?' % (np.sum(nFixList), nTrial))
+        dlg = messageDialogAsk3buttonDialog(self, message='%d fixations are found in %d trials.\nExport data?' % (np.sum(nFixList), nTrial), buttons=['Export to file', 'Register on jump list', 'Cancel'])
         dlg.ShowModal()
         ans = dlg.GetSelection()
         dlg.Destroy()
@@ -1622,7 +1622,7 @@ class getSaccadeLatencyDialog(wx.Dialog):
         if nMsg > 0:
             if nSac > 0:
                 self.ax.clear()
-                latdata = numpy.array(sacdata)[:, 0]
+                latdata = np.array(sacdata)[:, 0]
                 self.ax.hist(latdata)
                 self.fig.canvas.draw()
                 #ans = messageDialogAskyesno('Export', '%d saccades/%d messages(%.1f%%).\nExport data?' % (nSac, nMsg, (100.0*nSac)/nMsg))
@@ -1868,7 +1868,7 @@ class fontSelectDialog(wx.Dialog):
                             if fontname not in self.fontnamelist:
                                 self.fontnamelist.append(fontname)
                                 self.fontfilelist.append(os.path.join(dpath, fname))
-        self.sortedIndex = numpy.argsort(self.fontnamelist)
+        self.sortedIndex = np.argsort(self.fontnamelist)
 
         self.tcCurrentFontFile = wx.TextCtrl(self, wx.ID_ANY, 'Current font:'+self.mainWindow.conf.CANVAS_FONT_FILE)
         fontPanel = wx.Panel(self, id=wx.ID_ANY)
@@ -3304,7 +3304,7 @@ class mainFrame(wx.Frame):
                 targetColItems.append(float(itemStr))
             except:
                 targetColItems.append(itemStr)
-        indexList = numpy.array(targetColItems).argsort(kind='mergesort')
+        indexList = np.array(targetColItems).argsort(kind='mergesort')
         if not self.jumplistSortAscend:
             indexList = indexList[-1::-1] # reverse
         for row in range(rows):
@@ -3529,20 +3529,20 @@ class mainFrame(wx.Frame):
             ymax = sf[1]*self.currentPlotArea[3]
             xstep = (xmax-xmin)/512.0
             ystep = (ymax-ymin)/512.0
-            xmesh, ymesh = numpy.meshgrid(numpy.arange(xmin, xmax, xstep),
-                                          numpy.arange(ymin, ymax, ystep))
-            heatmap = numpy.zeros(xmesh.shape)
+            xmesh, ymesh = np.meshgrid(np.arange(xmin, xmax, xstep),
+                                          np.arange(ymin, ymax, ystep))
+            heatmap = np.zeros(xmesh.shape)
             for idx in range(fixcenter.shape[0]):
-                if numpy.isnan(fixcenter[idx, 0]) or numpy.isnan(fixcenter[idx, 1]):
+                if np.isnan(fixcenter[idx, 0]) or np.isnan(fixcenter[idx, 1]):
                     continue
                 if self.conf.CANVAS_SHOW_SELECTED_ONLY and self.selectiontype == 'Extract' and not idx in self.selectionlist['Fix']:
                     continue
-                heatmap = heatmap + fixdur[idx, 0]*numpy.exp(-((xmesh-fixcenter[idx, 0])/50)**2-((ymesh-fixcenter[idx, 1])/50)**2)
-            masked_heatmap = numpy.ma.masked_where(heatmap < 0.001, heatmap)
+                heatmap = heatmap + fixdur[idx, 0]*np.exp(-((xmesh-fixcenter[idx, 0])/50)**2-((ymesh-fixcenter[idx, 1])/50)**2)
+            masked_heatmap = np.ma.masked_where(heatmap < 0.001, heatmap)
             cmap = matplotlib.cm.get_cmap('hot')
             cmap._init()
-            alphas = numpy.linspace(0.0, 5.0, cmap.N)
-            alphas[numpy.where(alphas > 0.8)[0]] = 0.8
+            alphas = np.linspace(0.0, 5.0, cmap.N)
+            alphas[np.where(alphas > 0.8)[0]] = 0.8
             cmap._lut[:-3, -1] = alphas
             self.ax.imshow(masked_heatmap, extent=(xmin, xmax, ymin, ymax), origin='lower', cmap=cmap)
 

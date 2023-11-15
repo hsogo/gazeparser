@@ -17,7 +17,7 @@ except ImportError:
     from PIL import Image
     from PIL import ImageDraw
 
-import numpy
+import numpy as np
 import time
 
 import psychopy.visual
@@ -214,10 +214,10 @@ class ControllerPsychoPyBackend(BaseController):
 
         if self.isMonocularRecording:
             converted = self.convertFromPix(e[:, 1:3].reshape((1, -1)), units)
-            e[:, 1:3] = numpy.array(converted).reshape((-1, 2))
+            e[:, 1:3] = np.array(converted).reshape((-1, 2))
         else:
             converted = self.convertFromPix(e[:, 1:5].reshape((1, -1)), units)
-            e[:, 1:5] = numpy.array(converted).reshape((-1, 4))
+            e[:, 1:5] = np.array(converted).reshape((-1, 4))
 
         return e
 
@@ -261,10 +261,10 @@ class ControllerPsychoPyBackend(BaseController):
 
         if self.isMonocularRecording:
             converted = self.convertFromPix(e[:, 1:3].reshape((1, -1)), units)
-            e[:, 1:3] = numpy.array(converted).reshape((-1, 2))
+            e[:, 1:3] = np.array(converted).reshape((-1, 2))
         else:
             converted = self.convertFromPix(e[:, 1:5].reshape((1, -1)), units)
-            e[:, 1:5] = numpy.array(converted).reshape((-1, 4))
+            e[:, 1:5] = np.array(converted).reshape((-1, 4))
 
         return e
 
@@ -407,18 +407,18 @@ class ControllerPsychoPyBackend(BaseController):
             if eyepos[0] is None:
                 error = None
             else:
-                error = numpy.linalg.norm((eyepos[0]-position[0], eyepos[1]-position[1]))
+                error = np.linalg.norm((eyepos[0]-position[0], eyepos[1]-position[1]))
             retval = (error, eyepos)
 
         else:  # binocular
             if eyepos[0] is None:
                 errorL = None
             else:
-                errorL = numpy.linalg.norm((eyepos[0]-position[0], eyepos[1]-position[1]))
+                errorL = np.linalg.norm((eyepos[0]-position[0], eyepos[1]-position[1]))
             if eyepos[2] is None:
                 errorR = None
             else:
-                errorR = numpy.linalg.norm((eyepos[2]-position[0], eyepos[3]-position[1]))
+                errorR = np.linalg.norm((eyepos[2]-position[0], eyepos[3]-position[1]))
 
             if (errorL is not None) and (errorR is not None):
                 error = (errorL+errorR)/2.0
@@ -550,7 +550,7 @@ class ControllerPsychoPyBackend(BaseController):
                     if pos[2*i] is None:
                         retval.extend([None, None])
                     else:
-                        retval.extend(pix2deg(numpy.array(pos[2*i:2*i+2]),
+                        retval.extend(pix2deg(np.array(pos[2*i:2*i+2]),
                             self.win.monitor, correctFlat=True))
             else:
                 raise ValueError('Number of elements must be even.')

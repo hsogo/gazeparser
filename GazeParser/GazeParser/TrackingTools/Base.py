@@ -28,7 +28,7 @@ import warnings
 import configparser
 import shutil
 
-import numpy
+import numpy as np
 import GazeParser
 import GazeParser.Configuration
 
@@ -603,7 +603,7 @@ class BaseController(object):
                 return None
 
             try:
-                retval = numpy.array([float(x) for x in data.split(b',')])
+                retval = np.array([float(x) for x in data.split(b',')])
             except:
                 print('getEyePositionList: non-float value is found in the received data.')
                 return None
@@ -691,7 +691,7 @@ class BaseController(object):
                 print('getWholeEyePositionList: No data')
                 return None
             try:
-                retval = numpy.array([float(x) for x in data.split(b',')])
+                retval = np.array([float(x) for x in data.split(b',')])
             except:
                 print('getWholeEyePositionList: non-float value is found in the received data.')
                 return None

@@ -10,7 +10,7 @@ from __future__ import division
 from __future__ import print_function
 
 import GazeParser.Core
-import numpy
+import numpy as np
 
 
 def getAreaCurvature(traj, absolute=False, ignoreNaN=False):
@@ -38,11 +38,11 @@ def getAreaCurvature(traj, absolute=False, ignoreNaN=False):
     x = traj[:, 0]
 
     if ignoreNaN:
-        idx = y == y  # numpy.isnan(y) = =False
+        idx = y == y  # np.isnan(y) = =False
         y = y[idx]
         x = x[idx]
 
-    return numpy.trapz(y, x)
+    return np.trapz(y, x)
 
 
 def getInitialDirection(traj, index, unit='rad'):
@@ -60,11 +60,11 @@ def getInitialDirection(traj, index, unit='rad'):
     if traj.shape[1] != 2:
         raise ValueError('size of the trajectory must be n x 2.')
 
-    r = numpy.arctan2(traj[index, 1], traj[index, 0])
+    r = np.arctan2(traj[index, 1], traj[index, 0])
     if unit.lower() == 'rad':
         return r
     elif unit.lower() == 'deg':
-        return r*180.0/numpy.pi
+        return r*180.0/np.pi
     else:
         raise ValueError('unit must be \'rad\' or \'deg\'')
 
@@ -80,8 +80,8 @@ def getMaximumDeviation(traj):
     if traj.shape[1] != 2:
         raise ValueError('size of the trajectory must be n x 2.')
 
-    absY = numpy.abs(traj[:, 1])
-    idx = numpy.where(absY == numpy.max(absY))[0][0]
+    absY = np.abs(traj[:, 1])
+    idx = np.where(absY == np.max(absY))[0][0]
     return traj[idx, 1]
 
 
@@ -157,28 +157,28 @@ def getRotatedTrajectory(sac, refPoint=None, refPointRelative=None, rot=None, un
         traj = sac-sp
 
     if mode == 'RefPoint':
-        rot = -numpy.arctan2(e[1]-sp[1], e[0]-sp[0])
-        rot += numpy.arctan2(refPoint[1]-sp[1], refPoint[0]-sp[0])
+        rot = -np.arctan2(e[1]-sp[1], e[0]-sp[0])
+        rot += np.arctan2(refPoint[1]-sp[1], refPoint[0]-sp[0])
     elif mode == 'RefPointRelative':
-        rot = -numpy.arctan2(e[1]-sp[1], e[0]-sp[0])
-        rot += numpy.arctan2(refPointRelative[1], refPointRelative[0])
+        rot = -np.arctan2(e[1]-sp[1], e[0]-sp[0])
+        rot += np.arctan2(refPointRelative[1], refPointRelative[0])
     elif mode == 'Rot':
         if unit.lower() == 'rad':
             pass
         if unit.lower() == 'deg':
-            rot = numpy.pi / 180.0 * rot
+            rot = np.pi / 180.0 * rot
         else:
             raise ValueError('unit must be \'rad\' or \'deg\'')
     else:  # ScreenCoordinate
-        rot = -numpy.arctan2(e[1]-sp[1], e[0]-sp[0])
+        rot = -np.arctan2(e[1]-sp[1], e[0]-sp[0])
 
-    rotmat = numpy.array([[numpy.cos(rot), -numpy.sin(rot)], [numpy.sin(rot), numpy.cos(rot)]])
-    rottraj = numpy.zeros(traj.shape)
+    rotmat = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
+    rottraj = np.zeros(traj.shape)
     for i in range(traj.shape[0]):
-        rottraj[i, :] = numpy.dot(rotmat, traj[i, :])
+        rottraj[i, :] = np.dot(rotmat, traj[i, :])
 
     if normalize != 0:
-        l = numpy.linalg.norm(rottraj[-1, :])
+        l = np.linalg.norm(rottraj[-1, :])
         rottraj = rottraj/l*normalize
 
     if isinstance(origin, str) and origin.lower() == 'original':

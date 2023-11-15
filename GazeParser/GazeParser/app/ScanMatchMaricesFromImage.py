@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import sys
 import os
-import numpy
+import numpy as np
 
 pillow = False
 
@@ -81,10 +81,10 @@ class ScanMatchMatricesFromImage(Tkinter.Frame):
             self.img = ImageTk.PhotoImage(pilImg)
         self.imageLabel.configure(image=self.img)
         
-        d = numpy.uint32(numpy.asarray(pilImg))
+        d = np.uint32(np.asarray(pilImg))
         if len(d.shape)==3:
             d = (d[:,:,0]<<16) + (d[:,:,1]<<8) + d[:,:,2]
-        uniqueData = numpy.unique(d)
+        uniqueData = np.unique(d)
         
         if len(uniqueData)>128:
             res = tkMessageBox.askquestion('Warning','More than 128 colors are used in this image.\nBuilding color list may take very long time.\nAre you sure to continure processing?')
@@ -92,7 +92,7 @@ class ScanMatchMatricesFromImage(Tkinter.Frame):
                 return
         
         self.dataArray = d
-        self.regionlist = [(uniqueData[i],len(numpy.where(d==uniqueData[i])[0]))
+        self.regionlist = [(uniqueData[i],len(np.where(d==uniqueData[i])[0]))
                            for i in range(len(uniqueData))]
         
         self.listbox.delete(0,self.listbox.size())
@@ -132,16 +132,16 @@ class ScanMatchMatricesFromImage(Tkinter.Frame):
         
         maskfile = tkFileDialog.asksaveasfilename(title='Save Mask matrix...',initialfile='mask.txt',initialdir=homeDir)
         if maskfile != '':
-            numpy.savetxt(maskfile,mask,fmt='%d')
+            np.savetxt(maskfile,mask,fmt='%d')
         
         colorfile = tkFileDialog.asksaveasfilename(title='Save color list...',initialfile='colorlist.txt',initialdir=homeDir)
         if colorfile != '':
-            numpy.savetxt(colorfile,colorList,fmt='%06x',delimiter=',')
+            np.savetxt(colorfile,colorList,fmt='%06x',delimiter=',')
         
         if saveSubmatrix=='yes':
             subfile = tkFileDialog.asksaveasfilename(title='Save Submatrix...',initialfile='submatrix.txt',initialdir=homeDir)
             if subfile != '':
-                numpy.savetxt(subfile,submatrix,fmt='%f',delimiter=',')
+                np.savetxt(subfile,submatrix,fmt='%f',delimiter=',')
         
         tkMessageBox.showinfo('Info','Done!')
     
@@ -175,7 +175,7 @@ class ScanMatchMatricesFromImage(Tkinter.Frame):
         dlg.resizable(0, 0)
         dlg.wait_window(dlg)
         
-        submatrix = numpy.zeros((nColor,nColor))
+        submatrix = np.zeros((nColor,nColor))
         try:
             for r in range(nColor):
                 for c in range(nColor):

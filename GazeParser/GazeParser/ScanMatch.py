@@ -33,7 +33,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy
+import numpy as np
 
 
 class ScanMatch(object):
@@ -80,7 +80,7 @@ class ScanMatch(object):
             else:
                 raise ValueError('Unknown parameter: %s.' % k)
 
-        self.intv = numpy.vectorize(int)
+        self.intv = np.vectorize(int)
 
         self.CreateSubMatrix()
         self.GridMask()
@@ -88,28 +88,28 @@ class ScanMatch(object):
     def createSubMatrix(self, Threshold=None):
         if Threshold is not None:
             self.Threshold = Threshold
-        mat = numpy.zeros((self.Xbin*self.Ybin, self.Xbin*self.Ybin))
+        mat = np.zeros((self.Xbin*self.Ybin, self.Xbin*self.Ybin))
         indI = 0
         indJ = 0
         for i in range(self.Ybin):
             for j in range(self.Xbin):
                 for ii in range(self.Ybin):
                     for jj in range(self.Xbin):
-                        mat[indI, indJ] = numpy.sqrt((j-jj)**2 + (i-ii)**2)
+                        mat[indI, indJ] = np.sqrt((j-jj)**2 + (i-ii)**2)
                         indI += 1
                 indI = 0
                 indJ += 1
-        max_sub = numpy.max(mat)
-        self.SubMatrix = numpy.abs(mat-max_sub) - (max_sub - self.Threshold)
+        max_sub = np.max(mat)
+        self.SubMatrix = np.abs(mat-max_sub) - (max_sub - self.Threshold)
 
     def gridMask(self):
-        a = numpy.reshape(numpy.arange(self.Xbin*self.Ybin), (self.Ybin, self.Xbin))
+        a = np.reshape(np.arange(self.Xbin*self.Ybin), (self.Ybin, self.Xbin))
         m = float(self.Xbin) / self.Xres
         n = float(self.Ybin) / self.Yres
-        xi = numpy.int32(numpy.arange(0, self.Xbin, m))
-        yi = numpy.int32(numpy.arange(0, self.Ybin, n))
+        xi = np.int32(np.arange(0, self.Xbin, m))
+        yi = np.int32(np.arange(0, self.Ybin, n))
 
-        self.mask = numpy.zeros((self.Yres, self.Xres))
+        self.mask = np.zeros((self.Yres, self.Xres))
         for y in range(self.Yres):
             self.mask[y, :] = a[yi[y], xi]
 
@@ -124,11 +124,11 @@ class ScanMatch(object):
         seq_num = self.mask[d[:, 1], d[:, 0]]
 
         if self.TempBin != 0:
-            fix_time = numpy.round(d[:, 2] / float(self.TempBin))
+            fix_time = np.round(d[:, 2] / float(self.TempBin))
             tmp = []
             for f in range(d.shape[0]):
                 tmp.extend([seq_num[f] for x in range(int(fix_time[f]))])
-            seq_num = numpy.array(tmp)
+            seq_num = np.array(tmp)
 
         return seq_num
 
@@ -136,7 +136,7 @@ class ScanMatch(object):
         n = len(A)
         m = len(B)
 
-        F = numpy.zeros((n+1, m+1))
+        F = np.zeros((n+1, m+1))
         for i in range(n+1):
             F[i, 0] = self.GapValue*(i+1)
         for j in range(m+1):
@@ -149,8 +149,8 @@ class ScanMatch(object):
                 insert = F[i, j-1] + self.GapValue
                 F[i, j] = max([match, insert, delete])
 
-        AlignmentA = numpy.zeros(n+m)-1
-        AlignmentB = numpy.zeros(n+m)-1
+        AlignmentA = np.zeros(n+m)-1
+        AlignmentB = np.zeros(n+m)-1
         i = n
         j = m
         step = 0
@@ -187,12 +187,12 @@ class ScanMatch(object):
 
         F = F.transpose()
 
-        maxF = numpy.max(F)
-        maxSub = numpy.max(self.SubMatrix)
+        maxF = np.max(F)
+        maxSub = np.max(self.SubMatrix)
         scale = maxSub * max((m, n))
         matchScore = maxF / scale
 
-        align = numpy.vstack([AlignmentA[step-1::-1], AlignmentB[step-1::-1]]).transpose()
+        align = np.vstack([AlignmentA[step-1::-1], AlignmentB[step-1::-1]]).transpose()
 
         return matchScore, align, F
 
@@ -205,15 +205,15 @@ class ScanMatch(object):
 
 def generateMaskFromArray(data, threshold, margeColor):
     dataArray = data.copy()
-    uniqueData = numpy.unique(dataArray)
+    uniqueData = np.unique(dataArray)
     for i in range(len(uniqueData)):
-        index = numpy.where(dataArray == uniqueData[i])
+        index = np.where(dataArray == uniqueData[i])
         if len(index[0]) <= threshold:
             dataArray[index] = margeColor
 
-    uniqueData2 = numpy.unique(dataArray)
+    uniqueData2 = np.unique(dataArray)
     for i in range(len(uniqueData2)):
-        index = numpy.where(dataArray == uniqueData2[i])
+        index = np.where(dataArray == uniqueData2[i])
         dataArray[index] = i
 
     return dataArray, uniqueData2

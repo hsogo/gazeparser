@@ -8,7 +8,7 @@ from __future__ import division
 from __future__ import print_function
 
 import GazeParser
-import numpy
+import numpy as np
 import re
 import sys
 import locale
@@ -33,20 +33,20 @@ class SaccadeData(object):
         self._startTime = t[0]
         self._endTime = t[1]
         self._duration = d[0]
-        self._start = numpy.array((d[1], d[2]))
-        self._end = numpy.array((d[3], d[4]))
+        self._start = np.array((d[1], d[2]))
+        self._end = np.array((d[3], d[4]))
         self._amplitude = d[5]
-        self._length = numpy.sqrt((d[3] - d[1]) ** 2 + (d[4] - d[2]) ** 2)
-        self._direction = numpy.arctan2(d[4] - d[2], d[3] - d[1])
+        self._length = np.sqrt((d[3] - d[1]) ** 2 + (d[4] - d[2]) ** 2)
+        self._direction = np.arctan2(d[4] - d[2], d[3] - d[1])
         self._parent = None
 
-        idx = numpy.where(Tlist == t[0])[0]
+        idx = np.where(Tlist == t[0])[0]
         if len(idx) != 1:
             raise ValueError('SaccadeData: could not find index.')
         else:
             self._startIndex = idx[0]
 
-        idx = numpy.where(Tlist == t[1])[0]
+        idx = np.where(Tlist == t[1])[0]
         if len(idx) != 1:
             raise ValueError('SaccadeData: could not find index.')
         else:
@@ -225,7 +225,7 @@ class SaccadeData(object):
         
         msg += '{:.3f}s, [ {} {}], {:.1f}, {:.1f}>'.format(
             self.startTime/1000.0, self.start[0], self.start[1],
-            numpy.rad2deg(self.direction), self.length)
+            np.rad2deg(self.direction), self.length)
         
         return msg
 
@@ -245,16 +245,16 @@ class FixationData(object):
         self._startTime = t[0]
         self._endTime = t[1]
         self._duration = d[0]
-        self._center = numpy.array((d[1], d[2]))
+        self._center = np.array((d[1], d[2]))
         self._parent = None
 
-        idx = numpy.where(Tlist == t[0])[0]
+        idx = np.where(Tlist == t[0])[0]
         if len(idx) != 1:
             raise ValueError('FixationData: could not find index.')
         else:
             self._startIndex = idx[0]
 
-        idx = numpy.where(Tlist == t[1])[0]
+        idx = np.where(Tlist == t[1])[0]
         if len(idx) != 1:
             raise ValueError('FixationData: could not find index.')
         else:
@@ -568,13 +568,13 @@ class BlinkData(object):
         self._endTime = t[1]
         self._duration = d
         self._parent = None
-        idx = numpy.where(Tlist == t[0])[0]
+        idx = np.where(Tlist == t[0])[0]
         if len(idx) != 1:
             raise ValueError('BlinkData: could not find index.')
         else:
             self._startIndex = idx[0]
 
-        idx = numpy.where(Tlist == t[1])[0]
+        idx = np.where(Tlist == t[1])[0]
         if len(idx) != 1:
             raise ValueError('BlinkData: could not find index.')
         else:
@@ -706,9 +706,9 @@ class CalPointData(object):
     Holds accuracy and precision at calibration points.
     """
     def __init__(self, point, accuracy, precision, recordedEye):
-        self._point = numpy.array(point)
-        self._accuracy = numpy.array(accuracy)
-        self._precision = numpy.array(precision)
+        self._point = np.array(point)
+        self._accuracy = np.array(accuracy)
+        self._precision = np.array(precision)
         self._recordedEye = recordedEye
     
     point = property(lambda self: self._point)
@@ -809,16 +809,16 @@ class GazeData(object):
         if Llist is None:
             self._L = None
         else:
-            self._L = numpy.array(Llist)
+            self._L = np.array(Llist)
         if Rlist is None:
             self._R = None
         else:
-            self._R = numpy.array(Rlist)
-        self._T = numpy.array(Tlist)
-        self._Sac = numpy.array(SacList)
-        self._Fix = numpy.array(FixList)
-        self._Msg = numpy.array(MsgList)
-        self._Blink = numpy.array(BlinkList)
+            self._R = np.array(Rlist)
+        self._T = np.array(Tlist)
+        self._Sac = np.array(SacList)
+        self._Fix = np.array(FixList)
+        self._Msg = np.array(MsgList)
+        self._Blink = np.array(BlinkList)
         self._recordedEye = recordedEye
         self._Pupil = PupilList
         self._CameraSpecificData = None
@@ -845,8 +845,8 @@ class GazeData(object):
         else:
             self._config = config
 
-        cm2deg = 180 / numpy.pi * numpy.arctan(1.0 / self._config.VIEWING_DISTANCE)
-        self._deg2pix = numpy.array((self._config.DOTS_PER_CENTIMETER_H / cm2deg,
+        cm2deg = 180 / np.pi * np.arctan(1.0 / self._config.VIEWING_DISTANCE)
+        self._deg2pix = np.array((self._config.DOTS_PER_CENTIMETER_H / cm2deg,
                                      self._config.DOTS_PER_CENTIMETER_V / cm2deg))
         self._pix2deg = 1.0 / self._deg2pix
 
@@ -893,7 +893,7 @@ class GazeData(object):
             Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index is None:
-            l = numpy.zeros([self.nFix, 1])
+            l = np.zeros([self.nFix, 1])
             for i in range(self.nFix):
                 l[i] = self.Fix[i].duration
             return l
@@ -902,7 +902,7 @@ class GazeData(object):
                 raise ValueError('Index is out of range.')
             return self.Fix[index].duration
         else:  # list
-            l = numpy.zeros([len(index), 1])
+            l = np.zeros([len(index), 1])
             for i in range(len(index)):
                 l[i] = self.Fix[index[i]].duration
             return l
@@ -923,7 +923,7 @@ class GazeData(object):
             Otherwise, an *n x 2* numpy.ndarray object is returned.
         """
         if index is None:
-            l = numpy.zeros([self.nFix, 2])
+            l = np.zeros([self.nFix, 2])
             for i in range(self.nFix):
                 l[i, :] = self.Fix[i].center
             return l
@@ -932,7 +932,7 @@ class GazeData(object):
                 raise ValueError('Index is out of range.')
             return self.Fix[index].center
         else:
-            l = numpy.zeros([len(index), 2])
+            l = np.zeros([len(index), 2])
             for i in range(len(index)):
                 l[i, :] = self.Fix[index[i]].center
             return l
@@ -953,7 +953,7 @@ class GazeData(object):
             returned.
         """
         if index is None:
-            l = numpy.zeros([self.nFix, 2])
+            l = np.zeros([self.nFix, 2])
             for i in range(self.nFix):
                 l[i, :] = [self.Fix[i].startTime, self.Fix[i].endTime]
             return l
@@ -962,7 +962,7 @@ class GazeData(object):
                 raise ValueError('Index is out of range.')
             return (self.Fix[index].startTime, self.Fix[index].endTime)
         else:
-            l = numpy.zeros([len(index), 2])
+            l = np.zeros([len(index), 2])
             for i in range(len(index)):
                 l[i, :] = [self.Fix[index[i]].startTime, self.Fix[index[i]].endTime]
             return l
@@ -983,7 +983,7 @@ class GazeData(object):
             returned.
         """
         if index is None:
-            l = numpy.zeros([self.nBlink, 2])
+            l = np.zeros([self.nBlink, 2])
             for i in range(self.nBlink):
                 l[i, :] = [self.Blink[i].startTime, self.Blink[i].endTime]
             return l
@@ -992,7 +992,7 @@ class GazeData(object):
                 raise ValueError('Index is out of range.')
             return (self.Blink[index].startTime, self.Blink[index].endTime)
         else:
-            l = numpy.zeros([len(index), 2])
+            l = np.zeros([len(index), 2])
             for i in range(len(index)):
                 l[i, :] = [self.Blink[index[i]].startTime, self.Blink[index[i]].endTime]
             return l
@@ -1012,7 +1012,7 @@ class GazeData(object):
             Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index is None:
-            l = numpy.zeros([self.nMsg, 1])
+            l = np.zeros([self.nMsg, 1])
             for i in range(self.nMsg):
                 l[i] = self.Msg[i].time
             return l
@@ -1021,7 +1021,7 @@ class GazeData(object):
                 raise ValueError('Index is out of range.')
             return self.Msg[index].time
         else:
-            l = numpy.zeros([len(index), 1])
+            l = np.zeros([len(index), 1])
             for i in range(len(index)):
                 l[i] = self.Msg[index[i]].time
             return l
@@ -1069,7 +1069,7 @@ class GazeData(object):
             Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index is None:
-            l = numpy.zeros([self.nSac, 1])
+            l = np.zeros([self.nSac, 1])
             for i in range(self.nSac):
                 l[i] = self.Sac[i].length
             return l
@@ -1078,7 +1078,7 @@ class GazeData(object):
                 raise ValueError('Index is out of range.')
             return self.Sac[index].length
         else:
-            l = numpy.zeros([len(index), 1])
+            l = np.zeros([len(index), 1])
             for i in range(len(index)):
                 l[i] = self.Sac[index[i]].length
             return l
@@ -1098,7 +1098,7 @@ class GazeData(object):
             Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index is None:
-            l = numpy.zeros([self.nSac, 1])
+            l = np.zeros([self.nSac, 1])
             for i in range(self.nSac):
                 l[i] = self.Sac[i].amplitude
             return l
@@ -1107,7 +1107,7 @@ class GazeData(object):
                 raise ValueError('Index is out of range.')
             return self.Sac[index].amplitude
         else:
-            l = numpy.zeros([len(index), 1])
+            l = np.zeros([len(index), 1])
             for i in range(len(index)):
                 l[i] = self.Sac[index[i]].amplitude
             return l
@@ -1127,7 +1127,7 @@ class GazeData(object):
             Otherwise, an *n x 1* numpy.ndarray object is returned.
         """
         if index is None:
-            l = numpy.zeros([self.nSac, 1])
+            l = np.zeros([self.nSac, 1])
             for i in range(self.nSac):
                 l[i] = self.Sac[i].duration
             return l
@@ -1136,7 +1136,7 @@ class GazeData(object):
                 raise ValueError('Index is out of range.')
             return self.Sac[index].duration
         else:
-            l = numpy.zeros([len(index), 1])
+            l = np.zeros([len(index), 1])
             for i in range(len(index)):
                 l[i] = self.Sac[index[i]].duration
             return l
@@ -1157,7 +1157,7 @@ class GazeData(object):
             returned.
         """
         if index is None:
-            l = numpy.zeros([self.nSac, 2])
+            l = np.zeros([self.nSac, 2])
             for i in range(self.nSac):
                 l[i, :] = [self.Sac[i].startTime, self.Sac[i].endTime]
             return l
@@ -1166,7 +1166,7 @@ class GazeData(object):
                 raise ValueError('Index is out of range.')
             return (self.Sac[index].startTime, self.Sac[index].endTime)
         else:
-            l = numpy.zeros([len(index), 2])
+            l = np.zeros([len(index), 2])
             for i in range(len(index)):
                 l[i, :] = [self.Sac[index[i]].startTime, self.Sac[index[i]].endTime]
             return l
@@ -1197,42 +1197,42 @@ class GazeData(object):
         evlist = self.Sac.copy()
         for f in self.Fix:
             if len(evtimelist) == 0:
-                evtimelist = numpy.array([float(f.startTime)])
-                evlist = numpy.array([f])
+                evtimelist = np.array([float(f.startTime)])
+                evlist = np.array([f])
             else:
-                idx = numpy.where(f.startTime < evtimelist)[0]
+                idx = np.where(f.startTime < evtimelist)[0]
                 if idx.size > 0:
-                    evtimelist = numpy.insert(evtimelist, idx[0], f.startTime)
-                    evlist = numpy.insert(evlist, idx[0], f)
+                    evtimelist = np.insert(evtimelist, idx[0], f.startTime)
+                    evlist = np.insert(evlist, idx[0], f)
                 else:
-                    evtimelist = numpy.append(evtimelist, f.startTime)
-                    evlist = numpy.append(evlist, f)
+                    evtimelist = np.append(evtimelist, f.startTime)
+                    evlist = np.append(evlist, f)
         for b in self.Blink:
             if len(evtimelist) == 0:
-                evtimelist = numpy.array([float(b.startTime)])
-                evlist = numpy.array([b])
+                evtimelist = np.array([float(b.startTime)])
+                evlist = np.array([b])
             else:
-                idx = numpy.where(b.startTime < evtimelist)[0]
+                idx = np.where(b.startTime < evtimelist)[0]
                 if idx.size > 0:
-                    evtimelist = numpy.insert(evtimelist, idx[0], b.startTime)
-                    evlist = numpy.insert(evlist, idx[0], b)
+                    evtimelist = np.insert(evtimelist, idx[0], b.startTime)
+                    evlist = np.insert(evlist, idx[0], b)
                 else:
-                    evtimelist = numpy.append(evtimelist, b.startTime)
-                    evlist = numpy.append(evlist, b)
+                    evtimelist = np.append(evtimelist, b.startTime)
+                    evlist = np.append(evlist, b)
         for m in self.Msg:
             if len(evtimelist) == 0:
-                evtimelist = numpy.array([float(m.time)])
-                evlist = numpy.array([m])
+                evtimelist = np.array([float(m.time)])
+                evlist = np.array([m])
             else:
                 # not < but <= to insert Message events before 
                 # events that have same time.
-                idx = numpy.where(m.time <= evtimelist)[0]
+                idx = np.where(m.time <= evtimelist)[0]
                 if idx.size > 0:
-                    evtimelist = numpy.insert(evtimelist, idx[0], m.time)
-                    evlist = numpy.insert(evlist, idx[0], m)
+                    evtimelist = np.insert(evtimelist, idx[0], m.time)
+                    evlist = np.insert(evlist, idx[0], m)
                 else:
-                    evtimelist = numpy.append(evtimelist, m.time)
-                    evlist = numpy.append(evlist, m)
+                    evtimelist = np.append(evtimelist, m.time)
+                    evlist = np.append(evlist, m)
         
         if len(evtimelist)==0:
             return [], []
@@ -1244,12 +1244,12 @@ class GazeData(object):
             until = evtimelist[-1]
         
         target_idx = (since <= evtimelist) & (evtimelist <= until)
-        if len(numpy.where(target_idx==True)[0]) == 0:
+        if len(np.where(target_idx==True)[0]) == 0:
             return [], []
         
         # If extend==True, events that end after "since" must be added.
         if extend:
-            p_idx = numpy.where(target_idx == True)[0][0]
+            p_idx = np.where(target_idx == True)[0][0]
             if p_idx > 0: # are there previous events?
                 p_idx -= 1
                 while p_idx >= 0:
@@ -1260,7 +1260,7 @@ class GazeData(object):
                     p_idx -= 1
         # If extend==False, events that end after "until" must be removed.
         else:
-            p_idx = numpy.where(target_idx == True)[0][-1]
+            p_idx = np.where(target_idx == True)[0][-1]
             while p_idx >= 0:
                 if hasattr(evlist[p_idx], 'endTime'):
                     if evlist[p_idx].endTime > until:
@@ -1296,12 +1296,12 @@ class GazeData(object):
         if period[0] is None:
             si = 0
         else:
-            si = numpy.where(self.T >= period[0])[0][0]
+            si = np.where(self.T >= period[0])[0][0]
         
         if period[1] is None:
             ei = -1
         else:
-            ei = numpy.where(self.T <= period[1])[0][-1]
+            ei = np.where(self.T <= period[1])[0][-1]
 
         if eye == 'L':
             return (self.T[si:ei], self.L[si:ei])
@@ -1341,7 +1341,7 @@ class GazeData(object):
         """
         tdifflist = abs(self.T - time)
         mindiff = min(tdifflist)
-        return numpy.where(mindiff == tdifflist)[0][0]
+        return np.where(mindiff == tdifflist)[0][0]
 
     def getMessageTextList(self):
         """
@@ -1400,18 +1400,18 @@ class GazeData(object):
             idxMsg = message
         elif isinstance(message, GazeParser.Core.MessageData):
             try:
-                idxMsg = numpy.where(self._Msg == message)[0]
+                idxMsg = np.where(self._Msg == message)[0]
             except:
                 print('Could not find message.')
                 raise
         else:
             raise ValueError('\'message\' must be an index or an instance of MessgeData object.')
 
-        idxEvent = numpy.where(self._EventList == self.Msg[idxMsg])[0]
+        idxEvent = np.where(self._EventList == self.Msg[idxMsg])[0]
 
-        self._Msg = numpy.delete(self.Msg, idxMsg)
+        self._Msg = np.delete(self.Msg, idxMsg)
         self._nMsg = self.nMsg - 1
-        self._EventList = numpy.delete(self.EventList, idxEvent)
+        self._EventList = np.delete(self.EventList, idxEvent)
 
     def insertNewMessage(self, time, text):
         """
@@ -1425,11 +1425,11 @@ class GazeData(object):
         newmsg = MessageData([time, text])
 
         t = self.getMsgTime()
-        idx = numpy.where(time < t)[0]
+        idx = np.where(time < t)[0]
         if idx.size > 0:
-            self._Msg = numpy.insert(self.Msg, idx[0], newmsg)
+            self._Msg = np.insert(self.Msg, idx[0], newmsg)
         else:
-            self._Msg = numpy.append(self.Msg, newmsg)
+            self._Msg = np.append(self.Msg, newmsg)
 
         self._nMsg = self.nMsg + 1
 
@@ -1441,18 +1441,18 @@ class GazeData(object):
                 t.append(e.startTime)
             else:
                 t.append(e.time)
-        idx = numpy.where(time < numpy.array(t))[0]
+        idx = np.where(time < np.array(t))[0]
         if idx.size > 0:
-            self._EventList = numpy.insert(self.EventList, idx[0], newmsg)
+            self._EventList = np.insert(self.EventList, idx[0], newmsg)
         else:
-            self._EventList = numpy.append(self.EventList, newmsg)
+            self._EventList = np.append(self.EventList, newmsg)
 
     def sortMessagesByTime(self):
         """
         Sort messages by time.
         """
         t = self.getMsgTime().flatten()
-        index = numpy.argsort(t)
+        index = np.argsort(t)
         self._Msg = self.Msg[index]
 
     def sortEventListByTime(self):
@@ -1466,7 +1466,7 @@ class GazeData(object):
             else:
                 t.append(e.time)
 
-        index = numpy.argsort(t)
+        index = np.argsort(t)
         self._EventList = self.EventList[index]
 
     def getPreviousEvent(self, event, step=1, eventType=None):
@@ -1487,7 +1487,7 @@ class GazeData(object):
             Event object. If there is no previous event, return None.
         """
         if event in self.EventList:  # reference is an event
-            index = numpy.where(self.EventList == event)[0][0]
+            index = np.where(self.EventList == event)[0][0]
             if eventType is None:
                 if index - step < 0:
                     return None
@@ -1517,14 +1517,14 @@ class GazeData(object):
 
         else:  # reference should be timestamp
             if eventType is None:
-                diffList = numpy.zeros(len(self._EventList))
+                diffList = np.zeros(len(self._EventList))
                 for i in range(len(self._EventList)):
                     if isinstance(self._EventList[i], GazeParser.Core.MessageData):
                         diffList[i] = self._EventList[i].time - event
                     else:
                         diffList[i] = self._EventList[i].endTime - event
 
-                prevIndices = numpy.where(diffList < 0)[0]
+                prevIndices = np.where(diffList < 0)[0]
                 if len(prevIndices) == 0:
                     return None
                 else:
@@ -1545,7 +1545,7 @@ class GazeData(object):
                 else:
                     raise ValueError('Event must be saccade, fixation, message or blink.')
 
-                prevIndices = numpy.where(diffList < 0)[0]
+                prevIndices = np.where(diffList < 0)[0]
                 if len(prevIndices) == 0:
                     return None
                 else:
@@ -1569,7 +1569,7 @@ class GazeData(object):
         """
 
         if event in self.EventList:  # reference is an event
-            index = numpy.where(self.EventList == event)[0][0]
+            index = np.where(self.EventList == event)[0][0]
             if eventType is None:
                 if index + step >= len(self.EventList):
                     return None
@@ -1598,14 +1598,14 @@ class GazeData(object):
                 return None
         else:  # reference should be timestamp
             if eventType is None:
-                diffList = numpy.zeros(len(self._EventList))
+                diffList = np.zeros(len(self._EventList))
                 for i in range(len(self._EventList)):
                     if isinstance(self._EventList[i], GazeParser.Core.MessageData):
                         diffList[i] = self._EventList[i].time - event
                     else:
                         diffList[i] = self._EventList[i].startTime - event
 
-                prevIndices = numpy.where(diffList > 0)[0]
+                prevIndices = np.where(diffList > 0)[0]
                 if len(prevIndices) == 0:
                     return None
                 else:
@@ -1626,7 +1626,7 @@ class GazeData(object):
                 else:
                     raise ValueError('Event must be saccade, fixation, message or blink.')
 
-                prevIndices = numpy.where(diffList > 0)[0]
+                prevIndices = np.where(diffList > 0)[0]
                 if len(prevIndices) == 0:
                     return None
                 else:
@@ -1723,14 +1723,14 @@ class GazeData(object):
         """
         if isinstance(sac, GazeParser.Core.SaccadeData):
             if self._L is not None:
-                dx = numpy.diff(self._L[sac._startIndex:sac._endIndex, 0])
-                dy = numpy.diff(self._L[sac._startIndex:sac._endIndex, 1])
-                l = numpy.sum(numpy.sqrt(dx ** 2 + dy ** 2))
+                dx = np.diff(self._L[sac._startIndex:sac._endIndex, 0])
+                dy = np.diff(self._L[sac._startIndex:sac._endIndex, 1])
+                l = np.sum(np.sqrt(dx ** 2 + dy ** 2))
 
             if self._R is not None:
-                dx = numpy.diff(self._R[sac._startIndex:sac._endIndex, 0])
-                dy = numpy.diff(self._R[sac._startIndex:sac._endIndex, 1])
-                r = numpy.sum(numpy.sqrt(dx ** 2 + dy ** 2))
+                dx = np.diff(self._R[sac._startIndex:sac._endIndex, 0])
+                dy = np.diff(self._R[sac._startIndex:sac._endIndex, 1])
+                r = np.sum(np.sqrt(dx ** 2 + dy ** 2))
 
             if self._recordedEye == 'L':
                 return l
@@ -1740,18 +1740,18 @@ class GazeData(object):
                 return l + r / 2
         else:
             if self._recordedEye == 'L' or self._recordedEye == 'B':
-                l = numpy.zeros((len(sac), 1))
+                l = np.zeros((len(sac), 1))
                 for i in range(len(sac)):
-                    dx = numpy.diff(self._L[sac[i]._startIndex:sac[i]._endIndex, 0])
-                    dy = numpy.diff(self._L[sac[i]._startIndex:sac[i]._endIndex, 1])
-                    l[i] = numpy.sum(numpy.sqrt(dx ** 2 + dy ** 2))
+                    dx = np.diff(self._L[sac[i]._startIndex:sac[i]._endIndex, 0])
+                    dy = np.diff(self._L[sac[i]._startIndex:sac[i]._endIndex, 1])
+                    l[i] = np.sum(np.sqrt(dx ** 2 + dy ** 2))
 
             if self._recordedEye == 'R' or self._recordedEye == 'B':
-                r = numpy.zeros((len(sac), 1))
+                r = np.zeros((len(sac), 1))
                 for i in range(len(sac)):
-                    dx = numpy.diff(self._R[sac[i]._startIndex:sac[i]._endIndex, 0])
-                    dy = numpy.diff(self._R[sac[i]._startIndex:sac[i]._endIndex, 1])
-                    r[i] = numpy.sum(numpy.sqrt(dx ** 2 + dy ** 2))
+                    dx = np.diff(self._R[sac[i]._startIndex:sac[i]._endIndex, 0])
+                    dy = np.diff(self._R[sac[i]._startIndex:sac[i]._endIndex, 1])
+                    r[i] = np.sum(np.sqrt(dx ** 2 + dy ** 2))
 
             if self._recordedEye == 'L':
                 return l
@@ -1828,13 +1828,13 @@ class GazeData(object):
         
         c = contents.lower()
         if c == 'point':
-            return numpy.array([data._point for data in self._CalPointData])
+            return np.array([data._point for data in self._CalPointData])
         elif c == 'accuracy':
-            return numpy.array([data._accuracy for data in self._CalPointData])
+            return np.array([data._accuracy for data in self._CalPointData])
         elif c == 'precision':
-            return numpy.array([data._precision for data in self._CalPointData])
+            return np.array([data._precision for data in self._CalPointData])
         elif c == 'all':
-            a = numpy.array([numpy.hstack([data._point, data._accuracy, data._precision]) for data in self._CalPointData])
+            a = np.array([np.hstack([data._point, data._accuracy, data._precision]) for data in self._CalPointData])
             return a
         else:
             raise ValueError('contents must be \'point\', \'accuracy\', \'precision\' or \'All\'.')
@@ -1845,16 +1845,16 @@ class GazeData(object):
         for attr in ('L', 'R', 'T', 'Pupil'):
             attr1 = getattr(self, attr)
             attr2 = getattr(other, attr)
-            if isinstance(attr1, numpy.ndarray) and isinstance(attr2, numpy.ndarray):
-                if not numpy.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
+            if isinstance(attr1, np.ndarray) and isinstance(attr2, np.ndarray):
+                if not np.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
                     if verbose:
                         print("{} is not close.".format(attr))
                     return False
-            elif attr1 is None and isinstance(attr2, numpy.ndarray):
+            elif attr1 is None and isinstance(attr2, np.ndarray):
                 if verbose:
                     print("{} is absent".format(attr))
                 return False
-            elif attr2 is None and isinstance(attr1, numpy.ndarray):
+            elif attr2 is None and isinstance(attr1, np.ndarray):
                 if verbose:
                     print("{} is absent".format(attr))
                 return False
@@ -1881,12 +1881,12 @@ class GazeData(object):
         for attr in ('L', 'R', 'T', 'Pupil'):
             attr1 = getattr(self, attr)
             attr2 = getattr(other, attr)
-            if isinstance(attr1, numpy.ndarray) and isinstance(attr2, numpy.ndarray):
-                if not numpy.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
+            if isinstance(attr1, np.ndarray) and isinstance(attr2, np.ndarray):
+                if not np.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
                     return False
-            elif attr1 is None and isinstance(attr2, numpy.ndarray):
+            elif attr1 is None and isinstance(attr2, np.ndarray):
                 return False
-            elif attr2 is None and isinstance(attr1, numpy.ndarray):
+            elif attr2 is None and isinstance(attr1, np.ndarray):
                 return False
         for attr in ('nSac', 'nFix', 'nMsg', 'nBlink', 'recordedEye', 'recordingDate'):
             if getattr(self, attr) != getattr(other, attr):
@@ -1924,12 +1924,12 @@ class GazeData(object):
         for attr in ('L', 'R', 'T', 'Pupil'):
             attr1 = getattr(self, attr)
             attr2 = getattr(other, attr)
-            if isinstance(attr1, numpy.ndarray) and isinstance(attr2, numpy.ndarray):
-                if not numpy.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
+            if isinstance(attr1, np.ndarray) and isinstance(attr2, np.ndarray):
+                if not np.allclose(getattr(self, attr), getattr(other, attr), equal_nan=True):
                     print('"{}" is different'.format(attr))
-            elif attr1 is None and isinstance(attr2, numpy.ndarray):
+            elif attr1 is None and isinstance(attr2, np.ndarray):
                 print('"{}" is different'.format(attr))
-            elif attr2 is None and isinstance(attr1, numpy.ndarray):
+            elif attr2 is None and isinstance(attr1, np.ndarray):
                 print('"{}" is different'.format(attr))
         for attr in ('nSac', 'nFix', 'nMsg', 'nBlink', 'recordedEye', 'recordingDate'):
             if getattr(self, attr) != getattr(other, attr):
