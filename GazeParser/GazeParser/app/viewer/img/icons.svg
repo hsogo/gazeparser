@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.2 r9819"
+   sodipodi:docname="icons.svg">
+  <defs
+     id="defs4">
+    <font
+       font-weight="400"
+       font-style="normal"
+       style="fill-rule:nonzero"
+       font-variant="normal"
+       horiz-adv-x="546"
+       id="FontID0">
+      <font-face
+         id="font-face3068"
+         font-family="Arial Narrow" />
+      <missing-glyph
+         id="missing-glyph3070">
+        <path
+           id="path3072"
+           d="M0 0z" />
+      </missing-glyph>
+      <glyph
+         id="glyph3074"
+         horiz-adv-x="227"
+         unicode=".">
+        <path
+           id="path3076"
+           d="M75.6611 0l0 100.169 82.0036 0 0 -100.169 -82.0036 0z" />
+      </glyph>
+      <glyph
+         id="glyph3078"
+         horiz-adv-x="455"
+         unicode="0">
+        <path
+           id="path3080"
+           d="M32.6692 352.995c0,120.177 16.1692,211.168 48.6612,273.011 32.3385,61.8305 80.1729,92.8225 143.338,92.8225 55.9958,0 100.004,-25.1574 132.33,-75.3304 38.9998,-60.4958 58.4998,-157.334 58.4998,-290.503 0,-119.492 -16.1692,-210.165 -48.3305,-272.16 -32.1731,-61.9958 -79.9957,-92.9996 -143.503,-92.9996 -55.9958,0 -101.834,27.3306 -137.503,82.0036 -35.6573,54.6612 -53.4919,148.995 -53.4919,283.156zm73.8304 0c0,-116.161 11.1614,-193.995 33.3306,-233.657 22.3346,-39.5077 50.9998,-59.3383 85.8422,-59.3383 32.8227,0 60.3305,19.996 82.4997,60.1651 21.992,40.0038 33.1652,117.673 33.1652,232.83 0,116.503 -11.1732,194.503 -33.5077,233.834 -22.3346,39.5077 -51.1652,59.173 -86.6571,59.173 -32.5038,0 -59.8344,-19.996 -81.8383,-59.9998 -21.8385,-40.1691 -32.8345,-117.673 -32.8345,-233.007z" />
+      </glyph>
+    </font>
+    <style
+       id="style3082"
+       type="text/css">
+   
+    @font-face { font-family:&quot;Arial Narrow&quot;;src:url(&quot;#FontID0&quot;) format(svg)}
+    .str0 {stroke:#332C2B;stroke-width:20}
+    .str1 {stroke:#332C2B;stroke-width:70.56}
+    .fil3 {fill:none}
+    .fil5 {fill:#332C2B}
+    .fil1 {fill:#C9CACA}
+    .fil2 {fill:#FEFEFE}
+    .fil0 {fill:url(#id0)}
+    .fil4 {fill:url(#id1)}
+    .fnt0 {font-weight:normal;font-size:846.67;font-family:'Arial Narrow'}
+   
+  </style>
+    <linearGradient
+       y2="3291.74"
+       x2="3361.35"
+       y1="5042.6"
+       x1="4372.19"
+       gradientUnits="userSpaceOnUse"
+       id="id0">
+      <stop
+         id="stop3085"
+         style="stop-color:#A1A1A1"
+         offset="0" />
+      <stop
+         id="stop3087"
+         style="stop-color:#DCDDDD"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       y2="3709.86"
+       x2="3678.36"
+       y1="4358.16"
+       x1="3678.36"
+       gradientUnits="userSpaceOnUse"
+       id="id1">
+      <stop
+         id="stop3090"
+         style="stop-color:#B6B6B7"
+         offset="0" />
+      <stop
+         id="stop3092"
+         style="stop-color:#FEFEFE"
+         offset="0.6" />
+      <stop
+         id="stop3094"
+         style="stop-color:#FEFEFE"
+         offset="1" />
+    </linearGradient>
+    <linearGradient
+       y2="3291.74"
+       x2="3361.35"
+       y1="5042.6"
+       x1="4372.19"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient3141"
+       xlink:href="#id0"
+       inkscape:collect="always" />
+    <linearGradient
+       y2="3709.86"
+       x2="3678.36"
+       y1="4358.16"
+       x1="3678.36"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient3143"
+       xlink:href="#id1"
+       inkscape:collect="always" />
+    <linearGradient
+       y2="3291.74"
+       x2="3361.35"
+       y1="5042.6"
+       x1="4372.19"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient3145"
+       xlink:href="#id0"
+       inkscape:collect="always" />
+    <linearGradient
+       y2="3709.86"
+       x2="3678.36"
+       y1="4358.16"
+       x1="3678.36"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient3147"
+       xlink:href="#id1"
+       inkscape:collect="always" />
+    <linearGradient
+       y2="3291.74"
+       x2="3361.35"
+       y1="5042.6"
+       x1="4372.19"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient3149"
+       xlink:href="#id0"
+       inkscape:collect="always" />
+    <linearGradient
+       gradientTransform="translate(163.41832,-1062.2191)"
+       y2="3291.74"
+       x2="3361.35"
+       y1="5042.6"
+       x1="4372.19"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient3157"
+       xlink:href="#id0"
+       inkscape:collect="always" />
+    <linearGradient
+       gradientTransform="translate(163.41832,-1062.2191)"
+       y2="3291.74"
+       x2="3361.35"
+       y1="5042.6"
+       x1="4372.19"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient3165"
+       xlink:href="#id0"
+       inkscape:collect="always" />
+    <linearGradient
+       gradientTransform="translate(163.41832,-1062.2191)"
+       y2="3291.74"
+       x2="3361.35"
+       y1="5042.6"
+       x1="4372.19"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient3175"
+       xlink:href="#id0"
+       inkscape:collect="always" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.2008699"
+     inkscape:cx="605.5464"
+     inkscape:cy="599.93749"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1013"
+     inkscape:window-height="727"
+     inkscape:window-x="50"
+     inkscape:window-y="50"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#f0f0f0;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       id="rect3083-6"
+       width="64"
+       height="64"
+       x="594.48529"
+       y="381.03189"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\cood.png"
+       inkscape:export-xdpi="33.290001"
+       inkscape:export-ydpi="33.290001" />
+    <rect
+       style="fill:#f0f0f0;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       id="rect3083"
+       width="64"
+       height="64"
+       x="380.54041"
+       y="381.03189"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomin.png"
+       inkscape:export-xdpi="33.75"
+       inkscape:export-ydpi="33.75" />
+    <circle
+       inkscape:export-ydpi="33.75"
+       inkscape:export-xdpi="33.75"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomin.png"
+       transform="matrix(0.03543307,0,0,0.03543307,276.02561,264.69486)"
+       class="fil2 str0"
+       cx="3678"
+       cy="4034"
+       r="532"
+       id="circle3102"
+       d="m 4210,4034 c 0,293.8155 -238.1845,532 -532,532 -293.8155,0 -532,-238.1845 -532,-532 0,-293.8155 238.1845,-532 532,-532 293.8155,0 532,238.1845 532,532 z"
+       sodipodi:cx="3678"
+       sodipodi:cy="4034"
+       sodipodi:rx="532"
+       sodipodi:ry="532"
+       style="fill:#fefefe;fill-rule:evenodd;stroke:#332c2b;stroke-width:56.44444656;stroke-miterlimit:4;stroke-dasharray:none" />
+    <line
+       inkscape:export-ydpi="33.75"
+       inkscape:export-xdpi="33.75"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomin.png"
+       class="fil3 str1"
+       x1="418.85632"
+       y1="421.76965"
+       x2="437.13977"
+       y2="440.05313"
+       id="line3104"
+       style="fill:none;stroke:#332c2b;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none;marker-start:none" />
+    <circle
+       inkscape:export-ydpi="33.75"
+       inkscape:export-xdpi="33.75"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomin.png"
+       transform="matrix(0.03366142,0,0,0.03366142,282.54175,271.8417)"
+       class="fil4"
+       cx="3678"
+       cy="4034"
+       r="477"
+       id="circle3106"
+       d="m 4155,4034 c 0,263.4398 -213.5602,477 -477,477 -263.4398,0 -477,-213.5602 -477,-477 0,-263.4398 213.5602,-477 477,-477 263.4398,0 477,213.5602 477,477 z"
+       style="fill:url(#linearGradient3143);fill-rule:evenodd"
+       sodipodi:cx="3678"
+       sodipodi:cy="4034"
+       sodipodi:rx="477"
+       sodipodi:ry="477" />
+    <line
+       style="fill:none;stroke:#332c2b;stroke-width:2.50015736"
+       id="line3109"
+       y2="407.63187"
+       x2="413.71851"
+       y1="407.63187"
+       x1="399.01379"
+       class="fil3 str1"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomin.png"
+       inkscape:export-xdpi="33.75"
+       inkscape:export-ydpi="33.75" />
+    <line
+       style="fill:none;stroke:#332c2b;stroke-width:2.50015736"
+       id="line3111"
+       y2="415.85233"
+       x2="406.34845"
+       y1="399.41141"
+       x1="406.34845"
+       class="fil3 str1"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomin.png"
+       inkscape:export-xdpi="33.75"
+       inkscape:export-ydpi="33.75" />
+    <rect
+       style="fill:#f0f0f0;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       id="rect3083-8"
+       width="64"
+       height="64"
+       x="469.26483"
+       y="381.03189"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomout.png"
+       inkscape:export-xdpi="33.293285"
+       inkscape:export-ydpi="33.293285" />
+    <circle
+       inkscape:export-ydpi="33.293285"
+       inkscape:export-xdpi="33.293285"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomout.png"
+       transform="matrix(0.03543307,0,0,0.03543307,276.02561,264.69486)"
+       class="fil2 str0"
+       cx="6182"
+       cy="4034"
+       r="532"
+       id="circle3117"
+       d="m 6714,4034 c 0,293.8155 -238.1845,532 -532,532 -293.8155,0 -532,-238.1845 -532,-532 0,-293.8155 238.1845,-532 532,-532 293.8155,0 532,238.1845 532,532 z"
+       sodipodi:cx="6182"
+       sodipodi:cy="4034"
+       sodipodi:rx="532"
+       sodipodi:ry="532"
+       style="fill:#fefefe;fill-rule:evenodd;stroke:#332c2b;stroke-width:56.44444656;stroke-miterlimit:4;stroke-dasharray:none" />
+    <line
+       inkscape:export-ydpi="33.293285"
+       inkscape:export-xdpi="33.293285"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomout.png"
+       class="fil3 str1"
+       x1="507.54529"
+       y1="421.76965"
+       x2="525.8642"
+       y2="440.05313"
+       id="line3119"
+       style="fill:none;stroke:#332c2b;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none" />
+    <circle
+       inkscape:export-ydpi="33.293285"
+       inkscape:export-xdpi="33.293285"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomout.png"
+       transform="matrix(0.03366142,0,0,0.03366142,286.97797,271.8417)"
+       class="fil4"
+       cx="6182"
+       cy="4034"
+       r="477"
+       id="circle3121"
+       d="m 6659,4034 c 0,263.4398 -213.5602,477 -477,477 -263.4398,0 -477,-213.5602 -477,-477 0,-263.4398 213.5602,-477 477,-477 263.4398,0 477,213.5602 477,477 z"
+       style="fill:url(#linearGradient3147);fill-rule:evenodd"
+       sodipodi:cx="6182"
+       sodipodi:cy="4034"
+       sodipodi:rx="477"
+       sodipodi:ry="477" />
+    <line
+       inkscape:export-ydpi="33.293285"
+       inkscape:export-xdpi="33.293285"
+       class="fil3 str1"
+       x1="487.73822"
+       y1="407.63187"
+       x2="502.4075"
+       y2="407.63187"
+       id="line3123"
+       style="fill:none;stroke:#332c2b;stroke-width:2.50015736"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\zoomout.png" />
+    <text
+       inkscape:export-ydpi="33.290001"
+       inkscape:export-xdpi="33.290001"
+       sodipodi:linespacing="125%"
+       id="text3177"
+       y="420.8407"
+       x="603.68726"
+       style="font-size:24px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none;font-family:Sans"
+       xml:space="preserve"
+       inkscape:export-filename="D:\Users\Hiroyuki\Desktop\cood.png"><tspan
+         y="420.8407"
+         x="603.68726"
+         id="tspan3179"
+         sodipodi:role="line">0.00</tspan></text>
+  </g>
+</svg>

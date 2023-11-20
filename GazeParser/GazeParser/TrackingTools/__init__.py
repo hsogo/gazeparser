@@ -8,9 +8,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from .PsychoPyBackend import ControllerPsychoPyBackend
-from .DummyPsychoPyBackend import DummyPsychoPyBackend
-
 def getController(backend, configFile=None, dummy=False):
     """
     Get Tracker controller object.
@@ -27,13 +24,21 @@ def getController(backend, configFile=None, dummy=False):
         raise ValueError('VisionEgg controller is obsolated.')
     elif backend == 'PsychoPy':
         if dummy:
+            try:
+                from .Controller.DummyPsychoPyBackend import DummyPsychoPyBackend
+            except:
+                raise RuntimeError('Failed to import dummy PsychoPy backend.  Is PsychoPy available?')
             return DummyPsychoPyBackend(configFile)
         else:
+            try:
+                from .Controller.PsychoPyBackend import ControllerPsychoPyBackend
+            except:
+                raise RuntimeError('Failed to import PsychoPy backend.  Is PsychoPy available?')
             return ControllerPsychoPyBackend(configFile)
     else:
         raise ValueError('Unknown backend: '+str(backend))
 
-
+'''
 def cameraDelayEstimationHelper(screen, tracker):
     """
     A simple tool to help estimating measurement delay.
@@ -77,3 +82,4 @@ def cameraDelayEstimationHelper(screen, tracker):
 
     else:
         raise ValueError('Unknown controller.')
+'''

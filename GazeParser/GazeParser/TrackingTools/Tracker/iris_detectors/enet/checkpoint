@@ -1,0 +1,2 @@
+model_checkpoint_path: "enet_mono"
+all_model_checkpoint_paths: "enet_mono"
