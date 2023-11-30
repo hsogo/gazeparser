@@ -935,8 +935,8 @@ class interactiveConfigFrame(wx.Frame):
             self.ax.plot(t, self.newL[:, 0], ':', color=self.conf.COLOR_TRAJECTORY_L_X)
             self.ax.plot(t, self.newL[:, 1], ':', color=self.conf.COLOR_TRAJECTORY_L_Y)
         if self.newR is not None:
-            self.ax.plot(t, self.newR[:, 0], '.-', color=self.conf.COLOR_TRAJECTORY_R_X)
-            self.ax.plot(t, self.newR[:, 1], '.-', color=self.conf.COLOR_TRAJECTORY_R_Y)
+            self.ax.plot(t, self.newR[:, 0], ':', color=self.conf.COLOR_TRAJECTORY_R_X)
+            self.ax.plot(t, self.newR[:, 1], ':', color=self.conf.COLOR_TRAJECTORY_R_Y)
         if self.D[self.tr].config.RECORDED_EYE != 'R':
             self.ax.plot(t, self.D[self.tr].L[:, 0], '.-', color=self.conf.COLOR_TRAJECTORY_L_X)
             self.ax.plot(t, self.D[self.tr].L[:, 1], '.-', color=self.conf.COLOR_TRAJECTORY_L_Y)
