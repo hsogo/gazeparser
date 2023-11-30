@@ -15,17 +15,26 @@ import numpy as np
 import wx
 import wx.lib.newevent
 
+import GazeParser
+import GazeParser.Configuration as gpconfig
+import GazeParser.Converter as cvt
+
+import matplotlib
+import matplotlib.figure
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
+import traceback
+
 from ...TrackingTools.Tracker.config import config as configuration
 from ...TrackingTools.Tracker.eye import eye_filter, eyedata
 from ...TrackingTools.Tracker.face import facedata, get_face_boxes, get_face_landmarks
 from ...TrackingTools.Tracker.screen import screen
-from ...TrackingTools.Tracker.util import LM_calibration, calc_calibration_results
+from ...TrackingTools.Tracker.util import LM_calibration, calc_calibration_results, calc_gaze_position
 from ...TrackingTools.Tracker.iris_detectors import get_iris_detector
 from .._dialogs import (DlgAskopenfilename, DlgAsksaveasfilename, DlgAskyesno,
                         DlgShowerror, DlgShowinfo)
 
 module_dir = Path(__file__).parent.parent
-debug_mode = True
+debug_mode = False
 
 def str2points(s):
     p = np.array(tuple(map(float,s[1:-1].split(','))))
@@ -45,6 +54,7 @@ menu_items_all = [
     ID_RUN_CAL
 ]
 
+"""
 class calibrationDialog(wx.Dialog):
     def __init__(self, parent):
         super(calibrationDialog, self).__init__(parent=parent, id=wx.ID_ANY, title='Running calibration...')
@@ -239,7 +249,389 @@ class calibrationDialog(wx.Dialog):
                 max_error=self.results[2],
                 results_detail=self.results[3],
                 area_of_interest = aoi)
+"""
+
+class fixationDetectionDialog(wx.Dialog):
+    def __init__(self, raw_gaze):
+        super(fixationDetectionDialog, self).__init__(parent=None, id=wx.ID_ANY, title='Fixation Detection')
+
+        self.config = GazeParser.config
+
+        self.T = raw_gaze[:,1]*1000 #convert to msec
+        self.L = raw_gaze[:,2:4]
+        self.R = raw_gaze[:,4:6]
+        self.newL = None
+        self.newR = None
+        self.newSacList = None
+        self.newFixList = None
+        self.newConfig = GazeParser.Configuration.Config()
+
+        ########
+        # mainFrame (includes viewFrame, xRangeBarFrame)
+        # viewFrame
+        viewPanel = wx.Panel(self, wx.ID_ANY)
+        self.fig = matplotlib.figure.Figure( None )
+        self.canvas = FigureCanvasWxAgg( viewPanel, wx.ID_ANY, self.fig )
+        self.ax = self.fig.add_axes([80.0/800,  # 80px
+                                     60.0/600,  # 60px
+                                     1.0-2*80.0/800,
+                                     1.0-2*60.0/600])
+        self.ax.axis()
+        self.toolbar = NavigationToolbar2WxAgg(self.canvas)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(self.canvas, flag=wx.EXPAND, proportion=1)
+        vbox.Add(self.toolbar, flag=wx.EXPAND, proportion=0)
+        viewPanel.SetSizerAndFit(vbox)
         
+        self.paramEntryDict = {}
+        self.filterCommands = ['identity', 'ma', 'butter', 'butter_filtfilt']
+
+        commandPanel = wx.Panel(self, wx.ID_ANY)
+        paramPanel = wx.Panel(commandPanel, wx.ID_ANY)
+        box = wx.FlexGridSizer(len(GazeParser.Configuration.GazeParserOptions)+1,3, 0, 0)
+        box.Add(wx.StaticText(paramPanel, wx.ID_ANY, ''), flag=wx.ALL, border=5)
+        box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'Original'), flag=wx.TOP|wx.RIGHT|wx.BOTTOM, border=5)
+        box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'New'), flag=wx.TOP|wx.RIGHT|wx.BOTTOM, border=5)
+        for key in gpconfig.GazeParserOptions:
+            box.Add(wx.StaticText(paramPanel, wx.ID_ANY, key), flag=wx.LEFT|wx.RIGHT, border=5)
+            if hasattr(self.config, key):
+                # note: Value of GazeParser parameters are ASCII characters.
+                box.Add(wx.StaticText(paramPanel, wx.ID_ANY, str(getattr(self.config, key))), flag=wx.RIGHT, border=5)
+
+                if key == 'FILTER_TYPE':
+                    self.paramEntryDict[key] = wx.ComboBox(paramPanel, wx.ID_ANY, choices=self.filterCommands, style=wx.CB_DROPDOWN)
+                    # note: Value of FILTER_TYPE is string, so str() is not necessary.
+                    self.paramEntryDict[key].SetValue(getattr(self.config, key))
+                    self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickCombobox)
+                else:
+                    # note: Value of GazeParser parameters are ASCII characters.
+                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, str(getattr(self.config, key)))
+                box.Add(self.paramEntryDict[key], flag=wx.RIGHT, border=5)
+
+            else:
+                box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'not available'), flag=wx.RIGHT, border=5)
+                
+                if key == 'FILTER_TYPE':
+                    self.paramEntryDict[key] = wx.ComboBox(paramPanel, wx.ID_ANY, choices=self.filterCommands, style=wx.CB_DROPDOWN)
+                    self.paramEntryDict[key].SetValue(GazeParser.Configuration.GazeParserDefaults[key])
+                    self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickCombobox)
+                else:
+                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, str(GazeParser.Configuration.GazeParserDefaults[key]))
+                box.Add(self.paramEntryDict[key], flag=wx.RIGHT, border=5)
+
+
+        paramPanel.SetSizer(box)
+
+        updateButton = wx.Button(commandPanel, wx.ID_ANY, 'Update plot')
+        updateButton.Bind(wx.EVT_BUTTON, self.updateParameters)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(paramPanel)
+        vbox.Add(updateButton, flag=wx.EXPAND|wx.ALL, border=5)
+        commandPanel.SetSizerAndFit(vbox)
+
+        self.onClickCombobox()
+        self.plotData()
+        
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(viewPanel)
+        hbox.Add(commandPanel, flag=wx.EXPAND)
+        self.SetSizerAndFit(hbox)
+        
+        self.Bind(wx.EVT_CLOSE, self.onClose)
+        
+        # self.MakeModal(True)
+        self.Show()
+        self.eventLoop = wx.GUIEventLoop()
+        self.eventLoop.Run()
+
+    def onClose(self, event=None):
+        # self.MakeModal(False)
+        self.eventLoop.Exit()
+
+    def onClickCombobox(self, event=None):
+        filterStr = self.paramEntryDict['FILTER_TYPE'].GetValue()
+        self.paramEntryDict['FILTER_TYPE'].SetValue(filterStr)
+        if filterStr == 'ma':
+            self.paramEntryDict['FILTER_SIZE'].Enable(True)
+            self.paramEntryDict['FILTER_ORDER'].Enable(False)
+            self.paramEntryDict['FILTER_WN'].Enable(False)
+        elif filterStr in ['butter', 'butter_filtfilt']:
+            self.paramEntryDict['FILTER_SIZE'].Enable(False)
+            self.paramEntryDict['FILTER_ORDER'].Enable(True)
+            self.paramEntryDict['FILTER_WN'].Enable(True)
+        else:
+            self.paramEntryDict['FILTER_SIZE'].Enable(False)
+            self.paramEntryDict['FILTER_ORDER'].Enable(False)
+            self.paramEntryDict['FILTER_WN'].Enable(False)
+
+    def cancel(self, event=None):
+        self.Close()
+
+    def plotData(self):
+        self.ax.clear()
+
+        COLOR_TRAJECTORY_L_X = '#0000FF'
+        COLOR_TRAJECTORY_L_Y = '#0088FF'
+        COLOR_TRAJECTORY_R_X = '#FF0000'
+        COLOR_TRAJECTORY_R_Y = '#FF8800'
+        COLOR_FIXATION_FC = '#000000'
+        COLOR_FIXATION_BG = '#CCCCCC'
+        COLOR_SACCADE_HATCH = '#3333CC'
+
+        if self.newL is not None:
+            self.ax.plot(self.T, self.newL[:, 0], ':', color=COLOR_TRAJECTORY_L_X, linewidth=3)
+            self.ax.plot(self.T, self.newL[:, 1], ':', color=COLOR_TRAJECTORY_L_Y, linewidth=3)
+        if self.newR is not None:
+            self.ax.plot(self.T, self.newR[:, 0], ':', color=COLOR_TRAJECTORY_R_X, linewidth=3)
+            self.ax.plot(self.T, self.newR[:, 1], ':', color=COLOR_TRAJECTORY_R_Y, linewidth=3)
+        self.ax.plot(self.T, self.L[:, 0], '.-', color=COLOR_TRAJECTORY_L_X, linewidth=1)
+        self.ax.plot(self.T, self.L[:, 1], '.-', color=COLOR_TRAJECTORY_L_Y, linewidth=1)
+        self.ax.plot(self.T, self.R[:, 0], '.-', color=COLOR_TRAJECTORY_R_X, linewidth=1)
+        self.ax.plot(self.T, self.R[:, 1], '.-', color=COLOR_TRAJECTORY_R_Y, linewidth=1)
+
+        if self.newSacList is not None and self.newFixList is not None:
+            for f in range(len(self.newFixList)):
+                self.ax.text(self.newFixList[f].startTime, self.newFixList[f].center[0], str(f), color=COLOR_FIXATION_FC,
+                            bbox=dict(boxstyle="round", fc=COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox), clip_on=True)
+
+            for s in range(len(self.newSacList)):
+                self.ax.add_patch(matplotlib.patches.Rectangle([self.newSacList[s].startTime, -1000], self.newSacList[s].duration, 2000,
+                                fc=COLOR_SACCADE_HATCH, alpha=0.3))  # hatch='///', 
+
+        #self.ax.axis(self.currentPlotArea)
+        #self.ax.set_title('%s: Trial %d / %d' % (os.path.basename(self.dataFileName), self.tr+1, len(self.D)), fontproperties=self.fontPlotText)
+
+        self.fig.canvas.draw()
+
+    def updateParameters(self, event=None):
+        try:
+            for key in GazeParser.Configuration.GazeParserOptions:
+                value = self.paramEntryDict[key].GetValue()
+                if isinstance(GazeParser.Configuration.GazeParserDefaults[key], int):
+                    setattr(self.newConfig, key, int(value))
+                elif isinstance(GazeParser.Configuration.GazeParserDefaults[key], float):
+                    setattr(self.newConfig, key, float(value))
+                else:
+                    setattr(self.newConfig, key, value)
+        except:
+            DlgShowerror(self, 'Error', 'Illeagal value in '+key)
+            return
+
+        try:
+            # from GazeParser.Converter.TrackerToGazeParser
+            self.newL = cvt.applyFilter(self.T, self.L, self.newConfig, decimals=8)
+            self.newR = cvt.applyFilter(self.T, self.R, self.newConfig, decimals=8)
+            if self.newConfig.AVERAGE_LR == 0:
+                (SacList, FixList, _) = cvt.buildEventListBinocular(self.T, self.newL, self.newR, self.newConfig)
+            elif self.newConfig.AVERAGE_LR == 1:
+                newB = np.nanmean([self.newL, self.newR], axis=0)
+                (SacList, FixList, _) = cvt.buildEventListMonocular(self.T, newB, self.newConfig)
+            else:
+                raise ValueError('AVERAGE_LR must be 0 or 1')
+            self.newSacList = SacList
+            self.newFixList = FixList
+
+        except:
+            info = sys.exc_info()
+            tbinfo = traceback.format_tb(info[2])
+            errormsg = ''
+            for tbi in tbinfo:
+                errormsg += tbi
+            errormsg += '  %s' % str(info[1])
+            DlgShowerror(self, 'Error', errormsg)
+            self.newSacList = None
+            self.newFixList = None
+        else:
+            self.plotData()        
+
+class gazeDetectionDialog(wx.Dialog):
+    def __init__(self, parent):
+        super(gazeDetectionDialog, self).__init__(parent=parent, id=wx.ID_ANY, title='Running calibration...')
+
+        self.parent = parent
+        self.fitting_param = None
+        self.results = None
+
+        self.mediapanel = wx.Panel(self,wx.ID_ANY)
+        self.camera_view = camera_view(self.mediapanel, wx.ID_ANY, wx.Bitmap(self.parent.camera_view_width,self.parent.camera_view_height))
+        mediasizer = wx.BoxSizer()
+        mediasizer.Add(self.camera_view)
+        self.mediapanel.SetSizer(mediasizer)
+
+        self.buttonpanel = wx.Panel(self,wx.ID_ANY)
+        self.message_text = wx.StaticText(self.buttonpanel,wx.ID_ANY,'-/- calibration points  -/- frames          ')
+        self.button_cancel = wx.Button(self.buttonpanel,wx.ID_CANCEL,"Cancel")
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.message_text,0,wx.RIGHT, 10)
+        sizer.Add(self.button_cancel,0,wx.ALIGN_CENTER)
+        self.buttonpanel.SetSizer(sizer)
+
+        mainsizer = wx.BoxSizer(wx.VERTICAL)
+        mainsizer.Add(self.mediapanel,4,wx.EXPAND)
+        mainsizer.Add(self.buttonpanel,0,wx.ALIGN_RIGHT|wx.ALL, 10)
+        self.SetSizer(mainsizer)
+        self.Fit()
+
+        self.running = True
+        self.thread = threading.Thread(target=self.calibration_loop)
+        self.thread.start()
+
+        self.Show()
+
+    def calibration_loop(self):
+        cap = cv2.VideoCapture(self.parent.moviefile)
+        raw_gaze = []
+        face_eye_data = []
+        face_rvec = None
+        face_tvec = None
+
+        cap.set(cv2.CAP_PROP_POS_FRAMES,0)
+
+        for current_frame in range(self.parent.movie_frames):
+            if not self.running:
+                return
+
+            _, frame = cap.read()
+            frame_mono = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            if self.parent.downscaling_factor == 1.0: # original size
+                dets, _ = get_face_boxes(frame_mono, engine='dlib_hog')
+            else: # downscale camera image
+                dets, _ = get_face_boxes(cv2.resize(frame_mono, None, fx=self.parent.downscaling_factor, fy=self.parent.downscaling_factor), engine='dlib_hog') # detections, scores, weight_indices
+                inv = 1.0/self.parent.downscaling_factor
+                # recover rectangle size
+                for i in range(len(dets)):
+                    dets[i] = dlib.rectangle(int(dets[i].left()*inv), int(dets[i].top()*inv),
+                                            int(dets[i].right()*inv), int(dets[i].bottom()*inv))
+
+            detect_face = False
+            if self.parent.area_of_interest is None:
+                if len(dets) > 0:
+                    detect_face = True
+                    target_idx = 0
+            else:
+                for target_idx in range(len(dets)):
+                    if self.parent.area_of_interest.contains(dets[target_idx]):
+                        detect_face = True
+                        break
+            
+            if detect_face: # face is found
+                # only first face is used
+                landmarks = get_face_landmarks(frame_mono, dets[target_idx])
+                
+                # create facedata
+                face = facedata(landmarks, camera_matrix=self.parent.camera_matrix, face_model=self.parent.face_model,
+                    eye_params=self.parent.eye_params, prev_rvec=face_rvec, prev_tvec=face_tvec)
+
+                # create eyedata
+                left_eye = eyedata(frame_mono, landmarks, eye='L', iris_detector=self.parent.iris_detector)
+                right_eye = eyedata(frame_mono, landmarks, eye='R', iris_detector=self.parent.iris_detector)
+
+                if not (left_eye.detected and right_eye.detected):
+                    # Eyes are too close to the edges of the image
+                    detect_face = False
+
+                # save previous rvec and tvec
+                face_rvec = face.rotation_vector
+                face_tvec = face.translation_vector
+
+                # draw results
+                face.draw_marker(frame)
+                face.draw_eyelids_landmarks(frame)
+                if left_eye.detected:
+                    left_eye.draw_marker(frame)
+                if right_eye.detected:
+                    right_eye.draw_marker(frame)
+
+            im = cv2.resize(frame, (int(frame.shape[1]*self.parent.camera_view_scale),int(frame.shape[0]*self.parent.camera_view_scale)))
+            bmp = wx.Bitmap.FromBuffer(im.shape[1], im.shape[0], cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+            self.camera_view.SetBitmap(bmp)
+
+            if not detect_face:
+                xL, yL, xR, yR = (np.nan, np.nan, np.nan, np.nan)
+                face = None
+            else:
+                if not left_eye.blink:
+                    xL, yL = calc_gaze_position(face, left_eye, self.parent.screen, fitting_param=None, filter=None)
+                else:
+                    xL, yL = (np.nan, np.nan)
+                if not right_eye.blink:
+                    xR, yR = calc_gaze_position(face, right_eye, self.parent.screen, fitting_param=None, filter=None)
+                else:
+                    xR, yR = (np.nan, np.nan)
+                raw_gaze.append((current_frame, current_frame/self.parent.movie_fps, xL, yL, xR, yR))
+
+            face_eye_data.append((face, left_eye, right_eye))
+
+        self.raw_gaze = np.array(raw_gaze)
+        self.face_eye_data = face_eye_data
+        self.running = False
+        wx.CallAfter(self.Close)
+
+    
+        
+class showCalibrationResultsDialog(wx.Dialog):
+    def __init__(self, parent, calibration_data, id=wx.ID_ANY):
+        super(showCalibrationResultsDialog, self).__init__(parent=parent, id=id, title='')
+
+        # run fitting
+        fitting_param = LM_calibration(calibration_data, self.parent.screen)
+        results = calc_calibration_results(calibration_data, self.parent.screen, fitting_param)
+
+        # if dialog has already been closed, return
+        if not self.running:
+            return
+
+        # draw results
+        canvas = np.zeros((self.parent.camera_view_height,self.parent.camera_view_width,3),dtype=np.uint8)
+        data = np.array([float(x) for x in results[3].split(',')],dtype=np.int64).reshape(-1,6)
+
+        txmin, txmax = (1.25*min(data[:,0]),1.25*max(data[:,0]))
+        tymin, tymax = (1.25*min(data[:,1]),1.25*max(data[:,1]))
+        txcenter, tycenter = ((txmax+txmin)/2, (tymax+tymin)/2)
+        scale = (tymax-tymin)/self.parent.camera_view_height
+        if (txmax-txmin)*scale > self.parent.camera_view_width:
+            scale = (txmax-txmin)/self.parent.camera_view_width
+        for i in range(3):
+            data[:,2*i]   = (data[:,2*i]  -txcenter)/scale + self.parent.camera_view_width/2
+            data[:,2*i+1] = (data[:,2*i+1]-tycenter)/scale + self.parent.camera_view_height/2
+        for idx, d in enumerate(data):
+            #outliers
+            #wl = 3 if idx in out_l else 1
+            #wr = 3 if idx in out_r else 1
+            wl = wr = 1
+            cv2.line(canvas,d[0:2],d[2:4],(0,255,0),wl) # left eye: green
+            cv2.line(canvas,d[0:2],d[4:6],(255,0,0),wr) # right eye: red
+        bmp = wx.Bitmap.FromBuffer(canvas.shape[1], canvas.shape[0], canvas)#cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        self.camera_view.SetBitmap(bmp)
+
+        self.fitting_param = fitting_param
+        self.results = results
+
+        results_msg = "Precision: {}\nAccuracy: {}\nMax error: {}".format(*results[:3])
+        self.results_text.SetValue(results_msg)
+
+        self.button_save.Enable(True)
+        #wx.CallAfter(self.Close)
+
+
+    def save(self, event):
+        filename = DlgAsksaveasfilename(self, filetypes='Fitting results (*.npz)|*.npz')
+        if filename != '':
+            if self.parent.area_of_interest is not None:
+                aoi = (self.parent.area_of_interest.left(), self.parent.area_of_interest.top(),
+                        self.parent.area_of_interest.right(), self.parent.area_of_interest.bottom())
+            else:
+                aoi = (np.nan, np.nan, np.nan, np.nan)
+            np.savez(filename,
+                fitting_param=self.fitting_param, 
+                precision=self.results[0],
+                accuracy=self.results[1],
+                max_error=self.results[2],
+                results_detail=self.results[3],
+                area_of_interest = aoi)
 
 
 class dlgEditCalPoint(wx.Dialog):
@@ -872,10 +1264,21 @@ class offline_calibration_app(wx.Frame):
         for id in menu_items_all:
             self.menu_bar.Enable(id, False)
 
-        dlg = calibrationDialog(self)
+        dlg = gazeDetectionDialog(parent=self)
         dlg.ShowModal()
         if dlg.thread.is_alive():
             dlg.running = False
+        raw_gaze = dlg.raw_gaze
+        face_eye_data = dlg.face_eye_data
+        dlg.Destroy()
+        
+        dlg = fixationDetectionDialog(raw_gaze)
+        dlg.Destroy()
+        
+        dlg = showCalibrationResultsDialog(parent=self)
+        dlg.ShowModal()
+        dlg.Destroy()
+
 
         self.buttonpanel.Enable(True)
         for id in menu_items_all:
