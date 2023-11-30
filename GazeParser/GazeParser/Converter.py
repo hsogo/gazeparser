@@ -144,19 +144,20 @@ def buildEventListBinocular(T, LHV, RHV, config):
     sacCand = []
     sacCandDur = []
     # check binocular coincidence
-    for idx in range(len(sacCandL)):
-        overlap = np.where((sacCandR[:, 1] >= sacCandL[idx, 0]) &
-                              (sacCandR[:, 0] <= sacCandL[idx, 1]))[0]
-        if len(overlap) > 0:
-            startIndex = min(sacCandL[idx, 0], sacCandR[overlap[0], 0])
-            endIndex = max(sacCandL[idx, 1], sacCandR[overlap[-1], 1])
-            if len(sacCand) > 0 and sacCand[-1][1] > startIndex:
-                pass
-            else:
-                sacCand.append([startIndex, endIndex])
-                sacCandDur.append(T[endIndex]-T[startIndex])
-    sacCand = np.array(sacCand, dtype=np.int32)
-    sacCandDur = np.array(sacCandDur)
+    if len(sacCandL)>0 and len(sacCandR)>0:
+        for idx in range(len(sacCandL)):
+            overlap = np.where((sacCandR[:, 1] >= sacCandL[idx, 0]) &
+                                (sacCandR[:, 0] <= sacCandL[idx, 1]))[0]
+            if len(overlap) > 0:
+                startIndex = min(sacCandL[idx, 0], sacCandR[overlap[0], 0])
+                endIndex = max(sacCandL[idx, 1], sacCandR[overlap[-1], 1])
+                if len(sacCand) > 0 and sacCand[-1][1] > startIndex:
+                    pass
+                else:
+                    sacCand.append([startIndex, endIndex])
+                    sacCandDur.append(T[endIndex]-T[startIndex])
+        sacCand = np.array(sacCand, dtype=np.int32)
+        sacCandDur = np.array(sacCandDur)
 
     if len(sacCand) > 0:
         # amplitude
