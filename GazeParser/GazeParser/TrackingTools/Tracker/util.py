@@ -6,7 +6,7 @@ import cv2
 
 #import numpy.ma as ma
 
-debug_mode = True
+debug_mode = False
 
 def stretch(img):
     # input must be gray
