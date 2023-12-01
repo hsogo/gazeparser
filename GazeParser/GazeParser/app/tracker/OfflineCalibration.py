@@ -16,8 +16,6 @@ import wx
 import wx.lib.newevent
 
 import GazeParser
-import GazeParser.Configuration as gpconfig
-import GazeParser.Converter as cvt
 
 import matplotlib
 import matplotlib.figure
@@ -33,7 +31,7 @@ from ...TrackingTools.Tracker.iris_detectors import get_iris_detector
 from .._dialogs import (DlgAskopenfilename, DlgAsksaveasfilename, DlgAskyesno,
                         DlgShowerror, DlgShowinfo)
 
-module_dir = Path(__file__).parent.parent
+module_dir = Path(__file__).parent.parent.parent
 debug_mode = False
 
 def str2points(s):
@@ -251,20 +249,24 @@ class calibrationDialog(wx.Dialog):
                 area_of_interest = aoi)
 """
 
-class fixationDetectionDialog(wx.Dialog):
-    def __init__(self, raw_gaze):
-        super(fixationDetectionDialog, self).__init__(parent=None, id=wx.ID_ANY, title='Fixation Detection')
+class gazeResultsDialog(wx.Dialog):
+    def __init__(self, parent, raw_gaze):
+        super(gazeResultsDialog, self).__init__(parent=parent, id=wx.ID_ANY, title='Fixation Detection')
 
-        self.config = GazeParser.config
+        self.parent = parent
 
-        self.T = raw_gaze[:,1]*1000 #convert to msec
         self.L = raw_gaze[:,2:4]
         self.R = raw_gaze[:,4:6]
-        self.newL = None
-        self.newR = None
-        self.newSacList = None
-        self.newFixList = None
-        self.newConfig = GazeParser.Configuration.Config()
+        self.I = np.arange(self.L.shape[0])
+
+        self.num_calibration_points = self.parent.calpoint_listbox.GetItemCount()
+        self.cal_ranges = []
+        for i in range(self.num_calibration_points):
+            self.cal_ranges.append([int(self.parent.calpoint_listbox.GetItem(i, 0).GetText()),
+                                    int(self.parent.calpoint_listbox.GetItem(i, 1).GetText())])
+        self.selected_calpoint = 0
+
+        self.calibration_patches = []
 
         ########
         # mainFrame (includes viewFrame, xRangeBarFrame)
@@ -284,54 +286,37 @@ class fixationDetectionDialog(wx.Dialog):
         vbox.Add(self.toolbar, flag=wx.EXPAND, proportion=0)
         viewPanel.SetSizerAndFit(vbox)
         
-        self.paramEntryDict = {}
-        self.filterCommands = ['identity', 'ma', 'butter', 'butter_filtfilt']
-
         commandPanel = wx.Panel(self, wx.ID_ANY)
         paramPanel = wx.Panel(commandPanel, wx.ID_ANY)
-        box = wx.FlexGridSizer(len(GazeParser.Configuration.GazeParserOptions)+1,3, 0, 0)
-        box.Add(wx.StaticText(paramPanel, wx.ID_ANY, ''), flag=wx.ALL, border=5)
-        box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'Original'), flag=wx.TOP|wx.RIGHT|wx.BOTTOM, border=5)
-        box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'New'), flag=wx.TOP|wx.RIGHT|wx.BOTTOM, border=5)
-        for key in gpconfig.GazeParserOptions:
-            box.Add(wx.StaticText(paramPanel, wx.ID_ANY, key), flag=wx.LEFT|wx.RIGHT, border=5)
-            if hasattr(self.config, key):
-                # note: Value of GazeParser parameters are ASCII characters.
-                box.Add(wx.StaticText(paramPanel, wx.ID_ANY, str(getattr(self.config, key))), flag=wx.RIGHT, border=5)
 
-                if key == 'FILTER_TYPE':
-                    self.paramEntryDict[key] = wx.ComboBox(paramPanel, wx.ID_ANY, choices=self.filterCommands, style=wx.CB_DROPDOWN)
-                    # note: Value of FILTER_TYPE is string, so str() is not necessary.
-                    self.paramEntryDict[key].SetValue(getattr(self.config, key))
-                    self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickCombobox)
-                else:
-                    # note: Value of GazeParser parameters are ASCII characters.
-                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, str(getattr(self.config, key)))
-                box.Add(self.paramEntryDict[key], flag=wx.RIGHT, border=5)
-
-            else:
-                box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'not available'), flag=wx.RIGHT, border=5)
-                
-                if key == 'FILTER_TYPE':
-                    self.paramEntryDict[key] = wx.ComboBox(paramPanel, wx.ID_ANY, choices=self.filterCommands, style=wx.CB_DROPDOWN)
-                    self.paramEntryDict[key].SetValue(GazeParser.Configuration.GazeParserDefaults[key])
-                    self.paramEntryDict[key].Bind(wx.EVT_COMBOBOX, self.onClickCombobox)
-                else:
-                    self.paramEntryDict[key] = wx.TextCtrl(paramPanel, wx.ID_ANY, str(GazeParser.Configuration.GazeParserDefaults[key]))
-                box.Add(self.paramEntryDict[key], flag=wx.RIGHT, border=5)
-
-
+        calpointslist= [str(idx+1) for idx in range(self.num_calibration_points)]
+        self.calpointComboBox = wx.ComboBox(paramPanel, wx.ID_ANY, choices=calpointslist, style=wx.CB_READONLY)
+        self.calpointComboBox.SetSelection(self.selected_calpoint)
+        self.calpointComboBox.Bind(wx.EVT_COMBOBOX, self.onClickCalpointCombo)
+        self.fromSpinbox = wx.SpinCtrl(paramPanel, wx.ID_ANY, value=str(self.cal_ranges[self.selected_calpoint][0]),
+                                       min=0, max=len(self.I), style=wx.TE_PROCESS_ENTER)
+        self.untilSpinbox = wx.SpinCtrl(paramPanel, wx.ID_ANY, value=str(self.cal_ranges[self.selected_calpoint][1]),
+                                        min=0, max=len(self.I), style=wx.TE_PROCESS_ENTER)
+        self.fromSpinbox.Bind(wx.EVT_SPINCTRL, self.onClickFromSpin)
+        #self.fromSpinbox.Bind(wx.EVT_TEXT_ENTER, self.onClickFromSpin)
+        self.untilSpinbox.Bind(wx.EVT_SPINCTRL, self.onClickUntilSpin)
+        #self.untilSpinbox.Bind(wx.EVT_TEXT_ENTER, self.onClickUntilSpin)
+        box = wx.FlexGridSizer(rows=3, cols=2, gap=(0, 0))
+        box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'Calibration point'))
+        box.Add(self.calpointComboBox)
+        box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'From'))
+        box.Add(self.fromSpinbox)
+        box.Add(wx.StaticText(paramPanel, wx.ID_ANY, 'Until'))
+        box.Add(self.untilSpinbox)
         paramPanel.SetSizer(box)
 
-        updateButton = wx.Button(commandPanel, wx.ID_ANY, 'Update plot')
-        updateButton.Bind(wx.EVT_BUTTON, self.updateParameters)
+        self.zoomCheckBox = wx.CheckBox(commandPanel, wx.ID_ANY, 'Zoom in when switched')
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(paramPanel)
-        vbox.Add(updateButton, flag=wx.EXPAND|wx.ALL, border=5)
+        vbox.Add(self.zoomCheckBox, flag=wx.EXPAND|wx.ALL, border=5)
         commandPanel.SetSizerAndFit(vbox)
 
-        self.onClickCombobox()
         self.plotData()
         
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -348,103 +333,115 @@ class fixationDetectionDialog(wx.Dialog):
 
     def onClose(self, event=None):
         # self.MakeModal(False)
+        for i in range(self.num_calibration_points):
+            self.parent.calpoint_listbox.SetItem(i,0,str(self.cal_ranges[i][0]))
+            self.parent.calpoint_listbox.SetItem(i,1,str(self.cal_ranges[i][1]))
         self.eventLoop.Exit()
+    
+    def onClickCalpointCombo(self, event=None):
+        self.selected_calpoint = self.calpointComboBox.GetSelection()
+        self.fromSpinbox.SetValue(self.cal_ranges[self.selected_calpoint][0])
+        self.untilSpinbox.SetValue(self.cal_ranges[self.selected_calpoint][1])
+        self.plotData()
 
-    def onClickCombobox(self, event=None):
-        filterStr = self.paramEntryDict['FILTER_TYPE'].GetValue()
-        self.paramEntryDict['FILTER_TYPE'].SetValue(filterStr)
-        if filterStr == 'ma':
-            self.paramEntryDict['FILTER_SIZE'].Enable(True)
-            self.paramEntryDict['FILTER_ORDER'].Enable(False)
-            self.paramEntryDict['FILTER_WN'].Enable(False)
-        elif filterStr in ['butter', 'butter_filtfilt']:
-            self.paramEntryDict['FILTER_SIZE'].Enable(False)
-            self.paramEntryDict['FILTER_ORDER'].Enable(True)
-            self.paramEntryDict['FILTER_WN'].Enable(True)
-        else:
-            self.paramEntryDict['FILTER_SIZE'].Enable(False)
-            self.paramEntryDict['FILTER_ORDER'].Enable(False)
-            self.paramEntryDict['FILTER_WN'].Enable(False)
+    def onClickFromSpin(self, event=None):
+        newval = self.fromSpinbox.GetValue()
+        try:
+            newidx = int(newval)
+        except:
+            DlgShowerror(self, 'Error', '{} is not a valid index'.format(newval))
+            self.fromSpinbox.SetValue(self.cal_ranges[self.selected_calpoint][0])
+            return
+        if newidx >= self.cal_ranges[self.selected_calpoint][1]:
+            DlgShowerror(self, 'Error', '"From" must be smaller than "Until"')
+            self.fromSpinbox.SetValue(self.cal_ranges[self.selected_calpoint][0])
+            return
+        if self.selected_calpoint > 0 and self.cal_ranges[self.selected_calpoint-1][1] >= newidx:
+            DlgShowerror(self, 'Error', 'The range cannot be overlapped with previous one')
+            self.fromSpinbox.SetValue(self.cal_ranges[self.selected_calpoint][0])
+            return
+        self.cal_ranges[self.selected_calpoint][0] = newidx
 
-    def cancel(self, event=None):
-        self.Close()
+        if len(self.calibration_patches) > 0:
+            xy = self.calibration_patches[self.selected_calpoint].xy
+            self.calibration_patches[self.selected_calpoint].xy = (self.cal_ranges[self.selected_calpoint][0], xy[1])
+            self.calibration_patches[self.selected_calpoint].width = self.cal_ranges[self.selected_calpoint][1]-self.cal_ranges[self.selected_calpoint][0]
 
-    def plotData(self):
+        self.plotData(resetAxesRange=False)
+
+
+    def onClickUntilSpin(self, event=None):
+        newval = self.untilSpinbox.GetValue()
+        try:
+            newidx = int(newval)
+        except:
+            DlgShowerror(self, 'Error', '{} is not a valid index'.format(newval))
+            self.untilSpinbox.SetValue(self.cal_ranges[self.selected_calpoint][1])
+            return
+        if newidx <= self.cal_ranges[self.selected_calpoint][0]:
+            DlgShowerror(self, 'Error', '"Until" must be larger than "From"')
+            self.untilSpinbox.SetValue(self.cal_ranges[self.selected_calpoint][1])
+            return
+        if self.selected_calpoint < self.num_calibration_points-1 and self.cal_ranges[self.selected_calpoint+1][0] <= newidx:
+            DlgShowerror(self, 'Error', 'The range cannot be overlapped with succeeding one')
+            self.untilSpinbox.SetValue(self.cal_ranges[self.selected_calpoint][1])
+            return
+        self.cal_ranges[self.selected_calpoint][1] = newidx
+
+        if len(self.calibration_patches) > 0:
+            self.calibration_patches[self.selected_calpoint].width = self.cal_ranges[self.selected_calpoint][1]-self.cal_ranges[self.selected_calpoint][0]
+
+        self.plotData(resetAxesRange=False)
+
+
+    def plotData(self, resetAxesRange=True):
+        if not resetAxesRange:
+            x_range = self.ax.get_xlim()
+            y_range = self.ax.get_ylim()
         self.ax.clear()
 
         COLOR_TRAJECTORY_L_X = '#0000FF'
         COLOR_TRAJECTORY_L_Y = '#0088FF'
         COLOR_TRAJECTORY_R_X = '#FF0000'
         COLOR_TRAJECTORY_R_Y = '#FF8800'
-        COLOR_FIXATION_FC = '#000000'
-        COLOR_FIXATION_BG = '#CCCCCC'
-        COLOR_SACCADE_HATCH = '#3333CC'
 
-        if self.newL is not None:
-            self.ax.plot(self.T, self.newL[:, 0], ':', color=COLOR_TRAJECTORY_L_X, linewidth=3)
-            self.ax.plot(self.T, self.newL[:, 1], ':', color=COLOR_TRAJECTORY_L_Y, linewidth=3)
-        if self.newR is not None:
-            self.ax.plot(self.T, self.newR[:, 0], ':', color=COLOR_TRAJECTORY_R_X, linewidth=3)
-            self.ax.plot(self.T, self.newR[:, 1], ':', color=COLOR_TRAJECTORY_R_Y, linewidth=3)
-        self.ax.plot(self.T, self.L[:, 0], '.-', color=COLOR_TRAJECTORY_L_X, linewidth=1)
-        self.ax.plot(self.T, self.L[:, 1], '.-', color=COLOR_TRAJECTORY_L_Y, linewidth=1)
-        self.ax.plot(self.T, self.R[:, 0], '.-', color=COLOR_TRAJECTORY_R_X, linewidth=1)
-        self.ax.plot(self.T, self.R[:, 1], '.-', color=COLOR_TRAJECTORY_R_Y, linewidth=1)
 
-        if self.newSacList is not None and self.newFixList is not None:
-            for f in range(len(self.newFixList)):
-                self.ax.text(self.newFixList[f].startTime, self.newFixList[f].center[0], str(f), color=COLOR_FIXATION_FC,
-                            bbox=dict(boxstyle="round", fc=COLOR_FIXATION_BG, clip_on=True, clip_box=self.ax.bbox), clip_on=True)
+        self.ax.plot(self.I, self.L[:, 0], '.-', color=COLOR_TRAJECTORY_L_X, linewidth=1)
+        self.ax.plot(self.I, self.L[:, 1], '.-', color=COLOR_TRAJECTORY_L_Y, linewidth=1)
+        self.ax.plot(self.I, self.R[:, 0], '.-', color=COLOR_TRAJECTORY_R_X, linewidth=1)
+        self.ax.plot(self.I, self.R[:, 1], '.-', color=COLOR_TRAJECTORY_R_Y, linewidth=1)
 
-            for s in range(len(self.newSacList)):
-                self.ax.add_patch(matplotlib.patches.Rectangle([self.newSacList[s].startTime, -1000], self.newSacList[s].duration, 2000,
-                                fc=COLOR_SACCADE_HATCH, alpha=0.3))  # hatch='///', 
+        self.calibration_patches = []
+        for calpoint_idx in range(self.num_calibration_points):
+            fidx = self.cal_ranges[calpoint_idx][0]
+            uidx = self.cal_ranges[calpoint_idx][1]
+            #p = str2points(self.parent.calpoint_listbox.GetItem(calpoint_idx, 2).GetText())
 
-        #self.ax.axis(self.currentPlotArea)
-        #self.ax.set_title('%s: Trial %d / %d' % (os.path.basename(self.dataFileName), self.tr+1, len(self.D)), fontproperties=self.fontPlotText)
+            w = uidx-fidx
+            b = min(self.L.min(),self.R.min())
+            h = max(self.L.max(),self.R.max())-b
+            b -= 0.1*h
+            h += 0.2*h
+            fill_color = '#FF000000' if calpoint_idx == self.selected_calpoint else '#444444'
+            self.calibration_patches.append(self.ax.add_patch(matplotlib.patches.Rectangle([fidx, b], w, h,
+                                fc=fill_color, alpha=0.3)))  # hatch='\\\\\\', 
+            self.ax.text(fidx, b+h, str(calpoint_idx+1), color='#000000',
+                         bbox=dict(boxstyle="round", fc='#FFFFFF', clip_on=True, clip_box=self.ax.bbox), clip_on=True)
+
+        self.ax.plot()
+
+        if not resetAxesRange:
+            self.ax.set_xlim(x_range)
+            self.ax.set_ylim(y_range)
+        elif self.zoomCheckBox.GetValue():
+            f, u = self.cal_ranges[self.selected_calpoint]
+            margin = int((u-f)/2)
+            self.ax.set_xlim((max(0,f-margin),min(len(self.I),u+margin)))
+        else:
+            self.ax.set_xlim((0,len(self.I)))
 
         self.fig.canvas.draw()
 
-    def updateParameters(self, event=None):
-        try:
-            for key in GazeParser.Configuration.GazeParserOptions:
-                value = self.paramEntryDict[key].GetValue()
-                if isinstance(GazeParser.Configuration.GazeParserDefaults[key], int):
-                    setattr(self.newConfig, key, int(value))
-                elif isinstance(GazeParser.Configuration.GazeParserDefaults[key], float):
-                    setattr(self.newConfig, key, float(value))
-                else:
-                    setattr(self.newConfig, key, value)
-        except:
-            DlgShowerror(self, 'Error', 'Illeagal value in '+key)
-            return
-
-        try:
-            # from GazeParser.Converter.TrackerToGazeParser
-            self.newL = cvt.applyFilter(self.T, self.L, self.newConfig, decimals=8)
-            self.newR = cvt.applyFilter(self.T, self.R, self.newConfig, decimals=8)
-            if self.newConfig.AVERAGE_LR == 0:
-                (SacList, FixList, _) = cvt.buildEventListBinocular(self.T, self.newL, self.newR, self.newConfig)
-            elif self.newConfig.AVERAGE_LR == 1:
-                newB = np.nanmean([self.newL, self.newR], axis=0)
-                (SacList, FixList, _) = cvt.buildEventListMonocular(self.T, newB, self.newConfig)
-            else:
-                raise ValueError('AVERAGE_LR must be 0 or 1')
-            self.newSacList = SacList
-            self.newFixList = FixList
-
-        except:
-            info = sys.exc_info()
-            tbinfo = traceback.format_tb(info[2])
-            errormsg = ''
-            for tbi in tbinfo:
-                errormsg += tbi
-            errormsg += '  %s' % str(info[1])
-            DlgShowerror(self, 'Error', errormsg)
-            self.newSacList = None
-            self.newFixList = None
-        else:
-            self.plotData()        
 
 class gazeDetectionDialog(wx.Dialog):
     def __init__(self, parent):
@@ -461,10 +458,10 @@ class gazeDetectionDialog(wx.Dialog):
         self.mediapanel.SetSizer(mediasizer)
 
         self.buttonpanel = wx.Panel(self,wx.ID_ANY)
-        self.message_text = wx.StaticText(self.buttonpanel,wx.ID_ANY,'-/- calibration points  -/- frames          ')
+        self.message_text = wx.StaticText(self.buttonpanel,wx.ID_ANY,'-/- frames          ')
         self.button_cancel = wx.Button(self.buttonpanel,wx.ID_CANCEL,"Cancel")
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.message_text,0,wx.RIGHT, 10)
+        sizer.Add(self.message_text,0,wx.RIGHT, 50)
         sizer.Add(self.button_cancel,0,wx.ALIGN_CENTER)
         self.buttonpanel.SetSizer(sizer)
 
@@ -492,6 +489,8 @@ class gazeDetectionDialog(wx.Dialog):
         for current_frame in range(self.parent.movie_frames):
             if not self.running:
                 return
+            
+            self.message_text.SetLabel('{}/{} frames'.format(current_frame,self.parent.movie_frames))
 
             _, frame = cap.read()
             frame_mono = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -552,6 +551,8 @@ class gazeDetectionDialog(wx.Dialog):
             if not detect_face:
                 xL, yL, xR, yR = (np.nan, np.nan, np.nan, np.nan)
                 face = None
+                left_eye = None
+                right_eye = None
             else:
                 if not left_eye.blink:
                     xL, yL = calc_gaze_position(face, left_eye, self.parent.screen, fitting_param=None, filter=None)
@@ -572,17 +573,43 @@ class gazeDetectionDialog(wx.Dialog):
 
     
         
-class showCalibrationResultsDialog(wx.Dialog):
+class calibrationResultsDialog(wx.Dialog):
     def __init__(self, parent, calibration_data, id=wx.ID_ANY):
-        super(showCalibrationResultsDialog, self).__init__(parent=parent, id=id, title='')
+        super(calibrationResultsDialog, self).__init__(parent=parent, id=id, title='')
+        self.parent = parent
+
+        self.mediapanel = wx.Panel(self,wx.ID_ANY)
+        self.camera_view = camera_view(self.mediapanel, wx.ID_ANY, wx.Bitmap(self.parent.camera_view_width,self.parent.camera_view_height))
+        mediasizer = wx.BoxSizer()
+        mediasizer.Add(self.camera_view)
+        self.mediapanel.SetSizer(mediasizer)
+
+        self.results_text = wx.TextCtrl(self, wx.ID_ANY, '\n\n\n', style=wx.TE_MULTILINE|wx.TE_READONLY)
+
+        self.buttonpanel = wx.Panel(self,wx.ID_ANY)
+        self.message_text = wx.StaticText(self.buttonpanel,wx.ID_ANY,'-/- calibration points  -/- frames          ')
+        self.button_save = wx.Button(self.buttonpanel,wx.ID_ANY,"Save")
+        self.button_cancel = wx.Button(self.buttonpanel,wx.ID_CANCEL,"Cancel")
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.message_text,0,wx.RIGHT, 10)
+        sizer.Add(self.button_save,0,wx.ALIGN_CENTER)
+        sizer.Add(self.button_cancel,0,wx.ALIGN_CENTER)
+        self.buttonpanel.SetSizer(sizer)
+
+        self.button_save.Enable(False)
+        self.button_save.Bind(wx.EVT_BUTTON, self.save)
+
+        mainsizer = wx.BoxSizer(wx.VERTICAL)
+        mainsizer.Add(self.mediapanel,4,wx.EXPAND)
+        mainsizer.Add(self.results_text,0,wx.EXPAND)
+        mainsizer.Add(self.buttonpanel,0,wx.ALIGN_RIGHT|wx.ALL, 10)
+        self.SetSizer(mainsizer)
+        self.Fit()
+
 
         # run fitting
         fitting_param = LM_calibration(calibration_data, self.parent.screen)
         results = calc_calibration_results(calibration_data, self.parent.screen, fitting_param)
-
-        # if dialog has already been closed, return
-        if not self.running:
-            return
 
         # draw results
         canvas = np.zeros((self.parent.camera_view_height,self.parent.camera_view_width,3),dtype=np.uint8)
@@ -594,6 +621,7 @@ class showCalibrationResultsDialog(wx.Dialog):
         scale = (tymax-tymin)/self.parent.camera_view_height
         if (txmax-txmin)*scale > self.parent.camera_view_width:
             scale = (txmax-txmin)/self.parent.camera_view_width
+        #TODO show error if scale = 0
         for i in range(3):
             data[:,2*i]   = (data[:,2*i]  -txcenter)/scale + self.parent.camera_view_width/2
             data[:,2*i+1] = (data[:,2*i+1]-tycenter)/scale + self.parent.camera_view_height/2
@@ -719,6 +747,9 @@ class offline_calibration_app(wx.Frame):
         self.camera_view_width = 600
         self.camera_view_height = 340
         self.camera_view_scale = 1.0
+
+        self.raw_gaze = None
+        self.face_eye_data = None
 
         self.camera_matrix = config.camera_matrix
         self.downscaling_factor = config.downscaling_factor
@@ -1060,6 +1091,9 @@ class offline_calibration_app(wx.Frame):
 
             self.status_movie_filename.SetLabel(filename)
 
+            self.raw_gaze = None
+            self.face_eye_data = None
+
         else:
             self.cap = None
 
@@ -1264,18 +1298,32 @@ class offline_calibration_app(wx.Frame):
         for id in menu_items_all:
             self.menu_bar.Enable(id, False)
 
-        dlg = gazeDetectionDialog(parent=self)
-        dlg.ShowModal()
-        if dlg.thread.is_alive():
-            dlg.running = False
-        raw_gaze = dlg.raw_gaze
-        face_eye_data = dlg.face_eye_data
-        dlg.Destroy()
+        if self.raw_gaze is None:
+            dlg = gazeDetectionDialog(parent=self)
+            dlg.ShowModal()
+            if dlg.thread.is_alive():
+                dlg.running = False
+            self.raw_gaze = dlg.raw_gaze
+            self.face_eye_data = dlg.face_eye_data
+            dlg.Destroy()
         
-        dlg = fixationDetectionDialog(raw_gaze)
+        dlg = gazeResultsDialog(self, self.raw_gaze)
         dlg.Destroy()
-        
-        dlg = showCalibrationResultsDialog(parent=self)
+
+        num_calibration_points = self.calpoint_listbox.GetItemCount()
+        calibration_data = []
+   
+        for calpoint_idx in range(num_calibration_points):
+            fidx = int(self.calpoint_listbox.GetItem(calpoint_idx, 0).GetText())
+            uidx = int(self.calpoint_listbox.GetItem(calpoint_idx, 1).GetText())
+            calibration_sample_point = str2points(self.calpoint_listbox.GetItem(calpoint_idx, 2).GetText())
+
+            for i in range(fidx, uidx):
+                face, leye, reye = self.face_eye_data[i]
+                if (face is not None) and (not leye.blink) and (not reye.blink):
+                    calibration_data.append((calibration_sample_point, face, leye, reye))
+
+        dlg = calibrationResultsDialog(parent=self, calibration_data=calibration_data)
         dlg.ShowModal()
         dlg.Destroy()
 
