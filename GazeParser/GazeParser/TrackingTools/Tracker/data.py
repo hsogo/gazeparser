@@ -62,7 +62,7 @@ class gazedata(object):
         if self.fp is None or self.recording:
             return
         
-        # TODO iinsert saccade-related information
+        # TODO insert saccade-related information
 
 
     def append_data(self, t, face, left_eye, right_eye, screen, fitting_param, filterL, filterR):
@@ -131,7 +131,8 @@ class gazedata(object):
         if ma==1:
             return self.recording_data[-1][1:5]
         else:
-            return np.nanmean(self.recording_data[-ma:][1:5], axis=0)
+            tmp = np.array(self.recording_data[-ma:], dtype=float)
+            return np.nanmean(tmp[:,1:5], axis=0)
 
     def stop_recording(self):
         self.flush()
