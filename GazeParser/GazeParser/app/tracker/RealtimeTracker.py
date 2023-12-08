@@ -23,7 +23,7 @@ from ...TrackingTools.Tracker.screen import screen
 from ...TrackingTools.Tracker.data import gazedata
 from ...TrackingTools.Tracker.util import LM_calibration, calc_calibration_results
 from ...TrackingTools.Tracker.iris_detectors import get_iris_detector
-from .._dialogs import DlgAskopenfilename
+from .._dialogs import DlgAskopenfilename, DlgShowerror, DlgShowinfo
 
 import dlib
 import cv2
@@ -227,12 +227,24 @@ class Tracker(wx.Frame):
         if filename == '':
             return
         
-        self.config.load_camera_param(filename)
-
+        conf = configuration()
+        try:
+            conf.load_camera_param(filename)
+        except:
+            DlgShowerror(self, 'Error', 'Could not read {} as a configuration file.'.format(filename))
+            return
+        
+        if self.config.camera_resolution_h != conf.camera_resolution_h or self.config.camera_resolution_v != conf.camera_resolution_v:
+            DlgShowinfo(self, 'Info', 'Camera resolution ({},{}) defined in "{}" differs from the current resolution ({},{}). '
+                        'Camera resolution can be set only at startup. No other settings were changed either.'.format(
+                conf.camera_resolution_h, conf.camera_resolution_v, filename,
+                self.config.camera_resolution_h, self.config.camera_resolution_v
+            ))
+            return
+        
+        self.config = conf
         self.camera_matrix = self.config.camera_matrix
         self.downscaling_factor = self.config.downscaling_factor
-
-        #TODO update preview if necessary!
 
         self.screen = screen()
         self.screen.set_parameters(
@@ -394,10 +406,10 @@ class Tracker(wx.Frame):
                         self.insert_message(data[i+i])
                         i += 2
                     elif command == b'getEyePosition':
-                        # TODO ma, nan
                         ma = int(data[i+1])
                         if self.data is not None and self.data.has_data():
-                            (lx, ly, rx, ry) = self.data.get_latest_gazepoint()
+                            (lx, ly, rx, ry) = self.data.get_latest_gazepoint(ma)
+                            # TODO: support pupil size
                             response = ('{:.0f},{:.0f},{:.0f},{:.0f},{:.0f},{:.0f}'+chr(0)).format(
                                 lx, ly, rx, ry, 0.0, 0.0)
                         else:
@@ -426,7 +438,7 @@ class Tracker(wx.Frame):
                         points = np.array([int(v) for v in data[i+1].split(b',')]).reshape(-1,2)
                         self.delete_CalibrationData_Subset(points)
                         i += 1
-                    # TODO simple calibrationが使い物になるか今後検討する
+                    # TODO test if simple calibration practically works.
                     elif command == b'startSimpleCalibration':
                         param = list(map(int, data[i+1].split(b',')))
                         param.append(int(data[i+2]))
@@ -458,8 +470,8 @@ class Tracker(wx.Frame):
             calibrationless_output=self.config.calibrationless_output)
         
     def insert_settings(self, settings):
-        # TODO embed settings_list?
         settings_list = settings.split('/')
+        self.data.insert_settings(settings_list)
     
     def close_datafile(self):
         self.data.close()
@@ -749,9 +761,3 @@ if __name__ == '__main__':
     app.MainLoop()
 
     cap.release()
-
-    #TODO
-    update_config_files = False
-    if update_config_files:
-        conf.save_camera_param(camera_param_file)
-        conf.save_face_model(face_model_file)
