@@ -7,7 +7,6 @@ import GazeParser.TrackingTools
 import sys
 
 if __name__ == '__main__':
-
     dlg = psychopy.gui.Dlg(title='GazeParser.TrackingTools.Tracker calibration demo')
     dlg.addText('Screen (PsychoPy monitor name takes precedence over Screen resolution/width)')
     dlg.addField('Screen resolution(comma-separated)','1920,1080')
@@ -29,17 +28,28 @@ if __name__ == '__main__':
         data_filename = params[4]
     else:
         sys.exit()
-
+    
     win = psychopy.visual.Window(size=screen_size, units='pix', monitor=monitor, fullscr=fullscr)
     probe = psychopy.visual.Rect(win, width=10, height=10)
     probe_L = psychopy.visual.Rect(win, width=10, height=10, fillColor='blue', lineColor='blue')
     probe_R = psychopy.visual.Rect(win, width=10, height=10, fillColor='red', lineColor='red')
 
     tracker = GazeParser.TrackingTools.getController(backend='PsychoPy')
-    tracker.isMonocularRecording = False  #TODO
+    tracker.isMonocularRecording = False  # Rocording mode must be binocular
     tracker.CAMERA_SAMPLING_RATE = 15
 
-    tracker.connect('localhost')
+    try:
+        tracker.connect('localhost')
+    except:
+        win.close()
+        dlg = psychopy.gui.Dlg(title='Error')
+        dlg.addText('Could not connect to Tracker.  Make sure that Tracker has been started.'
+                    '\nTo start Tracker from command line, type following command.')
+        dlg.addText('<b>python -m GazeParser.app.tracker.RealtimeTracker</b>')
+        dlg.addText('Run with --help option to show help.')
+        dlg.show()
+
+        sys.exit()
 
     w = screen_size[0]/2
     h = screen_size[1]/2
