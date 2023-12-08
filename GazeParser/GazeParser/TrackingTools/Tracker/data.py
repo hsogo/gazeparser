@@ -58,7 +58,12 @@ class gazedata(object):
 
         self.fp.write(format_string)
 
-        #TODO output other information
+    def insert_settings(self, settings_list):
+        if self.fp is None or self.recording:
+            return
+        
+        # TODO iinsert saccade-related information
+
 
     def append_data(self, t, face, left_eye, right_eye, screen, fitting_param, filterL, filterR):
         data = (t,)
@@ -119,11 +124,14 @@ class gazedata(object):
         self.recording_data = []
         self.message_data = []
     
-    def get_latest_gazepoint(self):
-        if self.recording_data == [] or (not self.calibrated_output):
+    def get_latest_gazepoint(self, ma=1):
+        if self.recording_data == []:
             return
         
-        return self.recording_data[-1][1:5]
+        if ma==1:
+            return self.recording_data[-1][1:5]
+        else:
+            return np.nanmean(self.recording_data[-ma:][1:5], axis=0)
 
     def stop_recording(self):
         self.flush()
