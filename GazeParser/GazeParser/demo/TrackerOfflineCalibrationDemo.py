@@ -89,6 +89,30 @@ if __name__ == '__main__':
     else:
         sys.exit()
 
+    print('opening camera...')
+    if not cap.open(camera_id):
+        print('Cannot open Camera (id={})'.format(camera_id))
+        sys.exit()
+
+    image_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    image_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    while True:
+        ret, frame = cap.read()
+        if ret:
+            cv2.putText(frame, 'Space: continue / ESC: abort', (10, image_height-10), cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=1.0, color=(0, 0, 0), thickness=5)
+            cv2.putText(frame, 'Space: continue / ESC: abort', (10, image_height-10), cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=1.0, color=(255, 255, 255), thickness=2)
+            cv2.imshow('Camera Preview', frame)
+        k = cv2.waitKey(1)
+        if k == 32 or k == 27:
+            break
+    cv2.destroyAllWindows()
+
+    if k == 27:
+        sys.exit()
+
     calibration_target_dot_size = 2.0
     calibration_target_disc_size = 2.0*20
 
@@ -123,10 +147,6 @@ if __name__ == '__main__':
         'calibration_target_disc_size':calibration_target_disc_size,
     }
 
-    if not cap.open(camera_id):
-        print('Cannot open Camera (id={})'.format(camera_id))
-        sys.exit()
-    
     message.text = 'Press space key to start session 1'
     message.draw()
     win.flip()
@@ -141,9 +161,10 @@ if __name__ == '__main__':
     thread.start()
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    if not writer.open(filename+'_1.mp4', fourcc, 30, (640,480)):
+    if not writer.open(filename+'_1.mp4', fourcc, 30, (image_width, image_height)):
         print('Cannot open movie file ({})'.format(filename+'_1.mp4'))
         cap.release()
+        win.close()
         sys.exit()
     frame_counter = 0
 
@@ -159,9 +180,10 @@ if __name__ == '__main__':
     fp.write('From,Until,Point\n')
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    if not writer.open(filename+'_2.mp4', fourcc, 30, (640,480)):
+    if not writer.open(filename+'_2.mp4', fourcc, 30, (image_width, image_height)):
         print('Cannot open movie file ({})'.format(filename+'_2.mp4'))
         cap.release()
+        win.close()
         sys.exit()
     frame_counter = 0
 
