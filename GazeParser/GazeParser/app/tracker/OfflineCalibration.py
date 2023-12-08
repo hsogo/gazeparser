@@ -606,6 +606,10 @@ class calibrationResultsDialog(wx.Dialog):
         self.SetSizer(mainsizer)
         self.Fit()
 
+        if len(calibration_data) == 0:
+            DlgShowerror(self, 'Error', 'No calibration data.')
+            wx.CallAfter(self.Close)
+            return
 
         # run fitting
         fitting_param = LM_calibration(calibration_data, self.parent.screen)
@@ -617,11 +621,14 @@ class calibrationResultsDialog(wx.Dialog):
 
         txmin, txmax = (1.25*min(data[:,0]),1.25*max(data[:,0]))
         tymin, tymax = (1.25*min(data[:,1]),1.25*max(data[:,1]))
+        if txmin == txmax or tymin==tymax:
+            DlgShowerror(self, 'Error', 'All calibration points have the X or Y coordinates.')
+            wx.CallAfter(self.Close)
+            return
         txcenter, tycenter = ((txmax+txmin)/2, (tymax+tymin)/2)
         scale = (tymax-tymin)/self.parent.camera_view_height
         if (txmax-txmin)*scale > self.parent.camera_view_width:
             scale = (txmax-txmin)/self.parent.camera_view_width
-        #TODO show error if scale = 0
         for i in range(3):
             data[:,2*i]   = (data[:,2*i]  -txcenter)/scale + self.parent.camera_view_width/2
             data[:,2*i+1] = (data[:,2*i+1]-tycenter)/scale + self.parent.camera_view_height/2
