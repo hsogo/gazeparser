@@ -218,7 +218,6 @@ def buildEventListBinocular(T, LHV, RHV, config):
         fixCandDur = np.array([T[-1]-T[0]])
 
     # find blinks
-    # TODO: check break of fixation and saccades by blink.
     if len(blinkCandDur) > 0:
         idx = blinkCandDur > config.BLINK_MINIMUM_DURATION
         blinkCand = blinkCand[idx, :]
@@ -328,7 +327,6 @@ def buildEventListMonocular(T, HV, config):
         fixCandDur = np.array([T[-1]-T[0]])
 
     # find blinks
-    # TODO: check break of fixation and saccades by blink.
     if len(blinkCandDur) > 0:
         idx = blinkCandDur > config.BLINK_MINIMUM_DURATION
         blinkCand = blinkCand[idx, :]

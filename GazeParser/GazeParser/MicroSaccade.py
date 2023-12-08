@@ -269,7 +269,6 @@ def buildMicroSaccadeListBinocular(gazeData, samplingFreq=None, velocityType='sl
     T = gazeData.T
     HV = (gazeData.L + gazeData.R / 2.0)
 
-    # TODO check results
     saclist = []
     for index in range(len(saclist)):
         sx = HV[ms[index, 0], 0]
