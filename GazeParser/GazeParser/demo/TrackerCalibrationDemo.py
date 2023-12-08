@@ -5,6 +5,7 @@ import psychopy.gui
 import psychopy.monitors
 import GazeParser.TrackingTools
 import sys
+import numpy as np
 
 if __name__ == '__main__':
     dlg = psychopy.gui.Dlg(title='GazeParser.TrackingTools.Tracker calibration demo')
@@ -14,6 +15,8 @@ if __name__ == '__main__':
     dlg.addField('PsychoPy Monitor name','')
     dlg.addField('Full Scrren mode',choices=[True,False])
     dlg.addField('Filename','cal_stim_data.csv')
+    dlg.addField('Moving average (>2)',5)
+    dlg.addField('Jump every... (frames, >20)',30)
     params = dlg.show()
     if dlg.OK:
         if params[2] == '': # monitor name is not specified
@@ -26,13 +29,32 @@ if __name__ == '__main__':
             screen_size = monitor.getSizePix()
         fullscr = params[3]
         data_filename = params[4]
+        n_ma = params[5]
+        stim_dur = params[6]
     else:
+        sys.exit()
+    
+    if n_ma <= 2:
+        dlg = psychopy.gui.Dlg(title='Error')
+        if hasattr(dlg,'validate'):
+            dlg.validate() # hide message about required fields
+        dlg.addText('"Moving average" must be greater than 2.')
+        dlg.show()
+        sys.exit()
+    if stim_dur <= 10:
+        dlg = psychopy.gui.Dlg(title='Error')
+        if hasattr(dlg,'validate'):
+            dlg.validate() # hide message about required fields
+        dlg.addText('"Jump every..." must be greater than 20.')
+        dlg.show()
         sys.exit()
     
     win = psychopy.visual.Window(size=screen_size, units='pix', monitor=monitor, fullscr=fullscr)
     probe = psychopy.visual.Rect(win, width=10, height=10)
     probe_L = psychopy.visual.Rect(win, width=10, height=10, fillColor='blue', lineColor='blue')
     probe_R = psychopy.visual.Rect(win, width=10, height=10, fillColor='red', lineColor='red')
+    square_stim = psychopy.visual.Rect(win, width=30, height=30, fillColor=None, lineColor='lime')
+    message = psychopy.visual.TextStim(win, 'Space: Toggle moving average\nESC: Quit', height=screen_size[1]/50, pos=(0,-screen_size[1]/4))
 
     tracker = GazeParser.TrackingTools.getController(backend='PsychoPy')
     tracker.isMonocularRecording = False  # Rocording mode must be binocular
@@ -43,6 +65,8 @@ if __name__ == '__main__':
     except:
         win.close()
         dlg = psychopy.gui.Dlg(title='Error')
+        if hasattr(dlg,'validate'):
+            dlg.validate() # hide message about required fields
         dlg.addText('Could not connect to Tracker.  Make sure that Tracker has been started.'
                     '\nTo start Tracker from command line, type following command.')
         dlg.addText('<b>python -m GazeParser.app.tracker.RealtimeTracker</b>')
@@ -69,24 +93,6 @@ if __name__ == '__main__':
 
     tracker.calibrationLoop()
 
-    """
-    probe.pos = (0.0, 0.0)
-    probe.lineColor = (1,-1,-1)
-    probe.draw()
-    win.flip()
-    psychopy.core.wait(1.0)
-
-    tracker.sendCommand('startSimpleCalibration'+chr(0)+str('0')+chr(0)+str('0')+chr(0))
-    probe.pos = (0.0, 0.0)
-    probe.lineColor = (-1,1,-1)
-    probe.draw()
-    win.flip()
-    psychopy.core.wait(10.0)
-    tracker.sendCommand('endSimpleCalibration'+chr(0))
-
-    probe.lineColor = (1,1,1)
-    """
-
     if not tracker.isCalibrationFinished():
         try:
             win.close()
@@ -96,26 +102,48 @@ if __name__ == '__main__':
         sys.exit()
 
     wait_key = True
+    ma = False
+    frame = 0
     tracker.startRecording()
     while wait_key:
-        gaze_pos = tracker.getEyePosition(timeout=0.2)
+        if ma:
+            gaze_pos = tracker.getEyePosition(timeout=0.2, ma=10)
+        else:
+            gaze_pos = tracker.getEyePosition(timeout=0.2)
         if gaze_pos[0] is not None:
             probe.pos = ((gaze_pos[0]+gaze_pos[2])/2, (gaze_pos[1]+gaze_pos[3])/2)
             probe_L.pos = gaze_pos[0:2]
             probe_R.pos = gaze_pos[2:4]
+
+        n = frame % (stim_dur*4)
+        if 0<=n<stim_dur:
+            square_stim.pos = (-th, -th)
+        elif n<2*stim_dur:
+            square_stim.pos = (-th, th)
+        elif n<3*stim_dur:
+            square_stim.pos = (th, th)
+        else:
+            square_stim.pos = (th, -th)
+        if n%60 == 0:
+            tracker.sendMessage('FRAME:{}/SQUARE:{}'.format(frame,square_stim.pos))
         
+        square_stim.draw()
         probe.draw()
         probe_L.draw()
         probe_R.draw()
+        message.draw()
         win.flip()
         
         keys = psychopy.event.getKeys()
         for key in keys:
             if key == 'space':
-                tracker.sendMessage('Space pressed')
+                ma = not ma
+                tracker.sendMessage('MA:{}'.format(ma))
             elif key == 'escape':
                 wait_key = False
                 break
+        
+        frame += 1
 
     tracker.stopRecording()
     tracker.closeDataFile()
