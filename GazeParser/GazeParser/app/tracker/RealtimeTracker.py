@@ -403,7 +403,7 @@ class Tracker(wx.Frame):
                     elif command == b'stopMeasurement':
                         i += 1
                     elif command == b'insertMessage':
-                        self.insert_message(data[i+i])
+                        self.insert_message(data[i+1])
                         i += 2
                     elif command == b'getEyePosition':
                         ma = int(data[i+1])
