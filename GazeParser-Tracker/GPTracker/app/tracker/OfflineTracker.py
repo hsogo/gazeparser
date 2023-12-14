@@ -1,20 +1,15 @@
 import argparse
 import os
 import queue
-import shutil
 import sys
 import threading
 import time
-from datetime import datetime
-from pathlib import Path
 
 import cv2
 import dlib
 import numpy as np
 import wx
 import wx.lib.newevent
-
-import GazeParser
 
 from ...core.config import config as configuration
 from ...core.data import gazedata
@@ -24,6 +19,7 @@ from ...core.screen import screen
 from ...core.iris_detectors import get_iris_detector
 from .._dialogs import (DlgAskopenfilename, DlgAskyesno,
                         DlgAsksaveasfilename, DlgShowerror, DlgShowinfo)
+from ._util import load_gptracker_config
 
 debug_mode = True
 
@@ -58,8 +54,6 @@ menu_items_all = [
     ID_OUTPUTMODE_NOCAL,
     ID_OUTPUTMODE_BOTH,
 ]
-
-module_dir = Path(__file__).parent.parent.parent
 
 eye_image_width = 256
 eye_image_height = 128
@@ -790,11 +784,8 @@ class Offline_Tracker(wx.Frame):
 
 if __name__ == '__main__':
 
-    camera_param_file = None
-    face_model_file = None
-
     conf = configuration()
-    arg_parser = argparse.ArgumentParser(description='GazeParser offline tracker')
+    arg_parser = argparse.ArgumentParser(description='GazeParser-Tracker offline tracker')
     arg_parser.add_argument('--camera_param', type=str, help='camera parameters file')
     arg_parser.add_argument('--face_model', type=str, help='face model file')
     arg_parser.add_argument('--iris_detector', type=str, help='iris detector (ert, peak, enet or path to detector')
@@ -806,43 +797,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('--force_calibrationless', action='store_true', help='Force calibrationless output (batch mode)')
     args = arg_parser.parse_args()
 
-    appConfigDir = Path(GazeParser.configDir)/'app'
+    camera_param_file, face_model_file, iris_detector = load_gptracker_config(conf, args)
 
-    if not appConfigDir.exists():
-        Path.mkdir(appConfigDir)
-        print('info: {} is created.'.format(appConfigDir))
-
-    defaultconfig = appConfigDir/'tracker.cfg'
-    if not defaultconfig.exists():
-        shutil.copy(module_dir/'app'/'tracker'/'tracker.cfg',defaultconfig)
-        print('info: default config file is created in {}.'.format(appConfigDir))
-    conf.load_application_param(defaultconfig)
-
-    if args.camera_param is None:
-        # read default file
-        cfgfile = appConfigDir/'CamearaParam.cfg'
-        if not cfgfile.exists():
-            shutil.copy(module_dir/'TrackingTools'/'Tracker'/'resources'/'CameraParam.cfg', cfgfile)
-            print('info: default camera parameter file is created in {}.'.format(appConfigDir))
-        conf.load_camera_param(str(cfgfile))
-        camera_param_file = str(cfgfile)
-    else:
-        conf.load_camera_param(args.camera_param)
-
-    if args.face_model is None:
-        cfgfile = appConfigDir/'FaceModel.cfg'
-        if not cfgfile.exists():
-            shutil.copy(module_dir/'TrackingTools'/'Tracker'/'resources'/'FaceModel.cfg',cfgfile)
-            print('info: default face model file is created in {}.'.format(appConfigDir))
-        conf.load_face_model(str(cfgfile))
-        face_model_file = str(cfgfile)
-    else:
-        conf.load_face_model(face_model_file)
-    
-    if args.iris_detector is None:
-        iris_detector = get_iris_detector(conf.iris_detector)
-    else:
-        iris_detector = get_iris_detector(args.iris_detector)
     if iris_detector is None:
         sys.exit()
 

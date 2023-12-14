@@ -4,18 +4,18 @@ import numpy as np
 import cv2
 import argparse
 import codecs
-from ...TrackingTools.Tracker import config
-from ...TrackingTools.Tracker.face import get_face_boxes, get_face_landmarks, facedata
-from ...TrackingTools.Tracker.eye import eyedata
-from ...TrackingTools.Tracker.util import calc_gaze_position, get_eye_rotation
-from ...TrackingTools.Tracker.screen import screen
+from ...core import config
+from ...core.face import get_face_boxes, get_face_landmarks, facedata
+from ...core.eye import eyedata
+from ...core.util import calc_gaze_position, get_eye_rotation
+from ...core.screen import screen
 
 import pandas as pd
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
-    arg_parser = argparse.ArgumentParser(description='GazeParser.TrackingTools.Tracker performance test')
+    arg_parser = argparse.ArgumentParser(description='GazeParser-Tracker performance test')
     arg_parser.add_argument('-i', '--image', type=str, help='Image file or folder', required=True)
     arg_parser.add_argument('-f', '--face_model', type=str, help='face model file')
     arg_parser.add_argument('-c', '--camera_caldata', type=str, help='camera calibration file')
@@ -52,11 +52,11 @@ if __name__ == '__main__':
         output_to_file = True
     
     if args.detector == 'enet':
-        from GazeParser.TrackingTools.Tracker.iris_detectors.enet_detector import enet_detector as iris_detector
+        from ...core.iris_detectors.enet_detector import enet_detector as iris_detector
     elif args.detector == 'peak':
-        from GazeParser.TrackingTools.Tracker.iris_detectors.peak_detector import peak_detector as iris_detector
+        from ...core.iris_detectors.peak_detector import peak_detector as iris_detector
     else: #default = ert detector
-        from GazeParser.TrackingTools.Tracker.iris_detectors.ert_detector import ert_detector as iris_detector
+        from ...core.iris_detectors.ert_detector import ert_detector as iris_detector
 
     for f in files:
         try:
