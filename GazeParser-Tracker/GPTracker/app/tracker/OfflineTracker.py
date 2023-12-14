@@ -16,12 +16,12 @@ import wx.lib.newevent
 
 import GazeParser
 
-from ...TrackingTools.Tracker.config import config as configuration
-from ...TrackingTools.Tracker.data import gazedata
-from ...TrackingTools.Tracker.eye import eye_filter, eyedata
-from ...TrackingTools.Tracker.face import facedata, get_face_boxes, get_face_landmarks
-from ...TrackingTools.Tracker.screen import screen
-from ...TrackingTools.Tracker.iris_detectors import get_iris_detector
+from ...core.config import config as configuration
+from ...core.data import gazedata
+from ...core.eye import eye_filter, eyedata
+from ...core.face import facedata, get_face_boxes, get_face_landmarks
+from ...core.screen import screen
+from ...core.iris_detectors import get_iris_detector
 from .._dialogs import (DlgAskopenfilename, DlgAskyesno,
                         DlgAsksaveasfilename, DlgShowerror, DlgShowinfo)
 

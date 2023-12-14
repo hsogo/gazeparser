@@ -4,11 +4,11 @@ import numpy as np
 import cv2
 import argparse
 import codecs
-from GazeParser.TrackingTools.Tracker import config
-from GazeParser.TrackingTools.Tracker.face import get_face_boxes, get_face_landmarks, facedata
-from GazeParser.TrackingTools.Tracker.eye import eyedata
-from GazeParser.TrackingTools.Tracker.util import calc_gaze_position, get_eye_rotation
-from GazeParser.TrackingTools.Tracker.screen import screen
+from ...TrackingTools.Tracker import config
+from ...TrackingTools.Tracker.face import get_face_boxes, get_face_landmarks, facedata
+from ...TrackingTools.Tracker.eye import eyedata
+from ...TrackingTools.Tracker.util import calc_gaze_position, get_eye_rotation
+from ...TrackingTools.Tracker.screen import screen
 
 import pandas as pd
 import matplotlib.pyplot as plt

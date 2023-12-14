@@ -12,16 +12,16 @@ frame_counter = 0
 cap = cv2.VideoCapture()
 writer = cv2.VideoWriter()
 
-def update_calibration(win, calibration_points, stims, params, fp=None, controller=None):
+def update_screen(win, points, stims, params, fp=None, controller=None):
     clock = psychopy.core.Clock()
     calibration_target_dot, calibration_target_disc = stims
     move_duration = params['move_duration']
     wait_duration = params['wait_duration']
     calibration_target_dot_size = params['calibration_target_dot_size']
     calibration_target_disc_size = params['calibration_target_disc_size']
-    for point_index in range(len(calibration_points)):
-        calibration_target_dot.setPos(calibration_points[point_index])
-        calibration_target_disc.setPos(calibration_points[point_index])
+    for point_index in range(len(points)):
+        calibration_target_dot.setPos(points[point_index])
+        calibration_target_disc.setPos(points[point_index])
         
         clock.reset()
         current_time = clock.getTime()
@@ -39,12 +39,12 @@ def update_calibration(win, calibration_points, stims, params, fp=None, controll
         if fp is not None:
             fp.write('{},'.format(frame_counter))
         if controller is not None:
-            controller.record_event('CALPOINT {},{}'.format(*calibration_points[point_index]))
+            controller.record_event('CALPOINT {},{}'.format(*points[point_index]))
 
         psychopy.core.wait(wait_duration)
 
         if fp is not None:
-            fp.write('{},"({},{})"\n'.format(frame_counter,*calibration_points[point_index]))
+            fp.write('{},"({},{})"\n'.format(frame_counter,*points[point_index]))
         if controller is not None:
             controller.record_event('CALPOINT END')
 
@@ -140,6 +140,13 @@ if __name__ == '__main__':
                     [-tw,   0],[   0,   0],[ tw,   0],
                     [-tw, -th],[   0, -th],[ tw, -th]]
 
+    valTargetPos = [[   0,   0],
+                    [-tw/2,  th],[ tw/2,  th],
+                    [-tw,  tw/2],[   0,   tw/2],[ tw,   tw/2],
+                    [-tw/2,   0],[ tw/2,   0],
+                    [-tw, -tw/2],[   0,  -tw/2],[ tw,  -tw/2],
+                    [-tw/2, -th],[ tw/2, -th],
+
     params = {
         'move_duration':1.5,
         'wait_duration':1.0,
@@ -171,7 +178,7 @@ if __name__ == '__main__':
     fp = open(filename+'_1.csv','w')
     fp.write('From,Until,Point\n')
 
-    update_calibration(win, calTargetPos, (calibration_target_dot, calibration_target_disc), params, fp, controller)
+    update_screen(win, calTargetPos, (calibration_target_dot, calibration_target_disc), params, fp, controller)
 
     fp.close()
     writer.release()
@@ -192,7 +199,7 @@ if __name__ == '__main__':
     win.flip()
     psychopy.event.waitKeys(keyList=['space'])
 
-    update_calibration(win, calTargetPos, (calibration_target_dot, calibration_target_disc),params,fp, controller)
+    update_screen(win, valTargetPos, (calibration_target_dot, calibration_target_disc),params,fp, controller)
 
     fp.close()
     writer.release()
