@@ -4,6 +4,7 @@ import queue
 import sys
 import threading
 import time
+from pathlib import Path
 
 import cv2
 import dlib
@@ -11,13 +12,13 @@ import numpy as np
 import wx
 import wx.lib.newevent
 
-from ...core.config import config as configuration
-from ...core.data import gazedata
-from ...core.eye import eye_filter, eyedata
-from ...core.face import facedata, get_face_boxes, get_face_landmarks
-from ...core.screen import screen
-from ...core.iris_detectors import get_iris_detector
-from .._dialogs import (DlgAskopenfilename, DlgAskyesno,
+from ..core.config import config as configuration
+from ..core.data import gazedata
+from ..core.eye import eye_filter, eyedata
+from ..core.face import facedata, get_face_boxes, get_face_landmarks
+from ..core.screen import screen
+from ..core.iris_detectors import get_iris_detector
+from ._dialogs import (DlgAskopenfilename, DlgAskyesno,
                         DlgAsksaveasfilename, DlgShowerror, DlgShowinfo)
 from ._util import load_gptracker_config
 

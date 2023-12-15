@@ -4,14 +4,11 @@ import numpy as np
 import cv2
 import argparse
 import codecs
-from ...core import config
-from ...core.face import get_face_boxes, get_face_landmarks, facedata
-from ...core.eye import eyedata
-from ...core.util import calc_gaze_position, get_eye_rotation
-from ...core.screen import screen
-
-import pandas as pd
-import matplotlib.pyplot as plt
+from ..core import config
+from ..core.face import get_face_boxes, get_face_landmarks, facedata
+from ..core.eye import eyedata
+from ..core.util import calc_gaze_position, get_eye_rotation
+from ..core.screen import screen
 
 if __name__ == '__main__':
 
@@ -52,11 +49,11 @@ if __name__ == '__main__':
         output_to_file = True
     
     if args.detector == 'enet':
-        from ...core.iris_detectors.enet_detector import enet_detector as iris_detector
+        from ..core.iris_detectors.enet_detector import enet_detector as iris_detector
     elif args.detector == 'peak':
-        from ...core.iris_detectors.peak_detector import peak_detector as iris_detector
+        from ..core.iris_detectors.peak_detector import peak_detector as iris_detector
     else: #default = ert detector
-        from ...core.iris_detectors.ert_detector import ert_detector as iris_detector
+        from ..core.iris_detectors.ert_detector import ert_detector as iris_detector
 
     for f in files:
         try:

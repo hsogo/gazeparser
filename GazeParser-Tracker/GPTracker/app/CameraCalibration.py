@@ -6,7 +6,6 @@ import wx
 import wx.lib.newevent
 import threading
 import queue
-import os
 
 PREVIEW_WIDTH = 960
 PREVIEW_HEIGHT = 540
@@ -547,7 +546,7 @@ class camera_calibration_app(wx.Frame):
             self.obj_points, self.img_points, (self.x, self.y), None, None)
 
         dlg = cal_results_dlg(self,(self.x, self.y),(rms, K, d))
-        res = dlg.ShowModal()
+        dlg.ShowModal()
 
         # np.savetxt("rms.csv", rms, delimiter =',',fmt="%0.14f")
         # np.savetxt("K.csv", K, delimiter =',',fmt="%0.14f")

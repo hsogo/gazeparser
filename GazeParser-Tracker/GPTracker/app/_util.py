@@ -2,7 +2,7 @@ import shutil
 from pathlib import Path
 
 import GazeParser
-from ...core.iris_detectors import get_iris_detector
+from ..core.iris_detectors import get_iris_detector
 
 module_dir = Path(__file__).parent.parent.parent
 

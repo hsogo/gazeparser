@@ -12,13 +12,13 @@ from datetime import datetime
 import sys
 import argparse
 
-from ...core.config import config as configuration
-from ...core.eye import eyedata, eye_filter
-from ...core.face import facedata, get_face_boxes, get_face_landmarks
-from ...core.screen import screen
-from ...core.data import gazedata
-from ...core.util import LM_calibration, calc_calibration_results
-from .._dialogs import DlgAskopenfilename, DlgShowerror, DlgShowinfo
+from ..core.config import config as configuration
+from ..core.eye import eyedata, eye_filter
+from ..core.face import facedata, get_face_boxes, get_face_landmarks
+from ..core.screen import screen
+from ..core.data import gazedata
+from ..core.util import LM_calibration, calc_calibration_results
+from ._dialogs import DlgAskopenfilename, DlgShowerror, DlgShowinfo
 from ._util import load_gptracker_config
 
 import dlib
@@ -62,7 +62,6 @@ class CameraEditDlg(wx.Frame):
     def __init__(self, parent, id=wx.ID_ANY):
         super(CameraEditDlg, self).__init__(parent=parent, id=id)
         panel = wx.Panel(self, -1)
-        bsizer = wx.BoxSizer()
         sizer_basicparam = wx.FlexGridSizer(rows=3, cols=2)
         self.textbox_camera_ID = wx.TextCtrl(panel, -1)
         self.textbox_camera_res = wx.TextCtrl(panel, -1)
@@ -166,7 +165,6 @@ class Tracker(wx.Frame):
         menu_save = wx.Menu()
         menu_camera = wx.Menu()
         menu_option = wx.Menu()
-        menu_datafile_open_mode = wx.Menu()
         menu_output_mode = wx.Menu()
 
         menu_bar.Append(menu_file, 'File')
@@ -682,7 +680,7 @@ if __name__ == '__main__':
     app = wx.App(False)
     if args.select_camera:
         print('Launching camera selector...')
-        from ..tools.CameraSelector import camera_id_selector_dlg
+        from .CameraSelector import camera_id_selector_dlg
         dlg = camera_id_selector_dlg()
         if dlg.ShowModal()==wx.ID_OK:
             #dlg.release_cameras()
