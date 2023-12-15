@@ -61,9 +61,6 @@ def capture(lock):
 
 
 if __name__ == '__main__':
-    arg_parser = argparse.ArgumentParser(description='GazeParser.TrackingTools.Tracker offline calibration demo')
-    arg_parser.add_argument('--use_tobii', action='store_true', help='Simultineous Tobii recording (psychopy_tobii_controller package is required and tobii must be calibrated in advance).')
-    args = arg_parser.parse_args()
 
     dlg = psychopy.gui.Dlg(title='calibration demo')
     dlg.addText('Screen (PsychoPy monitor name takes precedence over Screen resolution/width)')
@@ -73,6 +70,7 @@ if __name__ == '__main__':
     dlg.addField('Full Scrren mode',choices=[True,False])
     dlg.addField('Filename (without file extension)','offline_cal')
     dlg.addField('OpenCV Camera ID','0')
+    dlg.addField('Use Tobii',choices=[False,True])
     params = dlg.show()
     if dlg.OK:
         if params[2] == '': # monitor name is not specified
@@ -86,6 +84,7 @@ if __name__ == '__main__':
         fullscr = params[3]
         filename = params[4]
         camera_id = int(params[5])
+        use_tobii = params[6]
     else:
         sys.exit()
 
@@ -123,7 +122,7 @@ if __name__ == '__main__':
         radius=calibration_target_disc_size, fillColor='lime', lineColor='white', lineWidth=1, autoLog=False)
     message = psychopy.visual.TextStim(win, height=24)
 
-    if args.use_tobii:
+    if use_tobii:
         from psychopy_tobii_controller import tobii_controller
         controller = tobii_controller(win)
         controller.open_datafile(filename+'_tobii.tsv', embed_events=False)
@@ -142,10 +141,10 @@ if __name__ == '__main__':
 
     valTargetPos = [[   0,   0],
                     [-tw/2,  th],[ tw/2,  th],
-                    [-tw,  tw/2],[   0,   tw/2],[ tw,   tw/2],
+                    [-tw,  th/2],[   0,   th/2],[ tw,   th/2],
                     [-tw/2,   0],[ tw/2,   0],
-                    [-tw, -tw/2],[   0,  -tw/2],[ tw,  -tw/2],
-                    [-tw/2, -th],[ tw/2, -th],
+                    [-tw, -th/2],[   0,  -th/2],[ tw,  -th/2],
+                    [-tw/2, -th],[ tw/2, -th]]
 
     params = {
         'move_duration':1.5,
@@ -159,7 +158,7 @@ if __name__ == '__main__':
     win.flip()
     psychopy.event.waitKeys(keyList=['space'])
 
-    if args.use_tobii:
+    if use_tobii:
         controller.subscribe(wait=True)
 
     lock = threading.Lock() 
@@ -204,7 +203,7 @@ if __name__ == '__main__':
     fp.close()
     writer.release()
 
-    if args.use_tobii:
+    if use_tobii:
         controller.unsubscribe()
         controller.close_datafile()
 
