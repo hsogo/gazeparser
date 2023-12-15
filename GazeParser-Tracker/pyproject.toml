@@ -24,7 +24,8 @@ dependencies = [
     "scipy",
     "wxpython",
     "psychopy",
-    "dlib",
+    "dlib; sys_platform != 'win32'",
+    "dlib-binary; sys_platform == 'win32'",
     "tensorflow",
     "opencv-python",
     "GazeParser"
