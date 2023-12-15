@@ -110,7 +110,7 @@ class fullscreen_cross(wx.Frame):
             self.tc_rotX.GetValue()
         )
         dlg = results_dlg(self, results)
-        res = dlg.ShowModal()
+        dlg.ShowModal()
         self.Destroy()
 
     def on_Cancel(self, event):

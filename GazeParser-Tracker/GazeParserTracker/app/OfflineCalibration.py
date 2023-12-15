@@ -18,13 +18,13 @@ import matplotlib.figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg, NavigationToolbar2WxAgg
 import traceback
 
-from ...core.config import config as configuration
-from ...core.eye import eye_filter, eyedata
-from ...core.face import facedata, get_face_boxes, get_face_landmarks
-from ...core.screen import screen
-from ...core.util import LM_calibration, calc_calibration_results, calc_gaze_position
-from ...core.iris_detectors import get_iris_detector
-from .._dialogs import (DlgAskopenfilename, DlgAsksaveasfilename, DlgAskyesno,
+from ..core.config import config as configuration
+from ..core.eye import eye_filter, eyedata
+from ..core.face import facedata, get_face_boxes, get_face_landmarks
+from ..core.screen import screen
+from ..core.util import LM_calibration, calc_calibration_results, calc_gaze_position
+from ..core.iris_detectors import get_iris_detector
+from ._dialogs import (DlgAskopenfilename, DlgAsksaveasfilename, DlgAskyesno,
                         DlgShowerror, DlgShowinfo)
 from ._util import load_gptracker_config
 
