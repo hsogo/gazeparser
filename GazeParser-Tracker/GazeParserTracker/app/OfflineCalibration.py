@@ -218,10 +218,11 @@ class gazeResultsDialog(wx.Dialog):
             #p = str2points(self.parent.calpoint_listbox.GetItem(calpoint_idx, 2).GetText())
 
             w = uidx-fidx
-            b = min(self.L.min(),self.R.min())
-            h = max(self.L.max(),self.R.max())-b
+            b = min(self.L.nanmin(),self.R.nanmin())
+            h = max(self.L.nanmax(),self.R.nanmax())-b
             b -= 0.1*h
             h += 0.2*h
+            print('hoge:',w,b,h)
             fill_color = '#FF000000' if calpoint_idx == self.selected_calpoint else '#444444'
             self.calibration_patches.append(self.ax.add_patch(matplotlib.patches.Rectangle([fidx, b], w, h,
                                 fc=fill_color, alpha=0.3)))  # hatch='\\\\\\', 
@@ -856,7 +857,7 @@ class offline_calibration_app(wx.Frame):
         data = [self.calpoint_listbox.GetItem(selected[0],i).GetText() for i in range(3)]
         dlg = dlgEditCalPoint(self, data)
         if dlg.ShowModal() == wx.ID_OK:
-            self.calpoint_listbox.SetItem(selected[0], 0, dlg.tcUntil.GetValue())
+            self.calpoint_listbox.SetItem(selected[0], 0, dlg.tcFrom.GetValue())
             self.calpoint_listbox.SetItem(selected[0], 1, dlg.tcUntil.GetValue())
             self.calpoint_listbox.SetItem(selected[0], 2, dlg.tcPoint.GetValue())
 
