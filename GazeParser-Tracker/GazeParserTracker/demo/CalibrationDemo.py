@@ -5,7 +5,6 @@ import psychopy.gui
 import psychopy.monitors
 import GazeParser.TrackingTools
 import sys
-import numpy as np
 
 if __name__ == '__main__':
     dlg = psychopy.gui.Dlg(title='GazeParser.TrackingTools.Tracker calibration demo')
