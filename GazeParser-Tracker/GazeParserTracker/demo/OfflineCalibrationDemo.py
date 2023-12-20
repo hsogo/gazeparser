@@ -6,7 +6,6 @@ import psychopy.monitors
 import cv2
 import threading
 import sys
-import argparse
 
 frame_counter = 0
 cap = cv2.VideoCapture()
@@ -55,8 +54,11 @@ def capture(lock):
         if ret:
             if writer.isOpened():
                 lock.acquire()
-                writer.write(frame)
-                frame_counter += 1
+                try:
+                    writer.write(frame)
+                    frame_counter += 1
+                except:
+                    print('warning:failed to write frame')
                 lock.release()
 
 
@@ -181,6 +183,9 @@ if __name__ == '__main__':
 
     fp.close()
     writer.release()
+    if use_tobii:
+        controller.unsubscribe()
+        controller.subscribe(wait=True)
 
     fp = open(filename+'_2.csv','w')
     fp.write('From,Until,Point\n')
