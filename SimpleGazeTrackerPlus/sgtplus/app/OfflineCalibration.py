@@ -23,7 +23,6 @@ from ..core.eye import eye_filter, eyedata
 from ..core.face import facedata, get_face_boxes, get_face_landmarks
 from ..core.screen import screen
 from ..core.util import LM_calibration, calc_calibration_results, calc_gaze_position
-from ..core.iris_detectors import get_iris_detector
 from ._dialogs import (DlgAskopenfilename, DlgAsksaveasfilename, DlgAskyesno,
                         DlgShowerror, DlgShowinfo)
 from ._util import load_gptracker_config
@@ -218,8 +217,8 @@ class gazeResultsDialog(wx.Dialog):
             #p = str2points(self.parent.calpoint_listbox.GetItem(calpoint_idx, 2).GetText())
 
             w = uidx-fidx
-            b = min(self.L.nanmin(),self.R.nanmin())
-            h = max(self.L.nanmax(),self.R.nanmax())-b
+            b = min(np.nanmin(self.L),np.nanmin(self.R))
+            h = max(np.nanmax(self.L),np.nanmax(self.R))-b
             b -= 0.1*h
             h += 0.2*h
             print('hoge:',w,b,h)
@@ -978,9 +977,7 @@ class offline_calibration_app(wx.Frame):
 
             idx = 0
             for data in csvreader:
-                try:
-                    int(data[0])
-                except:
+                if not data[0].isnumeric():
                     continue
 
                 self.calpoint_listbox.InsertItem(idx, data[0])
@@ -1223,7 +1220,7 @@ class offline_calibration_app(wx.Frame):
 if __name__ == '__main__':
 
     conf = configuration()
-    arg_parser = argparse.ArgumentParser(description='GazeParser-Tracker offline calibration')
+    arg_parser = argparse.ArgumentParser(description='SimpleGazeTrackerPlus offline calibration')
     arg_parser.add_argument('--camera_param', type=str, help='camera parameters file')
     arg_parser.add_argument('--face_model', type=str, help='face model file')
     arg_parser.add_argument('--iris_detector', type=str, help='iris detector (ert, peak, enet or path to detector)')

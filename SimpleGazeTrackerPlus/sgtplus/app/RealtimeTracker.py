@@ -663,7 +663,7 @@ class Tracker(wx.Frame):
 if __name__ == '__main__':
 
     conf = configuration()
-    arg_parser = argparse.ArgumentParser(description='GazeParser-Tracker realtime tracker')
+    arg_parser = argparse.ArgumentParser(description='SimpleGazeTrackerPlus realtime tracker')
     arg_parser.add_argument('--camera_param', type=str, help='camera parameters file')
     arg_parser.add_argument('--face_model', type=str, help='face model file')
     arg_parser.add_argument('--iris_detector', type=str, help='iris detector (ert, peak, enet or path to detector)')

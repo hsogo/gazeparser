@@ -17,7 +17,7 @@ input_height = 128
 # Set equal value for rs and rl to represent circle.
 
 # https://blog.shikoan.com/tf-save-and-load-optimizer-value/
-enet = EnetModel(C=3, MultiObjective=True, l2=1e-3)
+enet = EnetModel(C=3, MultiObjective=False, l2=1e-3)
 for layer in enet.layers[-6:]:
     layer.trainable = True
 for layer in enet.layers[:-6]:
@@ -35,7 +35,7 @@ enet.optimizer.apply_gradients(zip(zero_grad, enet.weights))
 enet.load_weights(str(module_dir/'enet'/'enet_mono')).expect_partial()
 enet(np.zeros((1, input_height, input_width, 3),dtype=np.float)) #run once to suppress warnings
 
-def enet_detector(eyedata):
+def enet_detector(eyedata, debug=False):
     if eyedata.image.shape != (input_height, input_width):
         raise ValueError('Image size must be {}'.format((input_height*2, input_width)))
 
@@ -44,7 +44,7 @@ def enet_detector(eyedata):
     iris_cand_max = eyelid_w/1.5  # iris should be narrower than  1/1.5 (i.e. 2/3) of eyelid_w
     colored = cv2.cvtColor(eyedata.image, cv2.COLOR_GRAY2RGB)
     input_img = np.array([colored.astype(np.float32)/256])
-    _, dec_probs = enet(input_img)
+    dec_probs = enet(input_img)
     mask = tf.argmax(dec_probs, axis=-1)
     mask = mask[..., tf.newaxis].numpy()[0,:,:,0]
     iris_area = (mask==2).astype(np.uint8)
@@ -56,6 +56,9 @@ def enet_detector(eyedata):
         if eyelid_w*3/4 < bbox[2] < eyelid_w*5/4:
             break
     else:
+        if debug:
+            return {'status':'Error:Circular countor was not found',
+                    'eyelid_contour':eyelid_contour}
         return
     eyelid_p = eyelid_contour[0][i][:,0,:]
     for i in range(len(iris_contour[0])):
@@ -63,6 +66,9 @@ def enet_detector(eyedata):
         if iris_cand_min < min(bbox[2:]) and max(bbox[2:]) < iris_cand_max:
             break
     else:
+        if debug:
+            return {'status':'Error:Candidate region is too small or too large',
+                    'eyelid_p':eyelid_p}
         return
     iris_p = iris_contour[0][i][:,0,:]
     #remove eyelid contour from iris contour
@@ -72,11 +78,14 @@ def enet_detector(eyedata):
         # if p is in eyelid_contour, `(eq[:,0]*eq[:,1]).any()`` is True.
         # So, append `not (eq[:,0]*eq[:,1]).any()` to the list.
         unique_iris_contour.append(not (eq[:,0]*eq[:,1]).any())
-    p = iris_p[unique_iris_contour,:]
+    unique_iris_p = iris_p[unique_iris_contour,:]
     try:
-        r = cv2.fitEllipse(p)
+        r = cv2.fitEllipse(unique_iris_p)
     except:
-        return # failed
+        if debug:
+            return {'status':'Error:fitEllipse failed',
+                    'unique_iris_p':unique_iris_p}
+        return
     if r[1][1] > iris_cand_max or r[1][0] < iris_cand_min:
         return # too large or too small
     eyedata.iris_center = np.array((r[0][0], r[0][1]))
@@ -102,10 +111,31 @@ def enet_detector(eyedata):
         u_1 = upper[((upper[:,0]-xm1)**2).argmin(),:]
         u_2 = upper[((upper[:,0]-xm2)**2).argmin(),:]
     except:
-        print(eyelid_contour,len(eyelid_contour[0]),eyelid_p,ixmin,ixmax,e_1,e_2,lower,upper,xm1,xm2)
+        if debug:
+            return {'status':'Error:failed to get eyelid',
+                    'lower':lower,
+                    'upper':upper,
+                    'xm1':xm1,
+                    'xm2':xm2}         
         return
 
     eyedata.eyelid_ends = np.array((e_1, e_2))
     eyedata.eyelid_top = np.array((u_1, u_2))
     eyedata.eyelid_bottom = np.array((l_1, l_2))
     eyedata.eyelid_points = np.vstack((eyedata.eyelid_ends, eyedata.eyelid_top, eyedata.eyelid_bottom))
+
+    if debug:
+        return {'status':'Success',
+                'eyelid_contour':eyelid_contour,
+                'n_contour_points':len(eyelid_contour[0]),
+                'unique_iris_p':unique_iris_p,
+                'eyelid_p':eyelid_p,
+                'ixmin':ixmin,
+                'ixmax':ixmax,
+                'e_1':e_1,
+                'e_2':e_2,
+                'lower':lower,
+                'upper':upper,
+                'xm1':xm1,
+                'xm2':xm2}
+         

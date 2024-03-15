@@ -17,7 +17,6 @@ from ..core.data import gazedata
 from ..core.eye import eye_filter, eyedata
 from ..core.face import facedata, get_face_boxes, get_face_landmarks
 from ..core.screen import screen
-from ..core.iris_detectors import get_iris_detector
 from ._dialogs import (DlgAskopenfilename, DlgAskyesno,
                         DlgAsksaveasfilename, DlgShowerror, DlgShowinfo)
 from ._util import load_gptracker_config
@@ -597,7 +596,7 @@ class Offline_Tracker(wx.Frame):
             filename = event
             open_mode = self.config.datafile_open_mode
         else:
-            filename = DlgAsksaveasfilename(self, filetypes='GazeParser Tracker datafile (*.csv)|*.csv')
+            filename = DlgAsksaveasfilename(self, filetypes='SimpleGazeTrackerPlus datafile (*.csv)|*.csv')
             if filename == '':
                 return
             if Path(filename).exists():
@@ -786,7 +785,7 @@ class Offline_Tracker(wx.Frame):
 if __name__ == '__main__':
 
     conf = configuration()
-    arg_parser = argparse.ArgumentParser(description='GazeParser-Tracker offline tracker')
+    arg_parser = argparse.ArgumentParser(description='SimpleGazeTrackerPlus offline tracker')
     arg_parser.add_argument('--camera_param', type=str, help='camera parameters file')
     arg_parser.add_argument('--face_model', type=str, help='face model file')
     arg_parser.add_argument('--iris_detector', type=str, help='iris detector (ert, peak, enet or path to detector')

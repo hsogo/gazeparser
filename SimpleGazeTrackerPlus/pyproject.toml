@@ -3,8 +3,8 @@ requires = ["pdm-backend",]
 build-backend = "pdm.backend"
 
 [project]
-name = "GazeParser-Tracker"
-version = "0.12.1"
+name = "SimpleGazeTracker-Plus"
+version = "0.1.0"
 authors = [{name="Hiroyuki Sogo", email="hsogo12600@gmail.com>"},]
 maintainers = [{name="Hiroyuki Sogo", email="hsogo12600@gmail.com>"},]
 description = "Gaze tracking, parsing and visualization tools"

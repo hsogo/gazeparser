@@ -12,7 +12,7 @@ from ..core.screen import screen
 
 if __name__ == '__main__':
 
-    arg_parser = argparse.ArgumentParser(description='GazeParser-Tracker performance test')
+    arg_parser = argparse.ArgumentParser(description='SimpleGazeTrackerPlus performance test')
     arg_parser.add_argument('-i', '--image', type=str, help='Image file or folder', required=True)
     arg_parser.add_argument('-f', '--face_model', type=str, help='face model file')
     arg_parser.add_argument('-c', '--camera_caldata', type=str, help='camera calibration file')

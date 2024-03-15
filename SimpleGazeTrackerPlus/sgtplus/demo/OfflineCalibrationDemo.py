@@ -70,7 +70,7 @@ if __name__ == '__main__':
     dlg.addField('Screen width(cm)','51.8')
     dlg.addField('PsychoPy Monitor name','')
     dlg.addField('Full Scrren mode',choices=[True,False])
-    dlg.addField('Filename (without file extension)','offline_cal')
+    dlg.addField('Filename (without file extension)','cal')
     dlg.addField('OpenCV Camera ID','0')
     dlg.addField('Use Tobii',choices=[False,True])
     params = dlg.show()
