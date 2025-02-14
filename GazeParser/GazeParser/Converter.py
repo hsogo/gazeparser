@@ -144,19 +144,20 @@ def buildEventListBinocular(T, LHV, RHV, config):
     sacCand = []
     sacCandDur = []
     # check binocular coincidence
-    for idx in range(len(sacCandL)):
-        overlap = np.where((sacCandR[:, 1] >= sacCandL[idx, 0]) &
-                              (sacCandR[:, 0] <= sacCandL[idx, 1]))[0]
-        if len(overlap) > 0:
-            startIndex = min(sacCandL[idx, 0], sacCandR[overlap[0], 0])
-            endIndex = max(sacCandL[idx, 1], sacCandR[overlap[-1], 1])
-            if len(sacCand) > 0 and sacCand[-1][1] > startIndex:
-                pass
-            else:
-                sacCand.append([startIndex, endIndex])
-                sacCandDur.append(T[endIndex]-T[startIndex])
-    sacCand = np.array(sacCand, dtype=np.int32)
-    sacCandDur = np.array(sacCandDur)
+    if len(sacCandL)>0 and len(sacCandR)>0:
+        for idx in range(len(sacCandL)):
+            overlap = np.where((sacCandR[:, 1] >= sacCandL[idx, 0]) &
+                                (sacCandR[:, 0] <= sacCandL[idx, 1]))[0]
+            if len(overlap) > 0:
+                startIndex = min(sacCandL[idx, 0], sacCandR[overlap[0], 0])
+                endIndex = max(sacCandL[idx, 1], sacCandR[overlap[-1], 1])
+                if len(sacCand) > 0 and sacCand[-1][1] > startIndex:
+                    pass
+                else:
+                    sacCand.append([startIndex, endIndex])
+                    sacCandDur.append(T[endIndex]-T[startIndex])
+        sacCand = np.array(sacCand, dtype=np.int32)
+        sacCandDur = np.array(sacCandDur)
 
     if len(sacCand) > 0:
         # amplitude
@@ -217,7 +218,6 @@ def buildEventListBinocular(T, LHV, RHV, config):
         fixCandDur = np.array([T[-1]-T[0]])
 
     # find blinks
-    # TODO: check break of fixation and saccades by blink.
     if len(blinkCandDur) > 0:
         idx = blinkCandDur > config.BLINK_MINIMUM_DURATION
         blinkCand = blinkCand[idx, :]
@@ -327,7 +327,6 @@ def buildEventListMonocular(T, HV, config):
         fixCandDur = np.array([T[-1]-T[0]])
 
     # find blinks
-    # TODO: check break of fixation and saccades by blink.
     if len(blinkCandDur) > 0:
         idx = blinkCandDur > config.BLINK_MINIMUM_DURATION
         blinkCand = blinkCand[idx, :]
@@ -532,18 +531,22 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
         print('TrackerToGazeParser start.')
         print('source file: %s' % inputfile)
     if os.path.exists(dstFileName) and (not overwrite):
-        if verbose: print('Target file (%s) already exist.' % dstFileName)
+        if verbose:
+            print('Target file (%s) already exist.' % dstFileName)
         return 'TARGET_FILE_ALREADY_EXISTS'
 
     if not isinstance(config, GazeParser.Configuration.Config):
         if isinstance(config, str):
-            if verbose: print('Load configuration file: %s' % config)
+            if verbose:
+                print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif has_pathlib and isinstance(config, pathlib.Path):
-            if verbose: print('Load configuration file: %s' % str(config))
+            if verbose:
+                print('Load configuration file: %s' % str(config))
             config = GazeParser.Configuration.Config(ConfigFile=str(config))
         elif config is None:
-            if verbose: print('Use default configuration.')
+            if verbose:
+                print('Use default configuration.')
             config = GazeParser.Configuration.Config()
         else:
             raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
@@ -586,12 +589,14 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     flgInBlock = False
     isCheckedEffectiveDigit = False
     effectiveDigit = 2
-    if verbose: print('parsing...')
+    if verbose:
+        print('parsing...')
     
     line = fid.readline()
     if line.rstrip() != '#SimpleGazeTrackerDataFile':
         fid.close()
-        if verbose: print('Not a SimpleGazeTracker data file.')
+        if verbose:
+            print('Not a SimpleGazeTracker data file.')
         return 'NOT_SIMPLEGAZETRACKER_FILE'
 
     for line in fid:
@@ -713,7 +718,8 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                     idxT = idxX = idxY = idxP = idxC = idxUSBIO = None
                     idxLX = idxLY = idxRX = idxRY = idxLP = idxRP = None
                     tmp = []
-                    if verbose: print(itemList)
+                    if verbose:
+                        print(itemList)
                     for i in range(len(itemList)-1):
                         if itemList[i+1].find('USBIO;') == 0:  # support USBIO
                             idxUSBIO = i
@@ -746,7 +752,8 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                                 idxRP = i
                             cmd = '{}={}'.format(itemList[i+1],i)
                         tmp.append(cmd)
-                    if verbose: print('DATAFORMAT: %s' % (','.join(tmp)))
+                    if verbose:
+                        print('DATAFORMAT: %s' % (','.join(tmp)))
 
                 # Nothing to do against these options
                 elif itemList[0] in ['#STOP_REC', '#TRACKER_VERSION']:
@@ -756,22 +763,27 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 elif useFileParameters:
                     optName = itemList[0][1:]
                     if optName in GazeParser.Configuration.GazeParserDefaults:
-                        if type(GazeParser.Configuration.GazeParserDefaults[optName]) == float:
+                        if isinstance(GazeParser.Configuration.GazeParserDefaults[optName], float):
                             setattr(config, optName, float(itemList[1]))
-                            if verbose: print('%s = %f' % (optName, getattr(config, optName)))
-                        elif type(GazeParser.Configuration.GazeParserDefaults[optName]) == int:
+                            if verbose:
+                                print('%s = %f' % (optName, getattr(config, optName)))
+                        elif isinstance(GazeParser.Configuration.GazeParserDefaults[optName], int):
                             setattr(config, optName, int(itemList[1]))
-                            if verbose: print('%s = %d' % (optName, getattr(config, optName)))
+                            if verbose:
+                                print('%s = %d' % (optName, getattr(config, optName)))
                         else:  # str
                             setattr(config, optName, itemList[1])
 
-                            if verbose: print('%s = %s' % (optName, getattr(config, optName)))
+                            if verbose:
+                                print('%s = %s' % (optName, getattr(config, optName)))
                     else:
-                        if verbose: print('Warning: unknown option ({})'.format(optName))
+                        if verbose:
+                            print('Warning: unknown option ({})'.format(optName))
 
                 # output unprocessed parameters if verbose==True
                 else:
-                    if verbose: print('Warning: ignored option ({})'.format(optName))
+                    if verbose:
+                        print('Warning: ignored option ({})'.format(optName))
         else:  # gaze data
             if not isCheckedEffectiveDigit:
                 if config.RECORDED_EYE == 'B':
@@ -841,7 +853,8 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
                 except:
                     C.append(itemList[idxUSBIO])
 
-    if verbose: print('saving...')
+    if verbose:
+        print('saving...')
     if os.path.exists(additionalDataFileName):
         adfp = codecs.open(additionalDataFileName, 'r', 'utf-8')
         ad = []
@@ -860,7 +873,8 @@ def TrackerToGazeParser(inputfile, overwrite=False, config=None, useFileParamete
     else:
         GazeParser.save(dstFileName, Data)
 
-    if verbose: print('done.')
+    if verbose:
+        print('done.')
     return 'SUCCESS'
 
 
@@ -890,8 +904,9 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, un
     effectiveDigit = 2
 
     if unitcnv is not None:
-        if not (unitcnv in ('height2pix',)):
-            if verbose: print('Invalid unit conversion (%s).' % unitcnv)
+        if unitcnv not in ('height2pix',):
+            if verbose:
+                print('Invalid unit conversion (%s).' % unitcnv)
             return 'INVALID_UNIT_CONVERSION'
 
     (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
@@ -903,20 +918,25 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, un
     else:
         dstFileName = os.path.join(workDir, outputfile)
 
-    if verbose: print('TobiiToGazeParser start.')
+    if verbose:
+        print('TobiiToGazeParser start.')
     if os.path.exists(dstFileName) and (not overwrite):
-        if verbose: print('Can not open %s.' % dstFileName)
+        if verbose:
+            print('Can not open %s.' % dstFileName)
         return 'CANNOT_OPEN_OUTPUT_FILE'
 
     if not isinstance(config, GazeParser.Configuration.Config):
         if isinstance(config, str):
-            if verbose: print('Load configuration file: %s' % config)
+            if verbose:
+                print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif has_pathlib and isinstance(config, pathlib.Path):
-            if verbose: print('Load configuration file: %s' % str(config))
+            if verbose:
+                print('Load configuration file: %s' % str(config))
             config = GazeParser.Configuration.Config(ConfigFile=str(config))
         elif config is None:
-            if verbose: print('Use default configuration.')
+            if verbose:
+                print('Use default configuration.')
             config = GazeParser.Configuration.Config()
         else:
             raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
@@ -1026,9 +1046,11 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, un
     # last fixation ... check exact format of Tobii data later.
     # FIX.append(int(itemList[field['TimeStamp']]))
 
-    if verbose: print('saving...')
+    if verbose:
+        print('saving...')
     if os.path.exists(additionalDataFileName):
-        if verbose: print('Additional data file is found.')
+        if verbose:
+            print('Additional data file is found.')
         adfp = open(additionalDataFileName)
         ad = []
         for line in adfp:
@@ -1046,7 +1068,8 @@ def PTCToGazeParser(inputfile, overwrite=False, config=None, outputfile=None, un
     else:
         GazeParser.save(dstFileName, Data)
 
-    if verbose: print('done.')
+    if verbose:
+        print('done.')
     return 'SUCCESS'
 
 
@@ -1084,14 +1107,16 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
         Default value is None (no conversion).
     """
     if not has_h5py:
-        if verbose: print('h5py package is required for PPHDF5ToGazeParser.')
+        if verbose:
+            print('h5py package is required for PPHDF5ToGazeParser.')
         return 'NO_H5PY'
 
     effectiveDigit = 2
 
     if unitcnv is not None:
-        if not (unitcnv in ('height2pix',)):
-            if verbose: print('Invalid unit conversion (%s).' % unitcnv)
+        if unitcnv not in ('height2pix',):
+            if verbose:
+                print('Invalid unit conversion (%s).' % unitcnv)
             return 'INVALID_UNIT_CONVERSION'
 
     (workDir, srcFilename) = os.path.split(os.path.abspath(inputfile))
@@ -1103,20 +1128,25 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
     else:
         dstFileName = os.path.join(workDir, outputfile)
 
-    if verbose: print('PsychoPyHDF5ToGazeParser start.')
+    if verbose:
+        print('PsychoPyHDF5ToGazeParser start.')
     if os.path.exists(dstFileName) and (not overwrite):
-        if verbose: print('Can not open %s.' % dstFileName)
+        if verbose:
+            print('Can not open %s.' % dstFileName)
         return 'CANNOT_OPEN_OUTPUT_FILE'
 
     if not isinstance(config, GazeParser.Configuration.Config):
         if isinstance(config, str):
-            if verbose: print('Load configuration file: %s' % config)
+            if verbose:
+                print('Load configuration file: %s' % config)
             config = GazeParser.Configuration.Config(ConfigFile=config)
         elif has_pathlib and isinstance(config, pathlib.Path):
-            if verbose: print('Load configuration file: %s' % str(config))
+            if verbose:
+                print('Load configuration file: %s' % str(config))
             config = GazeParser.Configuration.Config(ConfigFile=str(config))
         elif config is None:
-            if verbose: print('Use default configuration.')
+            if verbose:
+                print('Use default configuration.')
             config = GazeParser.Configuration.Config()
         else:
             raise ValueError('config must be GazeParser.Configuration.Config, str, unicode or None.')
@@ -1221,9 +1251,11 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
         Data.append(G)
 
 
-    if verbose: print('saving...')
+    if verbose:
+        print('saving...')
     if os.path.exists(additionalDataFileName):
-        if verbose: print('Additional data file is found.')
+        if verbose:
+            print('Additional data file is found.')
         adfp = open(additionalDataFileName)
         ad = []
         for line in adfp:
@@ -1241,5 +1273,6 @@ def PPHDF5ToGazeParser(inputfile, overwrite=False, config=None, outputfile=None,
     else:
         GazeParser.save(dstFileName, Data)
 
-    if verbose: print('done.')
+    if verbose:
+        print('done.')
     return 'SUCCESS'
