@@ -409,7 +409,6 @@ int initUSBIO(void)
 	}
 	if(g_USBIOBoard.c_str()==p) // strtol was failed.
 	{	//Guess Product ID
-		printf("hoge %s\n",g_USBIOBoard.c_str());
 		if(FAILED(g_BoardNum = getProductIDValue(g_USBIOBoard.c_str()))){
 			snprintf(g_errorMessage, sizeof(g_errorMessage), "Failed to open USB I/O board (%s).\nCheck %s in %s.", g_USBIOBoard.c_str(), g_ConfigFileName.c_str(), g_ParamPath.c_str());
 			g_LogFS << "ERROR: Could not open USB I/O board. Board number (=" << g_USBIOBoard << ") seems invalid." << std::endl;
