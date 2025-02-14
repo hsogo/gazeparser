@@ -1,6 +1,6 @@
 """
 .. Part of GazeParser package.
-.. Copyright (C) 2012-2015 Hiroyuki Sogo.
+.. Copyright (C) 2012-2023 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 
 """
@@ -50,12 +50,15 @@ class ControllerPsychoPyBackend(BaseController):
         self.win = win
         (self.screenWidth, self.screenHeight) = win.size
         self.screenCenter = (0, 0)
-        self.caltarget = [psychopy.visual.Rect(self.win, width=10, height=10, units='pix', lineWidth=1, fillColor=(1, 1, 1), lineColor=(1, 1, 1), name='GazeParserCalTarget'),
-                          psychopy.visual.Rect(self.win, width=10, height=10, units='pix', lineWidth=1, fillColor=(1, 1, -1), lineColor=(-1, -1, -1), name='GazeParserCalTarget2')]
+        caltarget_w = np.ceil(self.screenHeight*0.01) 
+        caltarget_h = np.ceil(self.screenHeight*0.01)
+        font_size = np.ceil(self.screenHeight*0.03)
+        self.caltarget = [psychopy.visual.Rect(self.win, width=caltarget_w, height=caltarget_h, units='pix', lineWidth=1, fillColor=(1, 1, 1), lineColor=(1, 1, 1), name='GazeParserCalTarget'),
+                          psychopy.visual.Rect(self.win, width=caltarget_w, height=caltarget_h, units='pix', lineWidth=1, fillColor=(1, 1, -1), lineColor=(-1, -1, -1), name='GazeParserCalTarget2')]
         self.PILimgCAL = Image.new('L', (self.screenWidth-self.screenWidth % 4, self.screenHeight-self.screenHeight % 4))
         self.img = psychopy.visual.SimpleImageStim(self.win, self.PILimg, name='GazeParserCameraImage')
         self.imgCal = psychopy.visual.SimpleImageStim(self.win, self.PILimgCAL, name='GazeParserCalibrationImage')
-        self.msgtext = psychopy.visual.TextStim(self.win, pos=(0, -self.PREVIEW_HEIGHT/2-12), units='pix', text=self.getCurrentMenuItem(), font=font, name='GazeParserMenuText')
+        self.msgtext = psychopy.visual.TextStim(self.win, pos=(0, -self.PREVIEW_HEIGHT/2-12), units='pix', text=self.getCurrentMenuItem(), font=font, name='GazeParserMenuText', height=font_size)
         self.calResultScreenOrigin = (self.screenWidth/2, self.screenHeight/2)
         self.mouse = psychopy.event.Mouse(win=self.win)
 
@@ -699,7 +702,7 @@ class ControllerPsychoPyBackend(BaseController):
         t1 = self.CALTARGET_MOTION_DURATION+self.CAL_GETSAMPLE_DELAY
         t2 = t1 + max(self.NUM_SAMPLES_PER_TRGPOS / self.CAMERA_SAMPLING_RATE, 1.0/60*2) # flash at reast 2 frames (@60fps)
         
-        if index != 0 and (t1 < t < t2):
+        if t1 < t < t2:
             self.caltarget[0].visible=True
             self.caltarget[1].visible=False
         else:

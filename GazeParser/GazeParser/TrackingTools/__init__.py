@@ -1,15 +1,12 @@
 """
 .. Part of GazeParser package.
-.. Copyright (C) 2012-2015 Hiroyuki Sogo.
+.. Copyright (C) 2012-2023 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 
 """
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
-from .PsychoPyBackend import ControllerPsychoPyBackend
-from .DummyPsychoPyBackend import DummyPsychoPyBackend
 
 def getController(backend, configFile=None, dummy=False):
     """
@@ -27,53 +24,23 @@ def getController(backend, configFile=None, dummy=False):
         raise ValueError('VisionEgg controller is obsolated.')
     elif backend == 'PsychoPy':
         if dummy:
+            try:
+                from .Controller.DummyPsychoPyBackend import DummyPsychoPyBackend
+            except:
+                raise RuntimeError('Failed to import dummy PsychoPy backend.  Is PsychoPy available?')
             return DummyPsychoPyBackend(configFile)
         else:
+            try:
+                from .Controller.PsychoPyBackend import ControllerPsychoPyBackend
+            except:
+                raise RuntimeError('Failed to import PsychoPy backend.  Is PsychoPy available?')
             return ControllerPsychoPyBackend(configFile)
     else:
         raise ValueError('Unknown backend: '+str(backend))
 
-
 def cameraDelayEstimationHelper(screen, tracker):
     """
-    A simple tool to help estimating measurement delay.
-    See documents of GazeParser for detail.
-
-    :param screen: an instance of psychopy.visual.Window.
-    :param tracker: an instance of GazeParser.TrackingTools.ControllerPsychoPyBackend.
+    This function is obsolete.  Use GazeParser.app.tools.CameraDelayEstimator.
     """
-    if isinstance(tracker, ControllerPsychoPyBackend):
-        import psychopy.event
-        import psychopy.visual
-        msg = psychopy.visual.TextStim(screen, pos=(0, 0))
+    raise RuntimeError("This function is obsolete.  Use GazeParser.app.tools.CameraDelayEstimator.")
 
-        msg.setText('press space')
-        isWaiting = True
-        while isWaiting:
-            msg.draw()
-            screen.flip()
-            for key in psychopy.event.getKeys():
-                if key == 'space':
-                    isWaiting = False
-
-        tracker.sendCommand('inhibitRendering'+chr(0))
-
-        frame = 0
-        isRunning = True
-        while isRunning:
-            msg.setText(str(frame))
-            msg.draw()
-            screen.flip()
-
-            for key in psychopy.event.getKeys():
-                if key == 'escape':
-                    isRunning = False
-                elif key == 'space':
-                    tracker.sendCommand('saveCameraImage'+chr(0)+'FRAME'+str(frame).zfill(8)+'.bmp'+chr(0))
-
-            frame += 1
-
-        tracker.sendCommand('allowRendering'+chr(0))
-
-    else:
-        raise ValueError('Unknown controller.')
