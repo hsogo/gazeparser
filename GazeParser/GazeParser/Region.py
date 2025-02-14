@@ -58,6 +58,15 @@ class CircleRegion(object):
             else:
                 return False
 
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+        
+        msg += 'center=[{},{}], radius={}>'.format(
+            self.x, self.y, self.r)
+        
+        return msg
+
 
 class RectRegion(object):
     def __init__(self, x1, x2, y1, y2):
@@ -90,7 +99,7 @@ class RectRegion(object):
         self.y2 = y2
 
     def contains(self, data, mode='all'):
-        if not mode.lower() in ('all', 'any'):
+        if mode.lower() not in ('all', 'any'):
             raise ValueError('mode must be "all" or "any".')
 
         if hasattr(data[0], '__iter__'):  # assume list of points
@@ -110,6 +119,15 @@ class RectRegion(object):
                 return True
             else:
                 return False
+
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+        
+        msg += 'x1,x2,y1,y2=[{},{},{},{}], width={} height={}>'.format(
+            self.x1, self.x2, self.y1, self.y2, self.x2-self.x1, self.y2-self.y1)
+        
+        return msg
 
 class ImageRegion(object):
     def __init__(self, image, origin='center'):
@@ -145,6 +163,14 @@ class ImageRegion(object):
             else:
                 return False
 
+    def __repr__(self):
+        msg = '<{}.{}, '.format(self.__class__.__module__,
+                                self.__class__.__name__)
+        
+        msg += 'shape={}>'.format(
+            self.imageArray.shape)
+        
+        return msg
 
 
 def getFixationsInRegion(data, region, period=[None, None], useCenter=True, containsTime='all', containsTraj='all', eye=None, byIndices=False):
