@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Part of GazeParser library.
-Copyright (C) 2012-2023 Hiroyuki Sogo.
+Copyright (C) 2012-2025 Hiroyuki Sogo.
 Distributed under the terms of the GNU General Public License (GPL).
 
 Thanks to following page for embedded plot.

@@ -3,11 +3,11 @@ Upstream-Name: gazeparser
 Source: http://gazeparser.sourceforge.net/
 
 Files: *
-Copyright: 2012-2023 Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
+Copyright (C) 2012-2025 Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
 License: GPL-3.0+
 
 Files: debian/*
-Copyright: 2013 Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
+Copyright (C) 2013-2025 Hiroyuki Sogo <hsogo@ehime-u.ac.jp>
 License: GPL-3.0+
 
 License: GPL-3.0+
