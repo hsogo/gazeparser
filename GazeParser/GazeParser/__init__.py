@@ -8,7 +8,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-release_name = '0.12.1'
+release_name = '0.12.2'
 
 __version__ = release_name
 

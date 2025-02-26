@@ -5,7 +5,7 @@ Please read `<http://gazeparser.sourceforge.net/ins/index.html>`_ for detail.
 ## For Windows users
 
 * Install following file or use pip.
-    - GazeParser-0.12.0/GazeParser-0.12.0.zip
+    - GazeParser-0.12.2/GazeParser-0.12.2.zip
 
 * GazeParser supports gaze data recorded by SimpleGazeTracker.  To install SimpleGazeTracker, downlowad the appropriate installer for your camera from the list below.
 

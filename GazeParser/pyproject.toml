@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "GazeParser"
-version = "0.12.1"
+version = "0.12.2"
 authors = [{name="Hiroyuki Sogo", email="hsogo12600@gmail.com>"},]
 maintainers = [{name="Hiroyuki Sogo", email="hsogo12600@gmail.com>"},]
 description = "Gaze tracking, parsing and visualization tools"

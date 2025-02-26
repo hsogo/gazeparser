@@ -4,9 +4,9 @@ import re
 import distutils.version
 
 s = re.compile('\d+\.\d+\.\d')
-files = ['GazeParser/setup.py',
+files = ['GazeParser/pyproject.toml',
          'GazeParser/GazeParser/__init__.py',
-         'GazeParser/Readme.rst',
+         'GazeParser/Readme.md',
          'GazeParser/GazeParser/app/viewer.cfg',
          'GazeParser/debian/changelog',
          'SimpleGazeTracker/configure.ac',
@@ -23,7 +23,7 @@ for file in files:
     fp = open(file,'r')
     for line in fp:
         m =s.search(line)
-        if m != None:
+        if m is not None:
             if(distutils.version.StrictVersion(latest) < distutils.version.StrictVersion(m.group(0)) ):
                 latest = m.group(0)
     print(latest, file)
