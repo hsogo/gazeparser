@@ -8,7 +8,7 @@ import os
 import traceback
 
 if __name__ == "__main__":
-    arg_parser = argparse.ArgumentParser(description='GazeParser commandline data converter for PsychoPy-Tobii-Controller data')
+    arg_parser = argparse.ArgumentParser(description='GazeParser commandline data converter for SimpleGazeTracker and PsychoPy-Tobii-Controller data')
     arg_parser.add_argument('input', type=str, help='input data file (accepts wildcard)')
     arg_parser.add_argument('--type', '-t', help='input type (if not specified, guessed from file extension)\n\tsgt: SimpleGazeTracker CSV file\n\tptc: PsychoPy-Tobii-Controller TSV file')
     arg_parser.add_argument('--output', '-o', type=str, help='output file (input must be a single file)')
