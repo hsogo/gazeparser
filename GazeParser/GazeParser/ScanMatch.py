@@ -82,8 +82,8 @@ class ScanMatch(object):
 
         self.intv = np.vectorize(int)
 
-        self.CreateSubMatrix()
-        self.GridMask()
+        self.createSubMatrix()
+        self.gridMask()
 
     def createSubMatrix(self, Threshold=None):
         if Threshold is not None:
