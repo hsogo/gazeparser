@@ -5,10 +5,6 @@
 
 .. note:: This module is under construction. Functions have not been tested.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import GazeParser.Core
 import numpy as np
 

@@ -3,15 +3,9 @@
 .. Copyright (C) 2012-2025 Hiroyuki Sogo.
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import matplotlib.pyplot as pyplot
 import numpy as np
 import GazeParser
-# from scipy import fftpack
-# from scipy.stats import nanstd, nanmean
 
 __version__ = GazeParser.release_name
 

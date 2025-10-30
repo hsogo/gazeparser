@@ -1,27 +1,16 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-import sys
 import os
 import numpy as np
-
-pillow = False
-
-try:
-    import Image, ImageTk
-except ImportError:
-    from PIL import Image, ImageTk
-    pillow = True
 
 import tkinter as Tkinter
 from tkinter import filedialog as tkFileDialog
 from tkinter import messagebox as tkMessageBox
 from tkinter import colorchooser as tkColorChooser
 
-
 import GazeParser.ScanMatch
 from GazeParser import homeDir
+
+from PIL import Image, ImageTk
+pillow = True
 
 class ScanMatchMatricesFromImage(Tkinter.Frame):
     def __init__(self, master=None):

@@ -29,10 +29,6 @@ REFERENCE:
  ScanMatch: a novel method for comparing fixation sequences.
  Behav Res Methods, 42(3), 692-700.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import numpy as np
 
 

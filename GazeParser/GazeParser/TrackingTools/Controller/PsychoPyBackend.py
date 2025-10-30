@@ -4,18 +4,9 @@
 .. Distributed under the terms of the GNU General Public License (GPL).
 
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 from .Base import BaseController
 
-try:
-    import Image
-    import ImageDraw
-except ImportError:
-    from PIL import Image
-    from PIL import ImageDraw
+from PIL import Image
 
 import numpy as np
 import time

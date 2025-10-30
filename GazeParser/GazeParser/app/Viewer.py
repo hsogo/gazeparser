@@ -9,10 +9,6 @@ Thanks to following page for embedded plot.
 * http://www.mailinglistarchive.com/html/matplotlib-users@lists.sourceforge.net/2010-08/msg00148.html
 
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os
 import sys
 from configparser import ConfigParser
