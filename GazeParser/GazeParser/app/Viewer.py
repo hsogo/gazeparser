@@ -14,10 +14,7 @@ import sys
 from configparser import ConfigParser
 import shutil
 import datetime
-try:
-    import Image
-except ImportError:
-    from PIL import Image
+from PIL import Image
 import GazeParser
 import GazeParser.Converter
 import GazeParser.Configuration

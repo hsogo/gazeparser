@@ -4,13 +4,6 @@
 .. Distributed under the terms of the GNU General Public License (GPL).
 
 """
-try:
-    import Image
-    import ImageDraw
-except ImportError:
-    from PIL import Image
-    from PIL import ImageDraw
-
 import socket
 import select
 import time
@@ -18,7 +11,6 @@ import datetime
 import random
 
 import os
-import sys
 import warnings
 
 import configparser
@@ -27,6 +19,9 @@ import shutil
 import numpy as np
 import GazeParser
 import GazeParser.Configuration
+
+from PIL import Image
+from PIL import ImageDraw
 
 ControllerDefaults = {
     'IMAGE_WIDTH': 320,
