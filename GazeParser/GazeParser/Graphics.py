@@ -7,9 +7,6 @@ import matplotlib.pyplot as pyplot
 import numpy as np
 import GazeParser
 
-__version__ = GazeParser.release_name
-
-
 def drawHeatMap(data, meshsize):
     """
     :param data: An instance of :class:`GazeParser.Core.GazeData` or a list of

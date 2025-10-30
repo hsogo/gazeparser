@@ -4,12 +4,11 @@
 .. Distributed under the terms of the GNU General Public License (GPL).
 """
 
-release_name = '0.12.2'
-
-__version__ = release_name
-
 import os
 import sys
+from importlib.metadata import version
+
+__version__ = version(__package__)
 
 appDir = os.path.abspath(os.path.dirname(__file__))
 if sys.platform == 'win32': #Windows
